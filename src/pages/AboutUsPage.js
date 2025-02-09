@@ -3,18 +3,13 @@ import { Container, Row, Col, Card, Image } from "react-bootstrap";
 
 const AboutPage = (props) => {
   return (
-    <div className="min-vh-100 bg-light">
+    <div className="homepage min-vh-100 bg-light">
       {/* Hero Section */}
-      <div className="bg-gradient text-white py-5 position-relative">
-        <Image
-          src="https://th.bing.com/th/id/R.99ba5f64629c1226cfa4b565428c6c0b?rik=y4P6RgqwTmVhsA&riu=http%3a%2f%2fgetwallpapers.com%2fwallpaper%2ffull%2f6%2f7%2fc%2f233765.jpg&ehk=FwW7FYNYKZjR9qHDq5RjoOvKOp3M1qH12b%2bXoba%2bwLs%3d&risl=&pid=ImgRaw&r=0"
-          alt="Cosplay Background"
-          className="position-absolute top-0 start-0 w-100 h-100  "
-        />
-        <Container className="text-center position-relative">
-          <h1 className="display-4 fw-bold">About CCSS</h1>
-          <p className="lead mt-3">
-            Bringing your favorite characters to life since 2020
+      <div className="hero-section bg-primary text-white py-5">
+        <Container>
+          <h1 className="display-4 fw-bold text-center">About Us</h1>
+          <p className="lead text-center mt-3">
+            Explore our story
           </p>
         </Container>
       </div>

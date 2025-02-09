@@ -1,7 +1,7 @@
 .homepage {
     .hero-section {
       position: relative;
-      background: linear-gradient(to right, #6a1b9a, #3f51b5);
+      background: linear-gradient(to right, #510545, #22668a);
       min-height: 60vh;
       display: flex;
       justify-content: center;
@@ -14,7 +14,7 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0, 0, 0, 0.5);
+        background: linear-gradient(to right, #510545, #22668a);
         z-index: 1;
       }
   

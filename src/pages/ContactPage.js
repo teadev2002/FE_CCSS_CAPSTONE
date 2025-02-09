@@ -4,13 +4,13 @@ import { MapPin, Phone, Mail, Clock, Send } from "lucide-react";
 
 const ContactPage = (props) => {
   return (
-    <div className="min-vh-100 bg-light">
-      {/* Contact Header */}
-      <div className="bg-gradient text-black py-5 text-center">
+    <div className="homepage min-vh-100 bg-light">
+      {/* Hero Section */}
+      <div className="hero-section bg-primary text-white py-5">
         <Container>
-          <h1 className="display-4 fw-bold">Contact Us</h1>
-          <p className="lead mt-3">
-            Get in touch with us for any inquiries about our cosplay services
+          <h1 className="display-4 fw-bold text-center">Contact</h1>
+          <p className="lead text-center mt-3">
+          Need support? Don't hesitate to send our team a message! 
           </p>
         </Container>
       </div>

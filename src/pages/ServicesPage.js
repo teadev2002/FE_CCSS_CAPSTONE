@@ -31,7 +31,7 @@ const ServicesPage = (props) => {
               />
             </Col>
             <Col md={6}>
-              <h2 className="fw-bold text-primary mb-4">{service.title}</h2>
+              <h2 className="fw-bold text-black mb-4">{service.title}</h2>
               <p className="text-muted mb-4">{service.description}</p>
               <ul className="list-unstyled mb-4">
                 {service.features.map((feature, idx) => (
