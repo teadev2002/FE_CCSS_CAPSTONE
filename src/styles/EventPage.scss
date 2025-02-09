@@ -1,0 +1,19 @@
+.event-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+  
+    &:hover {
+      transform: scale(1.03);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    }
+  
+    .event-image {
+      height: 200px;
+      object-fit: cover;
+    }
+  }
+  .abc{
+    padding: 5vh 0;
+  }
+  .hero-section > Container{
+    background-color:#3e2e62 ;
+  }
