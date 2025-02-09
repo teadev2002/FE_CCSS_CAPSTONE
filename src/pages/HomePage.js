@@ -81,7 +81,7 @@ const HomePage = (props) => {
 const featuredCharacters = [
   {
     id: 1,
-    name: "Yanfei-Ghenshin",
+    name: "Yanfei-Genshin",
     category: "Game",
     image:
       "https://th.bing.com/th/id/R.6f429d36ffe66cf79ee313893878eafc?rik=Fe%2bttJax2rzlkw&pid=ImgRaw&r=0",

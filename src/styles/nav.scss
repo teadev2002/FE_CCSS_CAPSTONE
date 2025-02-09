@@ -1,3 +1,88 @@
-.nav-link {
-    text-decoration: none;
+.navbar {
+  background: linear-gradient(90deg, #fce7f3 0%, #ffffff 100%);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+
+  .brand-container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    .brand-logo {
+      height: 3.5rem;
+      width: auto;
+      transition: transform 0.3s ease;
+
+      &:hover {
+        transform: scale(1.05);
+      }
+    }
+
+    .brand-name {
+      font-size: 1.75rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, #9333ea, #ec4899);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      letter-spacing: 0.05em;
+    }
   }
+
+  .nav-menu {
+    display: none;
+    gap: 2rem;
+
+    @media (min-width: 768px) {
+      display: flex;
+      align-items: center;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      color: #4b5563;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      position: relative;
+
+      &:hover {
+        color: #ec4899;
+        transform: translateY(-2px);
+      }
+
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background: linear-gradient(90deg, #9333ea, #ec4899);
+        transition: width 0.3s ease;
+      }
+
+      &:hover::after {
+        width: 100%;
+      }
+
+      &.nav-link-active {
+        color: #ec4899;
+        background-color: rgba(255, 255, 255, 0.8);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+
+        &::after {
+          width: 100%;
+        }
+      }
+
+      span {
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+    }
+  }
+}
