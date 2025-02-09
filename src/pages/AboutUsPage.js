@@ -1,0 +1,142 @@
+import { Award, Users, Star } from "lucide-react";
+import { Container, Row, Col, Card, Image } from "react-bootstrap";
+
+const AboutPage = (props) => {
+  return (
+    <div className="min-vh-100 bg-light">
+      {/* Hero Section */}
+      <div className="bg-gradient text-white py-5 position-relative">
+        <Image
+          src="https://th.bing.com/th/id/R.99ba5f64629c1226cfa4b565428c6c0b?rik=y4P6RgqwTmVhsA&riu=http%3a%2f%2fgetwallpapers.com%2fwallpaper%2ffull%2f6%2f7%2fc%2f233765.jpg&ehk=FwW7FYNYKZjR9qHDq5RjoOvKOp3M1qH12b%2bXoba%2bwLs%3d&risl=&pid=ImgRaw&r=0"
+          alt="Cosplay Background"
+          className="position-absolute top-0 start-0 w-100 h-100  "
+        />
+        <Container className="text-center position-relative">
+          <h1 className="display-4 fw-bold">About CCSS</h1>
+          <p className="lead mt-3">
+            Bringing your favorite characters to life since 2020
+          </p>
+        </Container>
+      </div>
+
+      {/* Stats Section */}
+      <Container className="py-5">
+        <Row className="g-4 text-center">
+          {stats.map((stat) => (
+            <Col md={4} key={stat.label}>
+              <Card className="p-4 shadow-sm">
+                <stat.icon className="text-primary mb-3" size={48} />
+                <h2 className="display-6 fw-bold">{stat.value}</h2>
+                <p className="text-muted">{stat.label}</p>
+              </Card>
+            </Col>
+          ))}
+        </Row>
+      </Container>
+
+      {/* Our Story */}
+      <Container className="py-5 bg-white">
+        <Row className="align-items-center g-4">
+          <Col md={6}>
+            <Image
+              src="https://th.bing.com/th/id/R.16492cb98b426068bc50d74a9098d1c5?rik=LwwsNBXk4KHELg&riu=http%3a%2f%2fcdn.shopify.com%2fs%2ffiles%2f1%2f0598%2f9780%2f7027%2fproducts%2f3.4-1.jpg%3fv%3d1677899149&ehk=F65n5bub1vyNZxlY4DcQryN2EbM3%2beX3t8J8Wgv9HKg%3d&risl=&pid=ImgRaw&r=0"
+              alt="Our Story"
+              fluid
+              rounded
+              className="shadow-lg"
+            />
+          </Col>
+          <Col md={6}>
+            <h2 className="fw-bold">Our Story</h2>
+            <p>
+              Founded in 2020, CosplayVerse started as a small group of
+              passionate cosplayers who wanted to share their love for bringing
+              fictional characters to life.
+            </p>
+            <p>
+              What began as a hobby quickly grew into a professional service,
+              helping events, parties, and individual clients experience the
+              magic of cosplay.
+            </p>
+            <p>
+              Today, we're proud to be one of the leading cosplay service
+              providers, with a team of talented cosplayers and an extensive
+              collection of high-quality costumes.
+            </p>
+          </Col>
+        </Row>
+      </Container>
+
+      {/* Team Section */}
+      <Container className="py-5">
+        <h2 className="text-center fw-bold mb-5">Our Team</h2>
+        <Row className="g-4">
+          {team.map((member) => (
+            <Col md={4} key={member.name}>
+              <Card className="shadow-sm h-100">
+                <Image
+                  src={member.image}
+                  alt={member.name}
+                  className="w-100 h-50"
+                  fluid
+                />
+                <Card.Body>
+                  <Card.Title className="fw-bold">{member.name}</Card.Title>
+                  <Card.Subtitle className="mb-3 text-muted">
+                    {member.role}
+                  </Card.Subtitle>
+                  <Card.Text>{member.description}</Card.Text>
+                </Card.Body>
+              </Card>
+            </Col>
+          ))}
+        </Row>
+      </Container>
+    </div>
+  );
+};
+const stats = [
+  {
+    value: "500+",
+    label: "Events Completed",
+    icon: Award,
+  },
+  {
+    value: "50+",
+    label: "Professional Cosplayers",
+    icon: Users,
+  },
+  {
+    value: "1000+",
+    label: "Happy Clients",
+    icon: Star,
+  },
+];
+
+const team = [
+  {
+    name: "Sarah Chen",
+    role: "Lead Cosplayer & Founder",
+    image:
+      "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=800",
+    description:
+      "Professional cosplayer with 10+ years of experience in character portrayal and costume design.",
+  },
+  {
+    name: "Michael Rodriguez",
+    role: "Event Director",
+    image:
+      "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&q=80&w=800",
+    description:
+      "Expert in organizing large-scale cosplay events and managing client relationships.",
+  },
+  {
+    name: "Yuki Tanaka",
+    role: "Costume Designer",
+    image:
+      "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&q=80&w=800",
+    description:
+      "Award-winning costume designer specializing in anime and video game character adaptations.",
+  },
+];
+export default AboutPage;
