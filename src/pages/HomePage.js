@@ -123,22 +123,39 @@ import { Carousel, Container, Row, Col, Card, Button } from "react-bootstrap";
 const HomePage = () => {
   const carouselItems = [
     {
-      image:
-        "https://upload-os-bbs.hoyolab.com/upload/2022/07/28/75933071/6b062c3ba9d4a8a3e656344ce9546866_141203860423731661.jpg",
-      title: "Welcome to CosplayHub",
+      image: "https://wallpaper.dog/large/20692654.jpg",
+      title: "Welcome to CCSS",
       description: "Your Ultimate Cosplay Experience Awaits",
     },
     {
       image:
-        "https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/e199285e-9171-4f41-bac6-262d7db1516f/dfo5zmw-9d1c8f69-9435-41aa-a678-3fb7dd6e4a53.jpg/v1/fill/w_1024,h_693,q_75,strp/rosaria___genshin_impact_by_sandybphotography_dfo5zmw-fullview.jpg?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7ImhlaWdodCI6Ijw9NjkzIiwicGF0aCI6IlwvZlwvZTE5OTI4NWUtOTE3MS00ZjQxLWJhYzYtMjYyZDdkYjE1MTZmXC9kZm81em13LTlkMWM4ZjY5LTk0MzUtNDFhYS1hNjc4LTNmYjdkZDZlNGE1My5qcGciLCJ3aWR0aCI6Ijw9MTAyNCJ9XV0sImF1ZCI6WyJ1cm46c2VydmljZTppbWFnZS5vcGVyYXRpb25zIl19.nrVQcsQoUDEJenm8DqrqYgbfQY-M9HfmiPkfZ__rMpE",
-      title: "Hire a Cosplayer",
+        "https://images.hdqwalls.com/wallpapers/ciri-cosplay-girl-4k-30.jpg",
+      title: "Hire the Cosplayers",
+      description:
+        "Connect with professional cosplayers for events, promotions, or photoshoots",
+    },
+    {
+      image:
+        "https://vcdn1-sohoa.vnecdn.net/2024/05/12/z5432885222933-85c6b155d559b59-4082-7520-1715492735.jpg?w=1200&h=0&q=100&dpr=1&fit=crop&s=kjqb10SmWRSvvFEL2Wis-A",
+      title: "Event Organization",
+      description: "Making Your Cosplay Events Unforgettable",
+    },
+    {
+      image:
+        "https://danangfantasticity.com/wp-content/uploads/2023/05/nippon-oi-le-hoi-cosplay-anime-va-manga-hoanh-trang-nhat-mien-trung-chinh-thuc-tro-lai-01.jpg",
+      title: "Event Registration",
+      description: "Buy a ticket now to meet your idol!",
+    },
+    {
+      image: "https://w.wallhaven.cc/full/p9/wallhaven-p9kp1j.jpg",
+      title: "Professional Costume Rentals",
       description: "High-Quality Costumes for Every Character",
     },
     {
       image:
-        "https://i.pinimg.com/originals/68/49/7f/68497f56644bd06613dec15460c88839.jpg",
-      title: "Event Organization",
-      description: "Making Your Cosplay Events Unforgettable",
+        "https://i.pinimg.com/originals/20/9a/41/209a411e7fde3cd713dfe66a4c1bdf78.jpg",
+      title: "Buy Souvenirs",
+      description: "Find unique and memorable gifts for any occasion",
     },
     {
       image:

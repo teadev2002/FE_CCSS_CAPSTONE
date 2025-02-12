@@ -10,7 +10,7 @@ import {
   Shirt,
 } from "lucide-react";
 import Logo from "../../assets/img/CCSSlogo.png";
-import "../../styles/nav.scss";
+import "../../styles/Nav.scss";
 
 export function Navbar() {
   return (
