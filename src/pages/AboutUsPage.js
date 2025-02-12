@@ -34,7 +34,7 @@ const AboutPage = (props) => {
         <Row className="align-items-center g-4">
           <Col md={6}>
             <Image
-              src="https://th.bing.com/th/id/R.16492cb98b426068bc50d74a9098d1c5?rik=LwwsNBXk4KHELg&riu=http%3a%2f%2fcdn.shopify.com%2fs%2ffiles%2f1%2f0598%2f9780%2f7027%2fproducts%2f3.4-1.jpg%3fv%3d1677899149&ehk=F65n5bub1vyNZxlY4DcQryN2EbM3%2beX3t8J8Wgv9HKg%3d&risl=&pid=ImgRaw&r=0"
+              src="https://thumbs.dreamstime.com/b/our-story-comic-book-style-words-vector-illustrated-phrase-abstract-background-132419729.jpg"
               alt="Our Story"
               fluid
               rounded
@@ -72,7 +72,7 @@ const AboutPage = (props) => {
                 <Image
                   src={member.image}
                   alt={member.name}
-                  className="w-100 h-50"
+                  className="w-100 h-100"
                   fluid
                 />
                 <Card.Body>
