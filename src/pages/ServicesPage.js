@@ -69,22 +69,6 @@ const services = [
     ],
   },
   {
-    id: "event-organization",
-    title: "Event Organization",
-    description:
-      "Let us handle your cosplay event from start to finish. We provide comprehensive event planning services to ensure your cosplay gathering is a success.",
-    image:
-      "https://images.unsplash.com/photo-1591115765373-5207764f72e7?auto=format&fit=crop&q=80&w=800",
-    icon: Calendar,
-    features: [
-      "Full event planning and management",
-      "Venue selection and setup",
-      "Cosplayer coordination",
-      "Photography services",
-      "Technical support and equipment",
-    ],
-  },
-  {
     id: "costume-rental",
     title: "Costume Rental",
     description:
