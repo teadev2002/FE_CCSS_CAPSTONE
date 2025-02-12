@@ -90,7 +90,7 @@ const services = [
     description:
       "Access our extensive collection of high-quality cosplay costumes. Perfect for conventions, photoshoots, or special events.",
     image:
-      "https://images.unsplash.com/photo-1608889825205-eebdb9fc5806?auto=format&fit=crop&q=80&w=800",
+      "https://cdn11.bigcommerce.com/s-benuoohm6l/images/stencil/original/image-manager/web-banner-min.jpg?t=1706043818",
     icon: ShoppingBag,
     features: [
       "Wide selection of costumes and sizes",
@@ -98,6 +98,38 @@ const services = [
       "Accessories and props included",
       "Flexible rental periods",
       "Cleaning and maintenance service",
+    ],
+  },
+  {
+    id: "Sign up for photo and autograph session",
+    title: "Sign up for photo and autograph session",
+    description:
+      "Meet your idol! Sign up for a photo and autograph session and create lasting memories. ",
+    image:
+      "https://th.bing.com/th/id/R.e9cb89c4dfc29ac0733aac974bd733ae?rik=WDeiYtIE7BvK%2bA&riu=http%3a%2f%2fwww.anime-expo.org%2fwp-content%2fuploads%2f2017%2f08%2fAnime-Expo-Los-Angeles-Anime-Convention-Fan-Panel-Kobayashi-Maid-Dragon-2.png&ehk=jB4xHYQ%2bdg7LIzoodLWvqNJ%2bpWSJlFqUEd8RYPN1VfI%3d&risl=&pid=ImgRaw&r=0",
+    icon: ShoppingBag,
+    features: [
+      "Personal Interaction: Meet your idol face-to-face",
+      "Unique Keepsake: Get a personalized autograph.",
+      "Professional Photo: Capture the special moment.",
+      "Fun Experience: Enjoy an unforgettable event.",
+      "Fan Community: Connect with like-minded fans",
+    ],
+  },
+  {
+    id: "Selling Souvenirs",
+    title: "Selling Souvenirs",
+    description:
+      "Take home a piece of the magic! Our souvenirs offer lasting memories of your favorite moments.",
+    image:
+      "https://i.pinimg.com/originals/fa/c3/d3/fac3d32c173b45f909bdfafb42369d49.jpg",
+    icon: ShoppingBag,
+    features: [
+      "Enjoy unique collectibles",
+      "Quality craftsmanship",
+      "Professional Photo: Capture the special moment.",
+      "Perfect gifts",
+      "Tangible reminders of joy!",
     ],
   },
 ];
