@@ -45,3 +45,141 @@
     }
   }
   
+  // .homepage {
+  //   // Featured Characters
+  //   .featured-characters {
+  //     .character-card {
+  //       overflow: hidden;
+  //       transition: transform 0.3s ease, box-shadow 0.3s ease;
+  //       border: none;
+  //       &:hover {
+  //         transform: translateY(-10px);
+  //         box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+  //       }
+  
+  //       .card-img-container {
+  //         overflow: hidden;
+  //         .card-img-top {
+  //           transition: transform 0.4s ease;
+  //         }
+  //       }
+  
+  //       &:hover .card-img-top {
+  //         transform: scale(1.0);
+  //       }
+  
+  //       button {
+  //         transition: background-color 0.3s;
+  //         &:hover {
+  //           background-color: #4a148c;
+  //           color: #fff;
+  //         }
+  //       }
+  //     }
+  //   }
+  
+  //   // Featured Services
+  //   .featured-services {
+  //     .service-card {
+  //       overflow: hidden;
+  //       transition: transform 0.3s ease, box-shadow 0.3s ease;
+  //       border: none;
+  //       &:hover {
+  //         transform: translateY(-10px);
+  //         box-shadow: 0 20px 35px rgba(0, 0, 0, 0.15);
+  //       }
+  
+  //       .display-4 {
+  //         font-size: 3rem;
+  //         color: #6a1b9a;
+  //         transition: color 0.3s;
+  //       }
+  
+  //       &:hover .display-4 {
+  //         color: #4a148c;
+  //       }
+  
+  //       button {
+  //         border-radius: 50px;
+  //         transition: background-color 0.3s;
+  //         &:hover {
+  //           background-color: #4a148c;
+  //           color: #fff;
+  //         }
+  //       }
+  //     }
+  //   }
+  // }
+  
+
+
+.homepage {
+  // Character Cards
+  .featured-characters {
+    .card-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+      list-style: none;
+      padding: 0;
+      width: 100%;
+    }
+
+    .card-img-top {
+      display: block;
+      width: 100%;
+      height: auto;
+      transition: transform 0.3s ease;
+    }
+
+    li {
+      overflow: hidden;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      cursor: pointer;
+      text-align: center;
+      border-radius: 8px;
+      padding: 1rem;
+      background: white;
+
+      &:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+      }
+
+      &:hover .card-img-top {
+        transform: scale(1.0);
+      }
+    }
+  }
+
+  // Service Cards
+  .featured-services {
+    .service-card {
+      overflow: hidden;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      border-radius: 8px;
+      padding: 1.5rem;
+      background: white;
+
+      &:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 35px rgba(0, 0, 0, 0.15);
+      }
+
+      .display-4 {
+        font-size: 3rem;
+        color: #6a1b9a;
+        transition: color 0.3s;
+      }
+
+      &:hover .display-4 {
+        color: #4a148c;
+      }
+    }
+  }
+}
+
+// Blur effect for non-hovered cards
+.card-list:has(li:hover) li:not(:hover) {
+  filter: blur(4px);
+}

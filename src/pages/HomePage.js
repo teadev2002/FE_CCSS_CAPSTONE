@@ -21,32 +21,32 @@
 //         </div>
 //       </div>
 
-//       {/* Featured Characters */}
-//       <div className="featured-characters container py-5">
-//         <h2 className="text-center fw-bold mb-5"> Characters</h2>
-//         <div className="row g-4">
-//           {featuredCharacters.map((character) => (
-//             <div className="col-md-4" key={character.id}>
-//               <div className="card shadow-sm h-100">
-//                 <img
-//                   src={character.image}
-//                   alt={character.name}
-//                   className="card-img-top"
-//                 />
-//                 <div className="card-body">
-//                   <h5 className="card-title">{character.name}</h5>
-//                   <p className="card-text text-muted">{character.category}</p>
-//                 </div>
-//               </div>
-//             </div>
-//           ))}
-//         </div>
-//         <div className="text-center mt-4">
-//           <Link to="/characters" className="btn btn-outline-primary btn-lg">
-//             View All Characters
-//           </Link>
+// {/* Featured Characters */}
+// <div className="featured-characters container py-5">
+//   <h2 className="text-center fw-bold mb-5"> Characters</h2>
+//   <div className="row g-4">
+//     {featuredCharacters.map((character) => (
+//       <div className="col-md-4" key={character.id}>
+//         <div className="card shadow-sm h-100">
+//           <img
+//             src={character.image}
+//             alt={character.name}
+//             className="card-img-top"
+//           />
+//           <div className="card-body">
+//             <h5 className="card-title">{character.name}</h5>
+//             <p className="card-text text-muted">{character.category}</p>
+//           </div>
 //         </div>
 //       </div>
+//     ))}
+//   </div>
+//   <div className="text-center mt-4">
+//     <Link to="/characters" className="btn btn-outline-primary btn-lg">
+//       View All Characters
+//     </Link>
+//   </div>
+// </div>
 
 //       {/* Services Preview */}
 //       <div className="services-preview bg-light py-5">
@@ -118,8 +118,10 @@
 // ];
 // export default HomePage;
 import React from "react";
+import { Link } from "react-router-dom";
 import { Carousel, Container, Row, Col, Card, Button } from "react-bootstrap";
-
+import "bootstrap/dist/css/bootstrap.min.css";
+import "../styles/HomePage.scss";
 const HomePage = () => {
   const carouselItems = [
     {
@@ -195,8 +197,53 @@ const HomePage = () => {
     },
   ];
 
+  const featuredCharacters = [
+    {
+      id: 1,
+      name: "Yanfei-Genshin",
+      category: "Game",
+      image:
+        "https://th.bing.com/th/id/R.6f429d36ffe66cf79ee313893878eafc?rik=Fe%2bttJax2rzlkw&pid=ImgRaw&r=0",
+    },
+    {
+      id: 2,
+      name: "Naruto Uzumaki",
+      category: "Anime",
+      image:
+        "https://i0.wp.com/ic.pics.livejournal.com/mnarutocosplay/65073251/13297/13297_original.jpg",
+    },
+    {
+      id: 3,
+      name: "Spider-Man",
+      category: "Superhero",
+      image:
+        "https://i.etsystatic.com/6131164/r/il/364ff6/3627265229/il_fullxfull.3627265229_7wua.jpg",
+    },
+    {
+      id: 4,
+      name: "Wonder Woman",
+      category: "Superhero",
+      image:
+        "https://th.bing.com/th/id/OIP.1B088_74plokyoy-o7KI9gHaLH?rs=1&pid=ImgDetMain",
+    },
+    {
+      id: 5,
+      name: "Tanjiro Kamado",
+      category: "Anime",
+      image:
+        "https://preview.redd.it/tanjiro-kamado-cosplay-by-me-orion-v0-m6ydv6bvkscc1.jpeg?width=1080&crop=smart&auto=webp&s=c6587a373a9f90505eac9bd72dac5d7309403548",
+    },
+    {
+      id: 6,
+      name: "Master Chief",
+      category: "Game",
+      image:
+        "https://i.pinimg.com/originals/7d/95/66/7d9566482e181ef42d96c249f136f38c.jpg",
+    },
+  ];
+
   return (
-    <div>
+    <div className="homepage">
       <Carousel fade>
         {carouselItems.map((item, index) => (
           <Carousel.Item key={index}>
@@ -214,19 +261,101 @@ const HomePage = () => {
         ))}
       </Carousel>
 
-      <Container className="py-5">
-        <h2 className="text-center mb-5">Featured Services</h2>
-        <Row>
-          {services.map((service, index) => (
-            <Col key={index} md={4} className="mb-4">
-              <Card className="text-center h-100">
-                <Card.Body>
-                  <div className="display-4">{service.icon}</div>
-                  <Card.Title>{service.title}</Card.Title>
-                  <Card.Text>{service.description}</Card.Text>
-                  <Button variant="primary">Learn More</Button>
+      {/* Featured Characters */}
+      {/* <Container className="featured-characters py-5">
+        <h2 className="text-center fw-bold mb-5">Characters</h2>
+        <Row className="g-4">
+          {featuredCharacters.map((character) => (
+            <Col md={4} key={character.id}>
+              <Card className="shadow-sm h-100 character-card">
+                <Card.Img
+                  variant="top"
+                  src={character.image}
+                  alt={character.name}
+                />
+                <Card.Body className="d-flex flex-column">
+                  <Card.Title>{character.name}</Card.Title>
+                  <Card.Text className="text-muted">
+                    {character.category}
+                  </Card.Text>
+                  <Button
+                    variant="primary"
+                    className="mt-auto align-self-center"
+                  >
+                    Learn More
+                  </Button>
                 </Card.Body>
               </Card>
+            </Col>
+          ))}
+        </Row>
+        <div className="text-center mt-4">
+          <Link to="/characters" className="btn btn-outline-primary btn-lg">
+            View All Characters
+          </Link>
+        </div>
+      </Container> */}
+      <Container className="featured-characters py-5">
+        <h2 className="text-center fw-bold mb-5">Characters</h2>
+        <ul className="card-list">
+          {featuredCharacters.map((character) => (
+            <li
+              className="paper border shadow shadow-large shadow-hover"
+              key={character.id}
+            >
+              <img
+                src={character.image}
+                alt={character.name}
+                className="card-img-top"
+              />
+              <h2>{character.name}</h2>
+              <p className="text-muted">{character.category}</p>
+            </li>
+          ))}
+        </ul>
+        <div className="text-center mt-4">
+          <Link to="/characters" className="btn btn-outline-primary btn-lg">
+            View All Characters
+          </Link>
+        </div>
+      </Container>
+
+      {/* Featured Services */}
+      {/* <Container className="featured-services py-5">
+        <h2 className="text-center mb-5">Featured Services</h2>
+        <Row className="justify-content-center">
+          {services.map((service, index) => (
+            <Col md={4} key={index} className="mb-4">
+              <Card className="text-center h-100 service-card shadow-sm">
+                <Card.Body className="d-flex flex-column">
+                  <div className="display-4">{service.icon}</div>
+                  <Card.Title className="mt-3">{service.title}</Card.Title>
+                  <Card.Text className="text-muted">
+                    {service.description}
+                  </Card.Text>
+                  <Button
+                    variant="outline-primary"
+                    className="mt-auto align-self-center"
+                  >
+                    Learn More
+                  </Button>
+                </Card.Body>
+              </Card>
+            </Col>
+          ))}
+        </Row>
+      </Container> */}
+
+      <Container className="featured-services py-5">
+        <h2 className="text-center mb-5">Featured Services</h2>
+        <Row className="justify-content-center">
+          {services.map((service, index) => (
+            <Col md={4} key={index} className="mb-4">
+              <div className="paper border shadow shadow-large shadow-hover text-center h-100 service-card">
+                <div className="display-4">{service.icon}</div>
+                <h3 className="mt-3">{service.title}</h3>
+                <p className="text-muted">{service.description}</p>
+              </div>
             </Col>
           ))}
         </Row>
