@@ -124,21 +124,39 @@ const HomePage = () => {
   const carouselItems = [
     {
       image:
-        "https://images.unsplash.com/photo-1608889825205-eebdb9fc5806?auto=format&fit=crop&q=80&w=1920",
-      title: "Welcome to CosplayHub",
+        "https://wallpaper.dog/large/20692654.jpg",
+      title: "Welcome to CCSS",
       description: "Your Ultimate Cosplay Experience Awaits",
     },
     {
       image:
-        "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&q=80&w=1920",
+        "https://images.hdqwalls.com/wallpapers/ciri-cosplay-girl-4k-30.jpg",
+      title: "Hire the Cosplayers",
+      description: "Connect with professional cosplayers for events, promotions, or photoshoots",
+    },
+    {
+      image:
+        "https://vcdn1-sohoa.vnecdn.net/2024/05/12/z5432885222933-85c6b155d559b59-4082-7520-1715492735.jpg?w=1200&h=0&q=100&dpr=1&fit=crop&s=kjqb10SmWRSvvFEL2Wis-A",
+      title: "Event Organization",
+      description: "Making Your Cosplay Events Unforgettable",
+    },
+    {
+      image:
+        "https://danangfantasticity.com/wp-content/uploads/2023/05/nippon-oi-le-hoi-cosplay-anime-va-manga-hoanh-trang-nhat-mien-trung-chinh-thuc-tro-lai-01.jpg",
+      title: "Event Registration",
+      description: "Buy a ticket now to meet your idol!",
+    },
+    {
+      image:
+        "https://w.wallhaven.cc/full/p9/wallhaven-p9kp1j.jpg",
       title: "Professional Costume Rentals",
       description: "High-Quality Costumes for Every Character",
     },
     {
       image:
-        "https://images.unsplash.com/photo-1612036782180-6f0b6cd846fe?auto=format&fit=crop&q=80&w=1920",
-      title: "Event Organization",
-      description: "Making Your Cosplay Events Unforgettable",
+        "https://i.pinimg.com/originals/20/9a/41/209a411e7fde3cd713dfe66a4c1bdf78.jpg",
+      title: "Buy Souvenirs",
+      description: "Find unique and memorable gifts for any occasion",
     },
   ];
 

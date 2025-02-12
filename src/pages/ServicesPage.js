@@ -1,5 +1,6 @@
 import { Users, Calendar, ShoppingBag } from "lucide-react";
 import { Button, Container, Row, Col } from "react-bootstrap";
+import "../styles/HomePage.scss";
 
 const ServicesPage = (props) => {
   return (
@@ -67,7 +68,7 @@ const ServicesPage = (props) => {
 const services = [
   {
     id: "cosplayer-hire",
-    title: "Hire a Cosplayer",
+    title: "Hire the Cosplayers",
     description:
       "Book professional cosplayers for your events, parties, or photoshoots. Our talented team brings your favorite characters to life with authentic costumes and performances.",
     image:
