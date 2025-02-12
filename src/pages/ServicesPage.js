@@ -18,9 +18,8 @@ const ServicesPage = (props) => {
       <Container className="py-5">
         {services.map((service, index) => (
           <Row
-            className={`align-items-center mb-5 ${
-              index % 2 !== 0 ? "flex-row-reverse" : ""
-            }`}
+            className={`align-items-center mb-5 ${index % 2 !== 0 ? "flex-row-reverse" : ""
+              }`}
             key={service.id}
           >
             <Col md={6}>
@@ -41,9 +40,23 @@ const ServicesPage = (props) => {
                   </li>
                 ))}
               </ul>
-              <Button variant="primary" size="lg">
-                Book Now
+              <Button
+                variant="primary"
+                size="lg"
+                style={{
+                  background: "linear-gradient(135deg, #510545, #22668a)",
+                  border: "none",
+                  color: "white",
+                  fontWeight: "bold",
+                  transition: "all 0.3s ease",
+                }}
+                onMouseOver={(e) => (e.target.style.opacity = "0.8")}
+                onMouseOut={(e) => (e.target.style.opacity = "1")}
+              >
+                Explore Now!
               </Button>
+
+
             </Col>
           </Row>
         ))}
@@ -69,6 +82,20 @@ const services = [
     ],
   },
   {
+    id: "event-organization",
+    title: "Event Organization",
+    description: "Seamlessly plan and execute unforgettable events with our professional event organization services.",
+    image: "https://cybershow.vn/wp-content/uploads/2018/10/le-hoi-hoa-trang-halloween-640x480.jpg",
+    icon: ShoppingBag,
+    features: [
+      "Comprehensive Planning: From concept to execution.",
+      "Customized Experience: Tailored to your needs and vision.",
+      "Seamless Coordination: Vendors, logistics, and schedules handled.",
+      "Engaging Activities: Create memorable experiences for attendees.",
+      "Professional Management: Ensuring a smooth and successful event."
+    ]
+  },
+  {
     id: "costume-rental",
     title: "Costume Rental",
     description:
@@ -85,12 +112,12 @@ const services = [
     ],
   },
   {
-    id: "Sign up for photo and autograph session",
-    title: "Sign up for photo and autograph session",
+    id: "event-registration",
+    title: "Event Registration",
     description:
-      "Meet your idol! Sign up for a photo and autograph session and create lasting memories. ",
+      "Buy a ticket to meet your idol! Sign up for a photo and autograph session and create lasting memories. ",
     image:
-      "https://th.bing.com/th/id/R.e9cb89c4dfc29ac0733aac974bd733ae?rik=WDeiYtIE7BvK%2bA&riu=http%3a%2f%2fwww.anime-expo.org%2fwp-content%2fuploads%2f2017%2f08%2fAnime-Expo-Los-Angeles-Anime-Convention-Fan-Panel-Kobayashi-Maid-Dragon-2.png&ehk=jB4xHYQ%2bdg7LIzoodLWvqNJ%2bpWSJlFqUEd8RYPN1VfI%3d&risl=&pid=ImgRaw&r=0",
+      "https://mcdn.coolmate.me/image/May2022/top-le-hoi-cosplay-festival-noi-tieng_735.jpg",
     icon: ShoppingBag,
     features: [
       "Personal Interaction: Meet your idol face-to-face",
@@ -101,12 +128,12 @@ const services = [
     ],
   },
   {
-    id: "Selling Souvenirs",
+    id: "selling-souvenirs",
     title: "Selling Souvenirs",
     description:
       "Take home a piece of the magic! Our souvenirs offer lasting memories of your favorite moments.",
     image:
-      "https://i.pinimg.com/originals/fa/c3/d3/fac3d32c173b45f909bdfafb42369d49.jpg",
+      "https://theportablewife.com/wp-content/uploads/best-souvenirs-from-japan-figures.jpg",
     icon: ShoppingBag,
     features: [
       "Enjoy unique collectibles",

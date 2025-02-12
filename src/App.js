@@ -9,6 +9,7 @@ import CharactersPage from "./pages/CharactersPage";
 import ServicesPage from "./pages/ServicesPage";
 import ContactPage from "./pages/ContactPage";
 import EventPage from "./pages/EventPage";
+import CostumeRental from "./pages/CostumeRental";
 import { Navbar } from "./components/Nav/navbar";
 import { Footer } from "./components/Footer/Footer";
 function App() {
@@ -24,6 +25,7 @@ function App() {
             <Route path="/services" element={<ServicesPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
+            <Route path="/costume-rental" element={<CostumeRental />} />
           </Routes>
         </main>
         <Footer />
