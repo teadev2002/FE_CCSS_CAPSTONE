@@ -124,21 +124,39 @@ const HomePage = () => {
   const carouselItems = [
     {
       image:
-        "https://images.unsplash.com/photo-1608889825205-eebdb9fc5806?auto=format&fit=crop&q=80&w=1920",
+        "https://upload-os-bbs.hoyolab.com/upload/2022/07/28/75933071/6b062c3ba9d4a8a3e656344ce9546866_141203860423731661.jpg",
       title: "Welcome to CosplayHub",
       description: "Your Ultimate Cosplay Experience Awaits",
     },
     {
       image:
-        "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&q=80&w=1920",
-      title: "Professional Costume Rentals",
+        "https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/e199285e-9171-4f41-bac6-262d7db1516f/dfo5zmw-9d1c8f69-9435-41aa-a678-3fb7dd6e4a53.jpg/v1/fill/w_1024,h_693,q_75,strp/rosaria___genshin_impact_by_sandybphotography_dfo5zmw-fullview.jpg?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7ImhlaWdodCI6Ijw9NjkzIiwicGF0aCI6IlwvZlwvZTE5OTI4NWUtOTE3MS00ZjQxLWJhYzYtMjYyZDdkYjE1MTZmXC9kZm81em13LTlkMWM4ZjY5LTk0MzUtNDFhYS1hNjc4LTNmYjdkZDZlNGE1My5qcGciLCJ3aWR0aCI6Ijw9MTAyNCJ9XV0sImF1ZCI6WyJ1cm46c2VydmljZTppbWFnZS5vcGVyYXRpb25zIl19.nrVQcsQoUDEJenm8DqrqYgbfQY-M9HfmiPkfZ__rMpE",
+      title: "Hire a Cosplayer",
       description: "High-Quality Costumes for Every Character",
     },
     {
       image:
-        "https://images.unsplash.com/photo-1612036782180-6f0b6cd846fe?auto=format&fit=crop&q=80&w=1920",
+        "https://i.pinimg.com/originals/68/49/7f/68497f56644bd06613dec15460c88839.jpg",
       title: "Event Organization",
       description: "Making Your Cosplay Events Unforgettable",
+    },
+    {
+      image:
+        "https://www.mollylimpets.com/images/ww/gallery/Fancy%20Dress/animals%20mascots/Molly%20Limpets%20Fancy%20Dress%20Hire.jpg",
+      title: "Costume Rentals",
+      description: "High-Quality Costumes for Every Character",
+    },
+    {
+      image:
+        "https://media.karousell.com/media/photos/products/2023/4/25/original_anime_figure_1682386934_aff8038b.jpg",
+      title: "Selling souvenirs",
+      description: "Making Your Cosplay Events Unforgettable",
+    },
+    {
+      image:
+        "https://th.bing.com/th/id/R.574b6858d03a93862aa1e1779f1ce6bb?rik=erThfbKzo3Hu0g&riu=http%3a%2f%2f4.bp.blogspot.com%2f-swypOEGbGsc%2fVf23dv09QCI%2fAAAAAAAAAjI%2fUvYFlJAK_2A%2fs1600%2fStellar.jpg&ehk=yUPRQPUu7PSILpXPq0N5LFvC1E5%2f3qpb7hoQukVB%2br8%3d&risl=&pid=ImgRaw&r=0",
+      title: "Sign up Fan Sign",
+      description: "High-Quality Costumes for Every Character",
     },
   ];
 
@@ -184,7 +202,7 @@ const HomePage = () => {
         <Row>
           {services.map((service, index) => (
             <Col key={index} md={4} className="mb-4">
-              <Card className="text-center h-100 shadow-sm">
+              <Card className="text-center h-100">
                 <Card.Body>
                   <div className="display-4">{service.icon}</div>
                   <Card.Title>{service.title}</Card.Title>
