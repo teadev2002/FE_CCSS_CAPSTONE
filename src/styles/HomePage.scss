@@ -1,47 +1,47 @@
-.homepage {
-    .hero-section {
-      position: relative;
-      background: linear-gradient(to right, #510545, #22668a);
-      min-height: 60vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
+// .homepage {
+//     .hero-section {
+//       position: relative;
+//       background: linear-gradient(to right, #510545, #22668a);
+//       min-height: 60vh;
+//       display: flex;
+//       justify-content: center;
+//       align-items: center;
+//       text-align: center;
   
-      .overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(to right, #510545, #22668a);
-        z-index: 1;
-      }
+//       .overlay {
+//         position: absolute;
+//         top: 0;
+//         left: 0;
+//         width: 100%;
+//         height: 100%;
+//         background: linear-gradient(to right, #510545, #22668a);
+//         z-index: 1;
+//       }
   
-      .position-relative {
-        z-index: 2;
-      }
-    }
+//       .position-relative {
+//         z-index: 2;
+//       }
+//     }
   
-    .featured-characters .card {
-      border: none;
+//     .featured-characters .card {
+//       border: none;
   
-      .card-body {
-        .card-title {
-          font-size: 1.25rem;
-          font-weight: bold;
-        }
-        .card-text {
-          color: #6c757d;
-        }
-      }
-    }
+//       .card-body {
+//         .card-title {
+//           font-size: 1.25rem;
+//           font-weight: bold;
+//         }
+//         .card-text {
+//           color: #6c757d;
+//         }
+//       }
+//     }
   
-    .services-preview .card {
-      .service-icon {
-        font-size: 2rem;
-        color: #6a1b9a;
-      }
-    }
-  }
+//     .services-preview .card {
+//       .service-icon {
+//         font-size: 2rem;
+//         color: #6a1b9a;
+//       }
+//     }
+//   }
   
