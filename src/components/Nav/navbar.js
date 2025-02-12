@@ -1,8 +1,16 @@
 import React from "react";
 import { Link, NavLink } from "react-router-dom";
-import { Home, Users, Phone, Info, ShoppingBag, Calendar, Shirt } from "lucide-react";
+import {
+  Home,
+  Users,
+  Phone,
+  Info,
+  ShoppingBag,
+  Calendar,
+  Shirt,
+} from "lucide-react";
 import Logo from "../../assets/img/CCSSlogo.png";
-import "../../styles/Nav.scss";
+import "../../styles/nav.scss";
 
 export function Navbar() {
   return (
