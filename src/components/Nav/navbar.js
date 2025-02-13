@@ -8,6 +8,7 @@ import {
   ShoppingBag,
   Calendar,
   Shirt,
+  Store,
 } from "lucide-react";
 import Logo from "../../assets/img/CCSSlogo.png";
 import "../../styles/nav.scss";
@@ -25,11 +26,12 @@ export function Navbar() {
         {/* Menu */}
         <div className="nav-menu">
           {[
-            { to: "/", label: "Home", Icon: Home },
+            // { to: "/", label: "Home", Icon: Home },
             { to: "/characters", label: "Characters", Icon: Users },
             { to: "/event", label: "Events", Icon: Calendar },
             { to: "/services", label: "Services", Icon: ShoppingBag },
             { to: "/costume-rental", label: "Costume Rental", Icon: Shirt },
+            { to: "/souvenirs-shop", label: "souvenirs", Icon: Store },
             { to: "/about", label: "About Us", Icon: Info },
             { to: "/contact", label: "Contact", Icon: Phone },
           ].map(({ to, label, Icon }) => (
