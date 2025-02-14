@@ -138,7 +138,7 @@ const HomePage = () => {
     },
     {
       image:
-        "https://vcdn1-sohoa.vnecdn.net/2024/05/12/z5432885222933-85c6b155d559b59-4082-7520-1715492735.jpg?w=1200&h=0&q=100&dpr=1&fit=crop&s=kjqb10SmWRSvvFEL2Wis-A",
+        "https://danangfantasticity.com/wp-content/uploads/2023/05/nippon-oi-le-hoi-cosplay-anime-va-manga-hoanh-trang-nhat-mien-trung-chinh-thuc-tro-lai-07.jpg",
       title: "Event Organization",
       description: "Making Your Cosplay Events Unforgettable",
     },
@@ -159,24 +159,24 @@ const HomePage = () => {
       title: "Buy Souvenirs",
       description: "Find unique and memorable gifts for any occasion",
     },
-    {
-      image:
-        "https://www.mollylimpets.com/images/ww/gallery/Fancy%20Dress/animals%20mascots/Molly%20Limpets%20Fancy%20Dress%20Hire.jpg",
-      title: "Costume Rentals",
-      description: "High-Quality Costumes for Every Character",
-    },
-    {
-      image:
-        "https://media.karousell.com/media/photos/products/2023/4/25/original_anime_figure_1682386934_aff8038b.jpg",
-      title: "Selling souvenirs",
-      description: "Making Your Cosplay Events Unforgettable",
-    },
-    {
-      image:
-        "https://th.bing.com/th/id/R.574b6858d03a93862aa1e1779f1ce6bb?rik=erThfbKzo3Hu0g&riu=http%3a%2f%2f4.bp.blogspot.com%2f-swypOEGbGsc%2fVf23dv09QCI%2fAAAAAAAAAjI%2fUvYFlJAK_2A%2fs1600%2fStellar.jpg&ehk=yUPRQPUu7PSILpXPq0N5LFvC1E5%2f3qpb7hoQukVB%2br8%3d&risl=&pid=ImgRaw&r=0",
-      title: "Sign up Fan Sign",
-      description: "High-Quality Costumes for Every Character",
-    },
+    // {
+    //   image:
+    //     "https://www.mollylimpets.com/images/ww/gallery/Fancy%20Dress/animals%20mascots/Molly%20Limpets%20Fancy%20Dress%20Hire.jpg",
+    //   title: "Costume Rentals",
+    //   description: "High-Quality Costumes for Every Character",
+    // },
+    // {
+    //   image:
+    //     "https://media.karousell.com/media/photos/products/2023/4/25/original_anime_figure_1682386934_aff8038b.jpg",
+    //   title: "Selling souvenirs",
+    //   description: "Making Your Cosplay Events Unforgettable",
+    // },
+    // {
+    //   image:
+    //     "https://th.bing.com/th/id/R.574b6858d03a93862aa1e1779f1ce6bb?rik=erThfbKzo3Hu0g&riu=http%3a%2f%2f4.bp.blogspot.com%2f-swypOEGbGsc%2fVf23dv09QCI%2fAAAAAAAAAjI%2fUvYFlJAK_2A%2fs1600%2fStellar.jpg&ehk=yUPRQPUu7PSILpXPq0N5LFvC1E5%2f3qpb7hoQukVB%2br8%3d&risl=&pid=ImgRaw&r=0",
+    //   title: "Sign up Fan Sign",
+    //   description: "High-Quality Costumes for Every Character",
+    // },
   ];
 
   const services = [
