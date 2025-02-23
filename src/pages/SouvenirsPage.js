@@ -46,7 +46,7 @@ const SouvenirsPage = () => {
               <div className="card-content">
                 <h5 className="costume-name">{souvenir.name}</h5>
                 <p className="costume-category">{souvenir.category}</p>
-                <button className="rent-button">Buy now</button>
+                <button className="rent-button">Buy Now!</button>
               </div>
             </div>
           ))}

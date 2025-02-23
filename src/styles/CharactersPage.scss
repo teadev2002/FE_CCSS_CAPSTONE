@@ -132,6 +132,21 @@
       .character-category {
         font-size: 1rem;
         color: #e0e0e0;
+        margin-bottom: 0.5rem;
+      }
+
+      /* Thêm nút Hire Now! */
+      .hire-button {
+        background: linear-gradient(135deg, #510545, #22668a);
+        border: none;
+        color: white;
+        font-weight: bold;
+        padding: 10px 20px;
+        font-size: 1rem;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        opacity: 0;
       }
     }
 
@@ -142,5 +157,15 @@
     &:hover .card-image img {
       opacity: 0.3;
     }
-  }
+
+    /* Khi hover vào character card, hiển thị nút Hire Now! */
+    &:hover .hire-button {
+      opacity: 1;
+    }
+
+    .hire-button:hover {
+      opacity: 0.8;
+    }
+}
+
 }

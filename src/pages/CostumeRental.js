@@ -46,7 +46,7 @@ const CostumeRental = () => {
                             <div className="card-content">
                                 <h5 className="costume-name">{costume.name}</h5>
                                 <p className="costume-category">{costume.category}</p>
-                                <button className="rent-button">Rent now!</button>
+                                <button className="rent-button">Rent Now!</button>
                             </div>
                         </div>
                     ))}

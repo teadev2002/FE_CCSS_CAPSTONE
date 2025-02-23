@@ -55,6 +55,7 @@ const CharactersPage = () => {
                 <div className="card-content">
                   <h5 className="character-name">{character.name}</h5>
                   <p className="character-category">{character.category}</p>
+                  <button className="hire-button">Hire Now!</button>
                 </div>
               </div>
             </div>
