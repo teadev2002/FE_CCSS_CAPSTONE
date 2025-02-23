@@ -9,9 +9,11 @@ import {
   Calendar,
   Shirt,
   Store,
+  CircleUser,
 } from "lucide-react";
 import Logo from "../../assets/img/CCSSlogo.png";
 import "../../styles/nav.scss";
+import NavDropdown from "react-bootstrap/NavDropdown";
 
 export function Navbar() {
   return (
@@ -34,6 +36,7 @@ export function Navbar() {
             { to: "/souvenirs-shop", label: "souvenirs", Icon: Store },
             { to: "/about", label: "About Us", Icon: Info },
             { to: "/contact", label: "Contact", Icon: Phone },
+            // { to: "/", label: "", Icon: CircleUser },
           ].map(({ to, label, Icon }) => (
             <NavLink
               key={to}

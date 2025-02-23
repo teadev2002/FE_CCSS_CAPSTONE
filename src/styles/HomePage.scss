@@ -197,5 +197,5 @@
 
 // Blur effect for non-hovered cards
 .card-list:has(li:hover) li:not(:hover) {
-  filter: blur(4px);
+  filter: blur(2px);
 }
