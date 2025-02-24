@@ -109,9 +109,15 @@ export function Navbar() {
               <CircleUser size={24} />
             </div>
             <div className="dropdown-menu">
-              <Link to="#" className="dropdown-item">Profile</Link>
-              <Link to="#" className="dropdown-item">Cart</Link>
-              <Link to="#" className="dropdown-item">Log Out</Link>
+              <Link to="#" className="dropdown-item">
+                Profile
+              </Link>
+              <Link to="#" className="dropdown-item">
+                Cart
+              </Link>
+              <Link to="/login" className="dropdown-item">
+                Log Out
+              </Link>
             </div>
           </div>
         </div>

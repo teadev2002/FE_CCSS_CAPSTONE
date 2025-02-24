@@ -1,0 +1,68 @@
+.gradient-bg {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #40468f 0%, #a776bd 100%);
+    padding: 2rem;
+     
+    &.d-flex {
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+  .content{
+    margin-top: 10vh;
+  }
+  .login-form {
+    background: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
+    width: 100%;
+    margin: 0 auto;
+  }
+  
+  .ui-title {
+    color: #007bff;
+  }
+  
+  .form-control {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 8px;
+    margin-bottom: 10px;
+  }
+  
+  .login-button {
+    background: #007bff;
+    border: none;
+    padding: 10px;
+    width: 100%;
+    margin-bottom: 10px;
+  }
+  
+  .forgot-password {
+    text-decoration: none !important;
+  }
+  
+  .social-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 8px;
+    margin-bottom: 10px;
+    background: #fff;
+    color: #000;
+    width: 100%;
+  
+    &:hover {
+      background: #30b896;
+    }
+  }
+  
+  .or-signup {
+    border-top: 1px solid #ccc;
+    padding-top: 10px;
+  }
