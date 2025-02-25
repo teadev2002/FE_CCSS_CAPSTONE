@@ -12,6 +12,7 @@ import EventPage from "./pages/EventPage";
 import CostumeRental from "./pages/CostumeRental";
 import SouvenirsPage from "./pages/SouvenirsPage";
 import LoginPage from "./pages/Auth/LoginPage";
+import SignupPage from "./pages/Auth/SignupPage";
 import { Navbar } from "./components/Nav/navbar";
 import { Footer } from "./components/Footer/Footer";
 function App() {
@@ -30,6 +31,7 @@ function App() {
             <Route path="/costume-rental" element={<CostumeRental />} />
             <Route path="/souvenirs-shop" element={<SouvenirsPage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/sign-up" element={<SignupPage />} />
           </Routes>
         </main>
         <Footer />
