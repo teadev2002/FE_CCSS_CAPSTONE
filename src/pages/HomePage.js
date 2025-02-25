@@ -180,32 +180,32 @@ import "../styles/HomePage.scss";
 const HomePage = () => {
   const carouselItems = [
     {
-      image: "https://wallpaper.dog/large/20692654.jpg",
+      image: "https://images6.alphacoders.com/138/1382889.png",
       title: "Welcome to CCSS",
       description: "Your Ultimate Cosplay Experience Awaits",
     },
     {
-      image: "https://images.hdqwalls.com/wallpapers/ciri-cosplay-girl-4k-30.jpg",
-      title: "Hire the Cosplayers",
+      image: "https://i.redd.it/6c8eg4156bi61.jpg",
+      title: "Hire Cosplayers",
       description: "Connect with professional cosplayers for events, promotions, or photoshoots",
     },
     {
-      image: "https://danangfantasticity.com/wp-content/uploads/2023/05/nippon-oi-le-hoi-cosplay-anime-va-manga-hoanh-trang-nhat-mien-trung-chinh-thuc-tro-lai-07.jpg",
+      image: "https://pbs.twimg.com/media/C7cepMUVwAACO-C?format=jpg&name=4096x4096",
       title: "Event Organization",
       description: "Making Your Cosplay Events Unforgettable",
     },
     {
-      image: "https://danangfantasticity.com/wp-content/uploads/2023/05/nippon-oi-le-hoi-cosplay-anime-va-manga-hoanh-trang-nhat-mien-trung-chinh-thuc-tro-lai-01.jpg",
+      image: "https://neotokyoproject.com/wp-content/uploads/2022/11/IMG_20221125_140104.jpg",
       title: "Event Registration",
       description: "Buy a ticket now to meet your idol!",
     },
     {
-      image: "https://w.wallhaven.cc/full/p9/wallhaven-p9kp1j.jpg",
+      image: "https://i.redd.it/my-2b-cosplay-photoart-kmitenkova-small-medium-biped-3d-v0-os0y07ka9g1d1.jpg?width=1920&format=pjpg&auto=webp&s=6c962da48b1e7b0807c7f147a30238a47e89cab4",
       title: "Professional Costume Rentals",
       description: "High-Quality Costumes for Every Character",
     },
     {
-      image: "https://i.pinimg.com/originals/20/9a/41/209a411e7fde3cd713dfe66a4c1bdf78.jpg",
+      image: "https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/ab0b473b-3434-4d5b-ac4b-82407c923ef4/dduw89a-c9e95780-4262-4318-add1-c059e13742c9.jpg/v1/fill/w_1920,h_640,q_75,strp/my_sh_figuarts_dragon_ball_collection_by_anubis_007_dduw89a-fullview.jpg?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7ImhlaWdodCI6Ijw9NjQwIiwicGF0aCI6IlwvZlwvYWIwYjQ3M2ItMzQzNC00ZDViLWFjNGItODI0MDdjOTIzZWY0XC9kZHV3ODlhLWM5ZTk1NzgwLTQyNjItNDMxOC1hZGQxLWMwNTllMTM3NDJjOS5qcGciLCJ3aWR0aCI6Ijw9MTkyMCJ9XV0sImF1ZCI6WyJ1cm46c2VydmljZTppbWFnZS5vcGVyYXRpb25zIl19.vrrjAksbryuw9s7HQ11Jv_JJhtn85pImQer7lXOj_aQ",
       title: "Buy Souvenirs",
       description: "Find unique and memorable gifts for any occasion",
     },
