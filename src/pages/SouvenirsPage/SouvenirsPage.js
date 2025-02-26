@@ -1,6 +1,6 @@
 import React from "react";
 import { Search } from "lucide-react";
-import "../styles/CostumeRental.scss";
+import "../../styles/CostumeRental.scss";
 
 const SouvenirsPage = () => {
   return (

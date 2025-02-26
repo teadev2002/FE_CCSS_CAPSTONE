@@ -130,7 +130,7 @@
 import React from "react";
 import { Search } from "lucide-react";
 import { Tag } from "antd";
-import "../styles/EventPage.scss";
+import "../../styles/EventPage.scss";
 
 const EventPage = () => {
   return (
@@ -187,70 +187,70 @@ const EventPage = () => {
 };
 
 const mockEvents = [
-    {
-      Name: "Halloween Party",
-      Image:
-        "https://th.bing.com/th/id/OIP.V5CwCp09fB_wbbqTz_or6AHaE8?rs=1&pid=ImgDetMain",
-      Description: "Join us for a spooky night of cosplay and fun!",
-      Type: "Seasonal",
-      CreateDate: "2025-02-01",
-    },
-    {
-      Name: "League of Legends Night",
-      Image:
-        "https://i.pinimg.com/736x/6c/58/12/6c58121c518d0a0c063728fd3fa5fc97--legends-cosplay.jpg",
-      Description: "Show off your LOL-inspired cosplay and compete in games!",
-      Type: "Gaming",
-      CreateDate: "2025-01-15",
-    },
-    {
-      Name: "Grand Opening Celebration",
-      Image:
-        "https://th.bing.com/th/id/OIP.6Rf1UJBidvTco9ddkyq-gQHaFj?rs=1&pid=ImgDetMain",
-      Description: "Celebrate the launch of our new cosplay center!",
-      Type: "Opening",
-      CreateDate: "2025-01-01",
-    },
-    {
-      Name: "Gaming Expo",
-      Image:
-        "https://th.bing.com/th/id/OIP.PwM5ggkqisJp03MXkjuGlAHaE7?rs=1&pid=ImgDetMain",
-      Description: "Explore the latest in gaming and cosplay trends.",
-      Type: "Expo",
-      CreateDate: "2025-02-08",
-    },
-    {
-      Name: "Halloween Party",
-      Image:
-        "https://th.bing.com/th/id/OIP.8XQkZJtoSCV8igQ8ulXENgHaE8?rs=1&pid=ImgDetMain",
-      Description: "Join us for a spooky night of cosplay and fun!",
-      Type: "Seasonal",
-      CreateDate: "2025-02-01",
-    },
-    {
-      Name: "League of Legends Night",
-      Image:
-        "https://i.pinimg.com/736x/6c/58/12/6c58121c518d0a0c063728fd3fa5fc97--legends-cosplay.jpg",
-      Description: "Show off your LOL-inspired cosplay and compete in games!",
-      Type: "Gaming",
-      CreateDate: "2025-01-15",
-    },
-    {
-      Name: "Grand Opening Celebration",
-      Image:
-        "https://synuma.com/wp-content/uploads/2020/12/shutterstock_1114217525.jpg",
-      Description: "Celebrate the launch of our new cosplay center!",
-      Type: "Opening",
-      CreateDate: "2025-01-01",
-    },
-    {
-      Name: "Gaming Expo",
-      Image:
-        "https://i.pinimg.com/736x/6c/58/12/6c58121c518d0a0c063728fd3fa5fc97--legends-cosplay.jpg",
-      Description: "Explore the latest in gaming and cosplay trends.",
-      Type: "Expo",
-      CreateDate: "2025-02-08",
-    },
-  ];
+  {
+    Name: "Halloween Party",
+    Image:
+      "https://th.bing.com/th/id/OIP.V5CwCp09fB_wbbqTz_or6AHaE8?rs=1&pid=ImgDetMain",
+    Description: "Join us for a spooky night of cosplay and fun!",
+    Type: "Seasonal",
+    CreateDate: "2025-02-01",
+  },
+  {
+    Name: "League of Legends Night",
+    Image:
+      "https://i.pinimg.com/736x/6c/58/12/6c58121c518d0a0c063728fd3fa5fc97--legends-cosplay.jpg",
+    Description: "Show off your LOL-inspired cosplay and compete in games!",
+    Type: "Gaming",
+    CreateDate: "2025-01-15",
+  },
+  {
+    Name: "Grand Opening Celebration",
+    Image:
+      "https://th.bing.com/th/id/OIP.6Rf1UJBidvTco9ddkyq-gQHaFj?rs=1&pid=ImgDetMain",
+    Description: "Celebrate the launch of our new cosplay center!",
+    Type: "Opening",
+    CreateDate: "2025-01-01",
+  },
+  {
+    Name: "Gaming Expo",
+    Image:
+      "https://th.bing.com/th/id/OIP.PwM5ggkqisJp03MXkjuGlAHaE7?rs=1&pid=ImgDetMain",
+    Description: "Explore the latest in gaming and cosplay trends.",
+    Type: "Expo",
+    CreateDate: "2025-02-08",
+  },
+  {
+    Name: "Halloween Party",
+    Image:
+      "https://th.bing.com/th/id/OIP.8XQkZJtoSCV8igQ8ulXENgHaE8?rs=1&pid=ImgDetMain",
+    Description: "Join us for a spooky night of cosplay and fun!",
+    Type: "Seasonal",
+    CreateDate: "2025-02-01",
+  },
+  {
+    Name: "League of Legends Night",
+    Image:
+      "https://i.pinimg.com/736x/6c/58/12/6c58121c518d0a0c063728fd3fa5fc97--legends-cosplay.jpg",
+    Description: "Show off your LOL-inspired cosplay and compete in games!",
+    Type: "Gaming",
+    CreateDate: "2025-01-15",
+  },
+  {
+    Name: "Grand Opening Celebration",
+    Image:
+      "https://synuma.com/wp-content/uploads/2020/12/shutterstock_1114217525.jpg",
+    Description: "Celebrate the launch of our new cosplay center!",
+    Type: "Opening",
+    CreateDate: "2025-01-01",
+  },
+  {
+    Name: "Gaming Expo",
+    Image:
+      "https://i.pinimg.com/736x/6c/58/12/6c58121c518d0a0c063728fd3fa5fc97--legends-cosplay.jpg",
+    Description: "Explore the latest in gaming and cosplay trends.",
+    Type: "Expo",
+    CreateDate: "2025-02-08",
+  },
+];
 
 export default EventPage;

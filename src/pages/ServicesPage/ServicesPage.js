@@ -1,6 +1,6 @@
 import { Users, Calendar, ShoppingBag } from "lucide-react";
 import { Button, Container, Row, Col } from "react-bootstrap";
-import "../styles/HomePage.scss";
+import "../../styles/HomePage.scss";
 
 const ServicesPage = (props) => {
   return (
@@ -19,8 +19,9 @@ const ServicesPage = (props) => {
       <Container className="py-5">
         {services.map((service, index) => (
           <Row
-            className={`align-items-center mb-5 ${index % 2 !== 0 ? "flex-row-reverse" : ""
-              }`}
+            className={`align-items-center mb-5 ${
+              index % 2 !== 0 ? "flex-row-reverse" : ""
+            }`}
             key={service.id}
           >
             <Col md={6}>
@@ -56,8 +57,6 @@ const ServicesPage = (props) => {
               >
                 Explore Now!
               </Button>
-
-
             </Col>
           </Row>
         ))}
@@ -85,16 +84,18 @@ const services = [
   {
     id: "event-organization",
     title: "Event Organization",
-    description: "Seamlessly plan and execute unforgettable events with our professional event organization services.",
-    image: "https://cybershow.vn/wp-content/uploads/2018/10/le-hoi-hoa-trang-halloween-640x480.jpg",
+    description:
+      "Seamlessly plan and execute unforgettable events with our professional event organization services.",
+    image:
+      "https://cybershow.vn/wp-content/uploads/2018/10/le-hoi-hoa-trang-halloween-640x480.jpg",
     icon: ShoppingBag,
     features: [
       "Comprehensive Planning: From concept to execution.",
       "Customized Experience: Tailored to your needs and vision.",
       "Seamless Coordination: Vendors, logistics, and schedules handled.",
       "Engaging Activities: Create memorable experiences for attendees.",
-      "Professional Management: Ensuring a smooth and successful event."
-    ]
+      "Professional Management: Ensuring a smooth and successful event.",
+    ],
   },
   {
     id: "costume-rental",

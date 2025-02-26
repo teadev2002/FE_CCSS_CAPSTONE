@@ -1,9 +1,15 @@
 import React, { useState } from "react";
-import { Search } from "lucide-react";
-import "../styles/CharactersPage.scss";
+import { Search, Upload } from "lucide-react";
+import { Modal, Button, Form } from "react-bootstrap";
+import "../../styles/CharactersPage.scss";
+import CharacterRequestModal from "./CharacterRequestModal.js";
 
 const CharactersPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [showModal, setShowModal] = useState(false);
+
+  const handleShow = () => setShowModal(true);
+  const handleClose = () => setShowModal(false);
 
   const filteredCharacters = characters.filter((character) =>
     character.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -11,7 +17,7 @@ const CharactersPage = () => {
 
   return (
     <div className="characters-page min-vh-100">
-      {/* Hero Section - matching About page style */}
+      {/* Hero Section */}
       <div className="hero-section text-white py-5">
         <div className="container">
           <h1 className="display-4 fw-bold text-center">Character Gallery</h1>
@@ -22,21 +28,30 @@ const CharactersPage = () => {
       </div>
 
       <div className="container py-5">
-        {/* Search Bar */}
+        {/* Search Bar and Request Button */}
         <div className="search-container mb-5">
-          <div className="search-bar mx-auto">
-            <div className="input-group">
-              <span className="input-group-text">
-                <Search size={20} />
-              </span>
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Search characters..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+          <div className="d-flex justify-content-between align-items-center">
+            <div className="search-bar flex-grow-1 me-3">
+              <div className="input-group">
+                <span className="input-group-text">
+                  <Search size={20} />
+                </span>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Search characters..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
             </div>
+            <Button
+              variant="primary"
+              onClick={handleShow}
+              className="request-button"
+            >
+              Character Request
+            </Button>
           </div>
         </div>
 
@@ -66,10 +81,11 @@ const CharactersPage = () => {
           <p className="text-center mt-4">No characters found.</p>
         )}
       </div>
+
+      <CharacterRequestModal show={showModal} handleClose={handleClose} />
     </div>
   );
 };
-
 const characters = [
   {
     id: 1,
@@ -110,8 +126,7 @@ const characters = [
     id: 8,
     name: "Iron Man",
     category: "Superhero",
-    image:
-      "https://m.media-amazon.com/images/I/71l9VjMThGL._AC_UY1000_.jpg",
+    image: "https://m.media-amazon.com/images/I/71l9VjMThGL._AC_UY1000_.jpg",
   },
   {
     id: 9,
@@ -124,8 +139,7 @@ const characters = [
     id: 10,
     name: "Captain America",
     category: "Superhero",
-    image:
-      "https://m.media-amazon.com/images/I/71kR6o6oQQL._AC_UY1000_.jpg",
+    image: "https://m.media-amazon.com/images/I/71kR6o6oQQL._AC_UY1000_.jpg",
   },
   {
     id: 11,
