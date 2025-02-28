@@ -83,9 +83,9 @@ export function Navbar() {
         {/* Menu */}
         <div className="nav-menu">
           {[
+            { to: "/services", label: "Services", Icon: ShoppingBag },
             { to: "/characters", label: "Characters", Icon: Users },
             { to: "/event", label: "Events", Icon: Calendar },
-            { to: "/services", label: "Services", Icon: ShoppingBag },
             { to: "/costume-rental", label: "Costume Rental", Icon: Shirt },
             { to: "/souvenirs-shop", label: "Souvenirs", Icon: Store },
             { to: "/about", label: "About Us", Icon: Info },
