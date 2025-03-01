@@ -1,7 +1,8 @@
 import "./styles/App.scss";
 import "./components/Header/Header";
 import Header from "./components/Header/Header";
-
+import "bootstrap/dist/css/bootstrap.min.css";
+import "react-toastify/dist/ReactToastify.css";
 import { Route, Routes, BrowserRouter } from "react-router-dom";
 import HomePage from "./pages/HomePage/HomePage.js";
 import AboutPage from "./pages/AboutPage/AboutUsPage.js";
