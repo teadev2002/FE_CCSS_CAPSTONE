@@ -1,20 +1,56 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Form, Button } from "react-bootstrap";
 import { Mail, Lock, ArrowRight, LogIn, Coffee } from "lucide-react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../../styles/LoginPage.scss";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import AuthService from "../../services/AuthService";
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [tokens, setTokens] = useState(null);
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  // Handle form submission using AuthService
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(formData);
+    setLoading(true);
+    setError(null);
+
+    try {
+      const responseTokens = await AuthService.login(
+        formData.email,
+        formData.password
+      );
+      setTokens(responseTokens);
+
+      // Redirect after successful login
+
+      navigate("/");
+    } catch (err) {
+      setError(err.message);
+      console.error("Login error:", err);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  // Check for existing token on mount
+  useEffect(() => {
+    const checkExistingToken = () => {
+      if (AuthService.isAuthenticated()) {
+        console.log("Existing token found");
+        // Optional: Redirect if already logged in
+        // navigate("/");
+      }
+    };
+    checkExistingToken();
+  }, [navigate]);
 
   // Get current time
   const currentHour = new Date().getHours();
@@ -32,6 +68,7 @@ const LoginPage = () => {
       <Container>
         <Row className="align-items-center justify-content-center content">
           <Col md={6} className="text-white p-4 left-panel">
+            {/* Left panel content remains unchanged */}
             <div className="welcome-badge">
               <Coffee size={18} />
               <span>Welcome Back</span>
@@ -61,6 +98,8 @@ const LoginPage = () => {
               <div className="greeting-text">{greeting}!</div>
               <h2 className="text-center mb-4 ui-title">SIGN IN</h2>
 
+              {error && <div className="alert alert-danger">{error}</div>}
+
               <Form onSubmit={handleSubmit}>
                 <div className="input-with-icon">
                   <Mail size={18} className="input-icon" />
@@ -72,6 +111,7 @@ const LoginPage = () => {
                       onChange={(e) =>
                         setFormData({ ...formData, email: e.target.value })
                       }
+                      disabled={loading}
                     />
                   </Form.Group>
                 </div>
@@ -86,6 +126,7 @@ const LoginPage = () => {
                       onChange={(e) =>
                         setFormData({ ...formData, password: e.target.value })
                       }
+                      disabled={loading}
                     />
                   </Form.Group>
                 </div>
@@ -96,11 +137,13 @@ const LoginPage = () => {
                     id="rememberMe"
                     label="Remember me"
                     className="custom-checkbox"
+                    disabled={loading}
                   />
                   <Button
                     variant="link"
                     className="forgot-password"
                     onClick={() => console.log("Forgot Password clicked")}
+                    disabled={loading}
                   >
                     Forgot Password?
                   </Button>
@@ -110,8 +153,10 @@ const LoginPage = () => {
                   variant="primary"
                   type="submit"
                   className="w-100 mb-3 login-button"
+                  disabled={loading}
                 >
-                  Log in <LogIn size={18} className="ms-2" />
+                  {loading ? "Logging in..." : "Log in"}
+                  <LogIn size={18} className="ms-2" />
                 </Button>
 
                 <div className="separator">
@@ -122,6 +167,7 @@ const LoginPage = () => {
                   variant="outline-secondary"
                   className="w-100 mb-4 social-button"
                   onClick={() => console.log("Sign in with Google clicked")}
+                  disabled={loading}
                 >
                   <img
                     src="https://www.google.com/favicon.ico"
