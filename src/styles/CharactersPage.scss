@@ -4,41 +4,69 @@
 
   // Hero section matching About page
   .hero-section {
-    background: linear-gradient(90deg, #4a1042, #1e4d6d);
-    min-height: 60vh;
+    position: relative;
+    min-height: 50vh; // Giữ chiều cao, giống ban đầu
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 5rem 0;
-    margin-bottom: 3rem;
-    position: relative;
+    text-align: center;
+    background: linear-gradient(135deg, #510545, #22668a, #1a1a2e); // Giữ gradient, bạn đã ok
+    animation: gradientShift 10s ease infinite; // Giữ animation
+    padding: 4rem 0; // Giữ padding hiện tại, thêm margin-top để tránh đè
+    margin-top: 4rem; // Đảm bảo khoảng cách trên cùng bằng chiều cao navbar (4rem)
 
-    &::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: linear-gradient(90deg, #510545, #22668a);
-      opacity: 0.9;
+    @keyframes gradientShift {
+      0% {
+        background-position: 0% 50%;
+      }
+
+      50% {
+        background-position: 100% 50%;
+      }
+
+      100% {
+        background-position: 0% 50%;
+      }
     }
 
     .container {
       position: relative;
-      z-index: 1;
+      z-index: 1; // Giữ z-index
     }
 
     h1 {
-      color: white;
-      font-size: 3.5rem;
-      font-weight: 700;
-      margin-bottom: 1rem;
+      // Chỉnh sửa tiêu đề để đồng bộ
+      font-size: 4.5rem; // Tăng kích thước tiêu đề, đồng bộ với CharactersPage
+      font-weight: 800; // Tăng độ đậm, đồng bộ
+      text-transform: uppercase; // Thêm chữ in hoa, đồng bộ
+      letter-spacing: 2px; // Thêm khoảng cách chữ, đồng bộ
+      background: linear-gradient(90deg, #f85caa, #d9b6f8); // Thay gradient chữ hồng-tím, đồng bộ
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent; // Đảm bảo gradient áp dụng
+      margin-bottom: 1.5rem; // Tăng khoảng cách dưới, đồng bộ
+      text-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); // Thêm bóng chữ, đồng bộ
+      transition: transform 0.3s ease, opacity 0.3s ease; // Thêm hiệu ứng hover, đồng bộ
+
+      &:hover {
+        transform: scale(1.03); // Thêm phóng to nhẹ khi hover, đồng bộ
+        opacity: 0.95; // Thêm giảm độ trong suốt, đồng bộ
+      }
     }
 
     .lead {
-      color: rgba(255, 255, 255, 0.9);
-      font-size: 1.25rem;
+      // Chỉnh sửa phụ đề để đồng bộ (thay vì .hero-subtitle, vì JSX dùng .lead)
+      font-size: 1.5rem; // Tăng kích thước text, đồng bộ với CharactersPage
+      font-weight: 300; // Giữ độ nhẹ nhàng, đồng bộ
+      color: rgba(255, 255, 255, 0.85); // Giữ màu xám nhạt, đồng bộ
+      max-width: 600px; // Giữ max-width, đồng bộ
+      margin: 0 auto; // Giữ căn giữa, đồng bộ
+      transition: opacity 0.3s ease, transform 0.3s ease; // Thêm hiệu ứng hover, đồng bộ
+
+      &:hover {
+        opacity: 0.9; // Thêm giảm độ trong suốt khi hover, đồng bộ
+        transform: translateY(-2px); // Thêm nâng lên nhẹ, đồng bộ
+      }
     }
   }
 
@@ -209,8 +237,8 @@
 
         &:hover {
           background: rgba(255, 255, 255, 0.1);
-          border-color: #d988b1; // Đổi màu viền khi hover
-          color: #d988b1;
+          border-color: #d26bdb; // Đổi màu viền khi hover
+          color: #d26bdb;;
         }
       }
     }

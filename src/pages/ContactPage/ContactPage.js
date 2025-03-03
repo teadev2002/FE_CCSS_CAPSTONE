@@ -8,9 +8,9 @@ const ContactPage = (props) => {
       {/* Hero Section */}
       <div className="hero-section bg-primary text-white py-5">
         <Container>
-          <h1 className="display-4 fw-bold text-center">Contact</h1>
-          <p className="lead text-center mt-3">
-          Need support? Don't hesitate to send our team a message! 
+          <h1 className="hero-title fw-bold text-center">Contact</h1> {/* Thay display-4 thành hero-title */}
+          <p className="hero-subtitle text-center mt-3"> {/* Thay lead thành hero-subtitle */}
+            Need support? Don't hesitate to send our team a message!
           </p>
         </Container>
       </div>

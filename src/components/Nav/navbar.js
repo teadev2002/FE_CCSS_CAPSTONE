@@ -21,6 +21,22 @@ export function Navbar() {
     AuthService.logout();
     navigate("/login");
   };
+
+  const cosplayThemes = [
+    { name: "All", path: "/characters" },
+    { name: "Anime", path: "/characters/anime" },
+    { name: "Game", path: "/characters/game" },
+    { name: "Superhero", path: "/characters/superhero" },
+    { name: "Fantasy", path: "/characters/fantasy" },
+    { name: "Sci-Fi", path: "/characters/sci-fi" },
+    { name: "Horror", path: "/characters/horror" },
+    { name: "Historical", path: "/characters/historical" },
+    { name: "Mythology", path: "/characters/mythology" },
+    { name: "Steampunk", path: "/characters/steampunk" },
+    { name: "Cyberpunk", path: "/characters/cyberpunk" },
+    { name: "Cartoon", path: "/characters/cartoon" },
+  ];
+
   return (
     <nav className="navbar">
       <div className="container mx-auto flex items-center justify-between h-24 px-4">
@@ -30,35 +46,42 @@ export function Navbar() {
           </Link>
         </div>
 
-        {/* Menu */}
         <div className="nav-menu">
           {[
             { to: "/services", label: "Services", Icon: ShoppingBag },
-            { to: "/characters", label: "Characters", Icon: Users },
+            { to: "/characters", label: "Costumes", Icon: Users, hasDropdown: true },
             { to: "/event", label: "Events", Icon: Calendar },
-            { to: "/costume-rental", label: "Costume Rental", Icon: Shirt },
             { to: "/souvenirs-shop", label: "Souvenirs", Icon: Store },
             { to: "/about", label: "About Us", Icon: Info },
             { to: "/contact", label: "Contact", Icon: Phone },
-          ].map(({ to, label, Icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              className={({ isActive }) =>
-                `nav-link ${isActive ? "nav-link-active" : ""}`
-              }
-            >
-              <Icon size={24} />
-              <span>{label}</span>
-            </NavLink>
+          ].map(({ to, label, Icon, hasDropdown }) => (
+            <div key={to} className="dropdown-container">
+              <NavLink
+                to={to}
+                className={({ isActive }) =>
+                  `nav-link ${isActive ? "nav-link-active" : ""}`
+                }
+              >
+                <Icon size={24} />
+                <span>{label}</span>
+              </NavLink>
+              {hasDropdown && (
+                <div className="dropdown-menu dropdown-menu-categories">
+                  {cosplayThemes.map((theme) => (
+                    <Link key={theme.name} to={theme.path} className="dropdown-item">
+                      {theme.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
           ))}
 
-          {/* Dropdown Menu */}
           <div className="dropdown-container">
             <div className="dropdown-toggle">
               <CircleUser size={24} />
             </div>
-            <div className="dropdown-menu">
+            <div className="dropdown-menu dropdown-menu-user">
               <Link to="#" className="dropdown-item">
                 Profile
               </Link>

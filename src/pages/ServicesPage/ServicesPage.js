@@ -8,9 +8,9 @@ const ServicesPage = (props) => {
       {/* Hero Section */}
       <div className="hero-section bg-primary text-white py-5">
         <Container>
-          <h1 className="display-4 fw-bold text-center">Our Services</h1>
-          <p className="lead text-center mt-3">
-            Professional cosplay services for events, photoshoots, and more
+          <h1 className="hero-title">Our Services</h1>
+          <p className="hero-subtitle">
+            Professional cosplay services for events & more
           </p>
         </Container>
       </div>
@@ -19,9 +19,8 @@ const ServicesPage = (props) => {
       <Container className="py-5">
         {services.map((service, index) => (
           <Row
-            className={`align-items-center mb-5 ${
-              index % 2 !== 0 ? "flex-row-reverse" : ""
-            }`}
+            className={`align-items-center mb-5 ${index % 2 !== 0 ? "flex-row-reverse" : ""
+              }`}
             key={service.id}
           >
             <Col md={6}>

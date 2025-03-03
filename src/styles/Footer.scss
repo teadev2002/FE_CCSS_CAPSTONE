@@ -1,10 +1,11 @@
 .footer {
-  background: linear-gradient(135deg, #ffdde1 0%, #fff6e6 100%);
-  color: #4b5563;
-  padding: 4rem 1rem 1rem;
+  background: linear-gradient(135deg, #510545 0%, #22668a 100%); // Gradient tối, đồng nhất với navbar và hero
+  color: #e0e0e0; // Màu chữ sáng trên nền tối
+  padding: 4rem 1rem 2rem; // Tăng padding-bottom để không gian thoáng hơn
+  box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.15); // Thêm bóng đổ từ dưới lên để nổi bật
 
   .footer-content {
-    max-width: 1200px;
+    max-width: 1200px; // Giữ max-width đồng nhất với hero và content-wrapper
     margin: 0 auto;
     padding: 0 1.5rem;
   }
@@ -15,12 +16,13 @@
     gap: 3rem;
 
     @media (min-width: 768px) {
-      flex-direction: row;
+      flex-direction: row; // Bố cục ngang trên desktop
       justify-content: space-between;
     }
   }
 
-  .brand-section, .contact-section {
+  .brand-section,
+  .contact-section {
     flex: 1;
   }
 
@@ -28,18 +30,29 @@
     font-size: 1.5rem;
     font-weight: 700;
     margin-bottom: 1.5rem;
-    background: linear-gradient(90deg, #510545, #22668a);
+    background: linear-gradient(90deg, #ec4899, #9333ea); // Gradient chữ hồng-tím, nổi bật
     -webkit-background-clip: text;
     background-clip: text;
-    color: transparent;
+    -webkit-text-fill-color: transparent; // Đảm bảo chữ có gradient
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); // Thêm bóng chữ cho rõ
+    transition: transform 0.3s ease; // Thêm hiệu ứng zoom nhẹ khi hover
+
+    &:hover {
+      transform: scale(1.05); // Phóng to nhẹ khi hover
+    }
   }
 
   .description {
     max-width: 350px;
     font-size: 1rem;
     line-height: 1.6;
-    color: #6b7280;
+    color: #d1d5db; // Màu chữ sáng hơn, dễ đọc trên nền tối
     margin-bottom: 1.5rem;
+    transition: opacity 0.3s ease; // Thêm hiệu ứng mờ khi hover
+
+    &:hover {
+      opacity: 0.9; // Giảm độ trong suốt khi hover
+    }
   }
 
   .contact-info {
@@ -52,20 +65,35 @@
       align-items: center;
       gap: 0.75rem;
       transition: all 0.3s ease;
-      padding: 0.5rem;
+      padding: 0.75rem 1rem; // Tăng padding để thông tin nổi bật hơn
       border-radius: 0.5rem;
+      background: rgba(255, 255, 255, 0.05); // Nền trong suốt nhẹ để nổi bật trên nền tối
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); // Thêm bóng đổ nhẹ
 
       svg {
-        color: #ec4899;
+        color: #ec4899; // Giữ màu icon hồng
+        transition: color 0.3s ease; // Thêm hiệu ứng chuyển màu
       }
 
       &:hover {
-        transform: translateX(5px);
-        background-color: rgba(236, 72, 153, 0.1);
+        transform: translateX(5px); // Dịch sang phải khi hover
+        background: rgba(236, 72, 153, 0.1); // Nền hồng nhạt khi hover
+        box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3); // Bóng đổ đậm hơn khi hover
+
+        svg {
+          color: #9333ea; // Thay đổi màu icon sang tím đậm khi hover
+        }
+
+        span {
+          color: #fff; // Chuyển màu chữ sang trắng khi hover
+        }
       }
 
       span {
-        color: #4b5563;
+        color: #e0e0e0; // Màu chữ sáng trên nền tối
+        font-size: 1rem;
+        font-weight: 500;
+        transition: color 0.3s ease;
       }
     }
   }
@@ -81,18 +109,24 @@
       justify-content: center;
       width: 40px;
       height: 40px;
-      background: linear-gradient(135deg, #9333ea, #ec4899);
+      background: linear-gradient(135deg, #ec4899, #9333ea); // Gradient hồng-tím cho nút social
       border-radius: 50%;
       transition: all 0.3s ease;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
       &:hover {
-        transform: translateY(-3px) rotate(8deg);
-        box-shadow: 0 4px 8px rgba(236, 72, 153, 0.3);
+        transform: translateY(-3px) rotate(8deg); // Nâng lên và xoay nhẹ khi hover
+        box-shadow: 0 4px 12px rgba(236, 72, 153, 0.4); // Bóng đổ lớn hơn khi hover
+        background: linear-gradient(135deg, #9333ea, #ec4899); // Đảo ngược gradient khi hover
       }
 
       svg {
         color: white;
+        transition: transform 0.3s ease; // Thêm hiệu ứng zoom cho icon
+
+        a:hover & {
+          transform: scale(1.2); // Phóng to icon khi hover vào nút
+        }
       }
     }
   }
@@ -101,8 +135,45 @@
     text-align: center;
     margin-top: 3rem;
     padding-top: 1.5rem;
-    border-top: 1px solid rgba(236, 72, 153, 0.2);
+    border-top: 1px solid rgba(236, 72, 153, 0.2); // Giữ đường kẻ trên copyright
     font-size: 0.875rem;
-    color: #6b7280;
+    color: #d1d5db; // Màu chữ sáng hơn, đồng nhất với description
+    transition: opacity 0.3s ease;
+
+    &:hover {
+      opacity: 0.8; // Giảm độ trong suốt khi hover để tạo tương tác
+    }
+  }
+
+  // Responsive design
+  @media (max-width: 768px) {
+    padding: 3rem 1rem 1.5rem; // Giảm padding trên mobile
+
+    .footer-main {
+      gap: 2rem; // Giảm khoảng cách giữa các section trên mobile
+    }
+
+    .title {
+      font-size: 1.25rem; // Giảm kích thước tiêu đề trên mobile
+    }
+
+    .description {
+      font-size: 0.9rem; // Giảm kích thước description trên mobile
+    }
+
+    .contact-info .info-item {
+      padding: 0.5rem 0.75rem; // Giảm padding cho info-item trên mobile
+      font-size: 0.9rem; // Giảm kích thước chữ trên mobile
+    }
+
+    .social-icons a {
+      width: 35px; // Giảm kích thước nút social trên mobile
+      height: 35px;
+    }
+
+    .copyright {
+      font-size: 0.8rem; // Giảm kích thước copyright trên mobile
+      margin-top: 2rem; // Giảm margin-top trên mobile
+    }
   }
 }

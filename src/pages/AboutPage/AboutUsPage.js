@@ -7,8 +7,8 @@ const AboutPage = (props) => {
       {/* Hero Section */}
       <div className="hero-section bg-primary text-white py-5">
         <Container>
-          <h1 className="display-4 fw-bold text-center">About Us</h1>
-          <p className="lead text-center mt-3">
+          <h1 className="hero-title fw-bold text-center">About Us</h1> {/* Thay display-4 thành hero-title */}
+          <p className="hero-subtitle text-center mt-3"> {/* Thay lead thành hero-subtitle */}
             Explore our story
           </p>
         </Container>
