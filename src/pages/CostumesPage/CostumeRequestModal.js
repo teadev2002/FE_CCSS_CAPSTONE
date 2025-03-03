@@ -2,9 +2,9 @@ import React, { useState } from "react";
 import { Upload } from "lucide-react";
 import { Modal, Button, Form } from "react-bootstrap";
 
-const CharacterRequestModal = ({ show, handleClose }) => {
+const CostumeRequestModal = ({ show, handleClose }) => {
   const [formData, setFormData] = useState({
-    characterName: "",
+    costumeName: "",
     description: "",
     images: [],
     requestDate: new Date().toLocaleDateString("en-GB"), // Format as dd/mm/yyyy
@@ -29,18 +29,18 @@ const CharacterRequestModal = ({ show, handleClose }) => {
   return (
     <Modal show={show} onHide={handleClose} centered>
       <Modal.Header closeButton>
-        <Modal.Title>Character Request</Modal.Title>
+        <Modal.Title>Costume Request</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <Form onSubmit={handleSubmit}>
           <Form.Group className="mb-3">
-            <Form.Label>Character Name</Form.Label>
+            <Form.Label>Costume Name</Form.Label>
             <Form.Control
               type="text"
-              placeholder="Enter character name"
-              value={formData.characterName}
+              placeholder="Enter Costume name"
+              value={formData.costumeName}
               onChange={(e) =>
-                setFormData({ ...formData, characterName: e.target.value })
+                setFormData({ ...formData, costumeName: e.target.value })
               }
               required
             />
@@ -51,7 +51,7 @@ const CharacterRequestModal = ({ show, handleClose }) => {
             <Form.Control
               as="textarea"
               rows={3}
-              placeholder="Enter character description"
+              placeholder="Enter costume description"
               value={formData.description}
               onChange={(e) =>
                 setFormData({ ...formData, description: e.target.value })
@@ -61,7 +61,7 @@ const CharacterRequestModal = ({ show, handleClose }) => {
           </Form.Group>
 
           <Form.Group className="mb-3">
-            <Form.Label>Character Images</Form.Label>
+            <Form.Label>Costume Images</Form.Label>
             <div className="upload-container">
               <Form.Control
                 type="file"
@@ -94,7 +94,7 @@ const CharacterRequestModal = ({ show, handleClose }) => {
           <Form.Group className="mb-3">
             <Form.Check
               type="checkbox"
-              label="Agree to terms: request must be submitted 1 month in advance"
+              label=" Agree to terms: request must be submitted 1 month in advance"
               checked={formData.agreeToTerms}
               onChange={(e) =>
                 setFormData({ ...formData, agreeToTerms: e.target.checked })
@@ -121,4 +121,4 @@ const CharacterRequestModal = ({ show, handleClose }) => {
   );
 };
 
-export default CharacterRequestModal;
+export default CostumeRequestModal;

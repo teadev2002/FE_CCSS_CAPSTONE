@@ -4,7 +4,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { Route, Routes, BrowserRouter } from "react-router-dom";
 import HomePage from "./pages/HomePage/HomePage.js";
 import AboutPage from "./pages/AboutPage/AboutUsPage.js";
-import CharactersPage from "./pages/CharactersPage/CharactersPage.js";
+import CostumesPage from "./pages/CostumesPage/CostumesPage.js";
 import ServicesPage from "./pages/ServicesPage/ServicesPage.js";
 import ContactPage from "./pages/ContactPage/ContactPage.js";
 import EventPage from "./pages/EventPage/EventPage.js";
@@ -22,8 +22,8 @@ function App() {
         <main className="flex-grow">
           <Routes>
             <Route path="/" element={<HomePage />} />
-            <Route path="/characters" element={<CharactersPage />} />
-            <Route path="/characters/:category" element={<CharactersPage />} />
+            <Route path="/costumes" element={<CostumesPage />} />
+            <Route path="/costumes/:category" element={<CostumesPage />} />
             <Route path="/event" element={<EventPage />} />
             <Route path="/services" element={<ServicesPage />} />
             <Route path="/about" element={<AboutPage />} />

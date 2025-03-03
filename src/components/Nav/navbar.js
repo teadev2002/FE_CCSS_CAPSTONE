@@ -49,7 +49,12 @@ export function Navbar() {
         <div className="nav-menu">
           {[
             { to: "/services", label: "Services", Icon: ShoppingBag },
-            { to: "/characters", label: "Costumes", Icon: Users, hasDropdown: true },
+            {
+              to: "/costumes",
+              label: "Costumes",
+              Icon: Users,
+              hasDropdown: true,
+            },
             { to: "/event", label: "Events", Icon: Calendar },
             { to: "/souvenirs-shop", label: "Souvenirs", Icon: Store },
             { to: "/about", label: "About Us", Icon: Info },
@@ -68,7 +73,11 @@ export function Navbar() {
               {hasDropdown && (
                 <div className="dropdown-menu dropdown-menu-categories">
                   {cosplayThemes.map((theme) => (
-                    <Link key={theme.name} to={theme.path} className="dropdown-item">
+                    <Link
+                      key={theme.name}
+                      to={theme.path}
+                      className="dropdown-item"
+                    >
                       {theme.name}
                     </Link>
                   ))}
