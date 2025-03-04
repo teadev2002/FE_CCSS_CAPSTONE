@@ -1,0 +1,124 @@
+.hero-section {
+    position: relative;
+    min-height: 50vh; // Giữ chiều cao, giống CharactersPage
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: linear-gradient(135deg, #510545, #22668a, #1a1a2e); // Giữ gradient, giống CharactersPage
+    animation: gradientShift 10s ease infinite; // Giữ animation, giống CharactersPage
+    padding: 4rem 0; // Giữ padding, giống CharactersPage
+    margin-top: 4rem; // Giữ khoảng cách trên cùng, giống CharactersPage
+
+    @keyframes gradientShift {
+      0% {
+        background-position: 0% 50%;
+      }
+
+      50% {
+        background-position: 100% 50%;
+      }
+
+      100% {
+        background-position: 0% 50%;
+      }
+    }
+
+    .container {
+      position: relative;
+      z-index: 1; // Giữ z-index, giống CharactersPage
+    }
+
+    h1.display-4 {
+      // Giữ nguyên, đã đồng bộ với CharactersPage
+      font-size: 4.5rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      background: linear-gradient(90deg, #f85caa, #d9b6f8);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 1.5rem;
+      text-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      transition: transform 0.3s ease, opacity 0.3s ease;
+
+      &:hover {
+        transform: scale(1.03);
+        opacity: 0.95;
+      }
+    }
+
+    .lead {
+      // Giữ nguyên, đã đồng bộ với CharactersPage
+      font-size: 1.5rem;
+      font-weight: 300;
+      color: rgba(255, 255, 255, 0.85);
+      max-width: 600px;
+      margin: 0 auto;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+
+      &:hover {
+        opacity: 0.9;
+        transform: translateY(-2px);
+      }
+    }
+  }
+
+  .costume-rental-page {
+    background: linear-gradient(180deg, #b0bcc9, #b4a6ce);
+    min-height: 100vh;
+    color: #fff;
+  
+     
+  
+    .list-group-item {
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: #fff;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      transition: background 0.3s;
+  
+      &:hover, &.active {
+        background: rgba(255, 255, 255, 0.2);
+      }
+    }
+  
+    .form-control, .form-check-label {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: #fff;
+      border-radius: 8px;
+  
+      &:focus {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: #ff69b4;
+        box-shadow: 0 0 0 0.2rem rgba(255, 105, 180, 0.25);
+      }
+    }
+  
+    .btn-primary {
+      background-color: #ff69b4;
+      border-color: #ff69b4;
+      font-weight: bold;
+      padding: 10px 30px;
+      border-radius: 8px;
+  
+      &:hover {
+        background-color: #ff1493;
+        border-color: #ff1493;
+      }
+    }
+  
+    .alert {
+      background: rgba(255, 255, 0, 0.1);
+      border: 1px solid rgba(255, 255, 0, 0.3);
+      color: #fff;
+      border-radius: 8px;
+    }
+  
+    img {
+      border-radius: 8px;
+    }
+  }

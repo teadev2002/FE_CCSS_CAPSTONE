@@ -55,6 +55,7 @@ export function Navbar() {
               Icon: Users,
               hasDropdown: true,
             },
+            { to: "/cosplayer", label: "Cosplayer", Icon: Shirt },
             { to: "/event", label: "Events", Icon: Calendar },
             { to: "/souvenirs-shop", label: "Souvenirs", Icon: Store },
             { to: "/about", label: "About Us", Icon: Info },
