@@ -23,18 +23,28 @@ export function Navbar() {
   };
 
   const cosplayThemes = [
-    { name: "All", path: "/characters" },
-    { name: "Anime", path: "/characters/anime" },
-    { name: "Game", path: "/characters/game" },
-    { name: "Superhero", path: "/characters/superhero" },
-    { name: "Fantasy", path: "/characters/fantasy" },
-    { name: "Sci-Fi", path: "/characters/sci-fi" },
-    { name: "Horror", path: "/characters/horror" },
-    { name: "Historical", path: "/characters/historical" },
-    { name: "Mythology", path: "/characters/mythology" },
-    { name: "Steampunk", path: "/characters/steampunk" },
-    { name: "Cyberpunk", path: "/characters/cyberpunk" },
-    { name: "Cartoon", path: "/characters/cartoon" },
+    { name: "All", path: "/costumes" },
+    { name: "Anime", path: "/costumes/anime" },
+    { name: "Game", path: "/costumes/game" },
+    { name: "Superhero", path: "/costumes/superhero" },
+    { name: "Fantasy", path: "/costumes/fantasy" },
+    { name: "Sci-Fi", path: "/costumes/sci-fi" },
+    { name: "Horror", path: "/costumes/horror" },
+    { name: "Historical", path: "/costumes/historical" },
+    { name: "Mythology", path: "/costumes/mythology" },
+    { name: "Steampunk", path: "/costumes/steampunk" },
+    { name: "Cyberpunk", path: "/costumes/cyberpunk" },
+    { name: "Cartoon", path: "/costumes/cartoon" },
+  ];
+
+  const festivalCategories = [
+    { name: "All", path: "/festivals" },
+    { name: "Anime", path: "/festivals/anime" },
+    { name: "Comic Con", path: "/festivals/comic-con" },
+    { name: "Mythology", path: "/festivals/mythology" },
+    { name: "Gaming", path: "/festivals/gaming" },
+    { name: "Superhero", path: "/festivals/superhero" },
+    { name: "Cosplay", path: "/festivals/cosplay" },
   ];
 
   return (
@@ -54,38 +64,55 @@ export function Navbar() {
               label: "Costumes",
               Icon: Users,
               hasDropdown: true,
+              dropdownItems: cosplayThemes,
+              dropdownClass: "dropdown-menu-categories",
             },
-            { to: "/cosplayer", label: "Cosplayer", Icon: Shirt },
-            { to: "/event", label: "Events", Icon: Calendar },
+            {
+              to: "/festivals",
+              label: "Festivals",
+              Icon: Calendar,
+              hasDropdown: true,
+              dropdownItems: festivalCategories,
+              dropdownClass: "festival-dropdown-menu",
+            },
             { to: "/souvenirs-shop", label: "Souvenirs", Icon: Store },
             { to: "/about", label: "About Us", Icon: Info },
             { to: "/contact", label: "Contact", Icon: Phone },
-          ].map(({ to, label, Icon, hasDropdown }) => (
-            <div key={to} className="dropdown-container">
-              <NavLink
-                to={to}
-                className={({ isActive }) =>
-                  `nav-link ${isActive ? "nav-link-active" : ""}`
-                }
-              >
-                <Icon size={24} />
-                <span>{label}</span>
-              </NavLink>
-              {hasDropdown && (
-                <div className="dropdown-menu dropdown-menu-categories">
-                  {cosplayThemes.map((theme) => (
-                    <Link
-                      key={theme.name}
-                      to={theme.path}
-                      className="dropdown-item"
-                    >
-                      {theme.name}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
+          ].map(
+            ({
+              to,
+              label,
+              Icon,
+              hasDropdown,
+              dropdownItems,
+              dropdownClass,
+            }) => (
+              <div key={to} className="dropdown-container">
+                <NavLink
+                  to={to}
+                  className={({ isActive }) =>
+                    `nav-link ${isActive ? "nav-link-active" : ""}`
+                  }
+                >
+                  <Icon size={24} />
+                  <span>{label}</span>
+                </NavLink>
+                {hasDropdown && (
+                  <div className={`dropdown-menu ${dropdownClass}`}>
+                    {dropdownItems.map((item) => (
+                      <Link
+                        key={item.name}
+                        to={item.path}
+                        className="dropdown-item"
+                      >
+                        {item.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )
+          )}
 
           <div className="dropdown-container">
             <div className="dropdown-toggle">

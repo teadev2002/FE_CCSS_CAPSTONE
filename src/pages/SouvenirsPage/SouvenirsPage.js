@@ -8,9 +8,9 @@ const SouvenirsPage = () => {
       {/* Hero Section */}
       <div className="hero-section text-white py-5">
         <div className="container">
-          <h1 className="display-4 fw-bold text-center">Souvenirs Store</h1>
+          <h1 className="display-4 fw-bold text-center">Souvenir Store</h1>
           <p className="lead text-center mt-3">
-            Find and buy the perfect Souvenirs
+            Find and buy the perfect souvenirs
           </p>
         </div>
       </div>
