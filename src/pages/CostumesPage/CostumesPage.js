@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Search, Upload, ChevronRight } from "lucide-react";
-import { Modal, Button, Form, Carousel } from "react-bootstrap"; // Xóa useParams khỏi import react-bootstrap
-import { useParams } from "react-router-dom"; // Thêm import useParams từ react-router-dom
+import { Modal, Button, Form, Carousel } from "react-bootstrap";
+import { useParams } from "react-router-dom";
 import "../../styles/CostumesPage.scss";
 import CostumeRequestModal from "./CostumeRequestModal.js";
 
@@ -9,39 +9,36 @@ const CostumesPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [showGalleryModal, setShowGalleryModal] = useState(false);
-  const [selectedCharacter, setSelectedCharacter] = useState(null);
+  const [selectedCostume, setSelectedCostume] = useState(null);
 
-  // Lấy category từ URL bằng useParams
   const params = useParams();
-  const category = params.category || "all"; // Mặc định là "all" nếu không có category
+  const category = params.category || "all";
 
   const handleRequestShow = () => setShowRequestModal(true);
   const handleRequestClose = () => setShowRequestModal(false);
 
-  const handleGalleryShow = (character) => {
-    setSelectedCharacter(character);
+  const handleGalleryShow = (costume) => {
+    setSelectedCostume(costume);
     setShowGalleryModal(true);
   };
 
   const handleGalleryClose = () => {
     setShowGalleryModal(false);
-    setSelectedCharacter(null);
+    setSelectedCostume(null);
   };
 
-  // Lọc nhân vật dựa trên category và searchTerm
-  const filteredCharacters = characters.filter((character) => {
+  const filteredCostumes = costumes.filter((costume) => {
     const matchesCategory =
       category === "all" ||
-      character.category.toLowerCase() === category.toLowerCase();
-    const matchesSearch = character.name
+      costume.category.toLowerCase() === category.toLowerCase();
+    const matchesSearch = costume.name
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
   return (
-    <div className="characters-page min-vh-100">
-      {/* Hero Section - Giữ nguyên, không chỉnh sửa */}
+    <div className="costumes-page min-vh-100">
       <div className="hero-section text-white py-5">
         <div className="container">
           <h1 className="display-4 fw-bold text-center">Costume Gallery</h1>
@@ -52,7 +49,6 @@ const CostumesPage = () => {
       </div>
 
       <div className="container py-5">
-        {/* Search Bar and Request Button - Giữ nguyên, không chỉnh sửa */}
         <div className="search-container mb-5">
           <div className="d-flex justify-content-between align-items-center">
             <div className="search-bar flex-grow-1 me-3">
@@ -63,7 +59,7 @@ const CostumesPage = () => {
                 <input
                   type="text"
                   className="form-control"
-                  placeholder="Search characters..."
+                  placeholder="Search costumes..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -79,26 +75,25 @@ const CostumesPage = () => {
           </div>
         </div>
 
-        {/* Character Grid - Giữ nguyên, không chỉnh sửa */}
         <div className="row g-4">
-          {filteredCharacters.map((character) => (
-            <div className="col-md-3" key={character.id}>
-              <div className="character-card">
+          {filteredCostumes.map((costume) => (
+            <div className="col-md-3" key={costume.id}>
+              <div className="costume-card">
                 <div className="card-image">
                   <img
-                    src={character.image}
-                    alt={character.name}
+                    src={costume.image}
+                    alt={costume.name}
                     className="img-fluid"
                   />
                 </div>
                 <div className="card-content">
-                  <h5 className="character-name">{character.name}</h5>
-                  <p className="character-category">{character.category}</p>
+                  <h5 className="costume-name">{costume.name}</h5>
+                  <p className="costume-category">{costume.category}</p>
                   <div className="button-group">
                     <button className="hire-button mb-2">Rent Now!</button>
                     <button
                       className="show-more-button"
-                      onClick={() => handleGalleryShow(character)}
+                      onClick={() => handleGalleryShow(costume)}
                     >
                       Show More Images
                     </button>
@@ -109,18 +104,16 @@ const CostumesPage = () => {
           ))}
         </div>
 
-        {filteredCharacters.length === 0 && (
+        {filteredCostumes.length === 0 && (
           <p className="text-center mt-4">No costumes found.</p>
         )}
       </div>
 
-      {/* Character Request Modal - Giữ nguyên, không chỉnh sửa */}
       <CostumeRequestModal
         show={showRequestModal}
         handleClose={handleRequestClose}
       />
 
-      {/* Character Gallery Modal - Giữ nguyên, không chỉnh sửa */}
       <Modal
         show={showGalleryModal}
         onHide={handleGalleryClose}
@@ -129,48 +122,48 @@ const CostumesPage = () => {
         className="gallery-modal"
       >
         <Modal.Header closeButton>
-          <Modal.Title>{selectedCharacter?.name} Gallery</Modal.Title>
+          <Modal.Title>{selectedCostume?.name} Gallery</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {selectedCharacter && (
-            <div className="character-gallery">
+          {selectedCostume && (
+            <div className="costume-gallery">
               <Carousel className="gallery-carousel">
-                {selectedCharacter.galleryImages.map((image, index) => (
+                {selectedCostume.galleryImages.map((image, index) => (
                   <Carousel.Item key={index}>
                     <div className="carousel-image-container">
                       <img
                         className="d-block w-100"
                         src={image}
-                        alt={`${selectedCharacter.name} - Image ${index + 1}`}
+                        alt={`${selectedCostume.name} - Image ${index + 1}`}
                       />
                     </div>
                     <Carousel.Caption>
-                      <h3>{selectedCharacter.name}</h3>
+                      <h3>{selectedCostume.name}</h3>
                       <p>{`Image ${index + 1} of ${
-                        selectedCharacter.galleryImages.length
+                        selectedCostume.galleryImages.length
                       }`}</p>
                     </Carousel.Caption>
                   </Carousel.Item>
                 ))}
               </Carousel>
 
-              <div className="character-details mt-4">
-                <h4>About {selectedCharacter.name}</h4>
-                <p>{selectedCharacter.description}</p>
-                <div className="character-info">
+              <div className="costume-details mt-4">
+                <h4>About {selectedCostume.name}</h4>
+                <p>{selectedCostume.description}</p>
+                <div className="costume-info">
                   <div className="info-item">
-                    <strong>Category:</strong> {selectedCharacter.category}
+                    <strong>Category:</strong> {selectedCostume.category}
                   </div>
-                  {selectedCharacter.abilities && (
+                  {selectedCostume.abilities && (
                     <div className="info-item">
                       <strong>Abilities:</strong>{" "}
-                      {selectedCharacter.abilities.join(", ")}
+                      {selectedCostume.abilities.join(", ")}
                     </div>
                   )}
-                  {selectedCharacter.availability && (
+                  {selectedCostume.availability && (
                     <div className="info-item">
                       <strong>Availability:</strong>{" "}
-                      {selectedCharacter.availability}
+                      {selectedCostume.availability}
                     </div>
                   )}
                 </div>
@@ -189,8 +182,7 @@ const CostumesPage = () => {
   );
 };
 
-// Cập nhật characters data để bao gồm tất cả categories từ dropdown trong Navbar.js
-const characters = [
+const costumes = [
   {
     id: 1,
     name: "Red Power Ranger",

@@ -1,21 +1,21 @@
 .navbar {
-  background: linear-gradient(135deg, #510545 0%, #22668a 100%); // Giữ gradient nền
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15); // Giữ bóng đổ tinh tế
+  background: linear-gradient(135deg, #510545 0%, #22668a 100%);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
   padding: 0.5rem 0;
-  position: fixed; // Giữ navbar cố định trên cùng
+  position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  z-index: 1000; // Đảm bảo navbar luôn ở trên cùng
-  height: 4rem; // Giảm chiều cao từ 5rem xuống 4rem (64px)
+  z-index: 1000;
+  height: 4rem;
 
   .container {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 100%; // Sử dụng chiều cao của navbar (4rem)
-    max-width: 1400px; // Giữ đồng nhất với content-wrapper trong CharactersPage
-    padding: 0 2rem; // Giữ padding rộng
+    height: 100%;
+    max-width: 1400px;
+    padding: 0 2rem;
     margin: 0 auto;
   }
 
@@ -24,12 +24,12 @@
     align-items: center;
 
     .brand-logo {
-      height: 3.2rem; // Giảm kích thước logo từ 3.5rem xuống 2.5rem (40px)
+      height: 3.2rem;
       width: 6.4rem;
       transition: transform 0.3s ease, filter 0.3s ease;
 
       &:hover {
-        transform: scale(1.1); // Giữ hiệu ứng phóng to nhẹ
+        transform: scale(1.1);
         filter: brightness(1.2);
       }
     }
@@ -43,18 +43,18 @@
     .nav-link {
       display: flex;
       align-items: center;
-      gap: 0.75rem; // Giữ khoảng cách giữa icon và text
-      padding: 0.75rem 1rem; // Giữ padding nhưng phù hợp với chiều cao navbar nhỏ hơn
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
       border-radius: 0.5rem;
-      color: #e0e0e0; // Giữ màu chữ sáng
+      color: #e0e0e0;
       font-weight: 600;
-      font-size: 0.9rem; // Giảm kích thước chữ từ 0.95rem xuống 0.9rem để phù hợp
+      font-size: 0.9rem;
       text-decoration: none;
       position: relative;
       transition: all 0.3s ease, color 0.3s ease;
 
       svg {
-        color: #e0e0e0; // Giữ màu icon
+        color: #e0e0e0;
       }
 
       &:hover {
@@ -106,7 +106,7 @@
       .dropdown-toggle {
         display: flex;
         align-items: center;
-        padding: 0.75rem 1rem; // Giữ padding nhưng phù hợp với navbar nhỏ hơn
+        padding: 0.75rem 1rem;
         border-radius: 0.5rem;
         transition: all 0.3s ease;
 
@@ -151,11 +151,17 @@
           right: 0;
         }
 
+        &.festival-dropdown-menu {
+          left: 50%;
+          transform: translateX(-50%) translateY(10px) scale(0.95);
+          width: 240px;
+        }
+
         .dropdown-item {
           display: block;
           padding: 0.75rem 1.25rem;
           text-decoration: none;
-          font-size: 0.9rem; // Giảm kích thước chữ trong dropdown để phù hợp
+          font-size: 0.9rem;
           font-weight: 500;
           letter-spacing: 0.03em;
           color: #e0e0e0;
@@ -196,6 +202,10 @@
           transform: translateX(-50%) translateY(0) scale(1);
         }
 
+        &.festival-dropdown-menu {
+          transform: translateX(-50%) translateY(0) scale(1);
+        }
+
         &.dropdown-menu-user {
           transform: translateY(0) scale(1);
         }
@@ -214,19 +224,18 @@
     }
   }
 
-  // Responsive design
   @media (max-width: 768px) {
     .container {
       padding: 0 1rem;
-      height: 4rem; // Giữ chiều cao trên mobile
+      height: 4rem;
     }
 
     .brand-logo {
-      height: 2rem; // Giảm kích thước logo trên mobile
+      height: 2rem;
     }
 
     .nav-menu {
-      display: none; // Ẩn menu trên mobile, có thể thêm toggle menu sau
+      display: none;
     }
   }
 }
