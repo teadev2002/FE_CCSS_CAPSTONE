@@ -62,10 +62,15 @@ export function Navbar() {
             {
               to: "/costumes",
               label: "Costumes",
-              Icon: Users,
+              Icon: Shirt,
               hasDropdown: true,
               dropdownItems: cosplayThemes,
               dropdownClass: "dropdown-menu-categories",
+            },
+            {
+              to: "/cosplayers",
+              label: "cosplayers",
+              Icon: Users,
             },
             {
               to: "/festivals",

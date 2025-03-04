@@ -28,6 +28,7 @@ function App() {
             <Route path="/festivals" element={<FestivalPage />} />
             <Route path="/festivals/:category" element={<FestivalPage />} />
             <Route path="/services" element={<ServicesPage />} />
+            <Route path="/cosplayers" element={<CosplayerPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/souvenirs-shop" element={<SouvenirsPage />} />
