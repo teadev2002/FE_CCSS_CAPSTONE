@@ -69,7 +69,7 @@ export function Navbar() {
             },
             {
               to: "/cosplayers",
-              label: "cosplayers",
+              label: "Cosplayers",
               Icon: Users,
             },
             {

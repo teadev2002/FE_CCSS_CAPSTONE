@@ -1,5 +1,5 @@
 .costume-rental-page {
-  background-color: #f8f9fa; // Giữ nền xám, giống ban đầu
+  background-color: #f4f7fa !important; // Giữ nền xám, giống ban đầu
   min-height: 100vh;
 
   // Hero Section - Sao chép 100% từ CharactersPage
@@ -35,8 +35,7 @@
     }
 
     h1.display-4 {
-      // Giữ nguyên, đã đồng bộ với CharactersPage
-      font-size: 4.5rem;
+       font-size: 4.5rem;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 2px;

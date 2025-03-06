@@ -5,6 +5,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "../../styles/LoginPage.scss";
 import { Link, useNavigate } from "react-router-dom";
 import AuthService from "../../services/AuthService";
+import { toast, ToastContainer } from "react-toastify"; // Import toast
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
@@ -34,6 +35,7 @@ const LoginPage = () => {
       navigate("/");
     } catch (err) {
       setError(err.message);
+      toast.error(" Something wrong");
       console.error("Login error:", err);
     } finally {
       setLoading(false);
@@ -190,6 +192,18 @@ const LoginPage = () => {
           </Col>
         </Row>
       </Container>
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick={false}
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </div>
   );
 };

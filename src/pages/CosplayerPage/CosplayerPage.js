@@ -1,32 +1,3 @@
-// import React, { useState } from "react";
-// import {
-//   Container,
-//   Row,
-//   Col,
-//   Card,
-//   Button,
-//   Form,
-//   ListGroup,
-//   Alert,
-// } from "react-bootstrap";
-// import "../../styles/CosplayerPage.scss";
-
-// const CosplayerPage = () => {
-//   return (
-//     <div className="costume-rental-page min-vh-100">
-//       <div className="hero-section text-white py-5">
-//         <div className="container">
-//           <h1 className="display-4 fw-bold text-center">Cosplayer Rental</h1>
-//           <p className="lead text-center mt-3">
-//             Find and rent cosplayer you love.
-//           </p>
-//         </div>
-//       </div>
-
-//     </div>
-//   );
-// };
-// export default CosplayerPage;
 import React, { useState } from "react";
 import {
   Container,
@@ -37,6 +8,7 @@ import {
   Form,
   ListGroup,
   Alert,
+  Badge,
 } from "react-bootstrap";
 import "../../styles/CosplayerPage.scss";
 
@@ -123,7 +95,8 @@ const CosplayerPage = () => {
   const [selectedCostume, setSelectedCostume] = useState(null);
   const [rentalType, setRentalType] = useState(null);
   const [rentalPeriod, setRentalPeriod] = useState({
-    date: "",
+    dateStart: "",
+    dateEnd: "",
     startTime: "",
     endTime: "",
   });
@@ -135,7 +108,7 @@ const CosplayerPage = () => {
     setSelectedCosplayer(cosplayer);
     setSelectedCostume(null);
     setRentalType(null);
-    setRentalPeriod({ date: "", startTime: "", endTime: "" });
+    setRentalPeriod({ dateStart: "", dateEnd: "", startTime: "", endTime: "" }); // Sửa lại để dùng dateStart và dateEnd
     setError("");
   };
 
@@ -168,7 +141,8 @@ const CosplayerPage = () => {
     if (
       !selectedCosplayer ||
       !rentalType ||
-      !rentalPeriod.date ||
+      !rentalPeriod.dateStart ||
+      !rentalPeriod.dateEnd ||
       !rentalPeriod.startTime ||
       !rentalPeriod.endTime
     ) {
@@ -179,215 +153,256 @@ const CosplayerPage = () => {
       setError("Please select a character for rental type 2.");
       return;
     }
+    // Kiểm tra dateEnd phải lớn hơn hoặc bằng dateStart
+    if (new Date(rentalPeriod.dateEnd) < new Date(rentalPeriod.dateStart)) {
+      setError("End date must be equal to or after start date.");
+      return;
+    }
     const newContract = {
       cosplayer: selectedCosplayer.name,
       costume: selectedCostume
         ? selectedCostume.name
         : "No costume (to be prepared)",
       rentalType,
-      ...rentalPeriod,
+      dateStart: rentalPeriod.dateStart,
+      dateEnd: rentalPeriod.dateEnd,
+      startTime: rentalPeriod.startTime,
+      endTime: rentalPeriod.endTime,
     };
     setContract([...contract, newContract]);
     setSelectedCosplayer(null);
     setSelectedCostume(null);
     setRentalType(null);
-    setRentalPeriod({ date: "", startTime: "", endTime: "" });
+    setRentalPeriod({ dateStart: "", dateEnd: "", startTime: "", endTime: "" });
     setError("");
   };
 
   return (
-    <div className="costume-rental-page min-vh-100">
-      <div className="hero-section text-white py-5">
+    <div className="cosplay-rental-page min-vh-100">
+      <div className="hero-section text-black py-5">
         <Container>
-          <h1 className="display-4 fw-bold text-center text-purple-500">
+          <h1 className="display-4 fw-bold text-center animate__animated animate__fadeIn">
             Cosplayer Rental
           </h1>
-          <p className="lead text-center mt-3">
-            Find and rent cosplayers you love.
+          <p className="lead text-center mt-3 animate__animated animate__fadeIn animate__delay-1s">
+            Find and rent cosplayers you love for your events
           </p>
         </Container>
       </div>
 
       <Container className="py-5">
-        {/* Cosplayer Selection */}
-        <Row className="mb-4">
-          <Col>
-            <h3 className="text-white">Select a Cosplayer</h3>
-            <ListGroup>
+        {/* Cosplayer Selection - Luôn hiển thị */}
+        <Row className="mb-5 rental-form-section">
+          <Col md={6}>
+            <h3 className="text-black mb-4 section-title">
+              Choose Your Cosplayer
+            </h3>
+            <ListGroup className="cosplayer-list">
               {cosplayers.map((cosplayer) => (
                 <ListGroup.Item
                   key={cosplayer.id}
                   action
                   onClick={() => handleCosplayerSelect(cosplayer)}
                   active={selectedCosplayer?.id === cosplayer.id}
-                  className="d-flex align-items-center p-3"
+                  className="cosplayer-item"
                 >
-                  <img
-                    src={cosplayer.avatar}
-                    alt={cosplayer.name}
-                    className="rounded-circle me-3"
-                    style={{ width: "50px", height: "50px" }}
-                  />
-                  <div>
-                    <h5>{cosplayer.name}</h5>
-                    <p className="mb-0 text-muted">{cosplayer.description}</p>
+                  <div className="d-flex align-items-center">
+                    <img
+                      src={cosplayer.avatar}
+                      alt={cosplayer.name}
+                      className="cosplayer-avatar"
+                    />
+                    <div className="ms-3 flex-grow-1">
+                      <h5 className="mb-1">{cosplayer.name}</h5>
+                      <p className="mb-0 text-muted">{cosplayer.description}</p>
+                    </div>
+                    <Badge bg="primary" className="select-badge">
+                      {selectedCosplayer?.id === cosplayer.id
+                        ? "Selected"
+                        : "Select"}
+                    </Badge>
                   </div>
                 </ListGroup.Item>
               ))}
             </ListGroup>
           </Col>
+
+          {/* Costume Selection - Chỉ hiển thị khi có cosplayer được chọn */}
+          {selectedCosplayer && (
+            <Col md={6}>
+              <h3 className="text-black mb-4 section-title">
+                Costume Selection
+              </h3>
+              <Card className="costume-selection-card">
+                <Card.Body>
+                  <h5>Available Costumes:</h5>
+                  <Row xs={1} md={2} className="g-3">
+                    {costumes[selectedCosplayer.id].map((costume) => (
+                      <Col key={costume.id}>
+                        <Card
+                          className={`costume-card ${
+                            selectedCostume?.id === costume.id ? "selected" : ""
+                          } ${!costume.available ? "unavailable" : ""}`}
+                          onClick={() =>
+                            costume.available && handleCostumeSelect(costume)
+                          }
+                        >
+                          <Card.Img variant="top" src={costume.image} />
+                          <Card.Body className="p-2">
+                            <Card.Title className="mb-0">
+                              {costume.name}
+                            </Card.Title>
+                            <Badge
+                              bg={costume.available ? "success" : "danger"}
+                              className="status-badge"
+                            >
+                              {costume.available ? "Available" : "Booked"}
+                            </Badge>
+                          </Card.Body>
+                        </Card>
+                      </Col>
+                    ))}
+                  </Row>
+                </Card.Body>
+              </Card>
+            </Col>
+          )}
         </Row>
 
-        {/* Costumes Selection (if cosplayer selected) */}
-        {selectedCosplayer && (
-          <Row className="mb-4">
-            <Col>
-              <h3 className="text-white">Select Cosplayed Costumes</h3>
-              <ListGroup>
-                {costumes[selectedCosplayer.id].map((costume) => (
-                  <ListGroup.Item
-                    key={costume.id}
-                    action
-                    onClick={() => handleCostumeSelect(costume)}
-                    active={selectedCostume?.id === costume.id}
-                    className="d-flex align-items-center p-3"
-                  >
-                    <img
-                      src={costume.image}
-                      alt={costume.name}
-                      className="me-3"
-                      style={{
-                        width: "100px",
-                        height: "100px",
-                        objectFit: "cover",
-                      }}
-                    />
-                    <div>
-                      <h5>{costume.name}</h5>
-                      <p className="mb-0 text-muted">
-                        {costume.available ? "Available" : "Not Available"}
-                      </p>
+        {/* Rental Schedule */}
+        <Row className="mb-3 Rental-Schedule">
+          <Col>
+            <h3 className="text-black mb-4 section-title">Rental Schedule</h3>
+            <Card className="rental-form-card">
+              <Card.Body>
+                <Form>
+                  <div className="d-flex gap-3 mb-3">
+                    <Form.Group className="flex-grow-1">
+                      <Form.Label>Date Start</Form.Label>
+                      <Form.Control
+                        className="dateTime"
+                        type="date"
+                        name="dateStart"
+                        value={rentalPeriod.dateStart}
+                        onChange={handleRentalPeriodChange}
+                        min={new Date().toISOString().split("T")[0]}
+                      />
+                    </Form.Group>
+                    <Form.Group className="flex-grow-1">
+                      <Form.Label>Date End</Form.Label>
+                      <Form.Control
+                        className="dateTime"
+                        type="date"
+                        name="dateEnd"
+                        value={rentalPeriod.dateEnd}
+                        onChange={handleRentalPeriodChange}
+                        min={
+                          rentalPeriod.dateStart ||
+                          new Date().toISOString().split("T")[0]
+                        }
+                      />
+                    </Form.Group>
+                  </div>
+
+                  <div className="d-flex gap-3 mb-3">
+                    <Form.Group className="flex-grow-1">
+                      <Form.Label>Start Time</Form.Label>
+                      <Form.Control
+                        className="dateTime"
+                        type="time"
+                        name="startTime"
+                        value={rentalPeriod.startTime}
+                        onChange={handleRentalPeriodChange}
+                      />
+                    </Form.Group>
+                    <Form.Group className="flex-grow-1">
+                      <Form.Label>End Time</Form.Label>
+                      <Form.Control
+                        className="dateTime"
+                        type="time"
+                        name="endTime"
+                        value={rentalPeriod.endTime}
+                        onChange={handleRentalPeriodChange}
+                      />
+                    </Form.Group>
+                  </div>
+
+                  <Form.Group className="mb-3">
+                    <Form.Label>Rental Type</Form.Label>
+                    <div className="rental-type-options">
+                      <Form.Check
+                        type="radio"
+                        id="rentalType1"
+                        label="With Available Costume"
+                        name="rentalType"
+                        onChange={() => handleRentalTypeSelect(1)}
+                        checked={rentalType === 1}
+                      />
+                      <Form.Check
+                        type="radio"
+                        id="rentalType2"
+                        label="Custom Costume (1 Month Prep)"
+                        name="rentalType"
+                        onChange={() => handleRentalTypeSelect(2)}
+                        checked={rentalType === 2}
+                      />
                     </div>
-                  </ListGroup.Item>
-                ))}
-              </ListGroup>
-            </Col>
-          </Row>
-        )}
+                  </Form.Group>
 
-        {/* Rental Type Selection */}
-        {selectedCosplayer && (
-          <Row className="mb-4">
-            <Col>
-              <h3 className="text-white">Select Rental Type</h3>
-              <Form>
-                <Form.Check
-                  type="radio"
-                  id="rentalType1"
-                  label="Rent a cosplayer with available costumes"
-                  name="rentalType"
-                  onChange={() => handleRentalTypeSelect(1)}
-                  checked={rentalType === 1}
-                />
-                <Form.Check
-                  type="radio"
-                  id="rentalType2"
-                  label="Rent a cosplayer without available costumes"
-                  name="rentalType"
-                  onChange={() => handleRentalTypeSelect(2)}
-                  checked={rentalType === 2}
-                />
-              </Form>
-            </Col>
-          </Row>
-        )}
+                  <Button
+                    variant="primary"
+                    onClick={handleAddContract}
+                    className="w-50 mt-3"
+                  >
+                    Add to Contract
+                  </Button>
+                </Form>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
 
-        {/* Rental Period Selection */}
-        {rentalType && (
-          <Row className="mb-4">
-            <Col>
-              <h3 className="text-white">Select Rental Period</h3>
-              <Form>
-                <Form.Group controlId="formDate" className="mb-3">
-                  <Form.Label className="text-white">Date</Form.Label>
-                  <Form.Control
-                    type="date"
-                    name="date"
-                    value={rentalPeriod.date}
-                    onChange={handleRentalPeriodChange}
-                    required
-                  />
-                </Form.Group>
-                <Form.Group controlId="formStartTime" className="mb-3">
-                  <Form.Label className="text-white">Start Time</Form.Label>
-                  <Form.Control
-                    type="time"
-                    name="startTime"
-                    value={rentalPeriod.startTime}
-                    onChange={handleRentalPeriodChange}
-                    required
-                  />
-                </Form.Group>
-                <Form.Group controlId="formEndTime" className="mb-3">
-                  <Form.Label className="text-white">End Time</Form.Label>
-                  <Form.Control
-                    type="time"
-                    name="endTime"
-                    value={rentalPeriod.endTime}
-                    onChange={handleRentalPeriodChange}
-                    required
-                  />
-                </Form.Group>
-              </Form>
-            </Col>
-          </Row>
-        )}
-
-        {/* Error/Notification */}
+        {/* Error Notification */}
         {error && (
-          <Row className="mb-4">
+          <Row className="mb-5">
             <Col>
-              <Alert
-                variant="warning"
-                dangerouslySetInnerHTML={{ __html: error }}
-              />
+              <Alert variant="warning">
+                <div dangerouslySetInnerHTML={{ __html: error }} />
+              </Alert>
             </Col>
           </Row>
         )}
 
-        {/* Create Contract Button */}
-        {rentalType && (
-          <Row className="mb-4">
-            <Col className="text-center">
-              <Button variant="primary" onClick={handleAddContract} size="lg">
-                Add to Contract
-              </Button>
-            </Col>
-          </Row>
-        )}
-
-        {/* Display Contracts */}
+        {/* Contracts */}
         {contract.length > 0 && (
           <Row>
             <Col>
-              <h3 className="text-white">Your Contracts</h3>
-              <ListGroup>
+              <h3 className="text-black mb-4 section-title">Your Contracts</h3>
+              <div className="contract-list">
                 {contract.map((item, index) => (
-                  <ListGroup.Item key={index} className="p-3">
-                    <h5>{item.cosplayer}</h5>
-                    <p>Costume: {item.costume}</p>
-                    <p>
-                      Rental Type:{" "}
-                      {item.rentalType === 1
-                        ? "With costumes"
-                        : "Without costumes"}
-                    </p>
-                    <p>
-                      Date: {item.date}, {item.startTime} - {item.endTime}
-                    </p>
-                  </ListGroup.Item>
+                  <Card key={index} className="contract-card mb-3">
+                    <Card.Body>
+                      <div className="d-flex justify-content-between align-items-start">
+                        <div>
+                          <Card.Title>{item.cosplayer}</Card.Title>
+                          <Card.Text>
+                            <strong>Costume:</strong> {item.costume}
+                            <br />
+                            <strong>Type:</strong>{" "}
+                            {item.rentalType === 1
+                              ? "With Costume"
+                              : "Custom Costume"}
+                            <br />
+                            <strong>Time:</strong> {item.dateStart} to{" "}
+                            {item.dateEnd}, {item.startTime} - {item.endTime}
+                          </Card.Text>
+                        </div>
+                        <Badge bg="success">Confirmed</Badge>
+                      </div>
+                    </Card.Body>
+                  </Card>
                 ))}
-              </ListGroup>
+              </div>
             </Col>
           </Row>
         )}
