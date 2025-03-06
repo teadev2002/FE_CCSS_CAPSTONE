@@ -26,7 +26,7 @@ const SouvenirsPage = () => {
               <input
                 type="text"
                 className="form-control"
-                placeholder="Search costumes..."
+                placeholder="Search souvenirs..."
               />
             </div>
           </div>
