@@ -10,6 +10,7 @@ import {
   Shirt,
   Store,
   CircleUser,
+  Aperture,
 } from "lucide-react";
 import Logo from "../../assets/img/CCSSlogo.png";
 import "../../styles/nav.scss";
@@ -72,6 +73,8 @@ export function Navbar() {
               label: "Cosplayers",
               Icon: Users,
             },
+            { to: "/event-organize", label: "Event Organize", Icon: Aperture },
+
             {
               to: "/festivals",
               label: "Festivals",
@@ -82,7 +85,7 @@ export function Navbar() {
             },
             { to: "/souvenirs-shop", label: "Souvenirs", Icon: Store },
             { to: "/about", label: "About Us", Icon: Info },
-            { to: "/contact", label: "Contact", Icon: Phone },
+            // { to: "/contact", label: "Contact", Icon: Phone },
           ].map(
             ({
               to,

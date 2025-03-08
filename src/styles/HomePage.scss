@@ -359,6 +359,30 @@
         }
       }
     }
+    .view-all-button {
+      display: inline-block;
+      background: linear-gradient(135deg, #510545, #22668a); // Giữ gradient tím-xanh
+      color: white;
+      font-weight: 700; // Giữ độ đậm
+      padding: 14px 35px; // Tăng padding để nút lớn hơn và đẹp hơn
+      font-size: 1.2rem; // Tăng kích thước font để nổi bật
+      border-radius: 30px; // Bo tròn lớn hơn để hiện đại
+      text-decoration: none;
+      transition: all 0.4s ease; // Tăng thời gian transition
+      border: none;
+      box-shadow: 0 6px 20px rgba(81, 5, 69, 0.4); // Tăng độ sâu bóng đổ
+
+      &:hover {
+        transform: translateY(-5px); // Nâng lên nhiều hơn khi hover
+        box-shadow: 0 8px 25px rgba(81, 5, 69, 0.6); // Bóng đổ đậm hơn khi hover
+        opacity: 0.95; // Giảm độ trong suốt nhẹ khi hover
+      }
+
+      &:active {
+        transform: translateY(2px); // Hạ xuống khi click
+        box-shadow: 0 3px 10px rgba(81, 5, 69, 0.2);
+      }
+    }
   }
 
   // Hover effect for character cards (giữ nguyên cách hiển thị, chỉ làm đẹp hơn)

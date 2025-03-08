@@ -12,13 +12,10 @@ import "../../styles/HomePage.scss";
 const HomePage = () => {
   useEffect(() => {
     // const accessToken = localStorage.getItem("accessToken");
-
     // if (!accessToken) return;
-
     // try {
     //   const decoded = jwtDecode(accessToken); // Cập nhật cách gọi hàm
     //   const accountName = decoded?.AccountName;
-
     //   if (accountName) {
     //     toast.success(`Welcome, ${accountName}!`);
     //   }
@@ -47,7 +44,7 @@ const HomePage = () => {
       </Carousel>
 
       <Container className="featured-characters py-5">
-        <h2 className="text-center fw-bold mb-5">Highlight Characters</h2>
+        <h2 className="text-center fw-bold mb-5">Highlight Cosplayer</h2>
         <ul className="card-list">
           {featuredCharacters.map((character) => (
             <li className="character-card" key={character.id}>
@@ -68,8 +65,8 @@ const HomePage = () => {
           ))}
         </ul>
         <div className="text-center mt-4">
-          <Link to="/characters" className="view-all-button">
-            View All Characters
+          <Link to="/cosplayers" className="view-all-button">
+            Hire Cosplayers
           </Link>
         </div>
       </Container>
@@ -87,6 +84,11 @@ const HomePage = () => {
             </Col>
           ))}
         </Row>
+        <div className="text-center mt-4">
+          <Link to="/services" className="view-all-button">
+            View All Services
+          </Link>
+        </div>
       </Container>
       <ToastContainer
         position="top-right"

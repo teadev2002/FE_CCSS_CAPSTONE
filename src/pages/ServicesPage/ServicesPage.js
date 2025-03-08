@@ -19,8 +19,9 @@ const ServicesPage = (props) => {
       <Container className="py-5">
         {services.map((service, index) => (
           <Row
-            className={`align-items-center mb-5 ${index % 2 !== 0 ? "flex-row-reverse" : ""
-              }`}
+            className={`align-items-center mb-5 ${
+              index % 2 !== 0 ? "flex-row-reverse" : ""
+            }`}
             key={service.id}
           >
             <Col md={6}>
