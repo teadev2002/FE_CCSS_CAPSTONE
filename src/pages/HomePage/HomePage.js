@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Carousel, Container, Row, Col } from "react-bootstrap";
 import { Shirt, CalendarDays, Users, ShoppingBag } from "lucide-react";
 import { toast, ToastContainer } from "react-toastify"; // Import toast
-// import { jwtDecode } from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 
 import "react-toastify/dist/ReactToastify.css";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -11,17 +11,17 @@ import "../../styles/HomePage.scss";
 
 const HomePage = () => {
   useEffect(() => {
-    // const accessToken = localStorage.getItem("accessToken");
-    // if (!accessToken) return;
-    // try {
-    //   const decoded = jwtDecode(accessToken); // Cập nhật cách gọi hàm
-    //   const accountName = decoded?.AccountName;
-    //   if (accountName) {
-    //     toast.success(`Welcome, ${accountName}!`);
-    //   }
-    // } catch (error) {
-    //   console.error("Invalid token", error);
-    // }
+    const accessToken = localStorage.getItem("accessToken");
+    if (!accessToken) return;
+    try {
+      const decoded = jwtDecode(accessToken); // Cập nhật cách gọi hàm
+      const accountName = decoded?.AccountName;
+      if (accountName) {
+        toast.success(`Welcome, ${accountName}!`);
+      }
+    } catch (error) {
+      console.error("Invalid token", error);
+    }
   }, []);
 
   return (

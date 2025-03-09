@@ -127,7 +127,7 @@ export function Navbar() {
               <CircleUser size={24} />
             </div>
             <div className="dropdown-menu dropdown-menu-user">
-              <Link to="#" className="dropdown-item">
+              <Link to="/user-profile" className="dropdown-item">
                 Profile
               </Link>
               <Link to="#" className="dropdown-item">

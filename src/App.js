@@ -14,6 +14,7 @@ import SignupPage from "./pages/Auth/SignupPage";
 import CosplayerPage from "./pages/CosplayerPage/CosplayerPage.js";
 import EventOrganizePage from "./pages/EventOrganizePage/EventOrganizePage.js";
 import DetailEventOrganizePage from "./pages/EventOrganizePage/DetailEventOrganizePage.js";
+import ProfilePage from "./pages/ProfilePage/ProfilePage.js";
 import { Navbar } from "./components/Nav/navbar";
 import { Footer } from "./components/Footer/Footer";
 
@@ -41,6 +42,7 @@ function App() {
             <Route path="/souvenirs-shop" element={<SouvenirsPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/sign-up" element={<SignupPage />} />
+            <Route path="/user-profile" element={<ProfilePage />} />
           </Routes>
         </main>
         <Footer />

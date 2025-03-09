@@ -1,4 +1,16 @@
- .gradient-bg {
+@import url("https://fonts.googleapis.com/css2?family=Poppins&display=swap");
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Poppins", sans-serif;
+}
+
+.gradient-bg {
   min-height: 100vh;
   background: linear-gradient(135deg, #3a1c71 0%, #d76d77 50%, #ffaf7b 100%);
   padding: 2rem;
@@ -72,8 +84,9 @@
   position: relative;
   overflow: hidden;
   margin-top: 12vh;
+
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     width: 150px;
     height: 150px;
@@ -86,7 +99,7 @@
   }
 
   &::after {
-    content: '';
+    content: "";
     position: absolute;
     width: 100px;
     height: 100px;
@@ -97,13 +110,6 @@
     opacity: 0.05;
     z-index: 0;
   }
-}
-
-.greeting-text {
-  font-size: 1.1rem;
-  color: #666;
-  margin-bottom: 1rem;
-  text-align: center;
 }
 
 .ui-title {
@@ -141,31 +147,6 @@
   }
 }
 
-.remember-me-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-
-  .custom-checkbox {
-    font-size: 0.9rem;
-    color: #666;
-  }
-}
-
-.forgot-password {
-  color: #3a1c71;
-  text-decoration: none;
-  font-size: 0.9rem;
-  font-weight: 500;
-  padding: 0;
-
-  &:hover {
-    color: #d76d77;
-    text-decoration: underline;
-  }
-}
-
 .login-button {
   background: linear-gradient(to right, #3a1c71, #d76d77);
   border: none;
@@ -191,7 +172,7 @@
 
   &::before,
   &::after {
-    content: '';
+    content: "";
     flex: 1;
     border-bottom: 1px solid #e0e0e0;
   }
