@@ -258,9 +258,9 @@ const DetailEventOrganizePage = () => {
       {/* Hero Section */}
       <div className="hero-section text-white py-5">
         <Container>
-          <h1 className="display-4 fw-bold text-center">Event Organize</h1>
+          <h1 className="display-4 fw-bold text-center">Event Organization</h1>
           <p className="lead text-center mt-3">
-            Create an event and hire cosplayers you love!
+            Host an event and book your favorite cosplayers!
           </p>
         </Container>
       </div>
@@ -294,9 +294,8 @@ const DetailEventOrganizePage = () => {
               {filteredEvents.map((event) => (
                 <Col md={4} key={event.id}>
                   <Card
-                    className={`event-card ${
-                      selectedEvent?.id === event.id ? "selected" : ""
-                    }`}
+                    className={`event-card ${selectedEvent?.id === event.id ? "selected" : ""
+                      }`}
                     onClick={() => setSelectedEvent(event)}
                   >
                     <Card.Img variant="top" src={event.image} />
@@ -392,9 +391,8 @@ const DetailEventOrganizePage = () => {
                 {filteredCosplayers.map((cosplayer) => (
                   <Col md={4} key={cosplayer.id}>
                     <Card
-                      className={`cosplayer-card ${
-                        selectedCosplayers.includes(cosplayer) ? "selected" : ""
-                      }`}
+                      className={`cosplayer-card ${selectedCosplayers.includes(cosplayer) ? "selected" : ""
+                        }`}
                       onClick={() => {
                         setSelectedCosplayers((prev) =>
                           prev.includes(cosplayer)

@@ -73,7 +73,7 @@ export function Navbar() {
               label: "Cosplayers",
               Icon: Users,
             },
-            { to: "/event-organize", label: "Event Organize", Icon: Aperture },
+            { to: "/event-organize", label: "Event Organization", Icon: Aperture },
 
             {
               to: "/festivals",
@@ -132,6 +132,9 @@ export function Navbar() {
               </Link>
               <Link to="#" className="dropdown-item">
                 Cart
+              </Link>
+              <Link to="/contact" className="dropdown-item"> {/* Thêm mục Contact */}
+                Contact
               </Link>
               <Link
                 to="/login"
