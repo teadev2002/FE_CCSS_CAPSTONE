@@ -7,7 +7,7 @@
   left: 0;
   width: 100%;
   z-index: 1000;
-  height: 4rem;
+  height: 4.5rem; // Increased slightly for more space
 
   .container {
     display: flex;
@@ -15,7 +15,7 @@
     justify-content: space-between;
     height: 100%;
     max-width: 1400px;
-    padding: 0 2rem;
+    padding: 0 1rem; // Reduced horizontal padding
     margin: 0 auto;
   }
 
@@ -24,8 +24,8 @@
     align-items: center;
 
     .brand-logo {
-      height: 3.2rem;
-      width: 6.4rem;
+      height: 2.8rem; // Slightly reduced from 3.2rem
+      width: 5.6rem; // Slightly reduced from 6.4rem
       transition: transform 0.3s ease, filter 0.3s ease;
 
       &:hover {
@@ -38,23 +38,25 @@
   .nav-menu {
     display: flex;
     align-items: center;
-    gap: 1.5rem;
+    gap: 0.75rem; // Reduced from 1.5rem to save horizontal space
 
     .nav-link {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
-      padding: 0.75rem 1rem;
+      gap: 0.5rem; // Reduced from 0.75rem
+      padding: 0.5rem 0.75rem; // Reduced padding from 0.75rem 1rem
       border-radius: 0.5rem;
       color: #e0e0e0;
       font-weight: 600;
-      font-size: 0.9rem;
+      font-size: 0.85rem; // Reduced from 0.9rem
       text-decoration: none;
       position: relative;
       transition: all 0.3s ease, color 0.3s ease;
 
       svg {
         color: #e0e0e0;
+        width: 20px; // Explicit size reduction from 24px
+        height: 20px; // Explicit size reduction from 24px
       }
 
       &:hover {
@@ -106,13 +108,15 @@
       .dropdown-toggle {
         display: flex;
         align-items: center;
-        padding: 0.75rem 1rem;
+        padding: 0.5rem 0.75rem; // Reduced padding from 0.75rem 1rem
         border-radius: 0.5rem;
         transition: all 0.3s ease;
 
         svg {
           color: #e0e0e0;
           transition: color 0.3s ease;
+          width: 20px; // Explicitly set size from 24px
+          height: 20px; // Explicitly set size from 24px
         }
 
         &:hover {
@@ -144,7 +148,7 @@
         &.dropdown-menu-categories {
           left: 50%;
           transform: translateX(-50%) translateY(10px) scale(0.95);
-          width: 240px;
+          width: 200px; // Reduced from 240px
         }
 
         &.dropdown-menu-user {
@@ -154,14 +158,14 @@
         &.festival-dropdown-menu {
           left: 50%;
           transform: translateX(-50%) translateY(10px) scale(0.95);
-          width: 240px;
+          width: 200px; // Reduced from 240px
         }
 
         .dropdown-item {
           display: block;
-          padding: 0.75rem 1.25rem;
+          padding: 0.6rem 1rem; // Reduced from 0.75rem 1.25rem
           text-decoration: none;
-          font-size: 0.9rem;
+          font-size: 0.85rem; // Reduced from 0.9rem
           font-weight: 500;
           letter-spacing: 0.03em;
           color: #e0e0e0;
@@ -224,6 +228,29 @@
     }
   }
 
+  // Responsive styles - improved
+  @media (max-width: 1024px) {
+    .nav-menu {
+      .nav-link {
+        padding: 0.5rem 0.6rem;
+        font-size: 0.8rem;
+        gap: 0.3rem;
+        
+        svg {
+          width: 18px;
+          height: 18px;
+        }
+        
+        // For very tight spaces, hide text and only show icons
+        @media (max-width: 900px) {
+          span {
+            display: none;
+          }
+        }
+      }
+    }
+  }
+
   @media (max-width: 768px) {
     .container {
       padding: 0 1rem;
@@ -239,5 +266,3 @@
     }
   }
 }
-
- 

@@ -115,9 +115,9 @@ const EventOrganizePage = () => {
       {/* Header */}
       <div className="hero-section text-black py-5">
         <Container>
-          <h1 className="display-4 fw-bold text-center">Event Organize</h1>
+          <h1 className="display-4 fw-bold text-center">Event Organization</h1>
           <p className="lead text-center mt-3">
-            Create an event and rent cosplayers you love for your events
+            Host an event and book your favorite cosplayers!
           </p>
         </Container>
       </div>
