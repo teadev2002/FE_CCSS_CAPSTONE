@@ -28,7 +28,7 @@ const Sidebar = () => {
 
       <nav className="sidebar-nav">
         <NavLink
-          to="/admin-dashboard"
+          to="/admin/dashboard"
           className={({ isActive }) =>
             isActive ? "nav-link active" : "nav-link"
           }
@@ -38,7 +38,7 @@ const Sidebar = () => {
         </NavLink>
 
         <NavLink
-          to="/admin-dashboard/user-performance"
+          to="/admin/user-performance"
           className={({ isActive }) =>
             isActive ? "nav-link active" : "nav-link"
           }
@@ -48,7 +48,7 @@ const Sidebar = () => {
         </NavLink>
 
         <NavLink
-          to="/admin-dashboard/order-revenue-performance"
+          to="/admin/order-revenue-performance"
           className={({ isActive }) =>
             isActive ? "nav-link active" : "nav-link"
           }
@@ -58,7 +58,7 @@ const Sidebar = () => {
         </NavLink>
 
         <NavLink
-          to="/admin-dashboard/user-statistics"
+          to="/admin/user-statistics"
           className={({ isActive }) =>
             isActive ? "nav-link active" : "nav-link"
           }
@@ -68,7 +68,7 @@ const Sidebar = () => {
         </NavLink>
 
         <NavLink
-          to="/admin-dashboard/system-management"
+          to="/admin/system-management"
           className={({ isActive }) =>
             isActive ? "nav-link active" : "nav-link"
           }

@@ -64,21 +64,21 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/sign-up" element={<SignupPage />} />
           <Route path="/user-profile" element={<ProfilePage />} />
-          <Route path="/admin-dashboard" element={<DashboardPage />} />
+          <Route path="/admin/dashboard" element={<DashboardPage />} />
           <Route
-            path="/admin-dashboard/user-performance"
+            path="/admin/user-performance"
             element={<UserPerformancePage />}
           />
           <Route
-            path="/admin-dashboard/order-revenue-performance"
+            path="/admin/order-revenue-performance"
             element={<OrderRevenuePerformancePage />}
           />
           <Route
-            path="/admin-dashboard/user-statistics"
+            path="/admin/user-statistics"
             element={<UserStatisticsPage />}
           />
           <Route
-            path="/admin-dashboard/system-management"
+            path="/admin/system-management"
             element={<SystemManagementPage />}
           />
         </Routes>
