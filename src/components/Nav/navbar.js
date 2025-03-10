@@ -73,7 +73,7 @@ export function Navbar() {
               label: "Cosplayers",
               Icon: Users,
             },
-            { to: "/event-organize", label: "Event Organization", Icon: Aperture },
+            { to: "/event-organize", label: "Event Organization", Icon: Aperture }, // Shortened label
 
             {
               to: "/festivals",
@@ -102,7 +102,7 @@ export function Navbar() {
                     `nav-link ${isActive ? "nav-link-active" : ""}`
                   }
                 >
-                  <Icon size={24} />
+                  <Icon size={20} /> {/* Changed from 24 to 20 */}
                   <span>{label}</span>
                 </NavLink>
                 {hasDropdown && (
@@ -124,7 +124,7 @@ export function Navbar() {
 
           <div className="dropdown-container">
             <div className="dropdown-toggle">
-              <CircleUser size={24} />
+              <CircleUser size={20} /> {/* Changed from 24 to 20 */}
             </div>
             <div className="dropdown-menu dropdown-menu-user">
               <Link to="/user-profile" className="dropdown-item">
@@ -133,7 +133,7 @@ export function Navbar() {
               <Link to="#" className="dropdown-item">
                 Cart
               </Link>
-              <Link to="/contact" className="dropdown-item"> {/* Thêm mục Contact */}
+              <Link to="/contact" className="dropdown-item">
                 Contact
               </Link>
               <Link
