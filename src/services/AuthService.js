@@ -26,6 +26,24 @@ const AuthService = {
     }
   },
 
+  // Sign up function
+  signup: async (name, email, password, birthday, phone, role = "3") => {
+    try {
+      const response = await apiClient.post(`/Auth/register/${role}`, {
+        name,
+        email,
+        password,
+        description: "New user", // Add a default description since it's required by the API but not in the form
+        birthday,
+        phone,
+      });
+
+      return response.data; // Return the response data (e.g., "Please enter code")
+    } catch (error) {
+      throw new Error(error.response?.data?.message || "Sign up failed");
+    }
+  },
+
   // Check if user is authenticated
   isAuthenticated: () => {
     const token = localStorage.getItem("accessToken");

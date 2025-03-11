@@ -1,3 +1,4 @@
+// SignupPage.js
 import React, { useState } from "react";
 import { Container, Row, Col, Form, Button } from "react-bootstrap";
 import { User, Mail, Lock, Calendar, Phone, ArrowRight } from "lucide-react";
@@ -6,6 +7,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "../../styles/SignUpPage.scss";
+import AuthService from "../../services/AuthService";
+import ModalConfirmSignUp from "./ModalConfirmSignUp";
 
 const SignupPage = () => {
   const [formData, setFormData] = useState({
@@ -17,6 +20,7 @@ const SignupPage = () => {
     phone: "",
   });
   const [errors, setErrors] = useState({});
+  const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
 
   const handleInputChange = (e) => {
@@ -51,28 +55,66 @@ const SignupPage = () => {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = validateForm();
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length === 0) {
-      console.log("Form Data:", formData);
-      // Show success toast
-      toast.success("Sign up successful! Redirecting to login...", {
-        position: "top-right",
-        autoClose: 2000,
-        hideProgressBar: false,
-        closeOnClick: false,
-        pauseOnHover: true,
-        draggable: true,
-        theme: "light",
-      });
+      try {
+        // Call the signup API
+        const response = await AuthService.signup(
+          formData.name,
+          formData.email,
+          formData.password,
+          formData.birthday,
+          formData.phone
+        );
 
-      // Navigate to /login after 2100ms
-      setTimeout(() => {
-        navigate("/login");
-      }, 2100);
+        // Log the response for debugging
+        console.log("Signup Response:", response);
+
+        // Check if the response indicates the email already exists
+        if (response === "Email existed!!!") {
+          toast.error(
+            "This email is already registered. Please use a different email.",
+            {
+              position: "top-right",
+              autoClose: 5000,
+              hideProgressBar: false,
+              closeOnClick: false,
+              pauseOnHover: true,
+              draggable: true,
+              theme: "light",
+            }
+          );
+          return; // Stop further execution (don’t show the modal)
+        } else {
+          setShowModal(true);
+          toast.info("Please check your email for a verification code.", {
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: false,
+            pauseOnHover: true,
+            draggable: true,
+            theme: "light",
+          });
+        }
+
+        // If signup is successful, show the modal for verification
+      } catch (error) {
+        // Handle other errors from the API or network issues
+        toast.error(error.message || "Sign up failed. Please try again.", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: false,
+          pauseOnHover: true,
+          draggable: true,
+          theme: "light",
+        });
+      }
     }
   };
 
@@ -232,6 +274,12 @@ const SignupPage = () => {
           </Col>
         </Row>
       </Container>
+
+      <ModalConfirmSignUp
+        show={showModal}
+        onHide={() => setShowModal(false)}
+        email={formData.email}
+      />
 
       <ToastContainer
         position="top-right"
