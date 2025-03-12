@@ -343,7 +343,7 @@ import { toast } from "react-toastify";
 export function Navbar() {
   const navigate = useNavigate();
   const [userId, setUserId] = useState(null);
-
+  const accessToken = localStorage.getItem("accessToken");
   // Hàm tiện ích để lấy userId từ accessToken
   const getUserIdFromToken = () => {
     const accessToken = localStorage.getItem("accessToken");
@@ -368,11 +368,11 @@ export function Navbar() {
   // Hàm điều hướng tới trang Profile
   const goToProfile = () => {
     const id = getUserIdFromToken();
-    if (id) {
-      navigate(`/user-profile/${id}`); // Sử dụng route hiện tại của bạn
-    } else {
+    if (!id) {
       toast.warn("Bạn chưa đăng nhập!");
       setTimeout(() => navigate("/login"), 2100);
+    } else {
+      navigate(`/user-profile/${id}`); // Sử dụng route hiện tại của bạn
     }
   };
 
@@ -483,9 +483,11 @@ export function Navbar() {
               <CircleUser size={20} />
             </div>
             <div className="dropdown-menu dropdown-menu-user">
-              <div onClick={goToProfile} className="dropdown-item">
-                Profile
-              </div>
+              {accessToken && ( // Chỉ render nếu accessToken tồn tại
+                <div onClick={goToProfile} className="dropdown-item">
+                  Profile
+                </div>
+              )}
               <Link to="#" className="dropdown-item">
                 Cart
               </Link>
