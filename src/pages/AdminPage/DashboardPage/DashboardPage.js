@@ -114,7 +114,7 @@ const DashboardPage = () => {
           </Card>
         </Col>
 
-        <Col md={12} lg={6}>
+        <Col md={12} lg={4}>
           <Card className="mb-4">
             <Card.Header>
               <h5 className="mb-0">Today's Revenue</h5>
