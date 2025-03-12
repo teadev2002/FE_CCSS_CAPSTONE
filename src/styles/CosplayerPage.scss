@@ -1,211 +1,5 @@
-// @import "~bootstrap/scss/bootstrap";
-
-// .cosplay-rental-page {
-//   .hero-section {
-//     position: relative;
-//     min-height: 50vh;
-//     display: flex;
-//     align-items: center;
-//     justify-content: center;
-//     text-align: center;
-//     background: linear-gradient(135deg, #510545, #22668a, #1a1a2e);
-//     animation: gradientShift 10s ease infinite;
-//     padding: 4rem 0;
-//     margin-top: 4rem;
-
-//     @keyframes gradientShift {
-//       0% { background-position: 0% 50%; }
-//       50% { background-position: 100% 50%; }
-//       100% { background-position: 0% 50%; }
-//     }
-
-//     .container {
-//       position: relative;
-//       z-index: 1;
-//     }
-
-//     h1.display-4 {
-//       font-size: 4.5rem;
-//       font-weight: 700;
-//       text-transform: uppercase;
-//       letter-spacing: 2px;
-//       background: linear-gradient(90deg, #f85caa, #d9b6f8);
-//       -webkit-background-clip: text;
-//       background-clip: text;
-//       -webkit-text-fill-color: transparent;
-//       margin-bottom: 1.5rem;
-//       text-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-//       transition: transform 0.3s ease, opacity 0.3s ease;
-
-//       &:hover {
-//         transform: scale(1.03);
-//         opacity: 0.95;
-//       }
-//     }
-
-//     .lead {
-//       font-size: 1.5rem;
-//       font-weight: 300;
-//       color: rgba(255, 255, 255, 0.85);
-//       max-width: 600px;
-//       margin: 0 auto;
-//       transition: opacity 0.3s ease, transform 0.3s ease;
-
-//       &:hover {
-//         opacity: 0.9;
-//         transform: translateY(-2px);
-//       }
-//     }
-//   }
-
-//   .section-title {
-//     position: relative;
-
-//     padding-bottom: 10px;
-//     &::after {
-//       content: '';
-//       position: absolute;
-//       bottom: 0;
-//       left: 0;
-//       width: 50px;
-//       height: 3px;
-//       background: #ff69b4;
-//     }
-//   }
-
-//   .cosplayer-list {
-//     .cosplayer-item {
-//       background: rgba(255, 255, 255, 0.05);
-//       border-radius: 12px;
-//       margin-bottom: 15px;
-//       transition: all 0.3s ease;
-//       cursor: pointer;
-
-//       &:hover, &.active {
-//         background: rgba(255, 105, 180, 0.1);
-//         transform: translateY(-2px);
-//         box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
-//       }
-
-//       .cosplayer-avatar {
-//         width: 60px;
-//         height: 60px;
-//         object-fit: cover;
-//         border: 2px solid #ff69b4;
-//       }
-
-//       .select-badge {
-//         background-color: #ff69b4;
-//       }
-//     }
-//   }
-
-//   .rental-form-section {
-//     .rental-form-card {
-//       background: rgba(7, 6, 6, 0.05);
-//       border: none;
-//       border-radius: 12px;
-//       padding: 20px;
-//       box-shadow: 10px 4px 10px rgba(17, 16, 16, 0.1);
-//       padding-right: 3px;
-//       .form-control {
-//         background: rgba(255, 255, 255, 0.1);
-//         border-color: rgba(255, 255, 255, 0.2);
-//         color: #131010;
-
-//         &:focus {
-//           border-color: #ff69b4;
-//           box-shadow: 0 0 0 0.2rem rgba(255, 105, 180, 0.25);
-//         }
-//       }
-
-//       .rental-type-options {
-//         display: flex;
-//         flex-direction: column;
-//         gap: 10px;
-//       }
-//     }
-
-//     .costume-selection-card {
-//       background: rgba(255, 255, 255, 0.05);
-//       border: none;
-//       border-radius: 12px;
-//       padding: 20px;
-//       // box-shadow: 10px 4px 10px rgba(12, 12, 12, 0.1);
-//     }
-//   }
-
-//   .costume-card {
-//     box-shadow: 10px 4px 10px rgba(12, 12, 12, 0.1);
-//     background: rgba(255, 255, 255, 0.05);
-//     border-radius: 12px;
-//     transition: all 0.3s ease;
-//     cursor: pointer;
-
-//     &.selected {
-//       border: 2px solid #ff69b4;
-//       box-shadow: 0 0 15px rgba(255, 105, 180, 0.3);
-//     }
-
-//     &.unavailable {
-//       opacity: 0.6;
-//       cursor: not-allowed;
-//     }
-
-//     &:hover:not(.unavailable) {
-//       transform: scale(1.03);
-//     }
-
-//     img {
-//       height: 150px;
-//       object-fit: cover;
-//       border-radius: 12px 12px 0 0;
-//     }
-
-//     .status-badge {
-//       position: absolute;
-//       top: 10px;
-//       right: 10px;
-//     }
-//   }
-
-//   .contract-card {
-//     box-shadow: 10px 4px 10px rgba(12, 12, 12, 0.1);
-//     background: rgba(255, 255, 255, 0.05);
-//     border-radius: 12px;
-//     border: none;
-//   }
-
-//   .btn-primary {
-//     background: linear-gradient(45deg, #ff69b4, #ff1493);
-//     border: none;
-//     padding: 12px 30px;
-//     border-radius: 25px;
-//     transition: all 0.3s ease;
-
-//     &:hover {
-//       transform: translateY(-2px);
-//       box-shadow: 0 5px 15px rgba(255, 105, 180, 0.4);
-//     }
-//   }
-
-//   .dateTime {
-//     box-shadow: 10px 4px 10px rgba(102, 23, 23, 0.1);
-//   }
-//   .Rental-Schedule{
-//     box-shadow: 10px 4px 10px rgba(26, 19, 19, 0.1);
-//     width: 50%;
-//     display: block;
-//     align-items: center;
-//     justify-content: center;
-//     text-align: center;
-//     margin: 0 auto;
-//   }
-// }
-
-// @import url('https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css');
-
 @import "~bootstrap/scss/bootstrap";
+@import url('https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css');
 
 .cosplay-rental-page {
   background-color: #f8f9fa;
@@ -224,17 +18,9 @@
     margin-top: 4rem;
 
     @keyframes gradientShift {
-      0% {
-        background-position: 0% 50%;
-      }
-
-      50% {
-        background-position: 100% 50%;
-      }
-
-      100% {
-        background-position: 0% 50%;
-      }
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
 
     .container {
@@ -297,6 +83,13 @@
       background: linear-gradient(135deg, #510545, #22668a);
       border-radius: 2px;
     }
+  }
+
+  .filter-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+    padding: 1.5rem;
   }
 
   .cosplayer-list {
@@ -389,6 +182,137 @@
         font-weight: 600;
         color: #510545;
         margin-bottom: 1.5rem;
+      }
+    }
+  }
+
+  .character-selection-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+    padding: 2rem;
+  }
+
+  .character-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    justify-content: center;
+    align-items: stretch;
+    padding: 10px;
+    max-height: 60vh;
+    overflow-y: auto;
+
+    .character-card-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .character-card {
+      width: 250px;
+      height: 350px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      overflow: hidden;
+      background: #f8f9fa;
+      display: flex;
+      flex-direction: column;
+
+      &.selected {
+        border-color: #510545;
+        background: rgba(81, 5, 69, 0.1);
+        transform: scale(1.05);
+      }
+
+      &:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .character-image-container {
+        width: 100%;
+        height: 250px;
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .character-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+      }
+
+      .card-body {
+        padding: 1rem;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        text-align: center;
+      }
+
+      .card-title {
+        font-size: 1.1rem;
+        color: #510545;
+        margin-bottom: 0.5rem;
+      }
+
+      .status-badge {
+        padding: 0.3rem 0.8rem;
+        border-radius: 12px;
+        font-weight: 600;
+      }
+    }
+  }
+
+  .time-slot-section {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+
+    h5 {
+      font-size: 1.2rem;
+      color: #510545;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      span {
+        font-weight: 400;
+        color: #4a4a4a;
+        font-size: 0.9rem;
+      }
+    }
+
+    .form-control[type="time"] {
+      padding: 0.5rem;
+      border-radius: 0.25rem;
+      border: 1px solid #ced4da;
+      transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+
+      &:focus {
+        border-color: #510545;
+        outline: 0;
+        box-shadow: 0 0 0 0.2rem rgba(81, 5, 69, 0.25);
+      }
+
+      &:disabled {
+        background: #e9ecef;
+        cursor: not-allowed;
+        opacity: 0.65;
+      }
+
+      &::-webkit-calendar-picker-indicator {
+        opacity: 1;
+        cursor: pointer;
       }
     }
   }
@@ -499,7 +423,7 @@
     }
   }
 
-  .btn-primary {
+  .add-to-contract-btn {
     background: linear-gradient(135deg, #510545, #22668a);
     border: none;
     padding: 0.8rem 2rem;
@@ -534,6 +458,11 @@
       opacity: 0.9;
       transform: translateY(-3px);
       box-shadow: 0 5px 15px rgba(81, 5, 69, 0.3);
+    }
+
+    &:disabled {
+      background: #6c757d;
+      cursor: not-allowed;
     }
   }
 
@@ -575,7 +504,7 @@
         width: 100%;
         transition: all 0.3s ease;
 
-        &:hover {
+        &:hover:not(:disabled) {
           background: rgba(81, 5, 69, 0.05);
           box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
@@ -584,6 +513,12 @@
           border-color: #510545;
           box-shadow: 0 0 0 0.2rem rgba(81, 5, 69, 0.3);
           outline: none;
+        }
+
+        &:disabled {
+          background: #e9ecef;
+          cursor: not-allowed;
+          opacity: 0.65;
         }
 
         &[type="date"],
@@ -685,7 +620,7 @@
           padding: 0;
 
           .form-check-input {
-            margin-right: 1.5rem; // Tăng khoảng cách giữa radio button và text
+            margin-right: 1.5rem;
             transform: scale(1);
             cursor: pointer;
             accent-color: #510545;
@@ -694,7 +629,7 @@
             width: 1.2rem;
             height: 1.2rem;
 
-            &:checked+.form-check-label {
+            &:checked + .form-check-label {
               background: linear-gradient(135deg, rgba(26, 138, 107, 0.15), rgba(34, 102, 138, 0.15));
               border: 1px solid #1a8a6b;
               color: #1a8a6b;
@@ -706,7 +641,7 @@
           .form-check-label {
             display: flex;
             align-items: center;
-            padding: 0.8rem 2rem 0.8rem 2.5rem; // Tăng padding-left để đẩy radio button ra xa viền trái
+            padding: 0.8rem 2rem 0.8rem 2.5rem;
             background: linear-gradient(135deg, rgba(255, 255, 255, 1), rgba(255, 255, 255, 1));
             border: 1px solid rgba(81, 5, 69, 0.2);
             border-radius: 8px;
@@ -746,6 +681,16 @@
       }
     }
   }
-}
 
-@import url('https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css');
+  .container {
+    max-width: 1400px;
+  }
+
+  .cosplayer-item p.text-muted {
+    margin-bottom: 0.3rem;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
