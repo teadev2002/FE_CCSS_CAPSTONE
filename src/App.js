@@ -63,7 +63,7 @@ function App() {
           <Route path="/souvenirs-shop" element={<SouvenirsPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/sign-up" element={<SignupPage />} />
-          <Route path="/user-profile" element={<ProfilePage />} />
+          <Route path="/user-profile/:id" element={<ProfilePage />} />
           <Route path="/admin/dashboard" element={<DashboardPage />} />
           <Route
             path="/admin/user-performance"

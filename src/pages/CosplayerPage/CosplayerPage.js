@@ -12,8 +12,8 @@ import {
   InputGroup,
 } from "react-bootstrap";
 import { Search } from "lucide-react";
-import Toastify from "toastify-js";
-import "toastify-js/src/toastify.css";
+// import Toastify from "toastify-js";
+// import "toastify-js/dist/toastify.min.css";
 import "../../styles/CosplayerPage.scss";
 
 const CosplayerPage = () => {
@@ -25,9 +25,21 @@ const CosplayerPage = () => {
         "https://images.pexels.com/photos/19231454/pexels-photo-19231454/free-photo-of-girl-in-anya-forger-costume.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
       description: "Specializes in anime and fantasy characters.",
       characters: [
-        { name: "Sailor Moon", image: "https://th.bing.com/th/id/R.068d6e18db88dcfee0c5fef0e7d5f60f?rik=ZpQCwm59LxyECQ&pid=ImgRaw&r=0" },
-        { name: "Naruto Uzumaki", image: "https://th.bing.com/th/id/OIP.kN5HWcrqUYMfIVN-rl96ZgHaLH?rs=1&pid=ImgDetMain" },
-        { name: "Spider-Man", image: "https://th.bing.com/th/id/OIP.i6zQCyXX6AW0dBvKVx_xkwHaLH?rs=1&pid=ImgDetMain" },
+        {
+          name: "Sailor Moon",
+          image:
+            "https://th.bing.com/th/id/R.068d6e18db88dcfee0c5fef0e7d5f60f?rik=ZpQCwm59LxyECQ&pid=ImgRaw&r=0",
+        },
+        {
+          name: "Naruto Uzumaki",
+          image:
+            "https://th.bing.com/th/id/OIP.kN5HWcrqUYMfIVN-rl96ZgHaLH?rs=1&pid=ImgDetMain",
+        },
+        {
+          name: "Spider-Man",
+          image:
+            "https://th.bing.com/th/id/OIP.i6zQCyXX6AW0dBvKVx_xkwHaLH?rs=1&pid=ImgDetMain",
+        },
       ],
       availability: [
         { date: "2025-03-15", start: "10:00", end: "17:00" },
@@ -42,9 +54,21 @@ const CosplayerPage = () => {
         "https://gambar.sgp1.digitaloceanspaces.com/wp-content/uploads/2021/02/kameaam.jpg",
       description: "Known for superhero and sci-fi roles.",
       characters: [
-        { name: "Spider-Man", image: "https://th.bing.com/th/id/OIP.i6zQCyXX6AW0dBvKVx_xkwHaLH?rs=1&pid=ImgDetMain" },
-        { name: "Iron Man", image: "https://th.bing.com/th/id/OIP.yYsRMvGWgsdr0FALLzcqNgHaLH?rs=1&pid=ImgDetMain" },
-        { name: "Captain America", image: "https://th.bing.com/th/id/OIP.9WZgX8z5j5xY8q8Z9nX9ZwHaLH?rs=1&pid=ImgDetMain" },
+        {
+          name: "Spider-Man",
+          image:
+            "https://th.bing.com/th/id/OIP.i6zQCyXX6AW0dBvKVx_xkwHaLH?rs=1&pid=ImgDetMain",
+        },
+        {
+          name: "Iron Man",
+          image:
+            "https://th.bing.com/th/id/OIP.yYsRMvGWgsdr0FALLzcqNgHaLH?rs=1&pid=ImgDetMain",
+        },
+        {
+          name: "Captain America",
+          image:
+            "https://th.bing.com/th/id/OIP.9WZgX8z5j5xY8q8Z9nX9ZwHaLH?rs=1&pid=ImgDetMain",
+        },
       ],
       availability: [
         { date: "2025-03-16", start: "12:00", end: "20:00" },
@@ -59,9 +83,21 @@ const CosplayerPage = () => {
         "https://th.bing.com/th/id/OIF.9jqAjB9W9sQhS1bJbUH1sg?rs=1&pid=ImgDetMain",
       description: "Focuses on historical and mythology themes.",
       characters: [
-        { name: "Cleopatra", image: "https://th.bing.com/th/id/OIP.hNItRKAu72Yt-X59Vi2DbgHaJQ?rs=1&pid=ImgDetMain" },
-        { name: "Athena", image: "https://th.bing.com/th/id/OIP.yaqP-V5Tqj4Wtosp2enD9wHaLH?rs=1&pid=ImgDetMain" },
-        { name: "Spider-Man", image: "https://th.bing.com/th/id/OIP.i6zQCyXX6AW0dBvKVx_xkwHaLH?rs=1&pid=ImgDetMain" },
+        {
+          name: "Cleopatra",
+          image:
+            "https://th.bing.com/th/id/OIP.hNItRKAu72Yt-X59Vi2DbgHaJQ?rs=1&pid=ImgDetMain",
+        },
+        {
+          name: "Athena",
+          image:
+            "https://th.bing.com/th/id/OIP.yaqP-V5Tqj4Wtosp2enD9wHaLH?rs=1&pid=ImgDetMain",
+        },
+        {
+          name: "Spider-Man",
+          image:
+            "https://th.bing.com/th/id/OIP.i6zQCyXX6AW0dBvKVx_xkwHaLH?rs=1&pid=ImgDetMain",
+        },
       ],
       availability: [
         { date: "2025-03-17", start: "08:00", end: "16:00" },
@@ -76,9 +112,21 @@ const CosplayerPage = () => {
         "https://th.bing.com/th/id/OIP.t8XgOZM7X4zQ7X8Z9X0Z0QHaLH?rs=1&pid=ImgDetMain",
       description: "Expert in martial arts and action characters.",
       characters: [
-        { name: "Naruto Uzumaki", image: "https://th.bing.com/th/id/OIP.kN5HWcrqUYMfIVN-rl96ZgHaLH?rs=1&pid=ImgDetMain" },
-        { name: "Goku", image: "https://th.bing.com/th/id/OIP.oAq64jTNwzi081joDeG2KAHaKe?rs=1&pid=ImgDetMain" },
-        { name: "Batman", image: "https://th.bing.com/th/id/OIP.5X8Z9X0Z0Q7X8Z9X0Z0QHaLH?rs=1&pid=ImgDetMain" },
+        {
+          name: "Naruto Uzumaki",
+          image:
+            "https://th.bing.com/th/id/OIP.kN5HWcrqUYMfIVN-rl96ZgHaLH?rs=1&pid=ImgDetMain",
+        },
+        {
+          name: "Goku",
+          image:
+            "https://th.bing.com/th/id/OIP.oAq64jTNwzi081joDeG2KAHaKe?rs=1&pid=ImgDetMain",
+        },
+        {
+          name: "Batman",
+          image:
+            "https://th.bing.com/th/id/OIP.5X8Z9X0Z0Q7X8Z9X0Z0QHaLH?rs=1&pid=ImgDetMain",
+        },
       ],
       availability: [
         { date: "2025-03-18", start: "14:00", end: "22:00" },
@@ -93,9 +141,21 @@ const CosplayerPage = () => {
         "https://th.bing.com/th/id/OIP.6X8Z9X0Z0Q7X8Z9X0Z0QHaLH?rs=1&pid=ImgDetMain",
       description: "Passionate about magical and mythical roles.",
       characters: [
-        { name: "Sailor Moon", image: "https://th.bing.com/th/id/R.068d6e18db88dcfee0c5fef0e7d5f60f?rik=ZpQCwm59LxyECQ&pid=ImgRaw&r=0" },
-        { name: "Hermione Granger", image: "https://th.bing.com/th/id/OIP.7X8Z9X0Z0Q7X8Z9X0Z0QHaLH?rs=1&pid=ImgDetMain" },
-        { name: "Elsa", image: "https://th.bing.com/th/id/OIP.8X8Z9X0Z0Q7X8Z9X0Z0QHaLH?rs=1&pid=ImgDetMain" },
+        {
+          name: "Sailor Moon",
+          image:
+            "https://th.bing.com/th/id/R.068d6e18db88dcfee0c5fef0e7d5f60f?rik=ZpQCwm59LxyECQ&pid=ImgRaw&r=0",
+        },
+        {
+          name: "Hermione Granger",
+          image:
+            "https://th.bing.com/th/id/OIP.7X8Z9X0Z0Q7X8Z9X0Z0QHaLH?rs=1&pid=ImgDetMain",
+        },
+        {
+          name: "Elsa",
+          image:
+            "https://th.bing.com/th/id/OIP.8X8Z9X0Z0Q7X8Z9X0Z0QHaLH?rs=1&pid=ImgDetMain",
+        },
       ],
       availability: [
         { date: "2025-03-19", start: "09:00", end: "17:00" },
@@ -141,7 +201,10 @@ const CosplayerPage = () => {
     if (searchCharacter.trim()) {
       result = result.filter((cosplayer) =>
         cosplayer.characters.some((char) =>
-          char.name.toLowerCase().replace(/-/g, "").includes(searchCharacter.toLowerCase().replace(/-/g, ""))
+          char.name
+            .toLowerCase()
+            .replace(/-/g, "")
+            .includes(searchCharacter.toLowerCase().replace(/-/g, ""))
         )
       );
     }
@@ -156,7 +219,10 @@ const CosplayerPage = () => {
     setFilteredCosplayers(result);
 
     // Reset selection if the selected cosplayer is no longer in the filtered list
-    if (selectedCosplayer && !result.some((c) => c.id === selectedCosplayer.id)) {
+    if (
+      selectedCosplayer &&
+      !result.some((c) => c.id === selectedCosplayer.id)
+    ) {
       setSelectedCosplayer(null);
       setSelectedCharacter(null);
       setSelectedDates([]);
@@ -237,7 +303,9 @@ const CosplayerPage = () => {
       const endTime = new Date(`${date}T${slot.end}`);
       if (endTime <= startTime) return true;
 
-      const availableSlot = selectedCosplayer.availability.find((s) => s.date === date);
+      const availableSlot = selectedCosplayer.availability.find(
+        (s) => s.date === date
+      );
       if (!availableSlot) return true;
       const slotStart = new Date(`${date}T${availableSlot.start}`);
       const slotEnd = new Date(`${date}T${availableSlot.end}`);
@@ -245,7 +313,11 @@ const CosplayerPage = () => {
     });
 
     if (invalidSlots.length > 0) {
-      setError(`Invalid time slots for ${invalidSlots.join(", ")}! Please ensure times are within the cosplayer's availability and end time is after start time.`);
+      setError(
+        `Invalid time slots for ${invalidSlots.join(
+          ", "
+        )}! Please ensure times are within the cosplayer's availability and end time is after start time.`
+      );
       return;
     }
 
@@ -338,7 +410,9 @@ const CosplayerPage = () => {
             <ListGroup className="cosplayer-list">
               {filteredCosplayers.length > 0 ? (
                 filteredCosplayers.map((cosplayer) => {
-                  const slot = selectedDate ? getAvailableTimeSlots(cosplayer, selectedDate) : null;
+                  const slot = selectedDate
+                    ? getAvailableTimeSlots(cosplayer, selectedDate)
+                    : null;
                   return (
                     <ListGroup.Item
                       key={cosplayer.id}
@@ -355,7 +429,9 @@ const CosplayerPage = () => {
                         />
                         <div className="ms-3 flex-grow-1">
                           <h5 className="mb-1">{cosplayer.name}</h5>
-                          <p className="mb-0 text-muted">{cosplayer.description}</p>
+                          <p className="mb-0 text-muted">
+                            {cosplayer.description}
+                          </p>
                           {selectedDate && slot && (
                             <p className="mb-0 text-muted">
                               <strong>Working Hours:</strong>{" "}
@@ -364,14 +440,18 @@ const CosplayerPage = () => {
                           )}
                         </div>
                         <Badge bg="primary" className="select-badge">
-                          {selectedCosplayer?.id === cosplayer.id ? "Selected" : "Select"}
+                          {selectedCosplayer?.id === cosplayer.id
+                            ? "Selected"
+                            : "Select"}
                         </Badge>
                       </div>
                     </ListGroup.Item>
                   );
                 })
               ) : (
-                <Alert variant="info">No cosplayers available based on your filters.</Alert>
+                <Alert variant="info">
+                  No cosplayers available based on your filters.
+                </Alert>
               )}
             </ListGroup>
           </Col>
@@ -385,9 +465,16 @@ const CosplayerPage = () => {
                   <Card.Body>
                     <div className="character-grid mb-4">
                       {selectedCosplayer.characters.map((character) => (
-                        <div key={character.name} className="character-card-wrapper">
+                        <div
+                          key={character.name}
+                          className="character-card-wrapper"
+                        >
                           <Card
-                            className={`character-card ${selectedCharacter?.name === character.name ? "selected" : ""}`}
+                            className={`character-card ${
+                              selectedCharacter?.name === character.name
+                                ? "selected"
+                                : ""
+                            }`}
                             onClick={() => handleCharacterSelect(character)}
                           >
                             <div className="character-image-container">
@@ -401,11 +488,15 @@ const CosplayerPage = () => {
                               <Card.Title>{character.name}</Card.Title>
                               <Badge
                                 bg={
-                                  selectedCharacter?.name === character.name ? "primary" : "success"
+                                  selectedCharacter?.name === character.name
+                                    ? "primary"
+                                    : "success"
                                 }
                                 className="status-badge mt-2"
                               >
-                                {selectedCharacter?.name === character.name ? "Selected" : "Available"}
+                                {selectedCharacter?.name === character.name
+                                  ? "Selected"
+                                  : "Available"}
                               </Badge>
                             </Card.Body>
                           </Card>
@@ -416,7 +507,10 @@ const CosplayerPage = () => {
                     <h4 className="mb-3">Select Dates and Time Slots</h4>
                     {/* Display selected dates and their time slots */}
                     {selectedDates.map((date) => {
-                      const slot = getAvailableTimeSlots(selectedCosplayer, date);
+                      const slot = getAvailableTimeSlots(
+                        selectedCosplayer,
+                        date
+                      );
                       if (!slot) return null;
                       return (
                         <div key={date} className="time-slot-section mb-3">
@@ -429,7 +523,13 @@ const CosplayerPage = () => {
                               <Form.Control
                                 type="time"
                                 value={timeSlots[date]?.start || ""}
-                                onChange={(e) => handleTimeSlotChange(date, "start", e.target.value)}
+                                onChange={(e) =>
+                                  handleTimeSlotChange(
+                                    date,
+                                    "start",
+                                    e.target.value
+                                  )
+                                }
                                 min={slot.start}
                                 max={slot.end}
                               />
@@ -439,7 +539,13 @@ const CosplayerPage = () => {
                               <Form.Control
                                 type="time"
                                 value={timeSlots[date]?.end || ""}
-                                onChange={(e) => handleTimeSlotChange(date, "end", e.target.value)}
+                                onChange={(e) =>
+                                  handleTimeSlotChange(
+                                    date,
+                                    "end",
+                                    e.target.value
+                                  )
+                                }
                                 min={timeSlots[date]?.start || slot.start}
                                 max={slot.end}
                                 disabled={!timeSlots[date]?.start}
@@ -457,7 +563,10 @@ const CosplayerPage = () => {
                         {getAvailableDates(selectedCosplayer)
                           .filter((date) => !selectedDates.includes(date))
                           .map((date) => {
-                            const slot = getAvailableTimeSlots(selectedCosplayer, date);
+                            const slot = getAvailableTimeSlots(
+                              selectedCosplayer,
+                              date
+                            );
                             return (
                               <ListGroup.Item
                                 key={date}
@@ -476,7 +585,13 @@ const CosplayerPage = () => {
                       variant="primary"
                       onClick={handleAddContract}
                       className="mt-4 w-100 add-to-contract-btn"
-                      disabled={!selectedCharacter || selectedDates.some((date) => !timeSlots[date]?.start || !timeSlots[date]?.end)}
+                      disabled={
+                        !selectedCharacter ||
+                        selectedDates.some(
+                          (date) =>
+                            !timeSlots[date]?.start || !timeSlots[date]?.end
+                        )
+                      }
                     >
                       Add to Contract
                     </Button>
@@ -513,7 +628,8 @@ const CosplayerPage = () => {
                             <br />
                             {item.dates.map((date, i) => (
                               <span key={i}>
-                                <strong>Date:</strong> {date.date} {date.startTime} - {date.endTime}
+                                <strong>Date:</strong> {date.date}{" "}
+                                {date.startTime} - {date.endTime}
                                 <br />
                               </span>
                             ))}
