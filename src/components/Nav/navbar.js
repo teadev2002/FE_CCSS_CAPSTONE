@@ -428,7 +428,7 @@ export function Navbar() {
             },
             { to: "/cosplayers", label: "Cosplayers", Icon: Users },
             {
-              to: "/event-organize",
+              to: "/event",
               label: "Event Organization",
               Icon: Aperture,
             },

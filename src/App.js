@@ -7,13 +7,13 @@ import AboutPage from "./pages/AboutPage/AboutUsPage.js";
 import CostumesPage from "./pages/CostumesPage/CostumesPage.js";
 import ServicesPage from "./pages/ServicesPage/ServicesPage.js";
 import ContactPage from "./pages/ContactPage/ContactPage.js";
-import FestivalPage from "./pages/FestivalPage/FestivalPage.js";
+import FestivalPage from "./pages/FestivalsPage/FestivalsPage.js";
 import SouvenirsPage from "./pages/SouvenirsPage/SouvenirsPage.js";
 import LoginPage from "./pages/Auth/LoginPage";
 import SignupPage from "./pages/Auth/SignupPage";
-import CosplayerPage from "./pages/CosplayerPage/CosplayerPage.js";
-import EventOrganizePage from "./pages/EventOrganizePage/EventOrganizePage.js";
-import DetailEventOrganizePage from "./pages/EventOrganizePage/DetailEventOrganizePage.js";
+import CosplayerPage from "./pages/CosplayersPage/CosplayersPage.js";
+import EventOrganizePage from "./pages/EventOrganizationPage/EventOrganizationPage.js";
+import DetailEventOrganizePage from "./pages/EventOrganizationPage/DetailEventOrganizationPage.js";
 import ProfilePage from "./pages/ProfilePage/ProfilePage.js";
 import DashboardPage from "./pages/AdminPage/DashboardPage/DashboardPage.js";
 import UserPerformancePage from "./pages/AdminPage/UserPerformancePage/UserPerformancePage.js";
@@ -53,9 +53,9 @@ function App() {
           <Route path="/festivals/:category" element={<FestivalPage />} />
           <Route path="/services" element={<ServicesPage />} />
           <Route path="/cosplayers" element={<CosplayerPage />} />
-          <Route path="/event-organize" element={<EventOrganizePage />} />
+          {/* <Route path="/event-organize" element={<EventOrganizePage />} /> */}
           <Route
-            path="/event-organize/detail-event"
+            path="/event"
             element={<DetailEventOrganizePage />}
           />
           <Route path="/about" element={<AboutPage />} />

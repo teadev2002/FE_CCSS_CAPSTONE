@@ -42,9 +42,9 @@ import {
   Form,
   Badge,
 } from "react-bootstrap";
-import "../../styles/EventOrganizePage.scss";
+import "../../styles/EventOrganizationPage.scss";
 
-const EventOrganizePage = () => {
+const EventOrganizationPage = () => {
   // Mock data cho sự kiện
   const events = [
     {
@@ -199,4 +199,4 @@ const EventOrganizePage = () => {
   );
 };
 
-export default EventOrganizePage;
+export default EventOrganizationPage;

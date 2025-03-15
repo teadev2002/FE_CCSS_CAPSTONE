@@ -3,9 +3,9 @@ import { Search } from "lucide-react";
 import { Tag } from "antd";
 import { Modal, Button, Form, Carousel } from "react-bootstrap";
 import { useParams } from "react-router-dom";
-import "../../styles/FestivalPage.scss";
+import "../../styles/FestivalsPage.scss";
 
-const FestivalPage = () => {
+const FestivalsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showFestivalModal, setShowFestivalModal] = useState(false);
   const [selectedFestival, setSelectedFestival] = useState(null);
@@ -333,4 +333,4 @@ const mockFestivals = [
   },
 ];
 
-export default FestivalPage;
+export default FestivalsPage;

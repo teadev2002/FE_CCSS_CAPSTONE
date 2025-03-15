@@ -14,9 +14,9 @@ import {
 import { Search } from "lucide-react";
 // import Toastify from "toastify-js";
 // import "toastify-js/dist/toastify.min.css";
-import "../../styles/CosplayerPage.scss";
+import "../../styles/CosplayersPage.scss";
 
-const CosplayerPage = () => {
+const CosplayersPage = () => {
   const cosplayers = [
     {
       id: 1,
@@ -649,4 +649,4 @@ const CosplayerPage = () => {
   );
 };
 
-export default CosplayerPage;
+export default CosplayersPage;
