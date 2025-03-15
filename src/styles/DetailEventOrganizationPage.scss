@@ -342,6 +342,11 @@
           }
         }
       }
+
+      select.form-select {
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      }
     }
 
     .form-control {
@@ -355,13 +360,39 @@
       }
     }
 
-    .event-card,
-    .cosplayer-card,
-    .category-card {
+    .custom-date-input,
+    .custom-time-input {
+      cursor: pointer;
+      border: 1px solid #ced4da;
+      border-radius: 0.5rem;
+      width: 100%;
+      height: 38px;
+      padding: 0.375rem 0.75rem;
+      background-color: #fff;
+      transition: border-color 0.3s ease;
+
+      &:focus {
+        border-color: #510545;
+        box-shadow: 0 0 0 0.2rem rgba(81, 5, 69, 0.25);
+      }
+    }
+
+    .row {
+      margin-bottom: 2rem;
+      /* Khoảng cách đồng nhất giữa các hàng */
+    }
+
+    .col-md-4 {
+      margin-bottom: 2rem;
+      /* Khoảng cách giữa các card trong hàng */
+    }
+
+    .category-card,
+    .cosplayer-card {
       border-radius: 12px;
       overflow: hidden;
       box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-      transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
       cursor: pointer;
 
       .card-img-top {
@@ -374,55 +405,10 @@
         box-shadow: 0 12px 30px rgba(81, 5, 69, 0.2);
       }
 
-      &:not(.selected) {
-        opacity: 0.8; // Làm mờ nhẹ các card chưa chọn
-      }
-
       &.selected {
-        position: relative;
-        border: 4px solid #3d0436; // Màu đậm hơn #510545
-        box-shadow: 0 8px 25px rgba(81, 5, 69, 0.6);
-        transform: translateY(-10px); // Nâng card lên
-        opacity: 1; // Đảm bảo card được chọn không mờ
-      }
-    }
-
-    .row {
-      >.col-md-4 {
-        margin-bottom: 1.5rem;
-      }
-    }
-
-    .summary-modal {
-      .modal-content {
-        border-radius: 0.5rem;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        background-color: #f8f9fa;
-      }
-
-      .modal-header {
-        background: linear-gradient(135deg, #510545, #22668a);
-        color: white;
-        border-bottom: none;
-        border-radius: 0.5rem 0.5rem 0 0;
-
-        .btn-close {
-          filter: brightness(0) invert(1);
-        }
-      }
-
-      .modal-body {
-        padding: 1.5rem;
-
-        h4 {
-          color: #510545;
-          font-weight: 600;
-        }
-
-        p {
-          color: #4a4a4a;
-          margin-bottom: 0.5rem;
-        }
+        border: 5px solid #3d0436;
+        box-shadow: 0 10px 30px rgba(81, 5, 69, 0.7);
+        transform: translateY(-12px);
       }
     }
   }
@@ -445,21 +431,18 @@
     }
   }
 
-  .btn-outline-primary {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: #d26bdb;
-    color: #d26bdb;
+  .btn-outline-secondary {
+    border-color: #510545;
+    color: #510545;
     border-radius: 0.75rem;
     padding: 0.75rem 1.5rem;
     font-weight: 600;
     font-size: 0.9rem;
-    background: transparent;
     transition: all 0.3s ease;
 
     &:hover {
-      background: linear-gradient(135deg, #510545, #22668a);
+      background: #510545;
       color: white;
-      border-color: transparent;
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(81, 5, 69, 0.2);
     }

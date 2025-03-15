@@ -543,8 +543,6 @@ import "../../styles/DetailEventOrganizationPage.scss";
 const DetailEventOrganizationPage = () => {
   const [step, setStep] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const [customCategory, setCustomCategory] = useState("");
-  const [showCustomCategoryModal, setShowCustomCategoryModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [eventName, setEventName] = useState("");
   const [location, setLocation] = useState("");
@@ -560,6 +558,9 @@ const DetailEventOrganizationPage = () => {
   const [useCosplayerList, setUseCosplayerList] = useState(true);
   const [showSummaryModal, setShowSummaryModal] = useState(false);
   const [characterSearch, setCharacterSearch] = useState("");
+  const [genderFilter, setGenderFilter] = useState("All");
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [termsAgreed, setTermsAgreed] = useState(false);
 
   const categories = [
     { name: "Halloween", image: "https://static-images.vnncdn.net/files/publish/2023/10/26/le-hoi-halloween-2023-la-ngay-nao-611.jpg?width=0&s=WBL23e8H3tbjOtgDXA7h3w" },
@@ -612,20 +613,37 @@ const DetailEventOrganizationPage = () => {
       return alert("Please fill in all required fields!");
     if (step === 3 && selectedCosplayers.length === 0 && manualQuantity < 1)
       return alert("Please select cosplayers or enter a quantity!");
+    if (step === 4 && !termsAgreed) {
+      alert("Please agree to the terms and conditions before submitting.");
+      return;
+    }
     if (step < 4) setStep(step + 1);
-    if (step === 3) setShowSummaryModal(true);
+    if (step === 4) setShowSummaryModal(true);
   };
 
   const handlePrevStep = () => {
     if (step > 1) setStep(step - 1);
   };
 
-  const handleAddCustomCategory = () => {
-    if (customCategory.trim()) {
-      setSelectedCategory(customCategory.trim());
-      setShowCustomCategoryModal(false);
-      setCustomCategory("");
-    }
+  const handleSaveDraft = () => {
+    const draft = {
+      step,
+      selectedCategory,
+      eventName,
+      location,
+      startDate,
+      startTime,
+      endDate,
+      endTime,
+      description,
+      venueDescription,
+      images,
+      selectedCosplayers,
+      manualQuantity,
+      useCosplayerList,
+    };
+    localStorage.setItem("eventDraft", JSON.stringify(draft));
+    alert("Draft saved successfully!");
   };
 
   const handleImageUpload = (e) => {
@@ -641,19 +659,27 @@ const DetailEventOrganizationPage = () => {
     cat.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const filterCosplayersByCharacter = () => {
-    if (!characterSearch.trim()) return cosplayers;
+  const filterCosplayersByCharacterAndGender = () => {
+    let filtered = cosplayers;
 
-    const searchedCharacter = characters.find((char) =>
-      char.name.toLowerCase().includes(characterSearch.toLowerCase())
-    );
+    if (characterSearch.trim()) {
+      const searchedCharacter = characters.find((char) =>
+        char.name.toLowerCase().includes(characterSearch.toLowerCase())
+      );
+      if (searchedCharacter) {
+        filtered = filtered.filter((cosplayer) =>
+          cosplayer.categories.includes(searchedCharacter.category)
+        );
+      } else {
+        return [];
+      }
+    }
 
-    if (!searchedCharacter) return [];
+    if (genderFilter !== "All") {
+      filtered = filtered.filter((cosplayer) => cosplayer.gender === genderFilter);
+    }
 
-    return cosplayers.filter((cosplayer) =>
-      cosplayer.categories.includes(searchedCharacter.category) &&
-      cosplayer.gender === searchedCharacter.gender
-    );
+    return filtered;
   };
 
   const handleViewProfile = (cosplayer) => {
@@ -702,7 +728,7 @@ const DetailEventOrganizationPage = () => {
             </div>
             <Row>
               {filteredCategories.map((category) => (
-                <Col md={4} key={category.name}>
+                <Col md={4} className="mb-4" key={category.name}>
                   <Card
                     className={`category-card ${selectedCategory === category.name ? "selected" : ""}`}
                     onClick={() => setSelectedCategory(category.name)}
@@ -740,40 +766,44 @@ const DetailEventOrganizationPage = () => {
                   placeholder="Enter event location"
                 />
               </Form.Group>
-              <Row>
+              <Row className="mb-2">
                 <Col md={6}>
-                  <Form.Group className="mb-3">
+                  <Form.Group>
                     <Form.Label>Start Date</Form.Label>
                     <Form.Control
                       type="date"
                       value={startDate}
                       onChange={(e) => setStartDate(e.target.value)}
+                      className="custom-date-input"
                     />
                   </Form.Group>
-                  <Form.Group className="mb-3">
+                  <Form.Group className="mt-2">
                     <Form.Label>Start Time</Form.Label>
                     <Form.Control
                       type="time"
                       value={startTime}
                       onChange={(e) => setStartTime(e.target.value)}
+                      className="custom-time-input"
                     />
                   </Form.Group>
                 </Col>
                 <Col md={6}>
-                  <Form.Group className="mb-3">
+                  <Form.Group>
                     <Form.Label>End Date</Form.Label>
                     <Form.Control
                       type="date"
                       value={endDate}
                       onChange={(e) => setEndDate(e.target.value)}
+                      className="custom-date-input"
                     />
                   </Form.Group>
-                  <Form.Group className="mb-3">
+                  <Form.Group className="mt-2">
                     <Form.Label>End Time</Form.Label>
                     <Form.Control
                       type="time"
                       value={endTime}
                       onChange={(e) => setEndTime(e.target.value)}
+                      className="custom-time-input"
                     />
                   </Form.Group>
                 </Col>
@@ -829,8 +859,8 @@ const DetailEventOrganizationPage = () => {
             />
             {useCosplayerList ? (
               <>
-                <div className="search-container mb-4">
-                  <InputGroup>
+                <div className="search-container mb-4 d-flex align-items-center">
+                  <InputGroup className="flex-grow-1">
                     <InputGroup.Text>
                       <Search size={20} />
                     </InputGroup.Text>
@@ -840,14 +870,23 @@ const DetailEventOrganizationPage = () => {
                       onChange={(e) => setCharacterSearch(e.target.value)}
                     />
                   </InputGroup>
+                  <Form.Select
+                    value={genderFilter}
+                    onChange={(e) => setGenderFilter(e.target.value)}
+                    className="ms-2"
+                    style={{ width: "200px" }}
+                  >
+                    <option value="All">All Cosplayer Genders</option>
+                    <option value="Male">Male Cosplayers</option>
+                    <option value="Female">Female Cosplayers</option>
+                  </Form.Select>
                 </div>
                 <Row>
-                  {filterCosplayersByCharacter().map((cosplayer) => (
-                    <Col md={4} key={cosplayer.id}>
+                  {filterCosplayersByCharacterAndGender().map((cosplayer) => (
+                    <Col md={4} className="mb-4" key={cosplayer.id}>
                       <Card
-                        className={`cosplayer-card ${
-                          selectedCosplayers.some((c) => c.id === cosplayer.id) ? "selected" : ""
-                        }`}
+                        className={`cosplayer-card ${selectedCosplayers.some((c) => c.id === cosplayer.id) ? "selected" : ""
+                          }`}
                         onClick={() => toggleCosplayerSelection(cosplayer)}
                       >
                         <Card.Img variant="top" src={cosplayer.image} />
@@ -876,9 +915,9 @@ const DetailEventOrganizationPage = () => {
                     </Col>
                   ))}
                 </Row>
-                {filterCosplayersByCharacter().length === 0 && characterSearch.trim() && (
+                {filterCosplayersByCharacterAndGender().length === 0 && (
                   <p className="text-center mt-4">
-                    No cosplayers found for "{characterSearch}".
+                    No cosplayers found for "{characterSearch}" with selected filters.
                   </p>
                 )}
               </>
@@ -901,7 +940,6 @@ const DetailEventOrganizationPage = () => {
             <h2 className="text-center mb-4">Review Your Event</h2>
             <Card>
               <Card.Body>
-                <Card.Title>Event Summary</Card.Title>
                 <p><strong>Category:</strong> {selectedCategory}</p>
                 <p><strong>Event Name:</strong> {eventName}</p>
                 <p><strong>Location:</strong> {location}</p>
@@ -916,6 +954,21 @@ const DetailEventOrganizationPage = () => {
                     ? selectedCosplayers.map((c) => c.name).join(", ")
                     : manualQuantity}
                 </p>
+                <Button
+                  variant="outline-secondary"
+                  onClick={() => setShowTermsModal(true)}
+                  className="mt-2"
+                >
+                  View Terms & Conditions
+                </Button>
+                <Form.Group className="mt-3">
+                  <Form.Check
+                    type="checkbox"
+                    label="I have read and agree to the terms and conditions"
+                    checked={termsAgreed}
+                    onChange={(e) => setTermsAgreed(e.target.checked)}
+                  />
+                </Form.Group>
               </Card.Body>
             </Card>
           </div>
@@ -923,44 +976,47 @@ const DetailEventOrganizationPage = () => {
 
         <div className="d-flex justify-content-between mt-5">
           {step > 1 && (
-            <Button variant="outline-primary" onClick={handlePrevStep}>
+            <Button variant="outline-secondary" onClick={handlePrevStep}>
               Previous
             </Button>
           )}
-          <Button variant="primary" onClick={handleNextStep}>
-            {step === 4 ? "Finish" : "Next"} <ChevronRight size={20} />
-          </Button>
+          <div>
+            <Button variant="outline-secondary" onClick={handleSaveDraft} className="me-2">
+              Save as Draft
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleNextStep}
+              disabled={step === 4 && !termsAgreed}
+            >
+              {step === 4 ? "Finish" : "Next"} <ChevronRight size={20} />
+            </Button>
+          </div>
         </div>
       </Container>
 
       <Modal
-        show={showCustomCategoryModal}
-        onHide={() => setShowCustomCategoryModal(false)}
+        show={showTermsModal}
+        onHide={() => setShowTermsModal(false)}
         centered
       >
         <Modal.Header closeButton>
-          <Modal.Title>Add Custom Category</Modal.Title>
+          <Modal.Title>Terms & Conditions</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Form.Group>
-            <Form.Label>Custom Category Name</Form.Label>
-            <Form.Control
-              type="text"
-              value={customCategory}
-              onChange={(e) => setCustomCategory(e.target.value)}
-              placeholder="Enter your custom category"
-            />
-          </Form.Group>
+          <p>
+            By organizing an event, you agree to the following terms:
+            <ul>
+              <li>All bookings are subject to cosplayer availability.</li>
+              <li>Event details must be accurate and complete.</li>
+              <li>Cancellations must be made 48 hours in advance.</li>
+              <li>Additional fees may apply for last-minute changes.</li>
+            </ul>
+          </p>
         </Modal.Body>
         <Modal.Footer>
-          <Button
-            variant="secondary"
-            onClick={() => setShowCustomCategoryModal(false)}
-          >
-            Cancel
-          </Button>
-          <Button variant="primary" onClick={handleAddCustomCategory}>
-            Add Category
+          <Button variant="secondary" onClick={() => setShowTermsModal(false)}>
+            Close
           </Button>
         </Modal.Footer>
       </Modal>
@@ -976,7 +1032,6 @@ const DetailEventOrganizationPage = () => {
           <Modal.Title>Event Summary</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <h4>Your Event Details</h4>
           <p><strong>Category:</strong> {selectedCategory}</p>
           <p><strong>Event Name:</strong> {eventName}</p>
           <p><strong>Location:</strong> {location}</p>
