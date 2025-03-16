@@ -1,528 +1,3 @@
-// import React, { useState } from "react";
-// import { Search, ChevronRight } from "lucide-react";
-// import {
-//   Modal,
-//   Button,
-//   Form,
-//   Container,
-//   Row,
-//   Col,
-//   Card,
-//   ListGroup,
-//   Badge,
-//   ProgressBar,
-// } from "react-bootstrap";
-// import "../../styles/DetailEventOrganizationPage.scss";
-
-// const DetailEventOrganizationPage = () => {
-//   const [step, setStep] = useState(1);
-//   const [searchTerm, setSearchTerm] = useState("");
-//   const [selectedEvent, setSelectedEvent] = useState(null);
-//   const [startDate, setStartDate] = useState("");
-//   const [startTime, setStartTime] = useState("");
-//   const [endDate, setEndDate] = useState("");
-//   const [endTime, setEndTime] = useState("");
-//   const [selectedCategory, setSelectedCategory] = useState(null);
-//   const [selectedCosplayers, setSelectedCosplayers] = useState([]);
-//   const [manualQuantity, setManualQuantity] = useState(1);
-//   const [useCosplayerList, setUseCosplayerList] = useState(true);
-//   const [showSummaryModal, setShowSummaryModal] = useState(false);
-
-//   const events = [
-//     {
-//       id: 1,
-//       name: "Anime Expo 2025",
-//       location: "Tokyo",
-//       image:
-//         "https://th.bing.com/th/id/OIP.asj-kj4fHf687oWpf_5zhQHaEK?rs=1&pid=ImgDetMain",
-//     },
-//     {
-//       id: 2,
-//       name: "Cosplay Summit",
-//       location: "Osaka",
-//       image:
-//         "https://th.bing.com/th/id/R.2b8cd8f8551cbd30ae16d29a7c653a0d?rik=Kw0NyacA6EzUmA&riu=http%3a%2f%2fasiatrend.org%2fwp-content%2fuploads%2fWCS-3-1024x534.jpg&ehk=%2blJAlmQ8xv%2bo3YGVgKq6FbmuWVUM0DDtxqG6qyxKzaA%3d&risl=&pid=ImgRaw&r=0",
-//     },
-//     {
-//       id: 3,
-//       name: "Comic Con VN",
-//       location: "HCMC",
-//       image:
-//         "https://th.bing.com/th/id/R.b0a4acf5e7895ebce6d8e57ab7247625?rik=W5b4efrZkMclag&pid=ImgRaw&r=0",
-//     },
-//     {
-//       id: 4,
-//       name: "Cosplay Carnival",
-//       location: "Singapore",
-//       image:
-//         "https://apicms.thestar.com.my/uploads/images/2022/08/25/1710204.jpg",
-//     },
-//     {
-//       id: 5,
-//       name: "World Cosplay Championship",
-//       location: "Nagoya",
-//       image:
-//         "https://th.bing.com/th/id/OIP.13RTPeU3DzPb_wcpOx6cRQHaD4?rs=1&pid=ImgDetMain",
-//     },
-//     {
-//       id: 6,
-//       name: "Vietnam Cosplay Festival",
-//       location: "Hanoi",
-//       image:
-//         "https://th.bing.com/th/id/OIP.piLdTVh9NSMFQqlgUx9IBAHaEK?rs=1&pid=ImgDetMain",
-//     },
-//   ];
-
-//   const categories = ["Superheroes", "Anime Characters", "Fantasy", "Sci-Fi"];
-
-//   const cosplayers = [
-//     // Superheroes
-//     {
-//       id: 1,
-//       name: "Hana",
-//       categories: ["Superheroes", "Sci-Fi"],
-//       image:
-//         "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg",
-//     },
-//     {
-//       id: 2,
-//       name: "Kai",
-//       categories: ["Superheroes"],
-//       image:
-//         "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg",
-//     },
-//     {
-//       id: 3,
-//       name: "Miko",
-//       categories: ["Superheroes", "Anime Characters"],
-//       image:
-//         "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg",
-//     },
-//     {
-//       id: 4,
-//       name: "Taro",
-//       categories: ["Superheroes"],
-//       image:
-//         "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg",
-//     },
-//     {
-//       id: 5,
-//       name: "Sora",
-//       categories: ["Superheroes", "Fantasy"],
-//       image:
-//         "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg",
-//     },
-
-//     // Anime Characters
-//     {
-//       id: 6,
-//       name: "Yuki",
-//       categories: ["Anime Characters"],
-//       image:
-//         "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg",
-//     },
-//     {
-//       id: 7,
-//       name: "Riku",
-//       categories: ["Anime Characters", "Fantasy"],
-//       image:
-//         "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg",
-//     },
-//     {
-//       id: 8,
-//       name: "Aki",
-//       categories: ["Anime Characters"],
-//       image:
-//         "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg",
-//     },
-//     {
-//       id: 9,
-//       name: "Nami",
-//       categories: ["Anime Characters", "Sci-Fi"],
-//       image:
-//         "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg",
-//     },
-//     {
-//       id: 10,
-//       name: "Miko",
-//       categories: ["Superheroes", "Anime Characters"],
-//       image:
-//         "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg",
-//     },
-
-//     // Fantasy
-//     {
-//       id: 11,
-//       name: "Rin",
-//       categories: ["Fantasy"],
-//       image:
-//         "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg",
-//     },
-//     {
-//       id: 12,
-//       name: "Luna",
-//       categories: ["Fantasy", "Sci-Fi"],
-//       image:
-//         "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg",
-//     },
-//     {
-//       id: 13,
-//       name: "Sora",
-//       categories: ["Superheroes", "Fantasy"],
-//       image:
-//         "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg",
-//     },
-//     {
-//       id: 14,
-//       name: "Riku",
-//       categories: ["Anime Characters", "Fantasy"],
-//       image:
-//         "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg",
-//     },
-//     {
-//       id: 15,
-//       name: "Elara",
-//       categories: ["Fantasy"],
-//       image:
-//         "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg",
-//     },
-
-//     // Sci-Fi
-//     {
-//       id: 16,
-//       name: "Zara",
-//       categories: ["Sci-Fi"],
-//       image:
-//         "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg",
-//     },
-//     {
-//       id: 17,
-//       name: "Hana",
-//       categories: ["Superheroes", "Sci-Fi"],
-//       image:
-//         "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg",
-//     },
-//     {
-//       id: 18,
-//       name: "Luna",
-//       categories: ["Fantasy", "Sci-Fi"],
-//       image:
-//         "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg",
-//     },
-//     {
-//       id: 19,
-//       name: "Nami",
-//       categories: ["Anime Characters", "Sci-Fi"],
-//       image:
-//         "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg",
-//     },
-//     {
-//       id: 20,
-//       name: "Kael",
-//       categories: ["Sci-Fi"],
-//       image:
-//         "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg",
-//     },
-//   ];
-
-//   const handleNextStep = () => {
-//     if (step === 1 && !selectedEvent) return alert("Please select an event!");
-//     if (step === 2 && (!startDate || !startTime || !endDate || !endTime))
-//       return alert("Please select start and end date/time!");
-//     if (step === 3 && !selectedCategory)
-//       return alert("Please select a category!");
-//     if (step === 4 && selectedCosplayers.length === 0 && manualQuantity < 1)
-//       return alert("Please select cosplayers or set a quantity!");
-//     if (step < 5) setStep(step + 1); // Chỉ tăng step nếu chưa đạt 5
-//     if (step === 4) setShowSummaryModal(true); // Hiển thị modal ở bước 5
-//   };
-
-//   const handlePrevStep = () => {
-//     if (step > 1) setStep(step - 1);
-//   };
-
-//   const filteredEvents = events.filter((event) =>
-//     event.name.toLowerCase().includes(searchTerm.toLowerCase())
-//   );
-
-//   const filteredCosplayers = cosplayers.filter((cosplayer) =>
-//     cosplayer.categories.includes(selectedCategory)
-//   );
-
-//   const getFormattedDateTime = (date, time) => {
-//     return date && time ? new Date(`${date}T${time}`).toLocaleString() : "N/A";
-//   };
-
-//   return (
-//     <div className="event-organize-page min-vh-100">
-//       {/* Hero Section */}
-//       <div className="hero-section text-white py-5">
-//         <Container>
-//           <h1 className="display-4 fw-bold text-center">Event Organization</h1>
-//           <p className="lead text-center mt-3">
-//             Host an event and book your favorite cosplayers!
-//           </p>
-//         </Container>
-//       </div>
-
-//       {/* Progress Bar */}
-//       <Container className="py-4">
-//         <ProgressBar now={(step / 5) * 100} className="progress-custom" />
-//         <p className="text-center mt-2">Step {step} of 5</p>
-//       </Container>
-
-//       {/* Steps */}
-//       <Container className="py-5">
-//         {step === 1 && (
-//           <div className="step-section fade-in">
-//             <h2 className="text-center mb-4">Select an Event</h2>
-//             <div className="search-container mb-4">
-//               <div className="input-group">
-//                 <span className="input-group-text">
-//                   <Search size={20} />
-//                 </span>
-//                 <input
-//                   type="text"
-//                   className="form-control"
-//                   placeholder="Search events..."
-//                   value={searchTerm}
-//                   onChange={(e) => setSearchTerm(e.target.value)}
-//                 />
-//               </div>
-//             </div>
-//             <Row>
-//               {filteredEvents.map((event) => (
-//                 <Col md={4} key={event.id}>
-//                   <Card
-//                     className={`event-card ${selectedEvent?.id === event.id ? "selected" : ""
-//                       }`}
-//                     onClick={() => setSelectedEvent(event)}
-//                   >
-//                     <Card.Img variant="top" src={event.image} />
-//                     <Card.Body>
-//                       <Card.Title>{event.name}</Card.Title>
-//                       <Card.Text>Location: {event.location}</Card.Text>
-//                     </Card.Body>
-//                   </Card>
-//                 </Col>
-//               ))}
-//             </Row>
-//           </div>
-//         )}
-
-//         {step === 2 && (
-//           <div className="step-section fade-in">
-//             <h2 className="text-center mb-4">Choose Date & Time</h2>
-//             <Row>
-//               <Col md={6}>
-//                 <Form.Group className="mb-3">
-//                   <Form.Label>Start Date</Form.Label>
-//                   <Form.Control
-//                     type="date"
-//                     value={startDate}
-//                     onChange={(e) => setStartDate(e.target.value)}
-//                   />
-//                 </Form.Group>
-//                 <Form.Group>
-//                   <Form.Label>Start Time</Form.Label>
-//                   <Form.Control
-//                     type="time"
-//                     value={startTime}
-//                     onChange={(e) => setStartTime(e.target.value)}
-//                   />
-//                 </Form.Group>
-//               </Col>
-//               <Col md={6}>
-//                 <Form.Group className="mb-3">
-//                   <Form.Label>End Date</Form.Label>
-//                   <Form.Control
-//                     type="date"
-//                     value={endDate}
-//                     onChange={(e) => setEndDate(e.target.value)}
-//                   />
-//                 </Form.Group>
-//                 <Form.Group>
-//                   <Form.Label>End Time</Form.Label>
-//                   <Form.Control
-//                     type="time"
-//                     value={endTime}
-//                     onChange={(e) => setEndTime(e.target.value)}
-//                   />
-//                 </Form.Group>
-//               </Col>
-//             </Row>
-//           </div>
-//         )}
-
-//         {step === 3 && (
-//           <div className="step-section fade-in">
-//             <h2 className="text-center mb-4">Select Category</h2>
-//             <ListGroup>
-//               {categories.map((category) => (
-//                 <ListGroup.Item
-//                   key={category}
-//                   active={selectedCategory === category}
-//                   onClick={() => setSelectedCategory(category)}
-//                   className="category-item"
-//                 >
-//                   {category}
-//                 </ListGroup.Item>
-//               ))}
-//             </ListGroup>
-//           </div>
-//         )}
-
-//         {step === 4 && (
-//           <div className="step-section fade-in">
-//             <h2 className="text-center mb-4">Select Characters</h2>
-//             <Form.Check
-//               type="switch"
-//               label={
-//                 useCosplayerList
-//                   ? "Select from Cosplayer List"
-//                   : "Set Manual Quantity"
-//               }
-//               checked={useCosplayerList}
-//               onChange={() => setUseCosplayerList(!useCosplayerList)}
-//               className="mb-4"
-//             />
-//             {useCosplayerList ? (
-//               <Row>
-//                 {filteredCosplayers.map((cosplayer) => (
-//                   <Col md={4} key={cosplayer.id}>
-//                     <Card
-//                       className={`cosplayer-card ${selectedCosplayers.includes(cosplayer) ? "selected" : ""
-//                         }`}
-//                       onClick={() => {
-//                         setSelectedCosplayers((prev) =>
-//                           prev.includes(cosplayer)
-//                             ? prev.filter((c) => c.id !== cosplayer.id)
-//                             : [...prev, cosplayer]
-//                         );
-//                       }}
-//                     >
-//                       <Card.Img variant="top" src={cosplayer.image} />
-//                       <Card.Body>
-//                         <Card.Title>{cosplayer.name}</Card.Title>
-//                         <div>
-//                           {cosplayer.categories.map((cat) => (
-//                             <Badge key={cat} bg="primary" className="me-1">
-//                               {cat}
-//                             </Badge>
-//                           ))}
-//                         </div>
-//                       </Card.Body>
-//                     </Card>
-//                   </Col>
-//                 ))}
-//               </Row>
-//             ) : (
-//               <Form.Group>
-//                 <Form.Label>Number of Cosplayers</Form.Label>
-//                 <Form.Control
-//                   type="number"
-//                   min="1"
-//                   value={manualQuantity}
-//                   onChange={(e) =>
-//                     setManualQuantity(Math.max(1, e.target.value))
-//                   }
-//                 />
-//               </Form.Group>
-//             )}
-//           </div>
-//         )}
-
-//         {step === 5 && (
-//           <div className="step-section fade-in">
-//             <h2 className="text-center mb-4">Review Your Event</h2>
-//             <Card>
-//               <Card.Body>
-//                 <Card.Title>Event Summary</Card.Title>
-//                 <p>
-//                   <strong>Event:</strong> {selectedEvent?.name}
-//                 </p>
-//                 <p>
-//                   <strong>Location:</strong> {selectedEvent?.location}
-//                 </p>
-//                 <p>
-//                   <strong>Start:</strong>{" "}
-//                   {getFormattedDateTime(startDate, startTime)}
-//                 </p>
-//                 <p>
-//                   <strong>End:</strong> {getFormattedDateTime(endDate, endTime)}
-//                 </p>
-//                 <p>
-//                   <strong>Category:</strong> {selectedCategory}
-//                 </p>
-//                 <p>
-//                   <strong>Cosplayers:</strong>{" "}
-//                   {useCosplayerList
-//                     ? selectedCosplayers.map((c) => c.name).join(", ")
-//                     : manualQuantity}
-//                 </p>
-//               </Card.Body>
-//             </Card>
-//           </div>
-//         )}
-
-//         {/* Navigation Buttons */}
-//         <div className="d-flex justify-content-between mt-5">
-//           {step > 1 && (
-//             <Button variant="outline-primary" onClick={handlePrevStep}>
-//               Previous
-//             </Button>
-//           )}
-//           <Button variant="primary" onClick={handleNextStep}>
-//             {step === 5 ? "Finish" : "Next"} <ChevronRight size={20} />
-//           </Button>
-//         </div>
-//       </Container>
-
-//       {/* Summary Modal */}
-//       <Modal
-//         show={showSummaryModal}
-//         onHide={() => setShowSummaryModal(false)}
-//         size="lg"
-//         centered
-//         className="summary-modal"
-//       >
-//         <Modal.Header closeButton>
-//           <Modal.Title>Event Summary</Modal.Title>
-//         </Modal.Header>
-//         <Modal.Body>
-//           <h4>Your Event Details</h4>
-//           <p>
-//             <strong>Event:</strong> {selectedEvent?.name}
-//           </p>
-//           <p>
-//             <strong>Location:</strong> {selectedEvent?.location}
-//           </p>
-//           <p>
-//             <strong>Start:</strong> {getFormattedDateTime(startDate, startTime)}
-//           </p>
-//           <p>
-//             <strong>End:</strong> {getFormattedDateTime(endDate, endTime)}
-//           </p>
-//           <p>
-//             <strong>Category:</strong> {selectedCategory}
-//           </p>
-//           <p>
-//             <strong>Cosplayers:</strong>{" "}
-//             {useCosplayerList
-//               ? selectedCosplayers.map((c) => c.name).join(", ")
-//               : manualQuantity}
-//           </p>
-//           <Button variant="primary" onClick={() => setShowSummaryModal(false)}>
-//             Confirm & Submit
-//           </Button>
-//         </Modal.Body>
-//       </Modal>
-//     </div>
-//   );
-// };
-
-// export default DetailEventOrganizationPage;
-
 import React, { useState } from "react";
 import { Search, ChevronRight, User } from "lucide-react";
 import {
@@ -553,7 +28,7 @@ const DetailEventOrganizationPage = () => {
   const [description, setDescription] = useState("");
   const [venueDescription, setVenueDescription] = useState("");
   const [images, setImages] = useState([]);
-  const [selectedCosplayers, setSelectedCosplayers] = useState([]);
+  const [selectedCosplayers, setSelectedCosplayers] = useState([]); // Each item: { cosplayer, character }
   const [manualQuantity, setManualQuantity] = useState(1);
   const [useCosplayerList, setUseCosplayerList] = useState(true);
   const [showSummaryModal, setShowSummaryModal] = useState(false);
@@ -562,6 +37,7 @@ const DetailEventOrganizationPage = () => {
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [termsAgreed, setTermsAgreed] = useState(false);
 
+  // Sample data for categories (unchanged)
   const categories = [
     { name: "Halloween", image: "https://static-images.vnncdn.net/files/publish/2023/10/26/le-hoi-halloween-2023-la-ngay-nao-611.jpg?width=0&s=WBL23e8H3tbjOtgDXA7h3w" },
     { name: "Anime", image: "https://www.avisanime.fr/wp-content/uploads/2024/02/Scan-Jujutsu-Kaisen-apres-anime-que-lire-et-ou-commencer.jpg" },
@@ -587,14 +63,26 @@ const DetailEventOrganizationPage = () => {
     { name: "Other", image: "https://stepup.edu.vn/wp-content/uploads/2020/08/the-other-1.jpg" },
   ];
 
+  // Expanded cosplayers data with crossGenderAllowed for some
   const cosplayers = [
-    { id: 1, name: "Hana", gender: "Female", categories: ["Superheroes", "Sci-Fi"], image: "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg" },
-    { id: 2, name: "Kai", gender: "Male", categories: ["Superheroes"], image: "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg" },
-    { id: 3, name: "Miko", gender: "Female", categories: ["Anime"], image: "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg" },
-    { id: 4, name: "Yuki", gender: "Female", categories: ["Anime", "Fantasy"], image: "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg" },
-    { id: 5, name: "Taro", gender: "Male", categories: ["Anime"], image: "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg" },
+    { id: 1, name: "Hana", gender: "Female", categories: ["Superheroes", "Sci-Fi"], crossGenderAllowed: false, image: "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg" },
+    { id: 2, name: "Kai", gender: "Male", categories: ["Superheroes", "Anime"], crossGenderAllowed: true, image: "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg" },
+    { id: 3, name: "Miko", gender: "Female", categories: ["Anime"], crossGenderAllowed: false, image: "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg" },
+    { id: 4, name: "Yuki", gender: "Female", categories: ["Anime", "Fantasy"], crossGenderAllowed: true, image: "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg" },
+    { id: 5, name: "Taro", gender: "Male", categories: ["Fantasy", "Anime"], crossGenderAllowed: false, image: "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg" },
+    { id: 6, name: "Rin", gender: "Female", categories: ["Anime", "Game"], crossGenderAllowed: false, image: "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg" },
+    { id: 7, name: "Sora", gender: "Male", categories: ["Game", "Fantasy"], crossGenderAllowed: false, image: "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg" },
+    { id: 8, name: "Aki", gender: "Female", categories: ["Superheroes", "Sci-Fi"], crossGenderAllowed: true, image: "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg" },
+    { id: 9, name: "Jin", gender: "Male", categories: ["Anime", "Game"], crossGenderAllowed: false, image: "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg" },
+    { id: 10, name: "Luna", gender: "Female", categories: ["Fantasy", "Sci-Fi"], crossGenderAllowed: false, image: "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg" },
+    { id: 11, name: "Kenta", gender: "Male", categories: ["Superheroes", "Historical"], crossGenderAllowed: false, image: "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg" },
+    { id: 12, name: "Nami", gender: "Female", categories: ["Anime", "Game"], crossGenderAllowed: false, image: "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg" },
+    { id: 13, name: "Haru", gender: "Male", categories: ["Fantasy", "Historical"], crossGenderAllowed: true, image: "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg" },
+    { id: 14, name: "Sakura", gender: "Female", categories: ["Anime", "Historical"], crossGenderAllowed: false, image: "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg" },
+    { id: 15, name: "Riku", gender: "Male", categories: ["Sci-Fi", "Game"], crossGenderAllowed: false, image: "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg" },
   ];
 
+  // Expanded characters data
   const characters = [
     { name: "Superman", category: "Superheroes", gender: "Male" },
     { name: "Wonder Woman", category: "Superheroes", gender: "Female" },
@@ -602,8 +90,29 @@ const DetailEventOrganizationPage = () => {
     { name: "Sailor Moon", category: "Anime", gender: "Female" },
     { name: "Gandalf", category: "Fantasy", gender: "Male" },
     { name: "Ellen Ripley", category: "Sci-Fi", gender: "Female" },
+    { name: "Batman", category: "Superheroes", gender: "Male" },
+    { name: "Catwoman", category: "Superheroes", gender: "Female" },
+    { name: "Luffy", category: "Anime", gender: "Male" },
+    { name: "Nami", category: "Anime", gender: "Female" },
+    { name: "Aragorn", category: "Fantasy", gender: "Male" },
+    { name: "Galadriel", category: "Fantasy", gender: "Female" },
+    { name: "Master Chief", category: "Game", gender: "Male" },
+    { name: "Lara Croft", category: "Game", gender: "Female" },
+    { name: "Darth Vader", category: "Sci-Fi", gender: "Male" },
+    { name: "Leia Organa", category: "Sci-Fi", gender: "Female" },
+    { name: "Geralt of Rivia", category: "Fantasy", gender: "Male" },
+    { name: "Yennefer", category: "Fantasy", gender: "Female" },
+    { name: "Ichigo Kurosaki", category: "Anime", gender: "Male" },
+    { name: "Rukia Kuchiki", category: "Anime", gender: "Female" },
+    { name: "Samurai Jack", category: "Historical", gender: "Male" },
+    { name: "Joan of Arc", category: "Historical", gender: "Female" },
+    { name: "Link", category: "Game", gender: "Male" },
+    { name: "Zelda", category: "Game", gender: "Female" },
+    { name: "Iron Man", category: "Superheroes", gender: "Male" },
+    { name: "Black Widow", category: "Superheroes", gender: "Female" },
   ];
 
+  // Handle next step
   const handleNextStep = () => {
     if (step === 1 && !selectedCategory) return alert("Please select a category!");
     if (
@@ -611,20 +120,34 @@ const DetailEventOrganizationPage = () => {
       (!eventName || !location || !startDate || !startTime || !endDate || !endTime || !description || !venueDescription)
     )
       return alert("Please fill in all required fields!");
-    if (step === 3 && selectedCosplayers.length === 0 && manualQuantity < 1)
-      return alert("Please select cosplayers or enter a quantity!");
+    if (step === 3) {
+      if (useCosplayerList) {
+        if (
+          selectedCosplayers.length === 0 ||
+          selectedCosplayers.some((sc) => !sc.character)
+        ) {
+          return alert("Please select cosplayers and assign a character to each!");
+        }
+      } else {
+        if (manualQuantity < 1) {
+          return alert("Please enter a valid number of cosplayers!");
+        }
+      }
+    }
     if (step === 4 && !termsAgreed) {
-      alert("Please agree to the terms and conditions before submitting.");
+      alert("Please agree to the terms and conditions before submitting!");
       return;
     }
     if (step < 4) setStep(step + 1);
     if (step === 4) setShowSummaryModal(true);
   };
 
+  // Handle previous step
   const handlePrevStep = () => {
     if (step > 1) setStep(step - 1);
   };
 
+  // Save draft
   const handleSaveDraft = () => {
     const draft = {
       step,
@@ -646,19 +169,23 @@ const DetailEventOrganizationPage = () => {
     alert("Draft saved successfully!");
   };
 
+  // Handle image upload
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
     setImages((prev) => [...prev, ...files]);
   };
 
+  // Format date and time
   const getFormattedDateTime = (date, time) => {
     return date && time ? new Date(`${date}T${time}`).toLocaleString() : "N/A";
   };
 
+  // Filter categories by search term
   const filteredCategories = categories.filter((cat) =>
     cat.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Filter cosplayers by character and gender
   const filterCosplayersByCharacterAndGender = () => {
     let filtered = cosplayers;
 
@@ -682,15 +209,26 @@ const DetailEventOrganizationPage = () => {
     return filtered;
   };
 
+  // View cosplayer profile
   const handleViewProfile = (cosplayer) => {
     alert(`Viewing profile of ${cosplayer.name}`);
   };
 
+  // Toggle cosplayer selection
   const toggleCosplayerSelection = (cosplayer) => {
     setSelectedCosplayers((prev) =>
-      prev.some((c) => c.id === cosplayer.id)
-        ? prev.filter((c) => c.id !== cosplayer.id)
-        : [...prev, cosplayer]
+      prev.some((sc) => sc.cosplayer.id === cosplayer.id)
+        ? prev.filter((sc) => sc.cosplayer.id !== cosplayer.id)
+        : [...prev, { cosplayer, character: null }]
+    );
+  };
+
+  // Assign character to cosplayer with conditional gender matching
+  const handleCharacterSelect = (cosplayerId, selectedCharacter) => {
+    setSelectedCosplayers((prev) =>
+      prev.map((sc) =>
+        sc.cosplayer.id === cosplayerId ? { ...sc, character: selectedCharacter } : sc
+      )
     );
   };
 
@@ -774,6 +312,7 @@ const DetailEventOrganizationPage = () => {
                       type="date"
                       value={startDate}
                       onChange={(e) => setStartDate(e.target.value)}
+                      onFocus={(e) => e.target.showPicker && e.target.showPicker()}
                       className="custom-date-input"
                     />
                   </Form.Group>
@@ -783,6 +322,7 @@ const DetailEventOrganizationPage = () => {
                       type="time"
                       value={startTime}
                       onChange={(e) => setStartTime(e.target.value)}
+                      onFocus={(e) => e.target.showPicker && e.target.showPicker()}
                       className="custom-time-input"
                     />
                   </Form.Group>
@@ -794,6 +334,7 @@ const DetailEventOrganizationPage = () => {
                       type="date"
                       value={endDate}
                       onChange={(e) => setEndDate(e.target.value)}
+                      onFocus={(e) => e.target.showPicker && e.target.showPicker()}
                       className="custom-date-input"
                     />
                   </Form.Group>
@@ -803,6 +344,7 @@ const DetailEventOrganizationPage = () => {
                       type="time"
                       value={endTime}
                       onChange={(e) => setEndTime(e.target.value)}
+                      onFocus={(e) => e.target.showPicker && e.target.showPicker()}
                       className="custom-time-input"
                     />
                   </Form.Group>
@@ -846,12 +388,15 @@ const DetailEventOrganizationPage = () => {
         {step === 3 && (
           <div className="step-section fade-in">
             <h2 className="text-center mb-4">Select Cosplayers</h2>
+            <p className="text-center mb-4">
+              Choose how you want to add cosplayers to your event:
+            </p>
             <Form.Check
               type="switch"
               label={
                 useCosplayerList
-                  ? "Select from Cosplayer List"
-                  : "Enter Quantity Manually"
+                  ? "Select specific cosplayers and characters"
+                  : "Enter number of cosplayers"
               }
               checked={useCosplayerList}
               onChange={() => setUseCosplayerList(!useCosplayerList)}
@@ -876,17 +421,20 @@ const DetailEventOrganizationPage = () => {
                     className="ms-2"
                     style={{ width: "200px" }}
                   >
-                    <option value="All">All Cosplayer Genders</option>
-                    <option value="Male">Male Cosplayers</option>
-                    <option value="Female">Female Cosplayers</option>
+                    <option value="All">All Genders</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
                   </Form.Select>
                 </div>
                 <Row>
                   {filterCosplayersByCharacterAndGender().map((cosplayer) => (
                     <Col md={4} className="mb-4" key={cosplayer.id}>
                       <Card
-                        className={`cosplayer-card ${selectedCosplayers.some((c) => c.id === cosplayer.id) ? "selected" : ""
-                          }`}
+                        className={`cosplayer-card ${
+                          selectedCosplayers.some((sc) => sc.cosplayer.id === cosplayer.id)
+                            ? "selected"
+                            : ""
+                        }`}
                         onClick={() => toggleCosplayerSelection(cosplayer)}
                       >
                         <Card.Img variant="top" src={cosplayer.image} />
@@ -920,6 +468,48 @@ const DetailEventOrganizationPage = () => {
                     No cosplayers found for "{characterSearch}" with selected filters.
                   </p>
                 )}
+                {selectedCosplayers.length > 0 && (
+                  <div className="selected-cosplayers mt-4">
+                    <h4>Assign Characters to Selected Cosplayers</h4>
+                    <p className="text-muted">
+                      Please select the character each cosplayer will portray. Some cosplayers can cross-gender cosplay.
+                    </p>
+                    {selectedCosplayers.map((sc) => (
+                      <div key={sc.cosplayer.id} className="d-flex align-items-center mb-3">
+                        <span className="me-3">{sc.cosplayer.name}</span>
+                        <Form.Select
+                          value={sc.character || ""}
+                          onChange={(e) => handleCharacterSelect(sc.cosplayer.id, e.target.value)}
+                          style={{ width: "200px" }}
+                        >
+                          <option value="">Select Character</option>
+                          {characters
+                            .filter((char) =>
+                              sc.cosplayer.categories.includes(char.category) &&
+                              (sc.cosplayer.gender === char.gender || sc.cosplayer.crossGenderAllowed)
+                            )
+                            .map((char) => (
+                              <option key={char.name} value={char.name}>
+                                {char.name}
+                              </option>
+                            ))}
+                        </Form.Select>
+                        <Button
+                          variant="outline-danger"
+                          size="sm"
+                          className="ms-2"
+                          onClick={() =>
+                            setSelectedCosplayers((prev) =>
+                              prev.filter((item) => item.cosplayer.id !== sc.cosplayer.id)
+                            )
+                          }
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </>
             ) : (
               <Form.Group>
@@ -930,6 +520,9 @@ const DetailEventOrganizationPage = () => {
                   value={manualQuantity}
                   onChange={(e) => setManualQuantity(Math.max(1, e.target.value))}
                 />
+                <Form.Text className="text-muted">
+                  Enter the number of cosplayers you need. The system will select them randomly.
+                </Form.Text>
               </Form.Group>
             )}
           </div>
@@ -951,7 +544,7 @@ const DetailEventOrganizationPage = () => {
                 <p>
                   <strong>Cosplayers:</strong>{" "}
                   {useCosplayerList
-                    ? selectedCosplayers.map((c) => c.name).join(", ")
+                    ? selectedCosplayers.map((sc) => `${sc.cosplayer.name} as ${sc.character}`).join(", ")
                     : manualQuantity}
                 </p>
                 <Button
@@ -1043,7 +636,7 @@ const DetailEventOrganizationPage = () => {
           <p>
             <strong>Cosplayers:</strong>{" "}
             {useCosplayerList
-              ? selectedCosplayers.map((c) => c.name).join(", ")
+              ? selectedCosplayers.map((sc) => `${sc.cosplayer.name} as ${sc.character}`).join(", ")
               : manualQuantity}
           </p>
           <Button variant="primary" onClick={() => setShowSummaryModal(false)}>

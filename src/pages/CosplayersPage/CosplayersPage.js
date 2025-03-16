@@ -12,8 +12,6 @@ import {
   InputGroup,
 } from "react-bootstrap";
 import { Search } from "lucide-react";
-// import Toastify from "toastify-js";
-// import "toastify-js/dist/toastify.min.css";
 import "../../styles/CosplayersPage.scss";
 
 const CosplayersPage = () => {
@@ -242,13 +240,11 @@ const CosplayersPage = () => {
     setSelectedCharacter(null);
     setSelectedDates([]);
     setTimeSlots({});
-    // handleFilterCosplayers(); // Đã xử lý trong useEffect
   };
 
   const handleSearchChange = (e) => {
     const value = e.target.value;
     setSearchCharacter(value);
-    // handleFilterCosplayers(); // Đã xử lý trong useEffect
   };
 
   const handleCosplayerSelect = (cosplayer) => {
@@ -530,6 +526,9 @@ const CosplayersPage = () => {
                                     e.target.value
                                   )
                                 }
+                                onFocus={(e) =>
+                                  e.target.showPicker && e.target.showPicker()
+                                }
                                 min={slot.start}
                                 max={slot.end}
                               />
@@ -545,6 +544,9 @@ const CosplayersPage = () => {
                                     "end",
                                     e.target.value
                                   )
+                                }
+                                onFocus={(e) =>
+                                  e.target.showPicker && e.target.showPicker()
                                 }
                                 min={timeSlots[date]?.start || slot.start}
                                 max={slot.end}
