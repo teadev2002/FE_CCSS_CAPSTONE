@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Search, ChevronRight, User } from "lucide-react";
 import {
   Modal,
@@ -17,9 +17,10 @@ import "../../styles/DetailEventOrganizationPage.scss";
 
 const DetailEventOrganizationPage = () => {
   const [step, setStep] = useState(1);
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedPackage, setSelectedPackage] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [eventName, setEventName] = useState("");
+  const [eventTheme, setEventTheme] = useState("");
   const [location, setLocation] = useState("");
   const [startDate, setStartDate] = useState("");
   const [startTime, setStartTime] = useState("");
@@ -28,7 +29,7 @@ const DetailEventOrganizationPage = () => {
   const [description, setDescription] = useState("");
   const [venueDescription, setVenueDescription] = useState("");
   const [images, setImages] = useState([]);
-  const [selectedCosplayers, setSelectedCosplayers] = useState([]); // Each item: { cosplayer, character }
+  const [selectedCosplayers, setSelectedCosplayers] = useState([]);
   const [manualQuantity, setManualQuantity] = useState(1);
   const [useCosplayerList, setUseCosplayerList] = useState(true);
   const [showSummaryModal, setShowSummaryModal] = useState(false);
@@ -36,88 +37,119 @@ const DetailEventOrganizationPage = () => {
   const [genderFilter, setGenderFilter] = useState("All");
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [termsAgreed, setTermsAgreed] = useState(false);
+  const [showPriceList, setShowPriceList] = useState(false);
+  const [characterPriceSearch, setCharacterPriceSearch] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [isSidebarVisible, setIsSidebarVisible] = useState(true);
+  const [discount, setDiscount] = useState("");
+  const [customDiscount, setCustomDiscount] = useState("");
 
-  // Sample data for categories (unchanged)
-  const categories = [
-    { name: "Halloween", image: "https://static-images.vnncdn.net/files/publish/2023/10/26/le-hoi-halloween-2023-la-ngay-nao-611.jpg?width=0&s=WBL23e8H3tbjOtgDXA7h3w" },
-    { name: "Anime", image: "https://www.avisanime.fr/wp-content/uploads/2024/02/Scan-Jujutsu-Kaisen-apres-anime-que-lire-et-ou-commencer.jpg" },
-    { name: "Game", image: "https://hoanghamobile.com/tin-tuc/wp-content/uploads/2024/02/game-hot-thumb.jpg" },
-    { name: "Comic Con", image: "https://offloadmedia.feverup.com/secretlosangeles.com/wp-content/uploads/2022/12/13103130/unnamed-2-1024x576.jpg" },
-    { name: "Fantasy", image: "https://images2.thanhnien.vn/528068263637045248/2023/9/15/fantasy-16947704442011729238363.jpg" },
-    { name: "Sci-Fi", image: "https://static.scientificamerican.com/sciam/cache/file/C51BE585-F913-4327-9F0E02FCB6321923_source.jpg?w=1200" },
-    { name: "Superheroes", image: "https://www.mensjournal.com/.image/t_share/MTk2MTM3MzYwNzA2OTcxMTQx/batman-superman-aquaman-wonder-woman-flash-cyborg-of-the-justice-league.jpg" },
-    { name: "Historical", image: "https://clickhole.com/wp-content/uploads/2023/10/historical-figurs.png" },
-    { name: "Music Festival", image: "https://www.anarapublishing.com/wp-content/uploads/2019/04/photo-1506157786151-b8491531f063.jpeg" },
-    { name: "Cultural", image: "https://ohmyfacts.com/wp-content/uploads/2024/09/28-facts-about-cultural-sensitivity-1726202634.jpg" },
-    { name: "Sports", image: "https://nativespeaker.vn/uploaded/page_1656_1712278968_1715676497.jpg" },
-    { name: "Technology", image: "https://blog.hyperiondev.com/wp-content/uploads/2019/02/Blog-Tech-Events.jpg" },
-    { name: "Fashion", image: "https://iso.500px.com/wp-content/uploads/2020/02/Christophe-Josse-Finale-By-Milton-Tan.jpeg" },
-    { name: "Food & Drink", image: "https://eventbrite-s3.s3.amazonaws.com/marketing/landingpages/assets/2023/loce/food-drinks-festivals/hero_festivals_food2.jpg" },
-    { name: "Art & Design", image: "https://images.prestigeonline.com/wp-content/uploads/sites/8/2022/07/12140511/national_museum.6d2b3175946.original-min-1349x900.jpg" },
-    { name: "Business & Networking", image: "https://promoambitions.com/wp-content/uploads/2019/05/Business-Networking-Events-1.jpg" },
-    { name: "Education", image: "https://cdn.unischolarz.com/blog/wp-content/uploads/2021/05/24174820/alphagamma-bett-show-2020-opportuniries-min-1024x576.jpg" },
-    { name: "Charity & Causes", image: "https://cdn.evbstatic.com/s3-build/fe/build/images/fa71a953ce0560ebed3dcc2b89dd1217-charity_and_causes.webp" },
-    { name: "Film & Media", image: "https://rightmedia.vn/wp-content/uploads/2024/05/don-vi-san-xuat-tvc-uy-tin.png" },
-    { name: "Seasonal", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ7ADgrg2CBJXXDwJaeVSIoFZufahUEkqcZnw&s" },
-    { name: "Science & Tech", image: "https://cdn.evbstatic.com/s3-build/fe/build/images/1d87d01c25d690d5564dd4184cd39f8e-science.webp" },
-    { name: "Other", image: "https://stepup.edu.vn/wp-content/uploads/2020/08/the-other-1.jpg" },
+  // Sample data for packages
+  const packages = [
+    {
+      name: "Small Package",
+      description: "For up to 3 cosplayers",
+      details: "Suitable for small events like birthdays or family gatherings. Includes basic support, standard costumes, and 1-hour performance.",
+      image: "https://cdn.prod.website-files.com/6769617aecf082b10bb149ff/67763d8a2775bee07438e7a5_Events.png",
+      maxAttendees: 50,
+      benefits: ["Basic support", "Standard costumes", "1-hour performance"]
+    },
+    {
+      name: "Medium Package",
+      description: "For up to 5 cosplayers",
+      details: "Perfect for medium-sized events. Includes themed decorations, enhanced support, premium costumes, and 2-hour performance.",
+      image: "https://jjrmarketing.com/wp-content/uploads/2019/12/International-Event.jpg",
+      maxAttendees: 100,
+      benefits: ["Themed decorations", "Enhanced support", "Premium costumes", "2-hour performance"]
+    },
+    {
+      name: "Large Package",
+      description: "For up to 10 cosplayers",
+      details: "Ideal for conferences or large events. Includes full setup, premium features, custom costumes, and 3-hour performance.",
+      image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSnEys5tBHYLbhADjGJzoM5BloFy9AP-uyRzg&s",
+      maxAttendees: 200,
+      benefits: ["Full setup", "Premium features", "Custom costumes", "3-hour performance"]
+    },
+    {
+      name: "VIP Package",
+      description: "For up to 15 cosplayers",
+      details: "Ultimate experience with exclusive access, VIP support, luxury costumes, and 4-hour performance.",
+      image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ3DNasCvfOLMIxJyQtbNq7EfLkWnMazHE9xw&s",
+      maxAttendees: 300,
+      benefits: ["Exclusive access", "VIP support", "Luxury costumes", "4-hour performance"]
+    },
+    {
+      name: "Custom Package",
+      description: "Tailored to your needs",
+      details: "Create a custom package with flexible options. Contact us for details.",
+      image: "https://scandiweb.com/blog/wp-content/uploads/2020/01/ecom360_conference_hosting_successful_event.jpeg",
+      maxAttendees: "Unlimited",
+      benefits: ["Flexible options", "Personalized support", "Custom performance"]
+    }
   ];
 
-  // Expanded cosplayers data with crossGenderAllowed for some
+  // Sample cosplayer data with prices
   const cosplayers = [
-    { id: 1, name: "Hana", gender: "Female", categories: ["Superheroes", "Sci-Fi"], crossGenderAllowed: false, image: "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg" },
-    { id: 2, name: "Kai", gender: "Male", categories: ["Superheroes", "Anime"], crossGenderAllowed: true, image: "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg" },
-    { id: 3, name: "Miko", gender: "Female", categories: ["Anime"], crossGenderAllowed: false, image: "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg" },
-    { id: 4, name: "Yuki", gender: "Female", categories: ["Anime", "Fantasy"], crossGenderAllowed: true, image: "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg" },
-    { id: 5, name: "Taro", gender: "Male", categories: ["Fantasy", "Anime"], crossGenderAllowed: false, image: "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg" },
-    { id: 6, name: "Rin", gender: "Female", categories: ["Anime", "Game"], crossGenderAllowed: false, image: "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg" },
-    { id: 7, name: "Sora", gender: "Male", categories: ["Game", "Fantasy"], crossGenderAllowed: false, image: "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg" },
-    { id: 8, name: "Aki", gender: "Female", categories: ["Superheroes", "Sci-Fi"], crossGenderAllowed: true, image: "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg" },
-    { id: 9, name: "Jin", gender: "Male", categories: ["Anime", "Game"], crossGenderAllowed: false, image: "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg" },
-    { id: 10, name: "Luna", gender: "Female", categories: ["Fantasy", "Sci-Fi"], crossGenderAllowed: false, image: "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg" },
-    { id: 11, name: "Kenta", gender: "Male", categories: ["Superheroes", "Historical"], crossGenderAllowed: false, image: "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg" },
-    { id: 12, name: "Nami", gender: "Female", categories: ["Anime", "Game"], crossGenderAllowed: false, image: "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg" },
-    { id: 13, name: "Haru", gender: "Male", categories: ["Fantasy", "Historical"], crossGenderAllowed: true, image: "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg" },
-    { id: 14, name: "Sakura", gender: "Female", categories: ["Anime", "Historical"], crossGenderAllowed: false, image: "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg" },
-    { id: 15, name: "Riku", gender: "Male", categories: ["Sci-Fi", "Game"], crossGenderAllowed: false, image: "https://laforce.vn/wp-content/uploads/2023/08/trang-phuc-cosplay-dep.jpg" },
+    { id: 1, name: "Hana", gender: "Female", categories: ["Superheroes", "Sci-Fi"], crossGenderAllowed: false, image: "https://universo-nintendo.com.mx/my_uploads/2022/09/Chainsaw-Man-Makima-Cosplay-Rakukoo.jpg", price: 100 },
+    { id: 2, name: "Kai", gender: "Male", categories: ["Superheroes", "Anime"], crossGenderAllowed: true, image: "https://universo-nintendo.com.mx/my_uploads/2022/09/Chainsaw-Man-Makima-Cosplay-Rakukoo.jpg", price: 120 },
+    { id: 3, name: "Miko", gender: "Female", categories: ["Anime"], crossGenderAllowed: false, image: "https://universo-nintendo.com.mx/my_uploads/2022/09/Chainsaw-Man-Makima-Cosplay-Rakukoo.jpg", price: 80 },
+    { id: 4, name: "Yuki", gender: "Female", categories: ["Anime", "Fantasy"], crossGenderAllowed: true, image: "https://universo-nintendo.com.mx/my_uploads/2022/09/Chainsaw-Man-Makima-Cosplay-Rakukoo.jpg", price: 150 },
+    { id: 5, name: "Taro", gender: "Male", categories: ["Fantasy", "Anime"], crossGenderAllowed: false, image: "https://universo-nintendo.com.mx/my_uploads/2022/09/Chainsaw-Man-Makima-Cosplay-Rakukoo.jpg", price: 90 },
+    { id: 6, name: "Rin", gender: "Female", categories: ["Anime", "Game"], crossGenderAllowed: false, image: "https://universo-nintendo.com.mx/my_uploads/2022/09/Chainsaw-Man-Makima-Cosplay-Rakukoo.jpg", price: 110 },
+    { id: 7, name: "Sora", gender: "Male", categories: ["Game", "Fantasy"], crossGenderAllowed: false, image: "https://universo-nintendo.com.mx/my_uploads/2022/09/Chainsaw-Man-Makima-Cosplay-Rakukoo.jpg", price: 130 },
+    { id: 8, name: "Aki", gender: "Female", categories: ["Superheroes", "Sci-Fi"], crossGenderAllowed: true, image: "https://universo-nintendo.com.mx/my_uploads/2022/09/Chainsaw-Man-Makima-Cosplay-Rakukoo.jpg", price: 140 },
+    { id: 9, name: "Jin", gender: "Male", categories: ["Anime", "Game"], crossGenderAllowed: false, image: "https://universo-nintendo.com.mx/my_uploads/2022/09/Chainsaw-Man-Makima-Cosplay-Rakukoo.jpg", price: 95 },
+    { id: 10, name: "Luna", gender: "Female", categories: ["Fantasy", "Sci-Fi"], crossGenderAllowed: false, image: "https://universo-nintendo.com.mx/my_uploads/2022/09/Chainsaw-Man-Makima-Cosplay-Rakukoo.jpg", price: 125 },
+    { id: 11, name: "Kenta", gender: "Male", categories: ["Superheroes", "Historical"], crossGenderAllowed: false, image: "https://universo-nintendo.com.mx/my_uploads/2022/09/Chainsaw-Man-Makima-Cosplay-Rakukoo.jpg", price: 115 },
+    { id: 12, name: "Nami", gender: "Female", categories: ["Anime", "Game"], crossGenderAllowed: false, image: "https://universo-nintendo.com.mx/my_uploads/2022/09/Chainsaw-Man-Makima-Cosplay-Rakukoo.jpg", price: 105 },
+    { id: 13, name: "Haru", gender: "Male", categories: ["Fantasy", "Historical"], crossGenderAllowed: true, image: "https://universo-nintendo.com.mx/my_uploads/2022/09/Chainsaw-Man-Makima-Cosplay-Rakukoo.jpg", price: 135 },
+    { id: 14, name: "Sakura", gender: "Female", categories: ["Anime", "Historical"], crossGenderAllowed: false, image: "https://universo-nintendo.com.mx/my_uploads/2022/09/Chainsaw-Man-Makima-Cosplay-Rakukoo.jpg", price: 85 },
+    { id: 15, name: "Riku", gender: "Male", categories: ["Sci-Fi", "Game"], crossGenderAllowed: false, image: "https://universo-nintendo.com.mx/my_uploads/2022/09/Chainsaw-Man-Makima-Cosplay-Rakukoo.jpg", price: 145 },
   ];
 
-  // Expanded characters data
+  // Sample character data with prices
   const characters = [
-    { name: "Superman", category: "Superheroes", gender: "Male" },
-    { name: "Wonder Woman", category: "Superheroes", gender: "Female" },
-    { name: "Naruto", category: "Anime", gender: "Male" },
-    { name: "Sailor Moon", category: "Anime", gender: "Female" },
-    { name: "Gandalf", category: "Fantasy", gender: "Male" },
-    { name: "Ellen Ripley", category: "Sci-Fi", gender: "Female" },
-    { name: "Batman", category: "Superheroes", gender: "Male" },
-    { name: "Catwoman", category: "Superheroes", gender: "Female" },
-    { name: "Luffy", category: "Anime", gender: "Male" },
-    { name: "Nami", category: "Anime", gender: "Female" },
-    { name: "Aragorn", category: "Fantasy", gender: "Male" },
-    { name: "Galadriel", category: "Fantasy", gender: "Female" },
-    { name: "Master Chief", category: "Game", gender: "Male" },
-    { name: "Lara Croft", category: "Game", gender: "Female" },
-    { name: "Darth Vader", category: "Sci-Fi", gender: "Male" },
-    { name: "Leia Organa", category: "Sci-Fi", gender: "Female" },
-    { name: "Geralt of Rivia", category: "Fantasy", gender: "Male" },
-    { name: "Yennefer", category: "Fantasy", gender: "Female" },
-    { name: "Ichigo Kurosaki", category: "Anime", gender: "Male" },
-    { name: "Rukia Kuchiki", category: "Anime", gender: "Female" },
-    { name: "Samurai Jack", category: "Historical", gender: "Male" },
-    { name: "Joan of Arc", category: "Historical", gender: "Female" },
-    { name: "Link", category: "Game", gender: "Male" },
-    { name: "Zelda", category: "Game", gender: "Female" },
-    { name: "Iron Man", category: "Superheroes", gender: "Male" },
-    { name: "Black Widow", category: "Superheroes", gender: "Female" },
+    { name: "Superman", category: "Superheroes", gender: "Male", price: 80 },
+    { name: "Wonder Woman", category: "Superheroes", gender: "Female", price: 90 },
+    { name: "Naruto", category: "Anime", gender: "Male", price: 70 },
+    { name: "Sailor Moon", category: "Anime", gender: "Female", price: 85 },
+    { name: "Gandalf", category: "Fantasy", gender: "Male", price: 95 },
+    { name: "Ellen Ripley", category: "Sci-Fi", gender: "Female", price: 75 },
+    { name: "Batman", category: "Superheroes", gender: "Male", price: 100 },
+    { name: "Catwoman", category: "Superheroes", gender: "Female", price: 80 },
+    { name: "Luffy", category: "Anime", gender: "Male", price: 65 },
+    { name: "Nami", category: "Anime", gender: "Female", price: 70 },
+    { name: "Aragorn", category: "Fantasy", gender: "Male", price: 90 },
+    { name: "Galadriel", category: "Fantasy", gender: "Female", price: 85 },
+    { name: "Master Chief", category: "Game", gender: "Male", price: 95 },
+    { name: "Lara Croft", category: "Game", gender: "Female", price: 80 },
+    { name: "Darth Vader", category: "Sci-Fi", gender: "Male", price: 100 },
+    { name: "Leia Organa", category: "Sci-Fi", gender: "Female", price: 75 },
+    { name: "Geralt of Rivia", category: "Fantasy", gender: "Male", price: 90 },
+    { name: "Yennefer", category: "Fantasy", gender: "Female", price: 85 },
+    { name: "Ichigo Kurosaki", category: "Anime", gender: "Male", price: 70 },
+    { name: "Rukia Kuchiki", category: "Anime", gender: "Female", price: 65 },
+    { name: "Samurai Jack", category: "Historical", gender: "Male", price: 80 },
+    { name: "Joan of Arc", category: "Historical", gender: "Female", price: 75 },
+    { name: "Link", category: "Game", gender: "Male", price: 85 },
+    { name: "Zelda", category: "Game", gender: "Female", price: 80 },
+    { name: "Iron Man", category: "Superheroes", gender: "Male", price: 95 },
+    { name: "Black Widow", category: "Superheroes", gender: "Female", price: 85 },
+  ];
+
+  // Sample discount options
+  const discountOptions = [
+    { code: "DISCOUNT10", value: 10 },
+    { code: "DISCOUNT20", value: 20 },
+    { code: "DISCOUNT30", value: 30 },
   ];
 
   // Handle next step
   const handleNextStep = () => {
-    if (step === 1 && !selectedCategory) return alert("Please select a category!");
+    if (step === 1 && !selectedPackage) return alert("Please select an event package!");
     if (
       step === 2 &&
-      (!eventName || !location || !startDate || !startTime || !endDate || !endTime || !description || !venueDescription)
+      (!eventName || !eventTheme || !location || !startDate || !startTime || !endDate || !endTime || !description || !venueDescription)
     )
       return alert("Please fill in all required fields!");
     if (step === 3) {
@@ -126,7 +158,7 @@ const DetailEventOrganizationPage = () => {
           selectedCosplayers.length === 0 ||
           selectedCosplayers.some((sc) => !sc.character)
         ) {
-          return alert("Please select cosplayers and assign a character to each!");
+          return alert("Please select cosplayers and assign characters to each!");
         }
       } else {
         if (manualQuantity < 1) {
@@ -151,8 +183,9 @@ const DetailEventOrganizationPage = () => {
   const handleSaveDraft = () => {
     const draft = {
       step,
-      selectedCategory,
+      selectedPackage,
       eventName,
+      eventTheme,
       location,
       startDate,
       startTime,
@@ -164,6 +197,8 @@ const DetailEventOrganizationPage = () => {
       selectedCosplayers,
       manualQuantity,
       useCosplayerList,
+      discount,
+      customDiscount,
     };
     localStorage.setItem("eventDraft", JSON.stringify(draft));
     alert("Draft saved successfully!");
@@ -180,9 +215,9 @@ const DetailEventOrganizationPage = () => {
     return date && time ? new Date(`${date}T${time}`).toLocaleString() : "N/A";
   };
 
-  // Filter categories by search term
-  const filteredCategories = categories.filter((cat) =>
-    cat.name.toLowerCase().includes(searchTerm.toLowerCase())
+  // Filter packages by search term
+  const filteredPackages = packages.filter((pkg) =>
+    pkg.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Filter cosplayers by character and gender
@@ -195,7 +230,8 @@ const DetailEventOrganizationPage = () => {
       );
       if (searchedCharacter) {
         filtered = filtered.filter((cosplayer) =>
-          cosplayer.categories.includes(searchedCharacter.category)
+          cosplayer.categories.includes(searchedCharacter.category) &&
+          (cosplayer.gender === searchedCharacter.gender || cosplayer.crossGenderAllowed)
         );
       } else {
         return [];
@@ -214,16 +250,28 @@ const DetailEventOrganizationPage = () => {
     alert(`Viewing profile of ${cosplayer.name}`);
   };
 
-  // Toggle cosplayer selection
+  // Toggle cosplayer selection with auto character assignment
   const toggleCosplayerSelection = (cosplayer) => {
     setSelectedCosplayers((prev) =>
       prev.some((sc) => sc.cosplayer.id === cosplayer.id)
         ? prev.filter((sc) => sc.cosplayer.id !== cosplayer.id)
-        : [...prev, { cosplayer, character: null }]
+        : [
+          ...prev,
+          {
+            cosplayer,
+            character: characters
+              .find(
+                (char) =>
+                  char.name.toLowerCase() === characterSearch.toLowerCase() &&
+                  cosplayer.categories.includes(char.category) &&
+                  (cosplayer.gender === char.gender || cosplayer.crossGenderAllowed)
+              )?.name || null,
+          },
+        ]
     );
   };
 
-  // Assign character to cosplayer with conditional gender matching
+  // Assign character to cosplayer
   const handleCharacterSelect = (cosplayerId, selectedCharacter) => {
     setSelectedCosplayers((prev) =>
       prev.map((sc) =>
@@ -232,13 +280,44 @@ const DetailEventOrganizationPage = () => {
     );
   };
 
+  // Calculate total price for selected cosplayers
+  const calculateTotalPrice = () => {
+    return selectedCosplayers.reduce((sum, sc) => {
+      const cosplayerPrice = sc.cosplayer.price;
+      const characterPrice = characters.find((char) => char.name === sc.character)?.price || 0;
+      return sum + cosplayerPrice + characterPrice;
+    }, 0);
+  };
+
+  // Apply discount
+  const applyDiscount = () => {
+    const total = calculateTotalPrice();
+    const discountValue = discountOptions.find((d) => d.code === discount)?.value || 0;
+    return total - (total * discountValue) / 100;
+  };
+
+  // Logic to hide/show sidebar based on scroll position
+  useEffect(() => {
+    const handleScroll = () => {
+      const assignSection = document.getElementById("assign-characters-section");
+      if (assignSection) {
+        const rect = assignSection.getBoundingClientRect();
+        const isVisible = rect.top >= 0 && rect.bottom <= window.innerHeight;
+        setIsSidebarVisible(!isVisible);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [selectedCosplayers]);
+
   return (
     <div className="event-organize-page min-vh-100">
       <div className="hero-section text-white py-5">
         <Container>
-          <h1 className="display-4 fw-bold text-center">Event Organization</h1>
+          <h1 className="display-4 fw-bold text-center">Organize Your Event</h1>
           <p className="lead text-center mt-3">
-            Organize your event and book your favorite cosplayers!
+            Plan your event and book your favorite cosplayers!
           </p>
         </Container>
       </div>
@@ -249,31 +328,40 @@ const DetailEventOrganizationPage = () => {
       </Container>
 
       <Container className="py-5">
+        {/* Step 1: Select Package */}
         {step === 1 && (
           <div className="step-section fade-in">
-            <h2 className="text-center mb-4">Select Event Category</h2>
+            <h2 className="text-center mb-4">Select Event Package</h2>
             <div className="search-container mb-4">
               <InputGroup>
                 <InputGroup.Text>
                   <Search size={20} />
                 </InputGroup.Text>
                 <FormControl
-                  placeholder="Search categories..."
+                  placeholder="Search for event packages..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </InputGroup>
             </div>
-            <Row>
-              {filteredCategories.map((category) => (
-                <Col md={4} className="mb-4" key={category.name}>
+            <Row className="package-row">
+              {filteredPackages.map((pkg) => (
+                <Col md={4} className="mb-4" key={pkg.name}>
                   <Card
-                    className={`category-card ${selectedCategory === category.name ? "selected" : ""}`}
-                    onClick={() => setSelectedCategory(category.name)}
+                    className={`package-card ${selectedPackage?.name === pkg.name ? "selected" : ""}`}
+                    onClick={() => setSelectedPackage(pkg)}
                   >
-                    <Card.Img variant="top" src={category.image} />
-                    <Card.Body>
-                      <Card.Title>{category.name}</Card.Title>
+                    <Card.Img variant="top" src={pkg.image} />
+                    <Card.Body className="package-card-body">
+                      <Card.Title>{pkg.name}</Card.Title>
+                      <Card.Text>{pkg.description}</Card.Text>
+                      <p><strong>Max Attendees:</strong> {pkg.maxAttendees}</p>
+                      <p><strong>Benefits:</strong></p>
+                      <ul className="benefits-list">
+                        {pkg.benefits.map((benefit, index) => (
+                          <li key={index}>{benefit}</li>
+                        ))}
+                      </ul>
                     </Card.Body>
                   </Card>
                 </Col>
@@ -282,9 +370,10 @@ const DetailEventOrganizationPage = () => {
           </div>
         )}
 
+        {/* Step 2: Event Details */}
         {step === 2 && (
           <div className="step-section fade-in">
-            <h2 className="text-center mb-4">Event Information</h2>
+            <h2 className="text-center mb-4">Event Details</h2>
             <Form>
               <Form.Group className="mb-3">
                 <Form.Label>Event Name</Form.Label>
@@ -293,6 +382,15 @@ const DetailEventOrganizationPage = () => {
                   value={eventName}
                   onChange={(e) => setEventName(e.target.value)}
                   placeholder="Enter event name"
+                />
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>Event Theme</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={eventTheme}
+                  onChange={(e) => setEventTheme(e.target.value)}
+                  placeholder="Enter event theme (e.g., Spider-Man, Anime, etc.)"
                 />
               </Form.Group>
               <Form.Group className="mb-3">
@@ -378,13 +476,14 @@ const DetailEventOrganizationPage = () => {
                   onChange={handleImageUpload}
                 />
                 <small className="text-muted">
-                  Upload images to illustrate your requirements or venue
+                  Upload images illustrating your requirements or venue
                 </small>
               </Form.Group>
             </Form>
           </div>
         )}
 
+        {/* Step 3: Select Cosplayers */}
         {step === 3 && (
           <div className="step-section fade-in">
             <h2 className="text-center mb-4">Select Cosplayers</h2>
@@ -410,7 +509,7 @@ const DetailEventOrganizationPage = () => {
                       <Search size={20} />
                     </InputGroup.Text>
                     <FormControl
-                      placeholder="Search for a character (e.g., Superman, Naruto)"
+                      placeholder="Search characters (e.g., Superman, Naruto)"
                       value={characterSearch}
                       onChange={(e) => setCharacterSearch(e.target.value)}
                     />
@@ -430,11 +529,10 @@ const DetailEventOrganizationPage = () => {
                   {filterCosplayersByCharacterAndGender().map((cosplayer) => (
                     <Col md={4} className="mb-4" key={cosplayer.id}>
                       <Card
-                        className={`cosplayer-card ${
-                          selectedCosplayers.some((sc) => sc.cosplayer.id === cosplayer.id)
-                            ? "selected"
-                            : ""
-                        }`}
+                        className={`cosplayer-card ${selectedCosplayers.some((sc) => sc.cosplayer.id === cosplayer.id)
+                          ? "selected"
+                          : ""
+                          }`}
                         onClick={() => toggleCosplayerSelection(cosplayer)}
                       >
                         <Card.Img variant="top" src={cosplayer.image} />
@@ -447,17 +545,19 @@ const DetailEventOrganizationPage = () => {
                               </Badge>
                             ))}
                           </div>
-                          <Button
-                            variant="primary"
-                            size="sm"
-                            className="mt-2"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleViewProfile(cosplayer);
-                            }}
-                          >
-                            <User size={16} /> View Profile
-                          </Button>
+                          <div className="cosplayer-footer">
+                            <Button
+                              variant="primary"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleViewProfile(cosplayer);
+                              }}
+                            >
+                              <User size={16} /> View Profile
+                            </Button>
+                            <p className="cosplayer-price">Price: ${cosplayer.price}</p>
+                          </div>
                         </Card.Body>
                       </Card>
                     </Col>
@@ -465,49 +565,63 @@ const DetailEventOrganizationPage = () => {
                 </Row>
                 {filterCosplayersByCharacterAndGender().length === 0 && (
                   <p className="text-center mt-4">
-                    No cosplayers found for "{characterSearch}" with selected filters.
+                    No cosplayers found for "{characterSearch}" with the selected filters.
                   </p>
                 )}
                 {selectedCosplayers.length > 0 && (
-                  <div className="selected-cosplayers mt-4">
+                  <div className="selected-cosplayers mt-4" id="assign-characters-section">
                     <h4>Assign Characters to Selected Cosplayers</h4>
                     <p className="text-muted">
-                      Please select the character each cosplayer will portray. Some cosplayers can cross-gender cosplay.
+                      Please assign a character to each cosplayer. Some cosplayers can perform cross-gender roles.
                     </p>
-                    {selectedCosplayers.map((sc) => (
-                      <div key={sc.cosplayer.id} className="d-flex align-items-center mb-3">
-                        <span className="me-3">{sc.cosplayer.name}</span>
-                        <Form.Select
-                          value={sc.character || ""}
-                          onChange={(e) => handleCharacterSelect(sc.cosplayer.id, e.target.value)}
-                          style={{ width: "200px" }}
-                        >
-                          <option value="">Select Character</option>
-                          {characters
-                            .filter((char) =>
-                              sc.cosplayer.categories.includes(char.category) &&
-                              (sc.cosplayer.gender === char.gender || sc.cosplayer.crossGenderAllowed)
-                            )
-                            .map((char) => (
-                              <option key={char.name} value={char.name}>
-                                {char.name}
-                              </option>
-                            ))}
-                        </Form.Select>
-                        <Button
-                          variant="outline-danger"
-                          size="sm"
-                          className="ms-2"
-                          onClick={() =>
-                            setSelectedCosplayers((prev) =>
-                              prev.filter((item) => item.cosplayer.id !== sc.cosplayer.id)
-                            )
-                          }
-                        >
-                          Remove
-                        </Button>
+                    <div className="assign-table">
+                      <div className="assign-table-header">
+                        <span>Cosplayer</span>
+                        <span>Character</span>
+                        <span>Action</span>
+                        <span>Price</span>
                       </div>
-                    ))}
+                      {selectedCosplayers.map((sc) => {
+                        const cosplayerPrice = sc.cosplayer.price;
+                        const characterPrice = characters.find((char) => char.name === sc.character)?.price || 0;
+                        const totalPrice = cosplayerPrice + characterPrice;
+                        return (
+                          <div key={sc.cosplayer.id} className="assign-table-row">
+                            <span>{sc.cosplayer.name}</span>
+                            <Form.Select
+                              value={sc.character || ""}
+                              onChange={(e) => handleCharacterSelect(sc.cosplayer.id, e.target.value)}
+                              className="character-select"
+                            >
+                              <option value="">Select Character</option>
+                              {characters
+                                .filter((char) =>
+                                  sc.cosplayer.categories.includes(char.category) &&
+                                  (sc.cosplayer.gender === char.gender || sc.cosplayer.crossGenderAllowed)
+                                )
+                                .map((char) => (
+                                  <option key={char.name} value={char.name}>
+                                    {char.name}
+                                  </option>
+                                ))}
+                            </Form.Select>
+                            <Button
+                              variant="outline-danger"
+                              size="sm"
+                              className="remove-btn"
+                              onClick={() =>
+                                setSelectedCosplayers((prev) =>
+                                  prev.filter((item) => item.cosplayer.id !== sc.cosplayer.id)
+                                )
+                              }
+                            >
+                              Remove
+                            </Button>
+                            <span>${totalPrice}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
               </>
@@ -521,20 +635,22 @@ const DetailEventOrganizationPage = () => {
                   onChange={(e) => setManualQuantity(Math.max(1, e.target.value))}
                 />
                 <Form.Text className="text-muted">
-                  Enter the number of cosplayers you need. The system will select them randomly.
+                  Enter the number of cosplayers needed. The system will select randomly.
                 </Form.Text>
               </Form.Group>
             )}
           </div>
         )}
 
+        {/* Step 4: Review Event */}
         {step === 4 && (
           <div className="step-section fade-in">
             <h2 className="text-center mb-4">Review Your Event</h2>
             <Card>
               <Card.Body>
-                <p><strong>Category:</strong> {selectedCategory}</p>
+                <p><strong>Selected Package:</strong> {selectedPackage?.name || "N/A"}</p>
                 <p><strong>Event Name:</strong> {eventName}</p>
+                <p><strong>Event Theme:</strong> {eventTheme}</p>
                 <p><strong>Location:</strong> {location}</p>
                 <p><strong>Start:</strong> {getFormattedDateTime(startDate, startTime)}</p>
                 <p><strong>End:</strong> {getFormattedDateTime(endDate, endTime)}</p>
@@ -547,6 +663,34 @@ const DetailEventOrganizationPage = () => {
                     ? selectedCosplayers.map((sc) => `${sc.cosplayer.name} as ${sc.character}`).join(", ")
                     : manualQuantity}
                 </p>
+                {useCosplayerList && (
+                  <p><strong>Total Price (before discount):</strong> ${calculateTotalPrice()}</p>
+                )}
+                <Form.Group className="mb-3">
+                  <Form.Label>Discount Code</Form.Label>
+                  <Form.Select
+                    value={discount}
+                    onChange={(e) => setDiscount(e.target.value)}
+                    disabled={customDiscount}
+                  >
+                    <option value="">Select Discount</option>
+                    {discountOptions.map((d) => (
+                      <option key={d.code} value={d.code}>
+                        {d.code} ({d.value}% off)
+                      </option>
+                    ))}
+                  </Form.Select>
+                  <Form.Control
+                    type="text"
+                    placeholder="Or enter custom discount code"
+                    value={customDiscount}
+                    onChange={(e) => setCustomDiscount(e.target.value)}
+                    className="mt-2"
+                  />
+                </Form.Group>
+                {useCosplayerList && (discount || customDiscount) && (
+                  <p><strong>Total Price (after discount):</strong> ${applyDiscount()}</p>
+                )}
                 <Button
                   variant="outline-secondary"
                   onClick={() => setShowTermsModal(true)}
@@ -570,12 +714,12 @@ const DetailEventOrganizationPage = () => {
         <div className="d-flex justify-content-between mt-5">
           {step > 1 && (
             <Button variant="outline-secondary" onClick={handlePrevStep}>
-              Previous
+              Back
             </Button>
           )}
           <div>
             <Button variant="outline-secondary" onClick={handleSaveDraft} className="me-2">
-              Save as Draft
+              Save Draft
             </Button>
             <Button
               variant="primary"
@@ -588,6 +732,7 @@ const DetailEventOrganizationPage = () => {
         </div>
       </Container>
 
+      {/* Terms Modal */}
       <Modal
         show={showTermsModal}
         onHide={() => setShowTermsModal(false)}
@@ -614,6 +759,7 @@ const DetailEventOrganizationPage = () => {
         </Modal.Footer>
       </Modal>
 
+      {/* Summary Modal */}
       <Modal
         show={showSummaryModal}
         onHide={() => setShowSummaryModal(false)}
@@ -625,8 +771,9 @@ const DetailEventOrganizationPage = () => {
           <Modal.Title>Event Summary</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <p><strong>Category:</strong> {selectedCategory}</p>
+          <p><strong>Selected Package:</strong> {selectedPackage?.name || "N/A"}</p>
           <p><strong>Event Name:</strong> {eventName}</p>
+          <p><strong>Event Theme:</strong> {eventTheme}</p>
           <p><strong>Location:</strong> {location}</p>
           <p><strong>Start:</strong> {getFormattedDateTime(startDate, startTime)}</p>
           <p><strong>End:</strong> {getFormattedDateTime(endDate, endTime)}</p>
@@ -639,11 +786,86 @@ const DetailEventOrganizationPage = () => {
               ? selectedCosplayers.map((sc) => `${sc.cosplayer.name} as ${sc.character}`).join(", ")
               : manualQuantity}
           </p>
+          {useCosplayerList && (
+            <>
+              <p><strong>Total Price (before discount):</strong> ${calculateTotalPrice()}</p>
+              {(discount || customDiscount) && (
+                <p><strong>Total Price (after discount):</strong> ${applyDiscount()}</p>
+              )}
+            </>
+          )}
           <Button variant="primary" onClick={() => setShowSummaryModal(false)}>
             Confirm & Submit
           </Button>
         </Modal.Body>
       </Modal>
+
+      {/* Sidebar for Selected Cosplayers */}
+      {step === 3 && selectedCosplayers.length > 0 && (
+        <div
+          className={`selected-cosplayers-sidebar ${!isSidebarVisible ? "hidden" : ""}`}
+          id="selected-cosplayers-sidebar"
+        >
+          <h5>Selected Cosplayers</h5>
+          <ul className="selected-cosplayers-list">
+            {selectedCosplayers.map((sc) => {
+              const cosplayerPrice = sc.cosplayer.price;
+              const characterPrice = characters.find((char) => char.name === sc.character)?.price || 0;
+              const totalPrice = cosplayerPrice + characterPrice;
+              return (
+                <li key={sc.cosplayer.id}>
+                  {sc.cosplayer.name} as {sc.character || "No character assigned"} - ${totalPrice}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
+
+      {/* Sidebar for Character Price List */}
+      {step === 3 && (
+        <div className="price-list-sidebar">
+          <Button className="toggle-price-list-btn" onClick={() => setShowPriceList(!showPriceList)}>
+            {showPriceList ? "Hide Character Price List" : "Show Character Price List"}
+          </Button>
+          {showPriceList && (
+            <div className="price-list-content">
+              <h5>Character Price List</h5>
+              <Form.Select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="mb-3"
+              >
+                <option value="All">All Categories</option>
+                {[...new Set(characters.map((char) => char.category))].map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </Form.Select>
+              <InputGroup className="mb-3">
+                <FormControl
+                  placeholder="Search characters"
+                  onChange={(e) => setCharacterPriceSearch(e.target.value)}
+                  value={characterPriceSearch}
+                />
+              </InputGroup>
+              <ul className="character-list">
+                {characters
+                  .filter((char) =>
+                    (selectedCategory === "All" || char.category === selectedCategory) &&
+                    char.name.toLowerCase().includes(characterPriceSearch.toLowerCase())
+                  )
+                  .map((char) => (
+                    <li key={char.name}>
+                      {char.name} - ${char.price}
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
