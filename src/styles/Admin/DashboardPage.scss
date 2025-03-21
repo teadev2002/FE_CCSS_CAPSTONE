@@ -1,72 +1,250 @@
-.dashboard {
-    overflow-x: hidden;
+// .dashboard {
+//     overflow-x: hidden;
   
-    margin:0 20rem;
+//     margin:0 20rem;
 
-    h1 {
-      margin-top: 1rem;
-      margin-bottom: 2rem;
-      color: #2c3e50;
-    }
+//     h1 {
+//       margin-top: 1rem;
+//       margin-bottom: 2rem;
+//       color: #2c3e50;
+//     }
   
-    .stats-cards {
-      margin-bottom: 2rem;
+//     .stats-cards {
+//       margin-bottom: 2rem;
 
-    }
+//     }
   
-    .stat-card {
-      height: 100%;
-      width: 100%;
+//     .stat-card {
+//       height: 100%;
+//       width: 100%;
       
-      border: none;
-      border-radius: 10px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      transition: transform 0.3s ease;
+//       border: none;
+//       border-radius: 10px;
+//       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+//       transition: transform 0.3s ease;
   
-      &:hover {
-        transform: translateY(-5px);
-      }
+//       &:hover {
+//         transform: translateY(-5px);
+//       }
   
-      .card-body {
-        padding: 1.5rem;
-      }
+//       .card-body {
+//         padding: 1.5rem;
+//       }
   
-      .stat-icon {
-        width: 48px;
-        height: 48px;
-        background: #3498db;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 1rem;
-        color: white;
-      }
+//       .stat-icon {
+//         width: 48px;
+//         height: 48px;
+//         background: #3498db;
+//         border-radius: 12px;
+//         display: flex;
+//         align-items: center;
+//         justify-content: center;
+//         margin-bottom: 1rem;
+//         color: white;
+//       }
   
-      h3 {
-        font-size: 0.875rem;
-        color: #6c757d;
-        margin-bottom: 0.5rem;
-      }
+//       h3 {
+//         font-size: 0.875rem;
+//         color: #6c757d;
+//         margin-bottom: 0.5rem;
+//       }
   
-      h2 {
-        font-size: 1.75rem;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-        color: #2c3e50;
-      }
+//       h2 {
+//         font-size: 1.75rem;
+//         font-weight: 600;
+//         margin-bottom: 0.5rem;
+//         color: #2c3e50;
+//       }
   
-      .trend {
-        margin: 0;
-        font-size: 0.875rem;
+//       .trend {
+//         margin: 0;
+//         font-size: 0.875rem;
   
-        &.positive {
-          color: #2ecc71;
-        }
+//         &.positive {
+//           color: #2ecc71;
+//         }
   
-        &.negative {
-          color: #e74c3c;
-        }
-      }
+//         &.negative {
+//           color: #e74c3c;
+//         }
+//       }
+//     }
+//   }
+.dashboard {
+  padding: 2rem 3rem;
+  background: #f8f9fa;
+  min-height: 100vh;
+  animation: fadeIn 0.5s ease-in;
+  margin: 0 30vh;
+  h1 {
+    margin-bottom: 2.5rem;
+    color: #1a1a2e;
+    font-weight: 700;
+    font-size: 2.25rem;
+    letter-spacing: -0.5px;
+    position: relative;
+    padding-bottom: 0.5rem;
+
+    &:after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 60px;
+      height: 4px;
+      background: linear-gradient(135deg, #3498db, #2ecc71);
+      border-radius: 2px;
     }
   }
+
+  .stats-cards {
+    margin-bottom: 3rem;
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+
+  .stat-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    overflow: hidden;
+    position: relative;
+
+    &:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-body {
+      padding: 1.75rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .stat-icon {
+      width: 50px;
+      height: 50px;
+      background: linear-gradient(135deg, #3498db, #2980b9);
+      border-radius: 12px;
+      margin-bottom: 1.25rem;
+      transition: all 0.3s ease;
+      display: block;
+      justify-content: center;
+      align-items: center;
+      
+      svg {
+        stroke-width: 2;
+      }
+    }
+
+    &:hover .stat-icon {
+      transform: scale(1.1);
+      box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+    }
+
+    h3 {
+      font-size: 1rem;
+      color: #6c757d;
+      margin-bottom: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+    }
+
+    h2 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      color: #1a1a2e;
+      line-height: 1.2;
+    }
+
+    .trend {
+      font-size: 0.9rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+
+      &.positive {
+        color: #2ecc71;
+        &:before {
+          content: '↑';
+          font-size: 1rem;
+        }
+      }
+
+      &.negative {
+        color: #e74c3c;
+        &:before {
+          content: '↓';
+          font-size: 1rem;
+        }
+      }
+    }
+
+    // Different icon background colors for variety
+    &:nth-child(2) .stat-icon {
+      background: linear-gradient(135deg, #f1c40f, #e67e22);
+    }
+    &:nth-child(3) .stat-icon {
+      background: linear-gradient(135deg, #e74c3c, #c0392b);
+    }
+    &:nth-child(4) .stat-icon {
+      background: linear-gradient(135deg, #00cec9, #00b894);
+    }
+    &:nth-child(5) .stat-icon {
+      background: linear-gradient(135deg, #6c5ce7, #4834d4);
+    }
+  }
+
+  .card {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    background: white;
+
+    .card-header {
+      background: #fff;
+      border-bottom: none;
+      padding: 1.5rem;
+      h5 {
+        color: #1a1a2e;
+        font-weight: 600;
+      }
+    }
+
+    .card-body {
+      padding: 2rem;
+    }
+  }
+}
+
+// Animation
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .dashboard {
+    padding: 1.5rem;
+
+    h1 {
+      font-size: 1.75rem;
+    }
+
+    .stats-cards {
+      grid-template-columns: 1fr;
+    }
+  }
+}
