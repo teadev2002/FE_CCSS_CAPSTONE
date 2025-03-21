@@ -109,20 +109,20 @@ const FestivalsPage = () => {
         onHide={handleFestivalClose}
         size="lg"
         centered
-        className="gallery-modal" // Dùng class giống CostumesPage
+        className="gallery-modal"
       >
         <Modal.Header closeButton>
           <Modal.Title>{selectedFestival?.Name} Details</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {selectedFestival && (
-            <div className="costume-gallery"> {/* Dùng class giống CostumesPage */}
-              <Carousel className="gallery-carousel"> {/* Dùng class giống CostumesPage */}
+            <div className="costume-gallery">
+              <Carousel className="gallery-carousel">
                 {selectedFestival.galleryImages.map((image, index) => (
                   <Carousel.Item key={index}>
                     <div className="carousel-image-container">
                       <img
-                        className="d-block w-100" // Giữ nguyên giống CostumesPage
+                        className="d-block w-100"
                         src={image}
                         alt={`${selectedFestival.Name} - Image ${index + 1}`}
                       />
@@ -150,6 +150,104 @@ const FestivalsPage = () => {
                     <strong>Location:</strong> {selectedFestival.Location}
                   </div>
                 </div>
+
+                {/* Phần danh sách cosplayer - Đã đồng bộ với giao diện modal */}
+                {selectedFestival.cosplayers && selectedFestival.cosplayers.length > 0 && (
+                  <div
+                    style={{
+                      marginTop: "1.5rem", // Thêm khoảng cách phía trên để đồng bộ với các phần khác
+                      marginBottom: "1.5rem", // Thêm khoảng cách phía dưới để đồng bộ với các phần khác
+                    }}
+                  >
+                    {/* Tiêu đề phần */}
+                    <h5
+                      style={{
+                        color: "#4a4a4a", // Đồng bộ màu với các tiêu đề khác trong modal (như "About", "Purchase Tickets")
+                        fontWeight: 600,
+                        marginBottom: "1rem",
+                      }}
+                    >
+                      Participating Cosplayers
+                    </h5>
+                    {/* Container chứa danh sách cosplayer */}
+                    <div
+                      style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: "1rem",
+                      }}
+                    >
+                      {selectedFestival.cosplayers.map((cosplayer, index) => (
+                        <div
+                          key={index}
+                          style={{
+                            flex: "1 1 calc(25% - 1rem)", // 4 cột trên màn hình lớn
+                            minWidth: "200px", // Chiều rộng tối thiểu cho mỗi card
+                            background: "white",
+                            borderRadius: "0.5rem",
+                            overflow: "hidden",
+                            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.05)",
+                            display: "flex",
+                            flexDirection: "column",
+                            transition: "transform 0.3s ease",
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.transform = "translateY(-5px)")}
+                          onMouseLeave={(e) => (e.currentTarget.style.transform = "translateY(0)")}
+                        >
+                          {/* Hình ảnh cosplayer */}
+                          <div
+                            style={{
+                              width: "100%",
+                              height: "200px", // Chiều cao cố định cho hình ảnh
+                              overflow: "hidden",
+                              backgroundColor: "#f0f0f0", // Màu nền dự phòng nếu hình không tải được
+                            }}
+                          >
+                            <img
+                              src={cosplayer.image}
+                              alt={cosplayer.name}
+                              style={{
+                                width: "100%",
+                                height: "100%",
+                                objectFit: "cover", // Đảm bảo hình ảnh vừa khung, không méo
+                                transition: "transform 0.3s ease",
+                              }}
+                              onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
+                              onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+                              onError={(e) => (e.currentTarget.style.display = "none")} // Ẩn hình nếu không tải được
+                            />
+                          </div>
+                          {/* Thông tin cosplayer */}
+                          <div
+                            style={{
+                              padding: "1rem",
+                              textAlign: "center",
+                            }}
+                          >
+                            <h6
+                              style={{
+                                color: "#4a4a4a", // Đồng bộ màu với các văn bản khác trong modal
+                                fontWeight: 600,
+                                marginBottom: "0.5rem",
+                              }}
+                            >
+                              {cosplayer.name}
+                            </h6>
+                            <p
+                              style={{
+                                color: "#4a4a4a", // Đồng bộ màu với các văn bản khác trong modal
+                                fontSize: "0.9rem",
+                                margin: 0,
+                              }}
+                            >
+                              {cosplayer.role}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 <div className="fest-ticket-section mt-4">
                   <h5>Purchase Tickets</h5>
@@ -260,6 +358,11 @@ const mockFestivals = [
       "https://www.gento.vn/wp-content/uploads/2024/03/cosplay-la-gi-14.jpg",
       "https://www.gento.vn/wp-content/uploads/2024/03/cosplay-la-gi-13.jpg",
     ],
+    cosplayers: [
+      { name: "Yuki-chan", role: "Cosplayer", image: "https://i.pinimg.com/736x/87/e2/85/87e285975715a638cd744653bba51902.jpg" },
+      { name: "Kaito-kun", role: "Cosplayer", image: "https://i.pinimg.com/736x/87/e2/85/87e285975715a638cd744653bba51902.jpg" },
+      { name: "Sakura", role: "Guest Judge", image: "https://i.pinimg.com/736x/87/e2/85/87e285975715a638cd744653bba51902.jpg" },
+    ],
   },
   {
     Name: "Comic Con Galaxy",
@@ -273,6 +376,10 @@ const mockFestivals = [
       "https://pix11.com/wp-content/uploads/sites/25/2020/08/ny-comic-con-1-2.jpg?strip=1",
       "https://media.istockphoto.com/id/614151120/photo/busy-stalls-at-yorkshire-cosplay-convention.jpg?s=612x612&w=0&k=20&c=rpd8JXNCfczRL-2diufRIxeL7XktNPpt6_sJD5hP4mQ=",
       "https://images.axios.com/2d8dxRa5tJN0XqYUsBWDQ7NJ1IE=/0x0:4032x2268/1920x1080/2024/02/11/1707678270332.jpg",
+    ],
+    cosplayers: [
+      { name: "HeroMaster", role: "Cosplayer", image: "https://i.pinimg.com/736x/87/e2/85/87e285975715a638cd744653bba51902.jpg" },
+      { name: "VillainQueen", role: "Cosplayer", image: "https://i.pinimg.com/736x/87/e2/85/87e285975715a638cd744653bba51902.jpg" },
     ],
   },
   {
@@ -288,6 +395,10 @@ const mockFestivals = [
       "https://i.pinimg.com/474x/7b/34/e5/7b34e54335282b639b8e0661de00730c.jpg",
       "https://i.redd.it/htjtf1wolr341.jpg",
     ],
+    cosplayers: [
+      { name: "ZeusCos", role: "Cosplayer", image: "https://i.pinimg.com/736x/87/e2/85/87e285975715a638cd744653bba51902.jpg" },
+      { name: "AthenaStar", role: "Cosplayer", image: "https://i.pinimg.com/736x/87/e2/85/87e285975715a638cd744653bba51902.jpg" },
+    ],
   },
   {
     Name: "Gamer’s Realm Expo",
@@ -301,6 +412,10 @@ const mockFestivals = [
       "https://imagenesyogonet.b-cdn.net/data/imagenes/2021/12/01/41082/1638368820-stand-merkur-gaming-industry-exhibition-ukraine-2021.jpg",
       "https://images.wsj.net/im-961206?width=700&height=466",
       "https://st.przx.ru/files/content/ekb/WARPOINT/%D0%9A%D0%B0%D1%80%D0%BD%D0%B0%D0%B2%D0%B0%D0%BB/warpoint-karnaval-5.jpg",
+    ],
+    cosplayers: [
+      { name: "PixelKnight", role: "Cosplayer", image: "https://i.pinimg.com/736x/87/e2/85/87e285975715a638cd744653bba51902.jpg" },
+      { name: "GameWizard", role: "Cosplayer", image: "https://i.pinimg.com/736x/87/e2/85/87e285975715a638cd744653bba51902.jpg" },
     ],
   },
   {
@@ -316,6 +431,10 @@ const mockFestivals = [
       "https://files.prokerala.com/news/photos/imgs/1024/new-delhi-people-visit-delhi-comic-con-2023-1671986.jpg",
       "https://i0.wp.com/www.smartprix.com/bytes/wp-content/uploads/2022/12/comiccon4.jpg?ssl=1",
     ],
+    cosplayers: [
+      { name: "SuperCape", role: "Cosplayer", image: "https://i.pinimg.com/736x/87/e2/85/87e285975715a638cd744653bba51902.jpg" },
+      { name: "DarkHero", role: "Cosplayer", image: "https://i.pinimg.com/736x/87/e2/85/87e285975715a638cd744653bba51902.jpg" },
+    ],
   },
   {
     Name: "Cosplay Carnival",
@@ -329,6 +448,10 @@ const mockFestivals = [
       "https://static.tuoitrenews.vn/ttnew/r/2024/03/09/japan-vietnam-festival-7-1710000118.jpg",
       "https://riki.edu.vn/goc-chia-se/wp-content/uploads/2020/02/cosplay-2.jpeg",
       "https://mcdn.coolmate.me/image/May2022/top-le-hoi-cosplay-festival-noi-tieng_735.jpg",
+    ],
+    cosplayers: [
+      { name: "CosplayStar", role: "Cosplayer", image: "https://i.pinimg.com/736x/87/e2/85/87e285975715a638cd744653bba51902.jpg" },
+      { name: "CraftMaster", role: "Cosplayer", image: "https://i.pinimg.com/736x/87/e2/85/87e285975715a638cd744653bba51902.jpg" },
     ],
   },
 ];

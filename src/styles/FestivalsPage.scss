@@ -192,8 +192,12 @@
     }
   }
 
-  // Sao chép hoàn toàn từ CostumesPage cho modal và carousel
   .gallery-modal {
+    .modal-dialog {
+      max-width: 90%; // Tăng chiều rộng modal để có đủ không gian
+      width: 100%;
+    }
+
     .modal-content {
       border-radius: 0.5rem;
       border: none;
@@ -250,7 +254,7 @@
         }
       }
 
-      .fest-details { // Giữ nguyên tên class cũ của FestivalPage
+      .fest-details {
         background: white;
         border-radius: 0.5rem;
         padding: 1.5rem;

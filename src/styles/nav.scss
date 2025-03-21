@@ -24,14 +24,20 @@
     align-items: center;
 
     .brand-logo {
-      height: 2.8rem; // Slightly reduced from 3.2rem
-      width: 5.6rem; // Slightly reduced from 6.4rem
+      height: 3.2rem; // Tăng từ 2.8rem
+      width: 6.4rem;  // Tăng từ 5.6rem
       transition: transform 0.3s ease, filter 0.3s ease;
 
+      // Phóng to theo chiều xéo khi hover
       &:hover {
-        transform: scale(1.1);
+        transform: scale(1.2) rotate(5deg); // Tăng kích thước và xoay nhẹ để tạo hiệu ứng xéo
         filter: brightness(1.2);
       }
+
+      // Đảm bảo logo không vượt quá giới hạn container
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain; // Giữ tỷ lệ logo
     }
   }
 
@@ -249,20 +255,51 @@
         }
       }
     }
+
+    .brand-container {
+      .brand-logo {
+        height: 2.8rem; // Giảm nhẹ trên màn hình nhỏ hơn
+        width: 5.6rem;
+
+        &:hover {
+          transform: scale(1.15) rotate(5deg); // Giảm mức phóng to để tránh tràn
+        }
+      }
+    }
   }
 
   @media (max-width: 768px) {
     .container {
-      padding: 0 1rem;
+      padding: 0 0.8rem; // Giảm padding cho màn hình nhỏ
       height: 4rem;
     }
 
-    .brand-logo {
-      height: 2rem;
+    .brand-container {
+      .brand-logo {
+        height: 2.2rem; // Giảm kích thước trên mobile
+        width: 4.4rem;
+
+        &:hover {
+          transform: scale(1.1) rotate(5deg); // Giảm mức phóng to hơn nữa
+        }
+      }
     }
 
     .nav-menu {
       display: none;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .brand-container {
+      .brand-logo {
+        height: 1.8rem; // Kích thước nhỏ nhất cho điện thoại
+        width: 3.6rem;
+
+        &:hover {
+          transform: scale(1.05) rotate(5deg); // Hiệu ứng tối thiểu
+        }
+      }
     }
   }
 }
