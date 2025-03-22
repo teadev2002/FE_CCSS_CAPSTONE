@@ -36,7 +36,11 @@ const AppLayout = ({ children }) => {
   const location = useLocation();
   const isAdminPage = location.pathname.startsWith("/admin");
   const isManagePage = location.pathname.startsWith("/manage");
-  const isNotFoundPage = location.pathname === "/*"; // Match the route path
+  // const isNotFoundPage = location.pathname === "/*"; // Match the route path
+  const isNotFoundPage =
+    location.pathname === "/*" ||
+    location.pathname === "/login" ||
+    location.pathname === "/sign-up"; // Match the route path
 
   return (
     <div className="flex flex-col min-h-screen">

@@ -9,7 +9,7 @@
     background: linear-gradient(135deg, #510545, #22668a, #1a1a2e);
     animation: gradientShift 10s ease infinite;
     padding: 4rem 0; // Giữ padding hiện tại, thêm margin-top để tránh đè
-    margin-top: 4rem; // Đảm bảo khoảng cách trên cùng bằng chiều cao navbar (4rem)
+    // margin-top: 4rem; // Đảm bảo khoảng cách trên cùng bằng chiều cao navbar (4rem)
 
     @keyframes gradientShift {
       0% {
