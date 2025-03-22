@@ -24,6 +24,8 @@ import Sidebar from "./components/AdminSidebar/Sidebar";
 import SidebarManagement from "./components/ManagerSidebar/SidebarManagement.js";
 import NotFound from "./pages/404ErrorPage/NotFound";
 import ManageFestival from "./pages/ManagerPage/ManageFestivalPage/ManageFestival.js";
+import ManageGeneral from "./pages/ManagerPage/ManagePage/ManageGeneral.js";
+import ManageSouvenir from "./pages/ManagerPage/ManageSouvenirsPage/ManageSouvenir.js";
 import { Navbar } from "./components/Nav/navbar";
 import { Footer } from "./components/Footer/Footer";
 
@@ -32,7 +34,7 @@ const AppLayout = ({ children }) => {
   const location = useLocation();
   const isAdminPage = location.pathname.startsWith("/admin");
   const isManagePage = location.pathname.startsWith("/manage");
-  const isNotFoundPage = location.pathname === "/404"; // Match the route path
+  const isNotFoundPage = location.pathname === "/*"; // Match the route path
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -89,6 +91,8 @@ function App() {
             element={<SystemManagementPage />}
           />
           <Route path="/manage/ticket" element={<ManageFestival />} />
+          <Route path="/manage/general" element={<ManageGeneral />} />
+          <Route path="/manage/souvenir" element={<ManageSouvenir />} />
         </Routes>
       </AppLayout>
     </BrowserRouter>

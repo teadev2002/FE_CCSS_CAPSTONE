@@ -3,11 +3,14 @@ import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
   Users,
-  DollarSign,
-  BarChart2,
-  Settings,
   Menu,
   Ticket,
+  Settings2,
+  Shapes,
+  CalendarHeart,
+  UserSearch,
+  PersonStanding,
+  MessageCircleMore,
 } from "lucide-react";
 import "../../styles/Manager/SidebarManagement.scss";
 
@@ -29,53 +32,80 @@ const SidebarManagement = () => {
 
       <nav className="sidebar-nav">
         <NavLink
+          to="/manage/general"
+          className={({ isActive }) =>
+            isActive ? "nav-link active" : "nav-link"
+          }
+        >
+          <Settings2 size={20} />
+          <span>General</span>
+        </NavLink>
+        <NavLink
           to="/manage/ticket"
           className={({ isActive }) =>
             isActive ? "nav-link active" : "nav-link"
           }
         >
           <Ticket size={20} />
-          <span>Ticket Festival</span>
+          <span> Manage Event Ticket</span>
         </NavLink>
 
         <NavLink
-          to="/admin/user-performance"
+          to="/manage/souvenir"
+          className={({ isActive }) =>
+            isActive ? "nav-link active" : "nav-link"
+          }
+        >
+          <Shapes size={20} />
+          <span>Manage Souvenirs</span>
+        </NavLink>
+        <NavLink
+          to="*"
           className={({ isActive }) =>
             isActive ? "nav-link active" : "nav-link"
           }
         >
           <Users size={20} />
-          <span>User Performance</span>
+          <span>Manage Cosplayer</span>
         </NavLink>
-
         <NavLink
-          to="/admin/order-revenue-performance"
+          to="*"
           className={({ isActive }) =>
             isActive ? "nav-link active" : "nav-link"
           }
         >
-          <DollarSign size={20} />
-          <span>Order & Revenue</span>
+          <CalendarHeart size={20} />
+          <span>Manage Event</span>
         </NavLink>
 
         <NavLink
-          to="/admin/user-statistics"
+          to="*"
           className={({ isActive }) =>
             isActive ? "nav-link active" : "nav-link"
           }
         >
-          <BarChart2 size={20} />
-          <span>User Statistics</span>
+          <UserSearch size={20} />
+          <span>Manage Account</span>
         </NavLink>
 
         <NavLink
-          to="/admin/system-management"
+          to="*"
           className={({ isActive }) =>
             isActive ? "nav-link active" : "nav-link"
           }
         >
-          <Settings size={20} />
-          <span>System & Management</span>
+          <PersonStanding size={20} />
+          <span>Manage Character</span>
+        </NavLink>
+
+        <NavLink
+          to="*"
+          className={({ isActive }) =>
+            isActive ? "nav-link active" : "nav-link"
+          }
+        >
+          <MessageCircleMore size={20} />
+          <span>Manage Feedback</span>
         </NavLink>
       </nav>
     </div>

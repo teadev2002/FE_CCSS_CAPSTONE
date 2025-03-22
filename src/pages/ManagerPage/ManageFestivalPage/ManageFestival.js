@@ -157,14 +157,14 @@ const ManageFestival = () => {
   return (
     <div className="manage-festival">
       <h2 className="manage-festival-title">Festival Ticket Management</h2>
-      <Button
+      {/* <Button
         variant="contained"
         color="primary"
         onClick={() => handleShowModal()}
         style={{ marginBottom: 16, marginLeft: "29vh" }}
       >
         Add New Ticket
-      </Button>
+      </Button> */}
 
       {/* DataGrid wrapped in Paper */}
       <Paper
