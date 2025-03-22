@@ -26,6 +26,7 @@ import NotFound from "./pages/404ErrorPage/NotFound";
 import ManageFestival from "./pages/ManagerPage/ManageFestivalPage/ManageFestival.js";
 import ManageGeneral from "./pages/ManagerPage/ManagePage/ManageGeneral.js";
 import ManageSouvenir from "./pages/ManagerPage/ManageSouvenirsPage/ManageSouvenir.js";
+import ManageCosplayer from "./pages/ManagerPage/ManageCosplayerPage/ManageCosplayer.js";
 import { Navbar } from "./components/Nav/navbar";
 import { Footer } from "./components/Footer/Footer";
 
@@ -93,6 +94,7 @@ function App() {
           <Route path="/manage/ticket" element={<ManageFestival />} />
           <Route path="/manage/general" element={<ManageGeneral />} />
           <Route path="/manage/souvenir" element={<ManageSouvenir />} />
+          <Route path="/manage/cosplayer" element={<ManageCosplayer />} />
         </Routes>
       </AppLayout>
     </BrowserRouter>

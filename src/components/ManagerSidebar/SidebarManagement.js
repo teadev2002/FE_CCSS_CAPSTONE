@@ -60,7 +60,7 @@ const SidebarManagement = () => {
           <span>Manage Souvenirs</span>
         </NavLink>
         <NavLink
-          to="*"
+          to="/manage/cosplayer"
           className={({ isActive }) =>
             isActive ? "nav-link active" : "nav-link"
           }
