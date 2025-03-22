@@ -21,22 +21,32 @@ import OrderRevenuePerformancePage from "./pages/AdminPage/OrderRevenuePerforman
 import UserStatisticsPage from "./pages/AdminPage/UserStatisticsPage/UserStatisticsPage.js";
 import SystemManagementPage from "./pages/AdminPage/SystemManagementPage/SystemManagementPage.js";
 import Sidebar from "./components/AdminSidebar/Sidebar";
+import SidebarManagement from "./components/ManagerSidebar/SidebarManagement.js";
+import NotFound from "./pages/404ErrorPage/NotFound";
+import ManageFestival from "./pages/ManagerPage/ManageFestivalPage/ManageFestival.js";
 import { Navbar } from "./components/Nav/navbar";
 import { Footer } from "./components/Footer/Footer";
 
-// Create a wrapper component to handle conditional rendering of Navbar and Footer
+// Create a wrapper component to handle conditional rendering of Navbar, Footer, and Sidebars
 const AppLayout = ({ children }) => {
   const location = useLocation();
   const isAdminPage = location.pathname.startsWith("/admin");
+  const isManagePage = location.pathname.startsWith("/manage");
+  const isNotFoundPage = location.pathname === "/404"; // Match the route path
 
   return (
     <div className="flex flex-col min-h-screen">
-      {!isAdminPage && <Navbar />}
+      {/* Show Navbar only if it's not an admin page, not a manage page, and not the notfound page */}
+      {!isAdminPage && !isManagePage && !isNotFoundPage && <Navbar />}
       <div className="flex">
-        {isAdminPage && <Sidebar />}
+        {/* Show Sidebar for admin pages */}
+        {isAdminPage && !isNotFoundPage && <Sidebar />}
+        {/* Show SidebarManagement for manage pages */}
+        {isManagePage && !isNotFoundPage && <SidebarManagement />}
         <main className="flex-grow">{children}</main>
       </div>
-      {!isAdminPage && <Footer />}
+      {/* Show Footer only if it's not an admin page, not a manage page, and not the notfound page */}
+      {!isAdminPage && !isManagePage && !isNotFoundPage && <Footer />}
     </div>
   );
 };
@@ -46,6 +56,7 @@ function App() {
     <BrowserRouter>
       <AppLayout>
         <Routes>
+          <Route path="*" element={<NotFound />} />
           <Route path="/" element={<HomePage />} />
           <Route path="/costumes" element={<CostumesPage />} />
           <Route path="/costumes/:category" element={<CostumesPage />} />
@@ -53,11 +64,7 @@ function App() {
           <Route path="/festivals/:category" element={<FestivalPage />} />
           <Route path="/services" element={<ServicesPage />} />
           <Route path="/cosplayers" element={<CosplayerPage />} />
-          {/* <Route path="/event-organize" element={<EventOrganizePage />} /> */}
-          <Route
-            path="/event"
-            element={<DetailEventOrganizePage />}
-          />
+          <Route path="/event" element={<DetailEventOrganizePage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/souvenirs-shop" element={<SouvenirsPage />} />
@@ -81,6 +88,7 @@ function App() {
             path="/admin/system-management"
             element={<SystemManagementPage />}
           />
+          <Route path="/manage/ticket" element={<ManageFestival />} />
         </Routes>
       </AppLayout>
     </BrowserRouter>
