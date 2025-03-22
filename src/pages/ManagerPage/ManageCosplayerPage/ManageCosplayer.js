@@ -129,11 +129,3 @@ const ManageCosplayer = () => {
 };
 
 export default ManageCosplayer;
-
-// Create: CosplayerForm xử lý form thêm mới, gọi onSubmit để thêm vào danh sách.
-
-// Read: CosplayerList hiển thị danh sách cosplayers trong DataGrid.
-
-// Update: CosplayerForm xử lý form chỉnh sửa, gọi onSubmit để cập nhật.
-
-// Delete: CosplayerActions cung cấp nút Delete, gọi onDelete để xóa.

@@ -2,6 +2,8 @@ import "./styles/App.scss";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "react-toastify/dist/ReactToastify.css";
 import { Route, Routes, BrowserRouter, useLocation } from "react-router-dom";
+import { Navbar } from "./components/Nav/navbar";
+import { Footer } from "./components/Footer/Footer";
 import HomePage from "./pages/HomePage/HomePage.js";
 import AboutPage from "./pages/AboutPage/AboutUsPage.js";
 import CostumesPage from "./pages/CostumesPage/CostumesPage.js";
@@ -27,8 +29,7 @@ import ManageFestival from "./pages/ManagerPage/ManageFestivalPage/ManageFestiva
 import ManageGeneral from "./pages/ManagerPage/ManagePage/ManageGeneral.js";
 import ManageSouvenir from "./pages/ManagerPage/ManageSouvenirsPage/ManageSouvenir.js";
 import ManageCosplayer from "./pages/ManagerPage/ManageCosplayerPage/ManageCosplayer.js";
-import { Navbar } from "./components/Nav/navbar";
-import { Footer } from "./components/Footer/Footer";
+import ManageCharacter from "./pages/ManagerPage/ManageCharaterPage/ManageCharacter.js";
 
 // Create a wrapper component to handle conditional rendering of Navbar, Footer, and Sidebars
 const AppLayout = ({ children }) => {
@@ -95,6 +96,7 @@ function App() {
           <Route path="/manage/general" element={<ManageGeneral />} />
           <Route path="/manage/souvenir" element={<ManageSouvenir />} />
           <Route path="/manage/cosplayer" element={<ManageCosplayer />} />
+          <Route path="/manage/character" element={<ManageCharacter />} />
         </Routes>
       </AppLayout>
     </BrowserRouter>

@@ -89,7 +89,7 @@ const SidebarManagement = () => {
         </NavLink>
 
         <NavLink
-          to="*"
+          to="/manage/character"
           className={({ isActive }) =>
             isActive ? "nav-link active" : "nav-link"
           }
