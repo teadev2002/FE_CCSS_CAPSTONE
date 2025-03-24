@@ -1,17 +1,15 @@
+// src/components/ManageGeneral.jsx
 import React, { useState } from "react";
-import { DataGrid } from "@mui/x-data-grid";
-import Paper from "@mui/material/Paper";
-import Button from "@mui/material/Button";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogTitle from "@mui/material/DialogTitle";
-import TextField from "@mui/material/TextField";
-import MenuItem from "@mui/material/MenuItem";
-import Select from "@mui/material/Select";
-import InputLabel from "@mui/material/InputLabel";
-import FormControl from "@mui/material/FormControl";
-import "../../../styles/Manager/ManageGeneral.scss"; // For custom styles
+import {
+  Table,
+  Button,
+  Modal,
+  Form,
+  Card,
+  Pagination,
+  Dropdown,
+} from "react-bootstrap";
+import "../../../styles/Manager/ManageGeneral.scss";
 
 const ManageGeneral = () => {
   // Initial status data (mock data for demonstration)
@@ -34,10 +32,28 @@ const ManageGeneral = () => {
       statusContract: "Expired",
       statusTask: "Completed",
     },
+    {
+      id: "S004",
+      statusRequest: "Pending",
+      statusContract: "Draft",
+      statusTask: "Not Started",
+    },
+    {
+      id: "S005",
+      statusRequest: "Approved",
+      statusContract: "Signed",
+      statusTask: "In Progress",
+    },
+    {
+      id: "S006",
+      statusRequest: "Rejected",
+      statusContract: "Expired",
+      statusTask: "Completed",
+    },
   ]);
 
   // State for modal visibility and form data
-  const [openModal, setOpenModal] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentStatus, setCurrentStatus] = useState(null);
   const [formData, setFormData] = useState({
@@ -47,65 +63,16 @@ const ManageGeneral = () => {
     statusTask: "",
   });
 
-  // Define columns for DataGrid
-  const columns = [
-    {
-      field: "id",
-      headerName: "ID",
-      width: 120,
-      align: "center",
-      headerAlign: "center",
-    },
-    {
-      field: "statusRequest",
-      headerName: "Status Request",
-      width: 150,
-      align: "center",
-      headerAlign: "center",
-    },
-    {
-      field: "statusContract",
-      headerName: "Status Contract",
-      width: 150,
-      align: "center",
-      headerAlign: "center",
-    },
-    {
-      field: "statusTask",
-      headerName: "Status Task",
-      width: 150,
-      align: "center",
-      headerAlign: "center",
-    },
-    {
-      field: "actions",
-      headerName: "Actions",
-      width: 200,
-      align: "center",
-      headerAlign: "center",
-      renderCell: (params) => (
-        <div>
-          <Button
-            variant="contained"
-            color="primary"
-            size="small"
-            onClick={() => handleShowModal(params.row)}
-            style={{ marginRight: 8 }}
-          >
-            Edit
-          </Button>
-          <Button
-            variant="contained"
-            color="error"
-            size="small"
-            onClick={() => handleDelete(params.row.id)}
-          >
-            Delete
-          </Button>
-        </div>
-      ),
-    },
-  ];
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10); // Changed to 10
+  const rowsPerPageOptions = [10, 20, 30];
+
+  // Calculate pagination
+  const totalPages = Math.ceil(statuses.length / rowsPerPage);
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const endIndex = startIndex + rowsPerPage;
+  const paginatedStatuses = statuses.slice(startIndex, endIndex);
 
   // Handle modal open/close
   const handleShowModal = (status = null) => {
@@ -124,11 +91,11 @@ const ManageGeneral = () => {
         statusTask: "",
       });
     }
-    setOpenModal(true);
+    setShowModal(true);
   };
 
   const handleCloseModal = () => {
-    setOpenModal(false);
+    setShowModal(false);
     setIsEditing(false);
     setCurrentStatus(null);
   };
@@ -162,109 +129,202 @@ const ManageGeneral = () => {
     }
   };
 
+  // Handle page change
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  // Handle rows per page change
+  const handleRowsPerPageChange = (value) => {
+    setRowsPerPage(value);
+    setCurrentPage(1); // Reset to first page when rows per page changes
+  };
+
   return (
     <div className="manage-general">
       <h2 className="manage-general-title">Manage Statuses</h2>
       <Button
-        variant="contained"
-        color="primary"
+        variant="primary"
         onClick={() => handleShowModal()}
-        style={{ marginBottom: 16 }}
+        className="mb-3 add-status-btn"
       >
         Add New Status
       </Button>
 
-      {/* DataGrid wrapped in Paper */}
-      <Paper
-        elevation={3}
-        style={{
-          height: 400,
-          width: "70%",
-          margin: "0 auto",
-          boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.9)",
-          textAlign: "center",
-        }}
-      >
-        <DataGrid
-          rows={statuses}
-          columns={columns}
-          pageSize={5}
-          rowsPerPageOptions={[5, 10, 20]}
-          getRowId={(row) => row.id} // Use id as the unique ID
-          disableSelectionOnClick
-        />
-      </Paper>
+      {/* Table wrapped in Card */}
+      <Card className="status-table-card">
+        <Card.Body>
+          <Table striped bordered hover responsive>
+            <thead>
+              <tr>
+                <th className="text-center">ID</th>
+                <th className="text-center">Status Request</th>
+                <th className="text-center">Status Contract</th>
+                <th className="text-center">Status Task</th>
+                <th className="text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {paginatedStatuses.map((status) => (
+                <tr key={status.id}>
+                  <td className="text-center">{status.id}</td>
+                  <td className="text-center">{status.statusRequest}</td>
+                  <td className="text-center">{status.statusContract}</td>
+                  <td className="text-center">{status.statusTask}</td>
+                  <td className="text-center">
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={() => handleShowModal(status)}
+                      className="me-2"
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      onClick={() => handleDelete(status.id)}
+                    >
+                      Delete
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+
+          {/* Pagination Controls */}
+          <div className="d-flex justify-content-between align-items-center pagination-controls">
+            <div className="rows-per-page">
+              <span>Rows per page: </span>
+              <Dropdown
+                onSelect={(value) => handleRowsPerPageChange(Number(value))}
+                className="d-inline-block"
+              >
+                <Dropdown.Toggle
+                  variant="secondary"
+                  id="dropdown-rows-per-page"
+                >
+                  {rowsPerPage}
+                </Dropdown.Toggle>
+                <Dropdown.Menu>
+                  {rowsPerPageOptions.map((option) => (
+                    <Dropdown.Item key={option} eventKey={option}>
+                      {option}
+                    </Dropdown.Item>
+                  ))}
+                </Dropdown.Menu>
+              </Dropdown>
+            </div>
+            <Pagination>
+              <Pagination.First
+                onClick={() => handlePageChange(1)}
+                disabled={currentPage === 1}
+              />
+              <Pagination.Prev
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+              />
+              {[...Array(totalPages).keys()].map((page) => (
+                <Pagination.Item
+                  key={page + 1}
+                  active={page + 1 === currentPage}
+                  onClick={() => handlePageChange(page + 1)}
+                >
+                  {page + 1}
+                </Pagination.Item>
+              ))}
+              <Pagination.Next
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+              />
+              <Pagination.Last
+                onClick={() => handlePageChange(totalPages)}
+                disabled={currentPage === totalPages}
+              />
+            </Pagination>
+          </div>
+        </Card.Body>
+      </Card>
 
       {/* Modal for Add/Edit Status */}
-      <Dialog open={openModal} onClose={handleCloseModal}>
-        <DialogTitle>
-          {isEditing ? "Edit Status" : "Add New Status"}
-        </DialogTitle>
-        <DialogContent style={{ textAlign: "center" }}>
-          <form onSubmit={handleSubmit}>
-            <TextField
-              label="ID"
-              name="id"
-              value={formData.id}
-              onChange={handleInputChange}
-              fullWidth
-              margin="normal"
-              required
-              disabled={isEditing} // Prevent editing ID during update
-            />
-            <FormControl fullWidth margin="normal">
-              <InputLabel>Status Request</InputLabel>
-              <Select
+      <Modal
+        show={showModal}
+        onHide={handleCloseModal}
+        centered
+        className="status-modal"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>
+            {isEditing ? "Edit Status" : "Add New Status"}
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form onSubmit={handleSubmit}>
+            <Form.Group className="mb-3">
+              <Form.Label>ID</Form.Label>
+              <Form.Control
+                type="text"
+                name="id"
+                value={formData.id}
+                onChange={handleInputChange}
+                required
+                disabled={isEditing}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Status Request</Form.Label>
+              <Form.Select
                 name="statusRequest"
                 value={formData.statusRequest}
                 onChange={handleInputChange}
                 required
               >
-                <MenuItem value="">Select Status</MenuItem>
-                <MenuItem value="Pending">Pending</MenuItem>
-                <MenuItem value="Approved">Approved</MenuItem>
-                <MenuItem value="Rejected">Rejected</MenuItem>
-              </Select>
-            </FormControl>
-            <FormControl fullWidth margin="normal">
-              <InputLabel>Status Contract</InputLabel>
-              <Select
+                <option value="">Select Status</option>
+                <option value="Pending">Pending</option>
+                <option value="Approved">Approved</option>
+                <option value="Rejected">Rejected</option>
+              </Form.Select>
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Status Contract</Form.Label>
+              <Form.Select
                 name="statusContract"
                 value={formData.statusContract}
                 onChange={handleInputChange}
                 required
               >
-                <MenuItem value="">Select Status</MenuItem>
-                <MenuItem value="Draft">Draft</MenuItem>
-                <MenuItem value="Signed">Signed</MenuItem>
-                <MenuItem value="Expired">Expired</MenuItem>
-              </Select>
-            </FormControl>
-            <FormControl fullWidth margin="normal">
-              <InputLabel>Status Task</InputLabel>
-              <Select
+                <option value="">Select Status</option>
+                <option value="Draft">Draft</option>
+                <option value="Signed">Signed</option>
+                <option value="Expired">Expired</option>
+              </Form.Select>
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Status Task</Form.Label>
+              <Form.Select
                 name="statusTask"
                 value={formData.statusTask}
                 onChange={handleInputChange}
                 required
               >
-                <MenuItem value="">Select Status</MenuItem>
-                <MenuItem value="Not Started">Not Started</MenuItem>
-                <MenuItem value="In Progress">In Progress</MenuItem>
-                <MenuItem value="Completed">Completed</MenuItem>
-              </Select>
-            </FormControl>
-          </form>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseModal} color="secondary">
+                <option value="">Select Status</option>
+                <option value="Not Started">Not Started</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Completed">Completed</option>
+              </Form.Select>
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCloseModal}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit} color="primary">
+          <Button variant="primary" onClick={handleSubmit}>
             {isEditing ? "Update" : "Add"} Status
           </Button>
-        </DialogActions>
-      </Dialog>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };

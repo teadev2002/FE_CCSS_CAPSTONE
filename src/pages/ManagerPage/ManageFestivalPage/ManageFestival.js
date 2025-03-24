@@ -1,33 +1,35 @@
+// src/components/ManageFestival.jsx
 import React, { useState } from "react";
-import { DataGrid } from "@mui/x-data-grid";
-import Paper from "@mui/material/Paper";
-import Button from "@mui/material/Button";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogTitle from "@mui/material/DialogTitle";
-import TextField from "@mui/material/TextField";
-import "../../../styles/Manager/ManageFestival.scss"; // Optional: For custom styles
+import {
+  Table,
+  Button,
+  Modal,
+  Form,
+  Card,
+  Pagination,
+  Dropdown,
+} from "react-bootstrap";
+import "../../../styles/Manager/ManageFestival.scss";
 
 const ManageFestival = () => {
   // Initial ticket data (mock data updated for new fields)
   const [tickets, setTickets] = useState([
-    {
-      ticketId: "T001",
-      quantity: 2,
-      price: 50, // Price per ticket (totalPrice = quantity * price in real app)
-      eventId: "E001",
-    },
-    {
-      ticketId: "T002",
-      quantity: 3,
-      price: 50,
-      eventId: "E002",
-    },
+    { ticketId: "T001", quantity: 2, price: 50, eventId: "E001" },
+    { ticketId: "T002", quantity: 3, price: 50, eventId: "E002" },
+    { ticketId: "T001", quantity: 2, price: 50, eventId: "E001" },
+    { ticketId: "T002", quantity: 3, price: 50, eventId: "E002" },
+    { ticketId: "T001", quantity: 2, price: 50, eventId: "E001" },
+    { ticketId: "T002", quantity: 3, price: 50, eventId: "E002" },
+    { ticketId: "T001", quantity: 2, price: 50, eventId: "E001" },
+    { ticketId: "T002", quantity: 3, price: 50, eventId: "E002" },
+    { ticketId: "T001", quantity: 2, price: 50, eventId: "E001" },
+    { ticketId: "T002", quantity: 3, price: 50, eventId: "E002" },
+    { ticketId: "T001", quantity: 2, price: 50, eventId: "E001" },
+    { ticketId: "T002", quantity: 3, price: 50, eventId: "E002" },
   ]);
 
   // State for modal visibility and form data
-  const [openModal, setOpenModal] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentTicket, setCurrentTicket] = useState(null);
   const [formData, setFormData] = useState({
@@ -37,67 +39,16 @@ const ManageFestival = () => {
     eventId: "",
   });
 
-  // Define columns for DataGrid with centered text
-  const columns = [
-    {
-      field: "ticketId",
-      headerName: "Ticket ID",
-      width: 150,
-      align: "center", // Center-align cell content
-      headerAlign: "center", // Center-align header
-    },
-    {
-      field: "quantity",
-      headerName: "Quantity",
-      width: 120,
-      type: "number",
-      align: "center",
-      headerAlign: "center",
-    },
-    {
-      field: "price",
-      headerName: "Price ($)",
-      width: 120,
-      type: "number",
-      align: "center",
-      headerAlign: "center",
-    },
-    {
-      field: "eventId",
-      headerName: "Event ID",
-      width: 120,
-      align: "center",
-      headerAlign: "center",
-    },
-    {
-      field: "actions",
-      headerName: "Actions",
-      width: 200,
-      align: "center", // Center-align cell content
-      headerAlign: "center", // Center-align header
-      renderCell: (params) => (
-        <div>
-          <Button
-            variant="contained"
-            color="primary"
-            size="small"
-            onClick={() => handleShowModal(params.row)}
-            style={{ marginRight: 8 }}
-          >
-            Edit
-          </Button>
-          <Button
-            variant="contained"
-            color="error"
-            size="small"
-            onClick={() => handleDelete(params.row.ticketId)}
-          >
-            Delete
-          </Button>
-        </div>
-      ),
-    },
-  ];
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10); // Set to 10 by default
+  const rowsPerPageOptions = [10, 20, 30];
+
+  // Calculate pagination
+  const totalPages = Math.ceil(tickets.length / rowsPerPage);
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const endIndex = startIndex + rowsPerPage;
+  const paginatedTickets = tickets.slice(startIndex, endIndex);
 
   // Handle modal open/close
   const handleShowModal = (ticket = null) => {
@@ -116,11 +67,11 @@ const ManageFestival = () => {
         eventId: "",
       });
     }
-    setOpenModal(true);
+    setShowModal(true);
   };
 
   const handleCloseModal = () => {
-    setOpenModal(false);
+    setShowModal(false);
     setIsEditing(false);
     setCurrentTicket(null);
   };
@@ -154,98 +105,193 @@ const ManageFestival = () => {
     }
   };
 
+  // Handle page change
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  // Handle rows per page change
+  const handleRowsPerPageChange = (value) => {
+    setRowsPerPage(value);
+    setCurrentPage(1); // Reset to first page when rows per page changes
+  };
+
   return (
     <div className="manage-festival">
       <h2 className="manage-festival-title">Festival Ticket Management</h2>
-      {/* <Button
-        variant="contained"
-        color="primary"
+      <Button
+        variant="primary"
         onClick={() => handleShowModal()}
-        style={{ marginBottom: 16, marginLeft: "29vh" }}
+        className="mb-3 add-ticket-btn"
       >
         Add New Ticket
-      </Button> */}
+      </Button>
 
-      {/* DataGrid wrapped in Paper */}
-      <Paper
-        elevation={3}
-        style={{
-          height: 400,
-          width: "70%",
-          margin: "0 auto",
-          boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.9)",
-          textAlign: "center",
-        }}
-      >
-        <DataGrid
-          rows={tickets}
-          columns={columns}
-          pageSize={5}
-          rowsPerPageOptions={[5, 10, 20]}
-          getRowId={(row) => row.ticketId} // Use ticketId as the unique ID
-          disableSelectionOnClick
-        />
-      </Paper>
+      {/* Table wrapped in Card */}
+      <Card className="ticket-table-card">
+        <Card.Body>
+          <Table striped bordered hover responsive>
+            <thead className="table-header">
+              <tr>
+                <th className="text-center">Ticket ID</th>
+                <th className="text-center">Quantity</th>
+                <th className="text-center">Price ($)</th>
+                <th className="text-center">Event ID</th>
+                <th className="text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {paginatedTickets.map((ticket) => (
+                <tr key={ticket.ticketId}>
+                  <td className="text-center">{ticket.ticketId}</td>
+                  <td className="text-center">{ticket.quantity}</td>
+                  <td className="text-center">{ticket.price}</td>
+                  <td className="text-center">{ticket.eventId}</td>
+                  <td className="text-center">
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={() => handleShowModal(ticket)}
+                      className="me-2"
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      onClick={() => handleDelete(ticket.ticketId)}
+                    >
+                      Delete
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+
+          {/* Pagination Controls */}
+          <div className="d-flex justify-content-between align-items-center pagination-controls">
+            <div className="rows-per-page">
+              <span>Rows per page: </span>
+              <Dropdown
+                onSelect={(value) => handleRowsPerPageChange(Number(value))}
+                className="d-inline-block"
+              >
+                <Dropdown.Toggle
+                  variant="secondary"
+                  id="dropdown-rows-per-page"
+                >
+                  {rowsPerPage}
+                </Dropdown.Toggle>
+                <Dropdown.Menu>
+                  {rowsPerPageOptions.map((option) => (
+                    <Dropdown.Item key={option} eventKey={option}>
+                      {option}
+                    </Dropdown.Item>
+                  ))}
+                </Dropdown.Menu>
+              </Dropdown>
+            </div>
+            <Pagination>
+              <Pagination.First
+                onClick={() => handlePageChange(1)}
+                disabled={currentPage === 1}
+              />
+              <Pagination.Prev
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+              />
+              {[...Array(totalPages).keys()].map((page) => (
+                <Pagination.Item
+                  key={page + 1}
+                  active={page + 1 === currentPage}
+                  onClick={() => handlePageChange(page + 1)}
+                >
+                  {page + 1}
+                </Pagination.Item>
+              ))}
+              <Pagination.Next
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+              />
+              <Pagination.Last
+                onClick={() => handlePageChange(totalPages)}
+                disabled={currentPage === totalPages}
+              />
+            </Pagination>
+          </div>
+        </Card.Body>
+      </Card>
 
       {/* Modal for Add/Edit Ticket */}
-      <Dialog open={openModal} onClose={handleCloseModal}>
-        <DialogTitle>
-          {isEditing ? "Edit Ticket" : "Add New Ticket"}
-        </DialogTitle>
-        <DialogContent style={{ textAlign: "center" }}>
-          <form onSubmit={handleSubmit}>
-            <TextField
-              label="Ticket ID"
-              name="ticketId"
-              value={formData.ticketId}
-              onChange={handleInputChange}
-              fullWidth
-              margin="normal"
-              required
-              disabled={isEditing} // Prevent editing ticketId during update
-            />
-            <TextField
-              label="Quantity"
-              name="quantity"
-              type="number"
-              value={formData.quantity}
-              onChange={handleInputChange}
-              fullWidth
-              margin="normal"
-              required
-              inputProps={{ min: 1 }}
-            />
-            <TextField
-              label="Price ($)"
-              name="price"
-              type="number"
-              value={formData.price}
-              onChange={handleInputChange}
-              fullWidth
-              margin="normal"
-              required
-              inputProps={{ min: 0, step: 0.01 }}
-            />
-            <TextField
-              label="Event ID"
-              name="eventId"
-              value={formData.eventId}
-              onChange={handleInputChange}
-              fullWidth
-              margin="normal"
-              required
-            />
-          </form>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseModal} color="secondary">
+      <Modal
+        show={showModal}
+        onHide={handleCloseModal}
+        centered
+        className="ticket-modal"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>
+            {isEditing ? "Edit Ticket" : "Add New Ticket"}
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form onSubmit={handleSubmit}>
+            <Form.Group className="mb-3">
+              <Form.Label>Ticket ID</Form.Label>
+              <Form.Control
+                type="text"
+                name="ticketId"
+                value={formData.ticketId}
+                onChange={handleInputChange}
+                required
+                disabled={isEditing}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Quantity</Form.Label>
+              <Form.Control
+                type="number"
+                name="quantity"
+                value={formData.quantity}
+                onChange={handleInputChange}
+                required
+                min="1"
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Price ($)</Form.Label>
+              <Form.Control
+                type="number"
+                name="price"
+                value={formData.price}
+                onChange={handleInputChange}
+                required
+                min="0"
+                step="0.01"
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Event ID</Form.Label>
+              <Form.Control
+                type="text"
+                name="eventId"
+                value={formData.eventId}
+                onChange={handleInputChange}
+                required
+              />
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCloseModal}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit} color="primary">
+          <Button variant="primary" onClick={handleSubmit}>
             {isEditing ? "Update" : "Add"} Ticket
           </Button>
-        </DialogActions>
-      </Dialog>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };

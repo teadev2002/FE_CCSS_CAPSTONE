@@ -1,7 +1,6 @@
+// src/components/CosplayerImageManager.jsx
 import React, { useState } from "react";
-import TextField from "@mui/material/TextField";
-import Button from "@mui/material/Button";
-import IconButton from "@mui/material/IconButton";
+import { Form, Button, CloseButton } from "react-bootstrap";
 
 const CosplayerImageManager = ({ images, setImages }) => {
   const [newImageUrl, setNewImageUrl] = useState("");
@@ -24,40 +23,31 @@ const CosplayerImageManager = ({ images, setImages }) => {
   return (
     <div className="image-management">
       <h4>Images</h4>
-      <div style={{ display: "flex", alignItems: "center", marginBottom: 16 }}>
-        <TextField
-          label="Add Image URL"
+      <div className="d-flex align-items-center mb-3">
+        <Form.Control
+          type="text"
+          placeholder="Add Image URL"
           value={newImageUrl}
           onChange={(e) => setNewImageUrl(e.target.value)}
-          fullWidth
-          margin="normal"
+          className="me-2"
         />
         <Button
-          variant="contained"
-          color="primary"
+          variant="primary"
           onClick={handleAddImage}
-          style={{ marginLeft: 8 }}
           disabled={!newImageUrl}
         >
           Add
         </Button>
       </div>
-      <div className="image-preview" style={{ display: "flex" }}>
+      <div className="image-preview d-flex">
         {images.map((image, index) => (
           <div key={index} className="image-preview-item">
             <img
               src={image.urlImage}
               alt={`Cosplayer ${index + 1}`}
-              style={{
-                width: 100,
-                height: 100,
-                objectFit: "cover",
-                marginRight: 8,
-              }}
+              className="preview-image"
             />
-            <IconButton onClick={() => handleRemoveImage(index)} color="error">
-              🗑️
-            </IconButton>
+            <CloseButton onClick={() => handleRemoveImage(index)} />
           </div>
         ))}
       </div>
@@ -66,10 +56,3 @@ const CosplayerImageManager = ({ images, setImages }) => {
 };
 
 export default CosplayerImageManager;
-// Create: CosplayerForm xử lý form thêm mới, gọi onSubmit để thêm vào danh sách.
-
-// Read: CosplayerList hiển thị danh sách cosplayers trong DataGrid.
-
-// Update: CosplayerForm xử lý form chỉnh sửa, gọi onSubmit để cập nhật.
-
-// Delete: CosplayerActions cung cấp nút Delete, gọi onDelete để xóa.

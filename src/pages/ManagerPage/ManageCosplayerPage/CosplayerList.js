@@ -1,182 +1,140 @@
-import React from "react";
-import { DataGrid } from "@mui/x-data-grid";
-import Paper from "@mui/material/Paper";
+// src/components/CosplayerList.jsx
+import React, { useState } from "react";
+import { Table, Card, Pagination, Dropdown } from "react-bootstrap";
 import CosplayerActions from "./CosplayerActions";
 
 const CosplayerList = ({ cosplayers, onEdit, onDelete }) => {
-  const columns = [
-    // {
-    //   field: "accountId",
-    //   headerName: "Account ID",
-    //   width: 120,
-    //   align: "center",
-    //   headerAlign: "center",
-    // },
-    {
-      field: "name",
-      headerName: "Name",
-      width: 150,
-      align: "center",
-      headerAlign: "center",
-    },
-    {
-      field: "email",
-      headerName: "Email",
-      width: 200,
-      align: "center",
-      headerAlign: "center",
-    },
-    {
-      field: "description",
-      headerName: "Description",
-      width: 200,
-      align: "center",
-      headerAlign: "center",
-    },
-    {
-      field: "birthday",
-      headerName: "Birthday",
-      width: 150,
-      align: "center",
-      headerAlign: "center",
-    },
-    {
-      field: "phone",
-      headerName: "Phone",
-      width: 150,
-      align: "center",
-      headerAlign: "center",
-    },
-    {
-      field: "isActive",
-      headerName: "Active",
-      width: 100,
-      align: "center",
-      headerAlign: "center",
-      renderCell: (params) => (params.value ? "Yes" : "No"),
-    },
-    {
-      field: "onTask",
-      headerName: "On Task",
-      width: 100,
-      align: "center",
-      headerAlign: "center",
-      renderCell: (params) => (params.value ? "Yes" : "No"),
-    },
-    {
-      field: "leader",
-      headerName: "Leader",
-      width: 120,
-      align: "center",
-      headerAlign: "center",
-    },
-    // {
-    //   field: "code",
-    //   headerName: "Code",
-    //   width: 120,
-    //   align: "center",
-    //   headerAlign: "center",
-    // },
-    {
-      field: "taskQuantity",
-      headerName: "Task Quantity",
-      width: 120,
-      type: "number",
-      align: "center",
-      headerAlign: "center",
-    },
-    {
-      field: "height",
-      headerName: "Height (cm)",
-      width: 120,
-      type: "number",
-      align: "center",
-      headerAlign: "center",
-    },
-    {
-      field: "weight",
-      headerName: "Weight (kg)",
-      width: 120,
-      type: "number",
-      align: "center",
-      headerAlign: "center",
-    },
-    {
-      field: "averageStar",
-      headerName: "Average Star",
-      width: 120,
-      type: "number",
-      align: "center",
-      headerAlign: "center",
-    },
-    {
-      field: "salaryIndex",
-      headerName: "Salary Index",
-      width: 120,
-      type: "number",
-      align: "center",
-      headerAlign: "center",
-    },
-    // {
-    //   field: "roleId",
-    //   headerName: "Role ID",
-    //   width: 120,
-    //   align: "center",
-    //   headerAlign: "center",
-    // },
-    {
-      field: "images",
-      headerName: "Images",
-      width: 150,
-      align: "center",
-      headerAlign: "center",
-      renderCell: (params) =>
-        `${params.value.length} image${params.value.length !== 1 ? "s" : ""}`,
-    },
-    {
-      field: "actions",
-      headerName: "Actions",
-      width: 200,
-      align: "center",
-      headerAlign: "center",
-      renderCell: (params) => (
-        <CosplayerActions
-          row={params.row}
-          onEdit={onEdit}
-          onDelete={onDelete}
-        />
-      ),
-    },
-  ];
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10); // Set to 10 by default
+  const rowsPerPageOptions = [10, 20, 30];
+
+  // Calculate pagination
+  const totalPages = Math.ceil(cosplayers.length / rowsPerPage);
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const endIndex = startIndex + rowsPerPage;
+  const paginatedCosplayers = cosplayers.slice(startIndex, endIndex);
+
+  // Handle page change
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  // Handle rows per page change
+  const handleRowsPerPageChange = (value) => {
+    setRowsPerPage(value);
+    setCurrentPage(1); // Reset to first page when rows per page changes
+  };
 
   return (
-    <Paper
-      elevation={3}
-      style={{
-        height: 400,
-        width: "90%",
-        margin: "0 auto",
-        boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.9)",
-        textAlign: "center",
-      }}
-    >
-      <DataGrid
-        rows={cosplayers}
-        columns={columns}
-        pageSize={5}
-        rowsPerPageOptions={[5, 10, 20]}
-        getRowId={(row) => row.accountId}
-        disableSelectionOnClick
-      />
-    </Paper>
+    <Card className="cosplayer-table-card">
+      <Card.Body>
+        <Table striped bordered hover responsive>
+          <thead className="table-header">
+            <tr>
+              <th className="text-center">Name</th>
+              <th className="text-center">Email</th>
+              <th className="text-center">Description</th>
+              <th className="text-center">Birthday</th>
+              <th className="text-center">Phone</th>
+              <th className="text-center">Active</th>
+              <th className="text-center">On Task</th>
+              <th className="text-center">Leader</th>
+              <th className="text-center">Task Quantity</th>
+              <th className="text-center">Height (cm)</th>
+              <th className="text-center">Weight (kg)</th>
+              <th className="text-center">Average Star</th>
+              <th className="text-center">Salary Index</th>
+              <th className="text-center">Images</th>
+              <th className="text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {paginatedCosplayers.map((cosplayer) => (
+              <tr key={cosplayer.accountId}>
+                <td className="text-center">{cosplayer.name}</td>
+                <td className="text-center">{cosplayer.email}</td>
+                <td className="text-center">{cosplayer.description}</td>
+                <td className="text-center">{cosplayer.birthday}</td>
+                <td className="text-center">{cosplayer.phone}</td>
+                <td className="text-center">
+                  {cosplayer.isActive ? "Yes" : "No"}
+                </td>
+                <td className="text-center">
+                  {cosplayer.onTask ? "Yes" : "No"}
+                </td>
+                <td className="text-center">{cosplayer.leader}</td>
+                <td className="text-center">{cosplayer.taskQuantity}</td>
+                <td className="text-center">{cosplayer.height}</td>
+                <td className="text-center">{cosplayer.weight}</td>
+                <td className="text-center">{cosplayer.averageStar}</td>
+                <td className="text-center">{cosplayer.salaryIndex}</td>
+                <td className="text-center">{`${cosplayer.images.length} image${
+                  cosplayer.images.length !== 1 ? "s" : ""
+                }`}</td>
+                <td className="text-center">
+                  <CosplayerActions
+                    row={cosplayer}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+
+        {/* Pagination Controls */}
+        <div className="d-flex justify-content-between align-items-center pagination-controls">
+          <div className="rows-per-page">
+            <span>Rows per page: </span>
+            <Dropdown
+              onSelect={(value) => handleRowsPerPageChange(Number(value))}
+              className="d-inline-block"
+            >
+              <Dropdown.Toggle variant="secondary" id="dropdown-rows-per-page">
+                {rowsPerPage}
+              </Dropdown.Toggle>
+              <Dropdown.Menu>
+                {rowsPerPageOptions.map((option) => (
+                  <Dropdown.Item key={option} eventKey={option}>
+                    {option}
+                  </Dropdown.Item>
+                ))}
+              </Dropdown.Menu>
+            </Dropdown>
+          </div>
+          <Pagination>
+            <Pagination.First
+              onClick={() => handlePageChange(1)}
+              disabled={currentPage === 1}
+            />
+            <Pagination.Prev
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+            />
+            {[...Array(totalPages).keys()].map((page) => (
+              <Pagination.Item
+                key={page + 1}
+                active={page + 1 === currentPage}
+                onClick={() => handlePageChange(page + 1)}
+              >
+                {page + 1}
+              </Pagination.Item>
+            ))}
+            <Pagination.Next
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            />
+            <Pagination.Last
+              onClick={() => handlePageChange(totalPages)}
+              disabled={currentPage === totalPages}
+            />
+          </Pagination>
+        </div>
+      </Card.Body>
+    </Card>
   );
 };
 
 export default CosplayerList;
-// Create: CosplayerForm xử lý form thêm mới, gọi onSubmit để thêm vào danh sách.
-
-// Read: CosplayerList hiển thị danh sách cosplayers trong DataGrid.
-
-// Update: CosplayerForm xử lý form chỉnh sửa, gọi onSubmit để cập nhật.
-
-// Delete: CosplayerActions cung cấp nút Delete, gọi onDelete để xóa.

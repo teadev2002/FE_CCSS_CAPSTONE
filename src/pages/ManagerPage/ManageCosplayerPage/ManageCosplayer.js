@@ -1,7 +1,8 @@
+// src/components/ManageCosplayer.jsx
 import React, { useState } from "react";
 import CosplayerList from "./CosplayerList";
 import CosplayerForm from "./CosplayerForm";
-import Button from "@mui/material/Button";
+import Button from "react-bootstrap/Button";
 import "../../../styles/Manager/ManageCosplayer.scss";
 
 const ManageCosplayer = () => {
@@ -53,7 +54,7 @@ const ManageCosplayer = () => {
     },
   ]);
 
-  const [openModal, setOpenModal] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentCosplayer, setCurrentCosplayer] = useState(null);
 
@@ -65,11 +66,11 @@ const ManageCosplayer = () => {
       setIsEditing(false);
       setCurrentCosplayer(null);
     }
-    setOpenModal(true);
+    setShowModal(true);
   };
 
   const handleCloseModal = () => {
-    setOpenModal(false);
+    setShowModal(false);
     setIsEditing(false);
     setCurrentCosplayer(null);
   };
@@ -101,10 +102,9 @@ const ManageCosplayer = () => {
     <div className="manage-cosplayer-container">
       <h2 className="manage-cosplayer-title">Manage Cosplayers</h2>
       <Button
-        variant="contained"
-        color="primary"
+        variant="primary"
         onClick={() => handleShowModal()}
-        style={{ marginBottom: 16 }}
+        className="mb-3 add-cosplayer-btn"
       >
         Add New Cosplayer
       </Button>
@@ -115,9 +115,9 @@ const ManageCosplayer = () => {
         onDelete={handleDelete}
       />
 
-      {openModal && (
+      {showModal && (
         <CosplayerForm
-          open={openModal}
+          show={showModal}
           onClose={handleCloseModal}
           onSubmit={handleCreateOrUpdate}
           initialData={currentCosplayer}

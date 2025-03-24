@@ -1,18 +1,15 @@
+// src/components/ManageSouvenir.jsx
 import React, { useState } from "react";
-import { DataGrid } from "@mui/x-data-grid";
-import Paper from "@mui/material/Paper";
-import Button from "@mui/material/Button";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogTitle from "@mui/material/DialogTitle";
-import TextField from "@mui/material/TextField";
-import MenuItem from "@mui/material/MenuItem";
-import Select from "@mui/material/Select";
-import InputLabel from "@mui/material/InputLabel";
-import FormControl from "@mui/material/FormControl";
-import Switch from "@mui/material/Switch";
-import FormControlLabel from "@mui/material/FormControlLabel";
+import {
+  Table,
+  Button,
+  Modal,
+  Form,
+  Card,
+  Pagination,
+  Dropdown,
+  FormCheck,
+} from "react-bootstrap";
 import "../../../styles/Manager/ManageSouvenir.scss";
 
 const ManageSouvenir = () => {
@@ -57,7 +54,7 @@ const ManageSouvenir = () => {
   ]);
 
   // State for modal visibility and form data
-  const [openModal, setOpenModal] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentProduct, setCurrentProduct] = useState(null);
   const [formData, setFormData] = useState({
@@ -72,110 +69,16 @@ const ManageSouvenir = () => {
     urlImage: "",
   });
 
-  // Define columns for DataGrid (for managers)
-  const columns = [
-    {
-      field: "productId",
-      headerName: "Product ID",
-      width: 120,
-      align: "center",
-      headerAlign: "center",
-    },
-    {
-      field: "productName",
-      headerName: "Product Name",
-      width: 150,
-      align: "center",
-      headerAlign: "center",
-    },
-    {
-      field: "description",
-      headerName: "Description",
-      width: 200,
-      align: "center",
-      headerAlign: "center",
-    },
-    {
-      field: "quantity",
-      headerName: "Quantity",
-      width: 120,
-      type: "number",
-      align: "center",
-      headerAlign: "center",
-    },
-    {
-      field: "price",
-      headerName: "Price ($)",
-      width: 120,
-      type: "number",
-      align: "center",
-      headerAlign: "center",
-    },
-    {
-      field: "createDate",
-      headerName: "Create Date",
-      width: 150,
-      align: "center",
-      headerAlign: "center",
-    },
-    {
-      field: "updateDate",
-      headerName: "Update Date",
-      width: 150,
-      align: "center",
-      headerAlign: "center",
-    },
-    {
-      field: "isActive",
-      headerName: "Active",
-      width: 100,
-      align: "center",
-      headerAlign: "center",
-      renderCell: (params) => (params.value ? "Yes" : "No"),
-    },
-    {
-      field: "urlImage",
-      headerName: "Image",
-      width: 150,
-      align: "center",
-      headerAlign: "center",
-      renderCell: (params) => (
-        <img
-          src={params.value}
-          alt={params.row.productName}
-          style={{ width: 50, height: 50, objectFit: "cover" }}
-        />
-      ),
-    },
-    {
-      field: "actions",
-      headerName: "Actions",
-      width: 200,
-      align: "center",
-      headerAlign: "center",
-      renderCell: (params) => (
-        <div>
-          <Button
-            variant="contained"
-            color="primary"
-            size="small"
-            onClick={() => handleShowModal(params.row)}
-            style={{ marginRight: 8 }}
-          >
-            Edit
-          </Button>
-          <Button
-            variant="contained"
-            color="error"
-            size="small"
-            onClick={() => handleDelete(params.row.productId)}
-          >
-            Delete
-          </Button>
-        </div>
-      ),
-    },
-  ];
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10); // Set to 10 by default
+  const rowsPerPageOptions = [10, 20, 30];
+
+  // Calculate pagination
+  const totalPages = Math.ceil(products.length / rowsPerPage);
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const endIndex = startIndex + rowsPerPage;
+  const paginatedProducts = products.slice(startIndex, endIndex);
 
   // Handle modal open/close
   const handleShowModal = (product = null) => {
@@ -199,11 +102,11 @@ const ManageSouvenir = () => {
         urlImage: "",
       });
     }
-    setOpenModal(true);
+    setShowModal(true);
   };
 
   const handleCloseModal = () => {
-    setOpenModal(false);
+    setShowModal(false);
     setIsEditing(false);
     setCurrentProduct(null);
   };
@@ -244,153 +147,260 @@ const ManageSouvenir = () => {
     }
   };
 
+  // Handle page change
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  // Handle rows per page change
+  const handleRowsPerPageChange = (value) => {
+    setRowsPerPage(value);
+    setCurrentPage(1); // Reset to first page when rows per page changes
+  };
+
   return (
     <div className="manage-souvenirs">
       <h2 className="manage-souvenirs-title">Manage Souvenirs</h2>
       <Button
-        variant="contained"
-        color="primary"
+        variant="primary"
         onClick={() => handleShowModal()}
-        style={{ marginBottom: 16 }}
+        className="mb-3 add-souvenir-btn"
       >
         Add New Souvenir
       </Button>
 
-      {/* DataGrid wrapped in Paper */}
-      <Paper
-        elevation={3}
-        style={{
-          height: 400,
-          width: "90%",
-          margin: "0 auto",
-          boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.9)",
-          textAlign: "center",
-        }}
-      >
-        <DataGrid
-          rows={products}
-          columns={columns}
-          pageSize={5}
-          rowsPerPageOptions={[5, 10, 20]}
-          getRowId={(row) => row.productId} // Use productId as the unique ID
-          disableSelectionOnClick
-        />
-      </Paper>
+      {/* Table wrapped in Card */}
+      <Card className="souvenir-table-card">
+        <Card.Body>
+          <Table striped bordered hover responsive>
+            <thead className="table-header">
+              <tr>
+                <th className="text-center">Product Name</th>
+                <th className="text-center">Description</th>
+                <th className="text-center">Quantity</th>
+                <th className="text-center">Price ($)</th>
+                <th className="text-center">Create Date</th>
+                <th className="text-center">Update Date</th>
+                <th className="text-center">Active</th>
+                <th className="text-center">Image</th>
+                <th className="text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {paginatedProducts.map((product) => (
+                <tr key={product.productId}>
+                  <td className="text-center">{product.productName}</td>
+                  <td className="text-center">{product.description}</td>
+                  <td className="text-center">{product.quantity}</td>
+                  <td className="text-center">{product.price}</td>
+                  <td className="text-center">{product.createDate}</td>
+                  <td className="text-center">{product.updateDate}</td>
+                  <td className="text-center">
+                    {product.isActive ? "Yes" : "No"}
+                  </td>
+                  <td className="text-center">
+                    <img
+                      src={product.urlImage}
+                      alt={product.productName}
+                      className="souvenir-image"
+                    />
+                  </td>
+                  <td className="text-center">
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={() => handleShowModal(product)}
+                      className="me-2"
+                    >
+                      🛠️
+                    </Button>
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      onClick={() => handleDelete(product.productId)}
+                    >
+                      🗑️
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+
+          {/* Pagination Controls */}
+          <div className="d-flex justify-content-between align-items-center pagination-controls">
+            <div className="rows-per-page">
+              <span>Rows per page: </span>
+              <Dropdown
+                onSelect={(value) => handleRowsPerPageChange(Number(value))}
+                className="d-inline-block"
+              >
+                <Dropdown.Toggle
+                  variant="secondary"
+                  id="dropdown-rows-per-page"
+                >
+                  {rowsPerPage}
+                </Dropdown.Toggle>
+                <Dropdown.Menu>
+                  {rowsPerPageOptions.map((option) => (
+                    <Dropdown.Item key={option} eventKey={option}>
+                      {option}
+                    </Dropdown.Item>
+                  ))}
+                </Dropdown.Menu>
+              </Dropdown>
+            </div>
+            <Pagination>
+              <Pagination.First
+                onClick={() => handlePageChange(1)}
+                disabled={currentPage === 1}
+              />
+              <Pagination.Prev
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+              />
+              {[...Array(totalPages).keys()].map((page) => (
+                <Pagination.Item
+                  key={page + 1}
+                  active={page + 1 === currentPage}
+                  onClick={() => handlePageChange(page + 1)}
+                >
+                  {page + 1}
+                </Pagination.Item>
+              ))}
+              <Pagination.Next
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+              />
+              <Pagination.Last
+                onClick={() => handlePageChange(totalPages)}
+                disabled={currentPage === totalPages}
+              />
+            </Pagination>
+          </div>
+        </Card.Body>
+      </Card>
 
       {/* Modal for Add/Edit Souvenir */}
-      <Dialog open={openModal} onClose={handleCloseModal}>
-        <DialogTitle>
-          {isEditing ? "Edit Souvenir" : "Add New Souvenir"}
-        </DialogTitle>
-        <DialogContent style={{ textAlign: "center" }}>
-          <form onSubmit={handleSubmit}>
-            <TextField
-              label="Product ID"
-              name="productId"
-              value={formData.productId}
-              onChange={handleInputChange}
-              fullWidth
-              margin="normal"
-              required
-              disabled={isEditing} // Prevent editing productId during update
-            />
-            <TextField
-              label="Product Name"
-              name="productName"
-              value={formData.productName}
-              onChange={handleInputChange}
-              fullWidth
-              margin="normal"
-              required
-            />
-            <TextField
-              label="Description"
-              name="description"
-              value={formData.description}
-              onChange={handleInputChange}
-              fullWidth
-              margin="normal"
-              multiline
-              rows={3}
-              required
-            />
-            <TextField
-              label="Quantity"
-              name="quantity"
-              type="number"
-              value={formData.quantity}
-              onChange={handleInputChange}
-              fullWidth
-              margin="normal"
-              required
-              inputProps={{ min: 0 }}
-            />
-            <TextField
-              label="Price ($)"
-              name="price"
-              type="number"
-              value={formData.price}
-              onChange={handleInputChange}
-              fullWidth
-              margin="normal"
-              required
-              inputProps={{ min: 0, step: 0.01 }}
-            />
-            <TextField
-              label="Create Date"
-              name="createDate"
-              type="date"
-              value={formData.createDate}
-              onChange={handleInputChange}
-              fullWidth
-              margin="normal"
-              InputLabelProps={{ shrink: true }}
-              required
-              disabled={isEditing} // Prevent editing createDate during update
-            />
-            <TextField
-              label="Update Date"
-              name="updateDate"
-              type="date"
-              value={formData.updateDate}
-              onChange={handleInputChange}
-              fullWidth
-              margin="normal"
-              InputLabelProps={{ shrink: true }}
-              required
-            />
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={formData.isActive}
-                  onChange={handleSwitchChange}
-                  name="isActive"
-                  color="primary"
-                />
-              }
-              label="Active"
-              style={{ margin: "16px 0" }}
-            />
-            <TextField
-              label="Image URL"
-              name="urlImage"
-              value={formData.urlImage}
-              onChange={handleInputChange}
-              fullWidth
-              margin="normal"
-              required
-            />
-          </form>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseModal} color="secondary">
+      <Modal
+        show={showModal}
+        onHide={handleCloseModal}
+        centered
+        className="souvenir-modal"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>
+            {isEditing ? "Edit Souvenir" : "Add New Souvenir"}
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form onSubmit={handleSubmit}>
+            <Form.Group className="mb-3">
+              <Form.Label>Product ID</Form.Label>
+              <Form.Control
+                type="text"
+                name="productId"
+                value={formData.productId}
+                onChange={handleInputChange}
+                required
+                disabled={isEditing}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Product Name</Form.Label>
+              <Form.Control
+                type="text"
+                name="productName"
+                value={formData.productName}
+                onChange={handleInputChange}
+                required
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Description</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={3}
+                name="description"
+                value={formData.description}
+                onChange={handleInputChange}
+                required
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Quantity</Form.Label>
+              <Form.Control
+                type="number"
+                name="quantity"
+                value={formData.quantity}
+                onChange={handleInputChange}
+                required
+                min="0"
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Price ($)</Form.Label>
+              <Form.Control
+                type="number"
+                name="price"
+                value={formData.price}
+                onChange={handleInputChange}
+                required
+                min="0"
+                step="0.01"
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Create Date</Form.Label>
+              <Form.Control
+                type="date"
+                name="createDate"
+                value={formData.createDate}
+                onChange={handleInputChange}
+                required
+                disabled={isEditing}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Update Date</Form.Label>
+              <Form.Control
+                type="date"
+                name="updateDate"
+                value={formData.updateDate}
+                onChange={handleInputChange}
+                required
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Check
+                type="switch"
+                label="Active"
+                name="isActive"
+                checked={formData.isActive}
+                onChange={handleSwitchChange}
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Image URL</Form.Label>
+              <Form.Control
+                type="text"
+                name="urlImage"
+                value={formData.urlImage}
+                onChange={handleInputChange}
+                required
+              />
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCloseModal}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit} color="primary">
+          <Button variant="primary" onClick={handleSubmit}>
             {isEditing ? "Update" : "Add"} Souvenir
           </Button>
-        </DialogActions>
-      </Dialog>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };
