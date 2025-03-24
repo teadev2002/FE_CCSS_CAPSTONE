@@ -3,8 +3,8 @@ import React, { useState } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import apiClient from "../../api/apiClient"; // Import your API client
-// import { apiClient, formDataClient } from "../../api/apiClient.js";
+// import apiClient from "../../api/apiClient"; // Import your API client
+import { apiClient, formDataClient } from "../../api/apiClient.js";
 const ModalConfirmSignUp = ({ show, onHide, email }) => {
   const [code, setCode] = useState("");
   const [error, setError] = useState("");

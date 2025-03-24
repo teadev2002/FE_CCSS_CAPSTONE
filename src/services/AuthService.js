@@ -1,5 +1,5 @@
-import apiClient from "../api/apiClient.js";
-// import { apiClient, formDataClient } from "../api/apiClient.js";
+// import apiClient from "../api/apiClient.js";
+import { apiClient, formDataClient } from "../api/apiClient.js";
 const AuthService = {
   // Login function
   login: async (email, password) => {
