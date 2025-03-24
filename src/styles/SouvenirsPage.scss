@@ -1,211 +1,3 @@
-// .costume-rental-page {
-//   background-color: #f4f7fa !important; // Giữ nền xám, giống ban đầu
-//   min-height: 100vh;
-
-//   // Hero Section - Sao chép 100% từ CharactersPage
-//   .hero-section {
-//     position: relative;
-//     min-height: 50vh; // Giữ chiều cao, giống CharactersPage
-//     display: flex;
-//     align-items: center;
-//     justify-content: center;
-//     text-align: center;
-//     background: linear-gradient(135deg, #510545, #22668a, #1a1a2e); // Giữ gradient, giống CharactersPage
-//     animation: gradientShift 10s ease infinite; // Giữ animation, giống CharactersPage
-//     padding: 4rem 0; // Giữ padding, giống CharactersPage
-//     margin-top: 4rem; // Giữ khoảng cách trên cùng, giống CharactersPage
-
-//     @keyframes gradientShift {
-//       0% {
-//         background-position: 0% 50%;
-//       }
-
-//       50% {
-//         background-position: 100% 50%;
-//       }
-
-//       100% {
-//         background-position: 0% 50%;
-//       }
-//     }
-
-//     .container {
-//       position: relative;
-//       z-index: 1; // Giữ z-index, giống CharactersPage
-//     }
-
-//     h1.display-4 {
-//        font-size: 4.5rem;
-//       font-weight: 700;
-//       text-transform: uppercase;
-//       letter-spacing: 2px;
-//       background: linear-gradient(90deg, #f85caa, #d9b6f8);
-//       -webkit-background-clip: text;
-//       background-clip: text;
-//       -webkit-text-fill-color: transparent;
-//       margin-bottom: 1.5rem;
-//       text-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-//       transition: transform 0.3s ease, opacity 0.3s ease;
-
-//       &:hover {
-//         transform: scale(1.03);
-//         opacity: 0.95;
-//       }
-//     }
-
-//     .lead {
-//       // Giữ nguyên, đã đồng bộ với CharactersPage
-//       font-size: 1.5rem;
-//       font-weight: 300;
-//       color: rgba(255, 255, 255, 0.85);
-//       max-width: 600px;
-//       margin: 0 auto;
-//       transition: opacity 0.3s ease, transform 0.3s ease;
-
-//       &:hover {
-//         opacity: 0.9;
-//         transform: translateY(-2px);
-//       }
-//     }
-//   }
-
-//   // Giữ nguyên phần Search Container như ban đầu
-//   .search-container {
-//     max-width: 600px;
-//     margin: 0 auto 3rem;
-
-//     .search-bar {
-//       .input-group {
-//         background: white;
-//         border-radius: 0.5rem;
-//         overflow: hidden;
-//         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-
-//         .input-group-text {
-//           background: white;
-//           border: none;
-//           padding-left: 1.5rem;
-
-//           svg {
-//             color: #510545; // Giữ màu tím đậm, giống ban đầu
-//           }
-//         }
-
-//         input {
-//           border: none;
-//           padding: 1rem;
-//           font-size: 1rem;
-
-//           &:focus {
-//             box-shadow: none;
-//             outline: none;
-//           }
-
-//           &::placeholder {
-//             color: #6b7280;
-//           }
-//         }
-//       }
-//     }
-//   }
-
-//   // Giữ nguyên phần Costume Grid như ban đầu
-//   .costume-grid {
-//     display: grid;
-//     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-//     gap: 2rem;
-//     padding: 1rem;
-
-//     @media (min-width: 1200px) {
-//       grid-template-columns: repeat(4, 1fr);
-//     }
-
-//     @media (min-width: 992px) and (max-width: 1199px) {
-//       grid-template-columns: repeat(3, 1fr);
-//     }
-
-//     @media (min-width: 768px) and (max-width: 991px) {
-//       grid-template-columns: repeat(2, 1fr);
-//     }
-//   }
-
-//   // Giữ nguyên phần Costume Card như ban đầu
-//   .costume-card {
-//     background: white;
-//     border-radius: 0.5rem;
-//     overflow: hidden;
-//     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-//     transition: transform 0.3s ease, box-shadow 0.3s ease;
-//     position: relative;
-//     text-align: column;
-
-//     &:hover {
-//       transform: translateY(-5px);
-//       box-shadow: 0 12px 20px rgba(81, 5, 69, 0.15);
-//     }
-
-//     .card-image {
-//       position: relative;
-//       padding-top: 100%;
-//       overflow: hidden;
-
-//       img {
-//         position: absolute;
-//         top: 0;
-//         left: 0;
-//         width: 100%;
-//         height: 100%;
-//         object-fit: cover;
-//         transition: transform 0.3s ease;
-//       }
-
-//       &:hover img {
-//         transform: scale(1.05);
-//       }
-//     }
-
-//     .card-content {
-//       padding: 1.5rem;
-
-//       .costume-name {
-//         font-size: 1.5rem;
-//         font-weight: 700;
-//         margin-bottom: 0.5rem;
-//         color: #510545;
-//       }
-
-//       .costume-category {
-//         color: #6b7280;
-//         font-size: 0.9rem;
-//         margin-bottom: 1rem;
-//       }
-
-//       .rent-button {
-//         background: linear-gradient(135deg, #510545, #22668a);
-//         color: white;
-//         border: none;
-//         border-radius: 0.75rem;
-//         padding: 0.75rem 1.5rem;
-//         font-weight: 600;
-//         font-size: 0.9rem;
-//         width: 100%;
-//         cursor: pointer;
-//         transition: all 0.3s ease;
-
-//         &:hover {
-//           background: linear-gradient(135deg, #22668a, #510545);
-//           transform: translateY(-2px);
-//           box-shadow: 0 4px 12px rgba(81, 5, 69, 0.2);
-//         }
-
-//         &:active {
-//           transform: translateY(0);
-//         }
-//       }
-//     }
-//   }
-// }
-
 .costume-rental-page {
   background-color: #f4f7fa !important;
   min-height: 100vh;
@@ -220,15 +12,16 @@
     background: linear-gradient(135deg, #510545, #22668a, #1a1a2e);
     animation: gradientShift 10s ease infinite;
     padding: 4rem 0;
-    // margin-top: 4rem;
 
     @keyframes gradientShift {
       0% {
         background-position: 0% 50%;
       }
+
       50% {
         background-position: 100% 50%;
       }
+
       100% {
         background-position: 0% 50%;
       }
@@ -321,9 +114,11 @@
     @media (min-width: 1200px) {
       grid-template-columns: repeat(4, 1fr);
     }
+
     @media (min-width: 992px) and (max-width: 1199px) {
       grid-template-columns: repeat(3, 1fr);
     }
+
     @media (min-width: 768px) and (max-width: 991px) {
       grid-template-columns: repeat(2, 1fr);
     }
@@ -335,7 +130,9 @@
     overflow: hidden;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 
     &:hover {
       transform: translateY(-5px);
@@ -363,19 +160,43 @@
     }
 
     .card-content {
-      padding: 1.5rem;
+      padding: 1.5rem 1.5rem 0.25rem 1.5rem; // Giảm padding-bottom xuống 0.25rem (4px)
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
 
       .costume-name {
         font-size: 1.5rem;
         font-weight: 700;
         margin-bottom: 0.5rem;
         color: #510545;
+        min-height: 48px;
+        display: -webkit-box;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .price-and-button {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: auto;
       }
 
       .costume-category {
-        color: #6b7280;
-        font-size: 0.9rem;
-        margin-bottom: 1rem;
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #f85caa;
+        background: rgba(248, 92, 170, 0.1);
+        padding: 0.5rem 0.8rem;
+        border-radius: 0.3rem;
+        display: inline-block;
+        transition: background 0.3s ease;
+        flex-shrink: 0;
+        min-width: 60px;
+        text-align: center;
       }
 
       .rent-button {
@@ -383,27 +204,26 @@
         color: white;
         border: none;
         border-radius: 0.75rem;
-        padding: 0.75rem 1.5rem;
+        padding: 0.3rem 1rem;
         font-weight: 600;
         font-size: 0.9rem;
-        width: 100%;
+        flex-grow: 1;
         cursor: pointer;
         transition: all 0.3s ease;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
 
         &:hover {
           background: linear-gradient(135deg, #22668a, #510545);
           transform: translateY(-2px);
           box-shadow: 0 4px 12px rgba(81, 5, 69, 0.2);
         }
-
-        &:active {
-          transform: translateY(0);
-        }
       }
     }
   }
 
-  /* Modal Styling - Copied 100% from FestivalPage */
   .gallery-modal {
     .modal-content {
       border-radius: 0.5rem;
