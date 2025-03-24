@@ -1,9 +1,10 @@
+//=====================================
 import React, { useState } from "react";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 
-const CharacterImageManager = ({ images, setImages }) => {
+const CharacterImageManager = ({ images, setImages, disabled }) => {
   const [newImageUrl, setNewImageUrl] = useState("");
 
   const handleAddImage = () => {
@@ -12,13 +13,13 @@ const CharacterImageManager = ({ images, setImages }) => {
         imageId: `IMG${Date.now()}`,
         urlImage: newImageUrl,
       };
-      setImages([...images, newImage]);
+      setImages([...(images || []), newImage]); // Fallback nếu images là undefined
       setNewImageUrl("");
     }
   };
 
   const handleRemoveImage = (index) => {
-    setImages(images.filter((_, i) => i !== index));
+    setImages((images || []).filter((_, i) => i !== index)); // Fallback nếu images là undefined
   };
 
   return (
@@ -31,35 +32,45 @@ const CharacterImageManager = ({ images, setImages }) => {
           onChange={(e) => setNewImageUrl(e.target.value)}
           fullWidth
           margin="normal"
+          disabled={disabled}
         />
         <Button
           variant="contained"
           color="primary"
           onClick={handleAddImage}
           style={{ marginLeft: 8 }}
-          disabled={!newImageUrl}
+          disabled={!newImageUrl || disabled}
         >
           Add
         </Button>
       </div>
       <div className="image-preview" style={{ display: "flex" }}>
-        {images.map((image, index) => (
-          <div key={index} className="image-preview-item">
-            <img
-              src={image.urlImage}
-              alt={`Character ${index + 1}`}
-              style={{
-                width: 100,
-                height: 100,
-                objectFit: "cover",
-                marginRight: 8,
-              }}
-            />
-            <IconButton onClick={() => handleRemoveImage(index)} color="error">
-              🗑️
-            </IconButton>
-          </div>
-        ))}
+        {(images || []).map(
+          (
+            image,
+            index // Fallback nếu images là undefined
+          ) => (
+            <div key={index} className="image-preview-item">
+              <img
+                src={image.urlImage}
+                alt={`Character ${index + 1}`}
+                style={{
+                  width: 100,
+                  height: 100,
+                  objectFit: "cover",
+                  marginRight: 8,
+                }}
+              />
+              <IconButton
+                onClick={() => handleRemoveImage(index)}
+                color="error"
+                disabled={disabled}
+              >
+                🗑️
+              </IconButton>
+            </div>
+          )
+        )}
       </div>
     </div>
   );

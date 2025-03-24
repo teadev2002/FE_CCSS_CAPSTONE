@@ -1,5 +1,5 @@
 import apiClient from "../api/apiClient.js";
-
+// import { apiClient, formDataClient } from "../api/apiClient.js";
 const AuthService = {
   // Login function
   login: async (email, password) => {
@@ -29,7 +29,7 @@ const AuthService = {
   // Sign up function
   signup: async (name, email, password, birthday, phone, role = "3") => {
     try {
-      const response = await apiClient.post(`/Auth/register/${role}`, {
+      const response = await apiClient.post(`/Auth/register/`, {
         name,
         email,
         password,

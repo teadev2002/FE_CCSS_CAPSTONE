@@ -1,3 +1,4 @@
+// DA CALL DC API, BI LOI IMAGE
 import React, { useState } from "react";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
@@ -9,7 +10,14 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import Button from "@mui/material/Button";
 import CharacterImageManager from "./CharacterImageManager";
 
-const CharacterForm = ({ open, onClose, onSubmit, initialData, isEditing }) => {
+const CharacterForm = ({
+  open,
+  onClose,
+  onSubmit,
+  initialData,
+  isEditing,
+  loading,
+}) => {
   const [formData, setFormData] = useState(
     initialData || {
       characterId: "",
@@ -58,7 +66,7 @@ const CharacterForm = ({ open, onClose, onSubmit, initialData, isEditing }) => {
             fullWidth
             margin="normal"
             required
-            disabled={isEditing}
+            disabled={isEditing || loading}
           />
           <TextField
             label="Category ID"
@@ -68,6 +76,7 @@ const CharacterForm = ({ open, onClose, onSubmit, initialData, isEditing }) => {
             fullWidth
             margin="normal"
             required
+            disabled={loading}
           />
           <TextField
             label="Character Name"
@@ -77,6 +86,7 @@ const CharacterForm = ({ open, onClose, onSubmit, initialData, isEditing }) => {
             fullWidth
             margin="normal"
             required
+            disabled={loading}
           />
           <TextField
             label="Description"
@@ -87,6 +97,7 @@ const CharacterForm = ({ open, onClose, onSubmit, initialData, isEditing }) => {
             margin="normal"
             multiline
             rows={3}
+            disabled={loading}
           />
           <TextField
             label="Price ($)"
@@ -98,6 +109,7 @@ const CharacterForm = ({ open, onClose, onSubmit, initialData, isEditing }) => {
             margin="normal"
             required
             inputProps={{ min: 0, step: 0.01 }}
+            disabled={loading}
           />
           <FormControlLabel
             control={
@@ -106,6 +118,7 @@ const CharacterForm = ({ open, onClose, onSubmit, initialData, isEditing }) => {
                 onChange={handleSwitchChange}
                 name="isActive"
                 color="primary"
+                disabled={loading}
               />
             }
             label="Active"
@@ -121,6 +134,7 @@ const CharacterForm = ({ open, onClose, onSubmit, initialData, isEditing }) => {
             margin="normal"
             required
             inputProps={{ min: 0 }}
+            disabled={loading}
           />
           <TextField
             label="Max Weight (kg)"
@@ -132,6 +146,7 @@ const CharacterForm = ({ open, onClose, onSubmit, initialData, isEditing }) => {
             margin="normal"
             required
             inputProps={{ min: 0 }}
+            disabled={loading}
           />
           <TextField
             label="Min Height (cm)"
@@ -143,6 +158,7 @@ const CharacterForm = ({ open, onClose, onSubmit, initialData, isEditing }) => {
             margin="normal"
             required
             inputProps={{ min: 0 }}
+            disabled={loading}
           />
           <TextField
             label="Min Weight (kg)"
@@ -154,6 +170,7 @@ const CharacterForm = ({ open, onClose, onSubmit, initialData, isEditing }) => {
             margin="normal"
             required
             inputProps={{ min: 0 }}
+            disabled={loading}
           />
           <TextField
             label="Quantity"
@@ -165,6 +182,7 @@ const CharacterForm = ({ open, onClose, onSubmit, initialData, isEditing }) => {
             margin="normal"
             required
             inputProps={{ min: 0 }}
+            disabled={loading}
           />
           <TextField
             label="Create Date"
@@ -176,7 +194,7 @@ const CharacterForm = ({ open, onClose, onSubmit, initialData, isEditing }) => {
             margin="normal"
             InputLabelProps={{ shrink: true }}
             required
-            disabled={isEditing}
+            disabled={isEditing || loading}
           />
           <TextField
             label="Update Date"
@@ -188,18 +206,20 @@ const CharacterForm = ({ open, onClose, onSubmit, initialData, isEditing }) => {
             margin="normal"
             InputLabelProps={{ shrink: true }}
             required
+            disabled={loading}
           />
           <CharacterImageManager
             images={formData.images}
             setImages={(images) => setFormData({ ...formData, images })}
+            disabled={loading}
           />
         </form>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} color="secondary">
+        <Button onClick={onClose} color="secondary" disabled={loading}>
           Cancel
         </Button>
-        <Button onClick={handleSubmit} color="primary">
+        <Button onClick={handleSubmit} color="primary" disabled={loading}>
           {isEditing ? "Update" : "Add"} Character
         </Button>
       </DialogActions>

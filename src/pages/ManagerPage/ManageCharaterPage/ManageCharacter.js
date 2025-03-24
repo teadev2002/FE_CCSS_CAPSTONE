@@ -1,58 +1,51 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import CharacterList from "./CharacterList";
 import CharacterForm from "./CharacterForm";
 import Button from "@mui/material/Button";
-import "../../../styles/Manager/ManageCharacter.scss"; // Giả sử bạn tạo file SCSS tương tự
+import CharacterService from "../../../services/ManageServicePages/ManageCharacterService/CharacterService"; // Import service
+import "../../../styles/Manager/ManageCharacter.scss";
 
 const ManageCharacter = () => {
-  const [characters, setCharacters] = useState([
-    {
-      characterId: "C001",
-      categoryId: "CAT001",
-      characterName: "Sailor Moon",
-      description: "A magical girl from the Sailor Moon series.",
-      price: 100,
-      isActive: true,
-      maxHeight: 170,
-      maxWeight: 60,
-      minHeight: 160,
-      minWeight: 50,
-      quantity: 5,
-      createDate: "2025-01-01",
-      updateDate: "2025-01-02",
-      images: [
-        { imageId: "IMG001", urlImage: "https://example.com/sailormoon1.jpg" },
-        { imageId: "IMG002", urlImage: "https://example.com/sailormoon2.jpg" },
-      ],
-    },
-    {
-      characterId: "C002",
-      categoryId: "CAT002",
-      characterName: "Naruto Uzumaki",
-      description: "A ninja from the Hidden Leaf Village.",
-      price: 120,
-      isActive: true,
-      maxHeight: 180,
-      maxWeight: 70,
-      minHeight: 165,
-      minWeight: 55,
-      quantity: 3,
-      createDate: "2025-01-03",
-      updateDate: "2025-01-04",
-      images: [
-        { imageId: "IMG003", urlImage: "https://example.com/naruto1.jpg" },
-      ],
-    },
-  ]);
-
+  const [characters, setCharacters] = useState([]);
   const [openModal, setOpenModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentCharacter, setCurrentCharacter] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const handleShowModal = (character = null) => {
+  // Lấy tất cả characters khi component mount
+  useEffect(() => {
+    fetchCharacters();
+  }, []);
+
+  const fetchCharacters = async () => {
+    setLoading(true);
+    try {
+      const data = await CharacterService.getAllCharacters();
+      setCharacters(data);
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleShowModal = async (character = null) => {
     if (character) {
       setIsEditing(true);
-      setCurrentCharacter(character);
+      setLoading(true);
+      try {
+        const data = await CharacterService.getCharacterById(
+          character.characterId
+        );
+        setCurrentCharacter(data);
+        setError(null);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
     } else {
       setIsEditing(false);
       setCurrentCharacter(null);
@@ -66,26 +59,46 @@ const ManageCharacter = () => {
     setCurrentCharacter(null);
   };
 
-  const handleCreateOrUpdate = (formData) => {
-    if (isEditing) {
-      setCharacters(
-        characters.map((character) =>
-          character.characterId === currentCharacter.characterId
-            ? formData
-            : character
-        )
-      );
-    } else {
-      setCharacters([...characters, formData]);
+  const handleCreateOrUpdate = async (formData) => {
+    setLoading(true);
+    try {
+      if (isEditing) {
+        const updatedCharacter = await CharacterService.updateCharacter(
+          formData.characterId,
+          formData
+        );
+        setCharacters(
+          characters.map((c) =>
+            c.characterId === updatedCharacter.characterId
+              ? updatedCharacter
+              : c
+          )
+        );
+      } else {
+        const newCharacter = await CharacterService.createCharacter(formData);
+        setCharacters([...characters, newCharacter]);
+      }
+      setError(null);
+      handleCloseModal();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
-    handleCloseModal();
   };
 
-  const handleDelete = (characterId) => {
+  const handleDelete = async (characterId) => {
     if (window.confirm("Are you sure you want to delete this character?")) {
-      setCharacters(
-        characters.filter((character) => character.characterId !== characterId)
-      );
+      setLoading(true);
+      try {
+        await CharacterService.deleteCharacter(characterId);
+        setCharacters(characters.filter((c) => c.characterId !== characterId));
+        setError(null);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -97,14 +110,17 @@ const ManageCharacter = () => {
         color="primary"
         onClick={() => handleShowModal()}
         style={{ marginBottom: 16 }}
+        disabled={loading}
       >
         Add New Character
       </Button>
 
+      {error && <p style={{ color: "red" }}>{error}</p>}
       <CharacterList
         characters={characters}
         onEdit={handleShowModal}
         onDelete={handleDelete}
+        loading={loading}
       />
 
       {openModal && (
@@ -114,6 +130,7 @@ const ManageCharacter = () => {
           onSubmit={handleCreateOrUpdate}
           initialData={currentCharacter}
           isEditing={isEditing}
+          loading={loading}
         />
       )}
     </div>
