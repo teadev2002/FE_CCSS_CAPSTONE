@@ -12,7 +12,6 @@
     background: linear-gradient(135deg, #510545, #22668a, #1a1a2e);
     animation: gradientShift 10s ease infinite;
     padding: 4rem 0;
-    // margin-top: 4rem;
 
     @keyframes gradientShift {
       0% {
@@ -247,14 +246,14 @@
       }
 
       .cosplayer-price {
-        background: #e9e6e6; // Nền xám nhạt
-        padding: 11px 22px; // Khoảng đệm để giá không bị sát viền
-        border-radius: 5px; // Bo góc nhẹ cho nền
+        background: #e9e6e6;
+        padding: 11px 22px;
+        border-radius: 5px;
         font-size: 16px;
         font-weight: 500;
         color: #510545;
         margin: 0;
-        margin-left: auto; // Pushes the price to the right
+        margin-left: auto;
       }
     }
 
@@ -272,7 +271,7 @@
 
       .assign-table-header {
         display: grid;
-        grid-template-columns: 1.5fr 1.5fr 1fr 1fr; // Điều chỉnh tỷ lệ cột
+        grid-template-columns: 1fr 1fr 1fr 0.8fr 0.8fr;
         font-weight: bold;
         padding: 10px;
         background: #f8f9fa;
@@ -282,7 +281,7 @@
 
       .assign-table-row {
         display: grid;
-        grid-template-columns: 1.5fr 1.5fr 1fr 1fr; // Điều chỉnh tỷ lệ cột
+        grid-template-columns: 1fr 1fr 1fr 0.8fr 0.8fr;
         align-items: center;
         padding: 10px;
         background: #f8f9fa;
@@ -290,15 +289,15 @@
         text-align: center;
 
         .character-select {
-          width: 150px; // Thu ngắn chiều ngang của dropdown
-          margin: 0 auto; // Căn giữa dropdown trong cột
+          width: 150px;
+          margin: 0 auto;
           padding: 5px;
           font-size: 14px;
         }
 
         .remove-btn {
-          width: 80px; // Giữ kích thước nút Remove
-          margin: 0 auto; // Căn giữa nút Remove trong cột
+          width: 80px;
+          margin: 0 auto;
           padding: 5px;
           font-size: 14px;
         }
@@ -389,6 +388,10 @@
     max-height: 70vh;
     overflow-y: auto;
 
+    &.hidden {
+      display: none;
+    }
+
     .selected-cosplayers-list {
       max-height: 300px;
       overflow-y: auto;
@@ -407,23 +410,24 @@
     position: fixed;
     right: 20px;
     top: 100px;
-    width: 300px;
+    width: 200px;
     background: linear-gradient(135deg, #510545, #22668a);
-    padding: 20px;
+    padding: 10px;
     border-radius: 10px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     z-index: 1000;
     color: white;
-    max-height: 70vh;
+    max-height: 50vh;
     overflow-y: auto;
 
     .toggle-price-list-btn {
       background: white;
       color: #510545;
       border: 2px solid #510545;
-      border-radius: 0.75rem;
-      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      padding: 0.5rem 1rem;
       font-weight: 600;
+      font-size: 0.8rem;
       transition: all 0.3s ease;
 
       &:hover {
@@ -434,20 +438,24 @@
     }
 
     .price-list-content {
-      margin-top: 10px;
+      margin-top: 5px;
       background: rgba(255, 255, 255, 0.1);
-      padding: 15px;
+      padding: 10px;
       border-radius: 8px;
 
+      h5 {
+        font-size: 1rem;
+      }
+
       .character-list {
-        max-height: 300px;
+        max-height: 200px;
         overflow-y: auto;
         list-style: none;
         padding: 0;
 
         li {
-          font-size: 14px;
-          padding: 8px 0;
+          font-size: 12px;
+          padding: 5px 0;
           border-bottom: 1px solid rgba(255, 255, 255, 0.2);
         }
       }
@@ -459,7 +467,8 @@
       color: #333;
       border: none;
       border-radius: 5px;
-      margin-bottom: 10px;
+      margin-bottom: 5px;
+      font-size: 12px;
     }
   }
 }

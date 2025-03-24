@@ -44,6 +44,7 @@ const DetailEventOrganizationPage = () => {
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
   const [discount, setDiscount] = useState("");
   const [customDiscount, setCustomDiscount] = useState("");
+  const [cosplayerNotes, setCosplayerNotes] = useState({});
 
   // Sample data for packages
   const packages = [
@@ -327,6 +328,7 @@ const DetailEventOrganizationPage = () => {
   const showSuccess = () => {
     toast.success("Event organized successfully!");
   };
+
   // Handle next step
   const handleNextStep = () => {
     if (step === 1 && !selectedPackage)
@@ -393,6 +395,7 @@ const DetailEventOrganizationPage = () => {
       useCosplayerList,
       discount,
       customDiscount,
+      cosplayerNotes,
     };
     localStorage.setItem("eventDraft", JSON.stringify(draft));
     toast.success("Draft saved successfully!");
@@ -448,25 +451,26 @@ const DetailEventOrganizationPage = () => {
     toast.info(`Viewing profile of ${cosplayer.name}`);
   };
 
-  // Toggle cosplayer selection with auto character assignment
+  // Toggle cosplayer selection with auto character assignment and note
   const toggleCosplayerSelection = (cosplayer) => {
     setSelectedCosplayers((prev) =>
       prev.some((sc) => sc.cosplayer.id === cosplayer.id)
         ? prev.filter((sc) => sc.cosplayer.id !== cosplayer.id)
         : [
-            ...prev,
-            {
-              cosplayer,
-              character:
-                characters.find(
-                  (char) =>
-                    char.name.toLowerCase() === characterSearch.toLowerCase() &&
-                    cosplayer.categories.includes(char.category) &&
-                    (cosplayer.gender === char.gender ||
-                      cosplayer.crossGenderAllowed)
-                )?.name || null,
-            },
-          ]
+          ...prev,
+          {
+            cosplayer,
+            character:
+              characters.find(
+                (char) =>
+                  char.name.toLowerCase() === characterSearch.toLowerCase() &&
+                  cosplayer.categories.includes(char.category) &&
+                  (cosplayer.gender === char.gender ||
+                    cosplayer.crossGenderAllowed)
+              )?.name || null,
+            note: cosplayerNotes[cosplayer.id] || "",
+          },
+        ]
     );
   };
 
@@ -477,6 +481,16 @@ const DetailEventOrganizationPage = () => {
         sc.cosplayer.id === cosplayerId
           ? { ...sc, character: selectedCharacter }
           : sc
+      )
+    );
+  };
+
+  // Handle cosplayer note input
+  const handleCosplayerNote = (cosplayerId, note) => {
+    setCosplayerNotes((prev) => ({ ...prev, [cosplayerId]: note }));
+    setSelectedCosplayers((prev) =>
+      prev.map((sc) =>
+        sc.cosplayer.id === cosplayerId ? { ...sc, note } : sc
       )
     );
   };
@@ -553,9 +567,8 @@ const DetailEventOrganizationPage = () => {
               {filteredPackages.map((pkg) => (
                 <Col md={4} className="mb-4" key={pkg.name}>
                   <Card
-                    className={`package-card ${
-                      selectedPackage?.name === pkg.name ? "selected" : ""
-                    }`}
+                    className={`package-card ${selectedPackage?.name === pkg.name ? "selected" : ""
+                      }`}
                     onClick={() => setSelectedPackage(pkg)}
                   >
                     <Card.Img variant="top" src={pkg.image} />
@@ -748,13 +761,12 @@ const DetailEventOrganizationPage = () => {
                   {filterCosplayersByCharacterAndGender().map((cosplayer) => (
                     <Col md={4} className="mb-4" key={cosplayer.id}>
                       <Card
-                        className={`cosplayer-card ${
-                          selectedCosplayers.some(
-                            (sc) => sc.cosplayer.id === cosplayer.id
-                          )
+                        className={`cosplayer-card ${selectedCosplayers.some(
+                          (sc) => sc.cosplayer.id === cosplayer.id
+                        )
                             ? "selected"
                             : ""
-                        }`}
+                          }`}
                         onClick={() => toggleCosplayerSelection(cosplayer)}
                       >
                         <Card.Img variant="top" src={cosplayer.image} />
@@ -800,13 +812,14 @@ const DetailEventOrganizationPage = () => {
                   >
                     <h4>Assign Characters to Selected Cosplayers</h4>
                     <p className="text-muted">
-                      Please assign a character to each cosplayer. Some
-                      cosplayers can perform cross-gender roles.
+                      Please assign a character to each cosplayer and add notes
+                      if needed. Some cosplayers can perform cross-gender roles.
                     </p>
                     <div className="assign-table">
                       <div className="assign-table-header">
                         <span>Cosplayer</span>
                         <span>Character</span>
+                        <span>Note</span>
                         <span>Action</span>
                         <span>Price</span>
                       </div>
@@ -848,6 +861,19 @@ const DetailEventOrganizationPage = () => {
                                   </option>
                                 ))}
                             </Form.Select>
+                            <Form.Control
+                              as="textarea"
+                              rows={2}
+                              value={sc.note || ""}
+                              onChange={(e) =>
+                                handleCosplayerNote(
+                                  sc.cosplayer.id,
+                                  e.target.value
+                                )
+                              }
+                              placeholder="Add note"
+                              style={{ width: "150px", margin: "0 auto" }}
+                            />
                             <Button
                               variant="outline-danger"
                               size="sm"
@@ -930,8 +956,12 @@ const DetailEventOrganizationPage = () => {
                   <strong>Cosplayers:</strong>{" "}
                   {useCosplayerList
                     ? selectedCosplayers
-                        .map((sc) => `${sc.cosplayer.name} as ${sc.character}`)
-                        .join(", ")
+                      .map(
+                        (sc) =>
+                          `${sc.cosplayer.name} as ${sc.character} (Note: ${sc.note || "None"
+                          })`
+                      )
+                      .join(", ")
                     : manualQuantity}
                 </p>
                 {useCosplayerList && (
@@ -1084,8 +1114,12 @@ const DetailEventOrganizationPage = () => {
             <strong>Cosplayers:</strong>{" "}
             {useCosplayerList
               ? selectedCosplayers
-                  .map((sc) => `${sc.cosplayer.name} as ${sc.character}`)
-                  .join(", ")
+                .map(
+                  (sc) =>
+                    `${sc.cosplayer.name} as ${sc.character} (Note: ${sc.note || "None"
+                    })`
+                )
+                .join(", ")
               : manualQuantity}
           </p>
           {useCosplayerList && (
@@ -1111,9 +1145,8 @@ const DetailEventOrganizationPage = () => {
       {/* Sidebar for Selected Cosplayers */}
       {step === 3 && selectedCosplayers.length > 0 && (
         <div
-          className={`selected-cosplayers-sidebar ${
-            !isSidebarVisible ? "hidden" : ""
-          }`}
+          className={`selected-cosplayers-sidebar ${!isSidebarVisible ? "hidden" : ""
+            }`}
           id="selected-cosplayers-sidebar"
         >
           <h5>Selected Cosplayers</h5>
@@ -1127,7 +1160,8 @@ const DetailEventOrganizationPage = () => {
               return (
                 <li key={sc.cosplayer.id}>
                   {sc.cosplayer.name} as{" "}
-                  {sc.character || "No character assigned"} - ${totalPrice}
+                  {sc.character || "No character assigned"} - ${totalPrice}{" "}
+                  (Note: {sc.note || "None"})
                 </li>
               );
             })}
@@ -1152,7 +1186,8 @@ const DetailEventOrganizationPage = () => {
               <Form.Select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="mb-3"
+                className="mb-2"
+                size="sm"
               >
                 <option value="All">All Categories</option>
                 {[...new Set(characters.map((char) => char.category))].map(
@@ -1163,7 +1198,7 @@ const DetailEventOrganizationPage = () => {
                   )
                 )}
               </Form.Select>
-              <InputGroup className="mb-3">
+              <InputGroup className="mb-2" size="sm">
                 <FormControl
                   placeholder="Search characters"
                   onChange={(e) => setCharacterPriceSearch(e.target.value)}
