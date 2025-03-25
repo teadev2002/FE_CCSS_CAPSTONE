@@ -16,7 +16,7 @@ const CharacterService = {
   // Lấy character theo ID
   getCharacterById: async (characterId) => {
     try {
-      const response = await apiClient.get(`/Character?id=${characterId}`);
+      const response = await apiClient.get(`/Character/${characterId}`);
       return response.data;
     } catch (error) {
       throw new Error(
@@ -122,7 +122,7 @@ const CharacterService = {
       }
 
       const response = await formDataClient.put(
-        `/Character?id=${characterId}`,
+        `/Character/${characterId}`,
         formData
       );
       return response.data;
