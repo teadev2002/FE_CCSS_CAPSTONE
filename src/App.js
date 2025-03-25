@@ -1,9 +1,15 @@
+import { useEffect } from "react"; // Thêm useEffect
+import {
+  Route,
+  Routes,
+  BrowserRouter,
+  useLocation,
+} from "react-router-dom"; // Đảm bảo import useLocation
 import "./styles/App.scss";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "react-toastify/dist/ReactToastify.css";
 import "antd/dist/reset.css";
 import { ToastContainer } from "react-toastify";
-import { Route, Routes, BrowserRouter, useLocation } from "react-router-dom";
 import { Navbar } from "./components/Nav/navbar";
 import { Footer } from "./components/Footer/Footer";
 import HomePage from "./pages/HomePage/HomePage.js";
@@ -32,10 +38,16 @@ import ManageGeneral from "./pages/ManagerPage/ManagePage/ManageGeneral.js";
 import ManageSouvenir from "./pages/ManagerPage/ManageSouvenirsPage/ManageSouvenir.js";
 import ManageCosplayer from "./pages/ManagerPage/ManageCosplayerPage/ManageCosplayer.js";
 import ManageCharacter from "./pages/ManagerPage/ManageCharaterPage/ManageCharacter.js";
-import CartPage from "./pages/CartPage/CartPage.js"; // Thêm import CartPage
+import CartPage from "./pages/CartPage/CartPage.js"; // Import CartPage
 
 const AppLayout = ({ children }) => {
   const location = useLocation();
+
+  // Thêm logic cuộn về đầu trang khi đường dẫn thay đổi
+  useEffect(() => {
+    window.scrollTo(0, 0); // Cuộn về đầu trang
+  }, [location.pathname]); // Chạy lại mỗi khi pathname thay đổi
+
   const isAdminPage = location.pathname.startsWith("/admin");
   const isManagePage = location.pathname.startsWith("/manage");
   const isNotFoundPage =
@@ -76,7 +88,7 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/sign-up" element={<SignupPage />} />
           <Route path="/user-profile/:id" element={<ProfilePage />} />
-          <Route path="/cart" element={<CartPage />} /> {/* Thêm route cho Cart */}
+          <Route path="/cart" element={<CartPage />} /> {/* Route cho Cart */}
           <Route path="/admin/dashboard" element={<DashboardPage />} />
           <Route
             path="/admin/user-performance"

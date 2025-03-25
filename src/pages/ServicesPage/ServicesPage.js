@@ -1,5 +1,6 @@
 import { Users, Calendar, ShoppingBag } from "lucide-react";
 import { Button, Container, Row, Col } from "react-bootstrap";
+import { Link } from "react-router-dom"; // Added Link import
 import "../../styles/HomePage.scss";
 
 const ServicesPage = (props) => {
@@ -42,21 +43,23 @@ const ServicesPage = (props) => {
                   </li>
                 ))}
               </ul>
-              <Button
-                variant="primary"
-                size="lg"
-                style={{
-                  background: "linear-gradient(135deg, #510545, #22668a)",
-                  border: "none",
-                  color: "white",
-                  fontWeight: "bold",
-                  transition: "all 0.3s ease",
-                }}
-                onMouseOver={(e) => (e.target.style.opacity = "0.8")}
-                onMouseOut={(e) => (e.target.style.opacity = "1")}
-              >
-                Explore Now!
-              </Button>
+              <Link to={service.link}> {/* Added Link wrapper */}
+                <Button
+                  variant="primary"
+                  size="lg"
+                  style={{
+                    background: "linear-gradient(135deg, #510545, #22668a)",
+                    border: "none",
+                    color: "white",
+                    fontWeight: "bold",
+                    transition: "all 0.3s ease",
+                  }}
+                  onMouseOver={(e) => (e.target.style.opacity = "0.8")}
+                  onMouseOut={(e) => (e.target.style.opacity = "1")}
+                >
+                  Explore Now!
+                </Button>
+              </Link>
             </Col>
           </Row>
         ))}
@@ -64,10 +67,11 @@ const ServicesPage = (props) => {
     </div>
   );
 };
+
 const services = [
   {
     id: "cosplayer-hire",
-    title: "Hire the Cosplayers",
+    title: "Engage Cosplayers",
     description:
       "Book professional cosplayers for your events, parties, or photoshoots. Our talented team brings your favorite characters to life with authentic costumes and performances.",
     image:
@@ -80,6 +84,7 @@ const services = [
       "Available for events, parties, and photoshoots",
       "Flexible booking options",
     ],
+    link: "/cosplayers", // Links to CosplayersPage.js
   },
   {
     id: "event-organization",
@@ -96,6 +101,7 @@ const services = [
       "Engaging Activities: Create memorable experiences for attendees.",
       "Professional Management: Ensuring a smooth and successful event.",
     ],
+    link: "/event", // Links to DetailEventOrganizationPage.js
   },
   {
     id: "costume-rental",
@@ -112,10 +118,11 @@ const services = [
       "Flexible rental periods",
       "Cleaning and maintenance service",
     ],
+    link: "/costumes", // Links to CostumesPage.js
   },
   {
     id: "event-registration",
-    title: "Event Registration",
+    title: "Dive Into Festival Fun",
     description:
       "Buy a ticket to meet your idol! Sign up for a photo and autograph session and create lasting memories. ",
     image:
@@ -128,10 +135,11 @@ const services = [
       "Fun Experience: Enjoy an unforgettable event.",
       "Fan Community: Connect with like-minded fans",
     ],
+    link: "/festivals", // Links to FestivalsPage.js
   },
   {
     id: "selling-souvenirs",
-    title: "Selling Souvenirs",
+    title: "Shop For Souvenirs",
     description:
       "Take home a piece of the magic! Our souvenirs offer lasting memories of your favorite moments.",
     image:
@@ -144,6 +152,8 @@ const services = [
       "Perfect gifts",
       "Tangible reminders of joy!",
     ],
+    link: "/souvenirs-shop", // Links to SouvenirsPage.js
   },
 ];
+
 export default ServicesPage;

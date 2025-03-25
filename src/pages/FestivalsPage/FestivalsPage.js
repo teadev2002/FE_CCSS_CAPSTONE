@@ -49,7 +49,7 @@ const FestivalsPage = () => {
     <div className="fest-page min-vh-100">
       <div className="fest-hero-section text-white py-5">
         <div className="container">
-          <h1 className="display-4 fw-bold text-center">Festival Gallery</h1>
+          <h1 className="display-4 fw-bold text-center">Enjoy Festivals</h1>
           <p className="lead text-center mt-3">
             Explore epic cosplay festivals and events!
           </p>

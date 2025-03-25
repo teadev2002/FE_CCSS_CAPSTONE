@@ -42,14 +42,14 @@ const CartPage = () => {
     return (
         <div className="cart-page min-vh-100">
             {/* Hero Section - Copy từ SouvenirsPage, chỉ đổi title */}
-            <div className="hero-section text-white py-5">
+            {/* <div className="hero-section text-white py-5">
                 <div className="container">
                     <h1 className="display-4 fw-bold text-center">Your Cart</h1>
                     <p className="lead text-center mt-3">
                         Review and manage your selected souvenirs
                     </p>
                 </div>
-            </div>
+            </div> */}
 
             <div className="container py-5">
                 {cartItems.length === 0 ? (
