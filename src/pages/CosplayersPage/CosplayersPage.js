@@ -339,7 +339,7 @@ const CosplayersPage = () => {
     <div className="cosplay-rental-page min-vh-100">
       <div className="hero-section text-black py-5">
         <Container>
-          <h1 className="display-4 fw-bold text-center">Cosplayer Rental</h1>
+          <h1 className="display-4 fw-bold text-center">Hire Cosplayers</h1>
           <p className="lead text-center mt-3">
             Book your favorite cosplayers for events
           </p>

@@ -1,50 +1,64 @@
-import axios from "axios";
+import { apiClient, formDataClient } from "../../api/apiClient.js";
 
-// Base URL của API
-const BASE_URL = "https://localhost:7071/api";
-
-// Hàm lấy danh sách Product
-export const getProducts = async () => {
+const ProductService = {
+  // Get all products
+  getProducts: async () => {
     try {
-        const response = await axios.get(`${BASE_URL}/Product`);
-        return response.data;
+      const response = await apiClient.get("/Product");
+      return response.data;
     } catch (error) {
-        throw new Error("Failed to fetch products: " + error.message);
+      throw new Error(
+        error.response?.data?.message || "Error fetching products"
+      );
     }
+  },
+
+  // Get all product images
+  getProductImages: async () => {
+    try {
+      const response = await apiClient.get("/ProductImage");
+      return response.data;
+    } catch (error) {
+      throw new Error(
+        error.response?.data?.message || "Error fetching product images"
+      );
+    }
+  },
+
+  // Get combined product and image data
+  getCombinedProductData: async () => {
+    try {
+      const [products, images] = await Promise.all([
+        ProductService.getProducts(),
+        ProductService.getProductImages(),
+      ]);
+
+      // Combine data
+      const combinedData = products
+        .filter((product) => product.isActive) // Only active products
+        .map((product) => {
+          const productImage = images.find(
+            (img) => img.productId === product.productId
+          );
+          return {
+            id: product.productId,
+            name: product.productName,
+            description: product.description,
+            quantity: product.quantity,
+            price: product.price,
+            image: productImage
+              ? productImage.urlImage
+              : "https://via.placeholder.com/300", // Default image
+          };
+        });
+
+      return combinedData;
+    } catch (error) {
+      throw new Error(
+        error.response?.data?.message || "Error fetching combined product data"
+      );
+    }
+  },
 };
 
-// Hàm lấy danh sách ProductImage
-export const getProductImages = async () => {
-    try {
-        const response = await axios.get(`${BASE_URL}/ProductImage`);
-        return response.data;
-    } catch (error) {
-        throw new Error("Failed to fetch product images: " + error.message);
-    }
-};
-
-// Hàm kết hợp dữ liệu Product và ProductImage
-export const getCombinedProductData = async () => {
-    try {
-        const [products, images] = await Promise.all([getProducts(), getProductImages()]);
-
-        // Kết hợp dữ liệu
-        const combinedData = products
-            .filter((product) => product.isActive) // Chỉ lấy sản phẩm active
-            .map((product) => {
-                const productImage = images.find((img) => img.productId === product.productId);
-                return {
-                    id: product.productId,
-                    name: product.productName,
-                    description: product.description,
-                    quantity: product.quantity,
-                    price: product.price,
-                    image: productImage ? productImage.urlImage : "https://via.placeholder.com/300", // Hình mặc định
-                };
-            });
-
-        return combinedData;
-    } catch (error) {
-        throw new Error("Failed to fetch combined product data: " + error.message);
-    }
-};
+export default ProductService;

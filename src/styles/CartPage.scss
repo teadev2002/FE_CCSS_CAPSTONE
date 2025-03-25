@@ -1,0 +1,252 @@
+.cart-page {
+    background-color: #f4f7fa !important;
+    min-height: 100vh;
+
+    .hero-section {
+        position: relative;
+        min-height: 50vh;
+        /* Copy từ SouvenirsPage */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        background: linear-gradient(135deg, #510545, #22668a, #1a1a2e);
+        animation: gradientShift 10s ease infinite;
+        padding: 4rem 0;
+        /* Copy từ SouvenirsPage */
+
+        @keyframes gradientShift {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+        }
+
+        h1.display-4 {
+            font-size: 4.5rem;
+            /* Copy từ SouvenirsPage */
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            background: linear-gradient(90deg, #f85caa, #d9b6f8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1.5rem;
+            /* Copy từ SouvenirsPage */
+            text-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease, opacity 0.3s ease;
+
+            &:hover {
+                transform: scale(1.03);
+                opacity: 0.95;
+            }
+        }
+
+        .lead {
+            font-size: 1.5rem;
+            /* Copy từ SouvenirsPage */
+            font-weight: 300;
+            color: rgba(255, 255, 255, 0.85);
+            max-width: 600px;
+            /* Copy từ SouvenirsPage */
+            margin: 0 auto;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+
+            &:hover {
+                opacity: 0.9;
+                transform: translateY(-2px);
+            }
+        }
+    }
+
+    .empty-cart {
+        padding: 4rem 0;
+
+        h3 {
+            color: #510545;
+            font-weight: 600;
+        }
+
+        .shop-now-btn {
+            background: linear-gradient(135deg, #510545, #22668a);
+            border: none;
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+
+            &:hover {
+                background: linear-gradient(135deg, #22668a, #510545);
+                transform: translateY(-2px);
+            }
+        }
+    }
+
+    .cart-content {
+        display: flex;
+        gap: 2rem;
+        flex-wrap: wrap;
+
+        .cart-items {
+            flex: 2;
+            min-width: 300px;
+
+            .cart-item {
+                display: flex;
+                align-items: center;
+                background: white;
+                border-radius: 0.5rem;
+                padding: 1rem;
+                margin-bottom: 1.5rem;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+                &:hover {
+                    transform: translateY(-5px);
+                    box-shadow: 0 12px 20px rgba(81, 5, 69, 0.15);
+                }
+
+                .item-image {
+                    width: 100px;
+                    height: 100px;
+                    overflow: hidden;
+                    border-radius: 0.5rem;
+
+                    img {
+                        width: 100%;
+                        height: 100%;
+                        object-fit: cover;
+                    }
+                }
+
+                .item-details {
+                    flex: 1;
+                    padding: 0 1.5rem;
+
+                    .item-name {
+                        font-size: 1.3rem;
+                        font-weight: 600;
+                        color: #510545;
+                    }
+
+                    .item-price {
+                        font-size: 1.1rem;
+                        color: #f85caa;
+                        font-weight: 600;
+                    }
+                }
+
+                .item-quantity {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.75rem;
+
+                    .btn-outline-secondary {
+                        border: 2px solid #510545;
+                        color: #510545;
+                        padding: 0.3rem 0.75rem;
+                        font-size: 1.1rem;
+
+                        &:hover {
+                            background: rgba(81, 5, 69, 0.1);
+                        }
+                    }
+
+                    span {
+                        font-size: 1.2rem;
+                        min-width: 30px;
+                        text-align: center;
+                    }
+                }
+
+                .item-total {
+                    font-size: 1.2rem;
+                    font-weight: 600;
+                    color: #22668a;
+                    padding: 0 1.5rem;
+                }
+
+                .remove-btn {
+                    background: #dc3545;
+                    border: none;
+                    padding: 0.5rem;
+                    transition: all 0.3s ease;
+
+                    &:hover {
+                        background: #c82333;
+                        transform: scale(1.1);
+                    }
+                }
+            }
+        }
+
+        .cart-summary {
+            flex: 1;
+            min-width: 300px;
+            background: white;
+            border-radius: 0.5rem;
+            padding: 2rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+
+            h4 {
+                color: #510545;
+                font-weight: 600;
+                margin-bottom: 1.5rem;
+            }
+
+            .summary-details {
+                margin-bottom: 1.5rem;
+
+                p {
+                    display: flex;
+                    justify-content: space-between;
+                    color: #4a4a4a;
+                    margin-bottom: 0.5rem;
+
+                    strong {
+                        color: #22668a;
+                    }
+                }
+
+                hr {
+                    border-color: #e0e0e0;
+                }
+
+                .total {
+                    font-size: 1.3rem;
+                    font-weight: 600;
+
+                    strong {
+                        color: #f85caa;
+                    }
+                }
+            }
+
+            .checkout-btn {
+                background: linear-gradient(135deg, #510545, #22668a);
+                border: none;
+                width: 100%;
+                padding: 0.75rem;
+                font-weight: 600;
+                transition: all 0.3s ease;
+
+                &:hover {
+                    background: linear-gradient(135deg, #22668a, #510545);
+                    transform: translateY(-2px);
+                }
+            }
+        }
+    }
+}

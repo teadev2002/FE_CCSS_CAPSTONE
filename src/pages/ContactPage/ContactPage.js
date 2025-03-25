@@ -6,14 +6,14 @@ const ContactPage = (props) => {
   return (
     <div className="homepage min-vh-100 bg-light">
       {/* Hero Section */}
-      <div className="hero-section bg-primary text-white py-5">
+      {/* <div className="hero-section bg-primary text-white py-5">
         <Container>
-          <h1 className="hero-title fw-bold text-center">Contact</h1> {/* Thay display-4 thành hero-title */}
-          <p className="hero-subtitle text-center mt-3"> {/* Thay lead thành hero-subtitle */}
+          <h1 className="hero-title fw-bold text-center">Contact</h1> 
+          <p className="hero-subtitle text-center mt-3">
             Need support? Don't hesitate to send our team a message!
           </p>
         </Container>
-      </div>
+      </div> */}
 
       {/* Contact Information */}
       <Container className="py-5">

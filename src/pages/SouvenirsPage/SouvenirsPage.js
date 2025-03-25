@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Search } from "lucide-react";
 import { Modal, Button, Form, Carousel } from "react-bootstrap";
 import "../../styles/SouvenirsPage.scss";
-import { getCombinedProductData } from "../../services/ProductService/ProductService";
+import ProductService from "../../services/ProductService/ProductService";
 
 const SouvenirsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -17,7 +17,7 @@ const SouvenirsPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const combinedData = await getCombinedProductData();
+        const combinedData = await ProductService.getCombinedProductData(); // Sửa ở đây
         setProducts(combinedData);
         setLoading(false);
       } catch (err) {
