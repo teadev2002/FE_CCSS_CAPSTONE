@@ -344,13 +344,13 @@ export function Navbar() {
   const navigate = useNavigate();
   const [userId, setUserId] = useState(null);
   const accessToken = localStorage.getItem("accessToken");
-  // Hàm tiện ích để lấy userId từ accessToken
+
   const getUserIdFromToken = () => {
     const accessToken = localStorage.getItem("accessToken");
     if (accessToken) {
       try {
         const decoded = jwtDecode(accessToken);
-        return decoded?.Id; // Giả sử token có trường "Id"
+        return decoded?.Id;
       } catch (error) {
         console.error("Lỗi khi giải mã token:", error);
         return null;
@@ -359,20 +359,18 @@ export function Navbar() {
     return null;
   };
 
-  // Cập nhật userId khi component mount
   useEffect(() => {
     const id = getUserIdFromToken();
     if (id) setUserId(id);
   }, []);
 
-  // Hàm điều hướng tới trang Profile
   const goToProfile = () => {
     const id = getUserIdFromToken();
     if (!id) {
       toast.warn("Bạn chưa đăng nhập!");
       setTimeout(() => navigate("/login"), 2100);
     } else {
-      navigate(`/user-profile/${id}`); // Sử dụng route hiện tại của bạn
+      navigate(`/user-profile/${id}`);
     }
   };
 
@@ -483,12 +481,12 @@ export function Navbar() {
               <CircleUser size={20} />
             </div>
             <div className="dropdown-menu dropdown-menu-user">
-              {accessToken && ( // Chỉ render nếu accessToken tồn tại
+              {accessToken && (
                 <div onClick={goToProfile} className="dropdown-item">
                   Profile
                 </div>
               )}
-              <Link to="#" className="dropdown-item">
+              <Link to="/cart" className="dropdown-item"> {/* Sửa đường dẫn */}
                 Cart
               </Link>
               <Link to="/contact" className="dropdown-item">

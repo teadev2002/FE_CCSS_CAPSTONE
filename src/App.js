@@ -32,30 +32,25 @@ import ManageGeneral from "./pages/ManagerPage/ManagePage/ManageGeneral.js";
 import ManageSouvenir from "./pages/ManagerPage/ManageSouvenirsPage/ManageSouvenir.js";
 import ManageCosplayer from "./pages/ManagerPage/ManageCosplayerPage/ManageCosplayer.js";
 import ManageCharacter from "./pages/ManagerPage/ManageCharaterPage/ManageCharacter.js";
+import CartPage from "./pages/CartPage/CartPage.js"; // Thêm import CartPage
 
-// Create a wrapper component to handle conditional rendering of Navbar, Footer, and Sidebars
 const AppLayout = ({ children }) => {
   const location = useLocation();
   const isAdminPage = location.pathname.startsWith("/admin");
   const isManagePage = location.pathname.startsWith("/manage");
-  // const isNotFoundPage = location.pathname === "/*"; // Match the route path
   const isNotFoundPage =
     location.pathname === "/*" ||
     location.pathname === "/login" ||
-    location.pathname === "/sign-up"; // Match the route path
+    location.pathname === "/sign-up";
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Show Navbar only if it's not an admin page, not a manage page, and not the notfound page */}
       {!isAdminPage && !isManagePage && !isNotFoundPage && <Navbar />}
       <div className="flex">
-        {/* Show Sidebar for admin pages */}
         {isAdminPage && !isNotFoundPage && <Sidebar />}
-        {/* Show SidebarManagement for manage pages */}
         {isManagePage && !isNotFoundPage && <SidebarManagement />}
         <main className="flex-grow">{children}</main>
       </div>
-      {/* Show Footer only if it's not an admin page, not a manage page, and not the notfound page */}
       {!isAdminPage && !isManagePage && !isNotFoundPage && <Footer />}
     </div>
   );
@@ -81,6 +76,7 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/sign-up" element={<SignupPage />} />
           <Route path="/user-profile/:id" element={<ProfilePage />} />
+          <Route path="/cart" element={<CartPage />} /> {/* Thêm route cho Cart */}
           <Route path="/admin/dashboard" element={<DashboardPage />} />
           <Route
             path="/admin/user-performance"
