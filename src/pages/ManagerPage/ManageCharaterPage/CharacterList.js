@@ -4,6 +4,7 @@ import Table from "react-bootstrap/Table";
 import Pagination from "react-bootstrap/Pagination";
 import Form from "react-bootstrap/Form";
 import CharacterActions from "./CharacterActions";
+import { Image } from "antd"; // Import Image từ Ant Design
 
 const CharacterList = ({ characters, onEdit, onDelete }) => {
   // State cho tìm kiếm
@@ -210,15 +211,28 @@ const CharacterList = ({ characters, onEdit, onDelete }) => {
               <td className="text-center">
                 {character.images && character.images.length > 0 ? (
                   <div className="d-flex flex-wrap justify-content-center">
-                    {character.images.map((image, index) => (
-                      <img
-                        key={index}
-                        src={image.urlImage}
-                        alt={`Image ${index + 1}`}
-                        className="img-thumbnail me-1 mb-1"
-                        style={{ width: 50, height: 50, objectFit: "cover" }}
-                      />
-                    ))}
+                    <Image.PreviewGroup
+                      preview={{
+                        onChange: (current, prev) =>
+                          console.log(
+                            `Current image index: ${current}, Previous image index: ${prev}`
+                          ),
+                      }}
+                    >
+                      {character.images.map((image, index) => (
+                        <Image
+                          key={index}
+                          src={image.urlImage}
+                          alt={`Image ${index + 1}`}
+                          width={50}
+                          height={50}
+                          style={{ objectFit: "cover", margin: "0 4px 4px 0" }}
+                          preview={{
+                            mask: "Zoom", // Hiển thị nút "Zoom" khi hover
+                          }}
+                        />
+                      ))}
+                    </Image.PreviewGroup>
                   </div>
                 ) : (
                   "No images"

@@ -1,6 +1,6 @@
 // còn lỗi  và update
-
 //boot
+
 import React, { useState, useEffect } from "react";
 import CharacterList from "./CharacterList";
 import CharacterForm from "./CharacterForm";
@@ -94,19 +94,17 @@ const ManageCharacter = () => {
   };
 
   const handleDelete = async (characterId) => {
-    if (window.confirm("Are you sure you want to delete this character?")) {
-      setLoading(true);
-      try {
-        await CharacterService.deleteCharacter(characterId);
-        setCharacters(characters.filter((c) => c.characterId !== characterId));
-        setError(null);
-        toast.success("Character deleted successfully!");
-      } catch (err) {
-        setError(err.message);
-        toast.error(`Failed to delete character: ${err.message}`);
-      } finally {
-        setLoading(false);
-      }
+    setLoading(true);
+    try {
+      await CharacterService.deleteCharacter(characterId);
+      setCharacters(characters.filter((c) => c.characterId !== characterId));
+      setError(null);
+      toast.success("Character deleted successfully!");
+    } catch (err) {
+      setError(err.message);
+      toast.error(`Failed to delete character: ${err.message}`);
+    } finally {
+      setLoading(false);
     }
   };
 

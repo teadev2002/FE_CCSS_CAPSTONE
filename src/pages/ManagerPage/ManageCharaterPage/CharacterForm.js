@@ -1,11 +1,11 @@
 // còn lỗi   update
-
-//boot
+//select categoryId=========================
 import React, { useState, useEffect } from "react";
 import Modal from "react-bootstrap/Modal";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import CharacterImageManager from "./CharacterImageManager";
+import CategoryService from "../../../services/CategoryService/CategoryService.js";
 
 const CharacterForm = ({
   open,
@@ -36,6 +36,28 @@ const CharacterForm = ({
         }
   );
 
+  const [categories, setCategories] = useState([]); // State để lưu danh sách category
+  const [categoryLoading, setCategoryLoading] = useState(false); // State để quản lý trạng thái tải category
+  const [categoryError, setCategoryError] = useState(null); // State để quản lý lỗi khi gọi API category
+
+  // Gọi API để lấy danh sách category khi form mở
+  useEffect(() => {
+    const fetchCategories = async () => {
+      setCategoryLoading(true);
+      try {
+        const data = await CategoryService.getAllCategories();
+        setCategories(data);
+        setCategoryError(null);
+      } catch (err) {
+        setCategoryError(err.message);
+      } finally {
+        setCategoryLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
   // Cập nhật formData khi initialData thay đổi
   useEffect(() => {
     if (initialData) {
@@ -65,7 +87,7 @@ const CharacterForm = ({
       </Modal.Header>
       <Modal.Body>
         <Form onSubmit={handleSubmit}>
-          <Form.Group className="mb-3">
+          {/* <Form.Group className="mb-3">
             <Form.Label>Character ID</Form.Label>
             <Form.Control
               type="text"
@@ -75,17 +97,25 @@ const CharacterForm = ({
               required
               disabled={isEditing || loading}
             />
-          </Form.Group>
+          </Form.Group> */}
           <Form.Group className="mb-3">
-            <Form.Label>Category ID</Form.Label>
-            <Form.Control
-              type="text"
+            <Form.Label>Category</Form.Label>
+            <Form.Select
               name="categoryId"
               value={formData.categoryId || ""}
               onChange={handleInputChange}
               required
-              disabled={loading}
-            />
+              disabled={loading || categoryLoading}
+            >
+              <option value="">Select a category</option>
+              {categories.map((category) => (
+                <option key={category.categoryId} value={category.categoryId}>
+                  {category.categoryName}
+                </option>
+              ))}
+            </Form.Select>
+            {categoryLoading && <p>Loading categories...</p>}
+            {categoryError && <p className="text-danger">{categoryError}</p>}
           </Form.Group>
           <Form.Group className="mb-3">
             <Form.Label>Character Name</Form.Label>
