@@ -1,76 +1,64 @@
-//=====================================
+//boot
 import React, { useState } from "react";
-import TextField from "@mui/material/TextField";
-import Button from "@mui/material/Button";
-import IconButton from "@mui/material/IconButton";
+import Button from "react-bootstrap/Button";
 
-const CharacterImageManager = ({ images, setImages, disabled }) => {
-  const [newImageUrl, setNewImageUrl] = useState("");
+const CharacterImageManager = ({ imageFiles, setImageFiles, disabled }) => {
+  const [previews, setPreviews] = useState([]);
 
-  const handleAddImage = () => {
-    if (newImageUrl) {
-      const newImage = {
-        imageId: `IMG${Date.now()}`,
-        urlImage: newImageUrl,
-      };
-      setImages([...(images || []), newImage]); // Fallback nếu images là undefined
-      setNewImageUrl("");
-    }
+  const handleAddFiles = (event) => {
+    const files = Array.from(event.target.files);
+    const newFiles = [...(imageFiles || []), ...files];
+    setImageFiles(newFiles);
+
+    const newPreviews = files.map((file) => URL.createObjectURL(file));
+    setPreviews([...previews, ...newPreviews]);
   };
 
-  const handleRemoveImage = (index) => {
-    setImages((images || []).filter((_, i) => i !== index)); // Fallback nếu images là undefined
+  const handleRemoveFile = (index) => {
+    const newFiles = (imageFiles || []).filter((_, i) => i !== index);
+    const newPreviews = previews.filter((_, i) => i !== index);
+    setImageFiles(newFiles);
+    setPreviews(newPreviews);
   };
 
   return (
     <div className="image-management">
       <h4>Images</h4>
-      <div style={{ display: "flex", alignItems: "center", marginBottom: 16 }}>
-        <TextField
-          label="Add Image URL"
-          value={newImageUrl}
-          onChange={(e) => setNewImageUrl(e.target.value)}
-          fullWidth
-          margin="normal"
+      <div className="d-flex align-items-center mb-3">
+        <input
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={handleAddFiles}
           disabled={disabled}
+          className="form-control me-2"
+          style={{ width: "auto" }}
         />
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleAddImage}
-          style={{ marginLeft: 8 }}
-          disabled={!newImageUrl || disabled}
-        >
-          Add
-        </Button>
       </div>
-      <div className="image-preview" style={{ display: "flex" }}>
-        {(images || []).map(
-          (
-            image,
-            index // Fallback nếu images là undefined
-          ) => (
-            <div key={index} className="image-preview-item">
-              <img
-                src={image.urlImage}
-                alt={`Character ${index + 1}`}
-                style={{
-                  width: 100,
-                  height: 100,
-                  objectFit: "cover",
-                  marginRight: 8,
-                }}
-              />
-              <IconButton
-                onClick={() => handleRemoveImage(index)}
-                color="error"
-                disabled={disabled}
-              >
-                🗑️
-              </IconButton>
-            </div>
-          )
-        )}
+      <div className="image-preview d-flex flex-wrap">
+        {previews.map((preview, index) => (
+          <div key={index} className="image-preview-item me-2 mb-2">
+            <img
+              src={preview}
+              alt={`Preview ${index + 1}`}
+              className="img-thumbnail"
+              style={{
+                width: 100,
+                height: 100,
+                objectFit: "cover",
+              }}
+            />
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={() => handleRemoveFile(index)}
+              disabled={disabled}
+              className="mt-1"
+            >
+              🗑️
+            </Button>
+          </div>
+        ))}
       </div>
     </div>
   );

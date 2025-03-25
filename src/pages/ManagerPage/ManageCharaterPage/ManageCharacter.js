@@ -1,8 +1,12 @@
+// còn lỗi  và update
+
+//boot
 import React, { useState, useEffect } from "react";
 import CharacterList from "./CharacterList";
 import CharacterForm from "./CharacterForm";
-import Button from "@mui/material/Button";
-import CharacterService from "../../../services/ManageServicePages/ManageCharacterService/CharacterService"; // Import service
+import Button from "react-bootstrap/Button";
+import CharacterService from "../../../services/ManageServicePages/ManageCharacterService/CharacterService";
+import { toast } from "react-toastify";
 import "../../../styles/Manager/ManageCharacter.scss";
 
 const ManageCharacter = () => {
@@ -13,7 +17,6 @@ const ManageCharacter = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Lấy tất cả characters khi component mount
   useEffect(() => {
     fetchCharacters();
   }, []);
@@ -39,10 +42,18 @@ const ManageCharacter = () => {
         const data = await CharacterService.getCharacterById(
           character.characterId
         );
-        setCurrentCharacter(data);
+        console.log("API Response for character:", data);
+        setCurrentCharacter({
+          ...data,
+          imageFiles: [],
+        });
         setError(null);
       } catch (err) {
         setError(err.message);
+        setCurrentCharacter({
+          ...character,
+          imageFiles: [],
+        });
       } finally {
         setLoading(false);
       }
@@ -63,25 +74,20 @@ const ManageCharacter = () => {
     setLoading(true);
     try {
       if (isEditing) {
-        const updatedCharacter = await CharacterService.updateCharacter(
-          formData.characterId,
-          formData
-        );
-        setCharacters(
-          characters.map((c) =>
-            c.characterId === updatedCharacter.characterId
-              ? updatedCharacter
-              : c
-          )
-        );
+        await CharacterService.updateCharacter(formData.characterId, formData);
+        toast.success("Character updated successfully!");
       } else {
-        const newCharacter = await CharacterService.createCharacter(formData);
-        setCharacters([...characters, newCharacter]);
+        await CharacterService.createCharacter(formData);
+        toast.success("Character added successfully!");
       }
+      await fetchCharacters();
       setError(null);
       handleCloseModal();
     } catch (err) {
       setError(err.message);
+      toast.error(
+        `Failed to ${isEditing ? "update" : "add"} character: ${err.message}`
+      );
     } finally {
       setLoading(false);
     }
@@ -94,8 +100,10 @@ const ManageCharacter = () => {
         await CharacterService.deleteCharacter(characterId);
         setCharacters(characters.filter((c) => c.characterId !== characterId));
         setError(null);
+        toast.success("Character deleted successfully!");
       } catch (err) {
         setError(err.message);
+        toast.error(`Failed to delete character: ${err.message}`);
       } finally {
         setLoading(false);
       }
@@ -106,16 +114,15 @@ const ManageCharacter = () => {
     <div className="manage-character-container">
       <h2 className="manage-character-title">Manage Characters</h2>
       <Button
-        variant="contained"
-        color="primary"
+        variant="primary"
         onClick={() => handleShowModal()}
-        style={{ marginBottom: 16 }}
+        className="mb-3"
         disabled={loading}
       >
         Add New Character
       </Button>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {error && <p className="text-danger">{error}</p>}
       <CharacterList
         characters={characters}
         onEdit={handleShowModal}

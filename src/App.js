@@ -1,6 +1,7 @@
 import "./styles/App.scss";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "react-toastify/dist/ReactToastify.css";
+import { ToastContainer } from "react-toastify";
 import { Route, Routes, BrowserRouter, useLocation } from "react-router-dom";
 import { Navbar } from "./components/Nav/navbar";
 import { Footer } from "./components/Footer/Footer";
@@ -102,6 +103,17 @@ function App() {
           <Route path="/manage/cosplayer" element={<ManageCosplayer />} />
           <Route path="/manage/character" element={<ManageCharacter />} />
         </Routes>
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+        />
       </AppLayout>
     </BrowserRouter>
   );

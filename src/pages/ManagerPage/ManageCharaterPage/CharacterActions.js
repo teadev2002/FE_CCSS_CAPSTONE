@@ -1,22 +1,20 @@
 import React from "react";
-import Button from "@mui/material/Button";
+import Button from "react-bootstrap/Button";
 
 const CharacterActions = ({ row, onEdit, onDelete }) => {
   return (
     <div>
       <Button
-        variant="contained"
-        color="primary"
-        size="small"
+        variant="primary"
+        size="sm"
         onClick={() => onEdit(row)}
-        style={{ marginRight: 8 }}
+        className="me-2"
       >
         Edit
       </Button>
       <Button
-        variant="contained"
-        color="error"
-        size="small"
+        variant="danger"
+        size="sm"
         onClick={() => onDelete(row.characterId)}
       >
         Delete

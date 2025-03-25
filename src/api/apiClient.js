@@ -16,16 +16,19 @@
 // });
 // export default apiClient;
 
+// src/api/index.js
+
 import axios from "axios";
 
+const BASE_URL = "https://localhost:7071/api"; // doi base url khi deploy
+
 const apiClient = axios.create({
-  baseURL: "https://localhost:7071/api",
+  baseURL: BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// Thêm interceptor để tự động thêm token
 apiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem("accessToken");
   if (token) {
@@ -34,10 +37,9 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-// Hàm hỗ trợ gửi dữ liệu multipart/form-data
 const createFormDataClient = (config = {}) => {
   return axios.create({
-    baseURL: "https://localhost:7071/api",
+    baseURL: BASE_URL, // Sử dụng lại BASE_URL
     headers: {
       "Content-Type": "multipart/form-data",
       ...config.headers,
@@ -45,7 +47,6 @@ const createFormDataClient = (config = {}) => {
   });
 };
 
-// Thêm interceptor cho client multipart/form-data
 const formDataClient = createFormDataClient();
 formDataClient.interceptors.request.use((config) => {
   const token = localStorage.getItem("accessToken");
