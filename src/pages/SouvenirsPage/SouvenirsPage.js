@@ -3,6 +3,8 @@ import { Search } from "lucide-react";
 import { Modal, Button, Form, Carousel } from "react-bootstrap";
 import "../../styles/SouvenirsPage.scss";
 import ProductService from "../../services/ProductService/ProductService";
+import Box from "@mui/material/Box";
+import LinearProgress from "@mui/material/LinearProgress";
 
 const SouvenirsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -60,11 +62,25 @@ const SouvenirsPage = () => {
   );
 
   if (loading) {
-    return <div className="text-center py-5">Loading souvenirs...</div>;
+    return (
+      <div className="text-center py-5">
+        {" "}
+        <Box sx={{ width: "100%" }}>
+          <LinearProgress />
+        </Box>
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="text-center py-5 text-danger">{error}</div>;
+    return (
+      <div className="text-center py-5 text-danger">
+        {error}
+        <Box sx={{ width: "100%" }}>
+          <LinearProgress />
+        </Box>
+      </div>
+    );
   }
 
   return (

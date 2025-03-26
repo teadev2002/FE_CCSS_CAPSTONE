@@ -17,6 +17,8 @@ import "../../../styles/Manager/ManageSouvenir.scss";
 import { Image, Popconfirm, message } from "antd"; // Import Popconfirm và message từ antd
 import { toast } from "react-toastify";
 import { ArrowDownUp, ArrowDownAZ } from "lucide-react";
+import Box from "@mui/material/Box";
+import LinearProgress from "@mui/material/LinearProgress";
 
 const PLACEHOLDER_IMAGE_URL =
   "https://www.elegantthemes.com/blog/wp-content/uploads/2020/08/000-http-error-codes.png"; // Placeholder cho hình ảnh lỗi
@@ -300,7 +302,14 @@ const ManageSouvenir = () => {
         </Col>
       </Row>
 
-      {isLoading && <div className="text-center my-3">Loading...</div>}
+      {isLoading && (
+        <div className="text-center my-3">
+          {" "}
+          <Box sx={{ width: "100%" }}>
+            <LinearProgress />
+          </Box>
+        </div>
+      )}
       {error && <div className="alert alert-danger">{error}</div>}
 
       {!isLoading && !error && (
