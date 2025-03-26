@@ -1,10 +1,9 @@
 import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Carousel, Container, Row, Col } from "react-bootstrap";
-import { Shirt, CalendarDays, Users, ShoppingBag } from "lucide-react";
-import { toast, ToastContainer } from "react-toastify"; // Import toast
+import { Carousel, Row, Col } from "react-bootstrap";
+import { Shirt, CalendarDays, Users, ShoppingBag, Ticket } from "lucide-react";
+import { toast, ToastContainer } from "react-toastify";
 import { jwtDecode } from "jwt-decode";
-
 import "react-toastify/dist/ReactToastify.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../../styles/HomePage.scss";
@@ -14,7 +13,7 @@ const HomePage = () => {
     const accessToken = localStorage.getItem("accessToken");
     if (!accessToken) return;
     try {
-      const decoded = jwtDecode(accessToken); // Cập nhật cách gọi hàm
+      const decoded = jwtDecode(accessToken);
       const accountName = decoded?.AccountName;
       if (accountName) {
         toast.success(`Welcome, ${accountName}!`);
@@ -43,8 +42,8 @@ const HomePage = () => {
         ))}
       </Carousel>
 
-      <Container className="featured-characters py-5">
-        <h2 className="text-center fw-bold mb-5">Highlight Cosplayer</h2>
+      <div className="custom-section featured-characters py-5">
+        <h2 className="text-center fw-bold mb-5">Highlight Cosplayers</h2>
         <ul className="card-list">
           {featuredCharacters.map((character) => (
             <li className="character-card" key={character.id}>
@@ -69,9 +68,31 @@ const HomePage = () => {
             Hire Cosplayers
           </Link>
         </div>
-      </Container>
+      </div>
 
-      <Container className="featured-services py-5">
+      <div className="custom-section about-us py-5">
+        <Row className="align-items-center">
+          <Col md={12}>
+            <h2 className="text-center fw-bold mb-4">About Us</h2>
+          </Col>
+          <Col md={6}> {/* Cân bằng tỷ lệ: 50% cho văn bản */}
+            <p className="text-muted mb-4 text-center">
+              Welcome to CCSS – your one-stop destination for all things cosplay! Our passionate team brings creativity, authenticity, and excitement to every event, costume, and experience. Explore our world of cosplay and let’s make your fandom dreams come true!
+            </p>
+          </Col>
+          <Col md={6}> {/* Cân bằng tỷ lệ: 50% cho hình ảnh */}
+            <div className="about-us-image-wrapper">
+              <img
+                src="https://images.unsplash.com/photo-1507608616759-54f48f0af0ee?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3"
+                alt="About Us"
+                className="img-fluid rounded shadow about-us-image"
+              />
+            </div>
+          </Col>
+        </Row>
+      </div>
+
+      <div className="custom-section featured-services py-5">
         <h2 className="text-center mb-5">Featured Services</h2>
         <Row className="justify-content-center">
           {services.map((service, index) => (
@@ -89,7 +110,8 @@ const HomePage = () => {
             View All Services
           </Link>
         </div>
-      </Container>
+      </div>
+
       <ToastContainer
         position="top-right"
         autoClose={5000}
@@ -105,6 +127,7 @@ const HomePage = () => {
     </div>
   );
 };
+
 const carouselItems = [
   {
     image: "https://images6.alphacoders.com/138/1382889.png",
@@ -162,6 +185,18 @@ const services = [
       "Connect with talented cosplayers for your events and photoshoots.",
     icon: <Users size={40} className="service-icon" />,
   },
+  {
+    title: "Souvenirs Shop",
+    description:
+      "Discover unique keepsakes to cherish your cosplay memories.",
+    icon: <ShoppingBag size={40} className="service-icon" />,
+  },
+  {
+    title: "Buy Festival Tickets",
+    description:
+      "Get tickets to join events and meet our amazing cosplayers!",
+    icon: <Ticket size={40} className="service-icon" />,
+  },
 ];
 
 const featuredCharacters = [
@@ -208,4 +243,5 @@ const featuredCharacters = [
       "https://i.pinimg.com/originals/7d/95/66/7d9566482e181ef42d96c249f136f38c.jpg",
   },
 ];
+
 export default HomePage;

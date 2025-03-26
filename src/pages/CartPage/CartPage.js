@@ -1,13 +1,22 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Trash2 } from "lucide-react";
 import { Button, Form } from "react-bootstrap";
 import "../../styles/CartPage.scss";
 
 const CartPage = () => {
-    const [cartItems, setCartItems] = useState([
-        { id: 1, name: "Souvenir Mug", price: 15, quantity: 2, image: "https://via.placeholder.com/100" },
-        { id: 2, name: "Handmade Keychain", price: 10, quantity: 1, image: "https://via.placeholder.com/100" },
-    ]);
+    const [cartItems, setCartItems] = useState(() => {
+        // Lấy dữ liệu từ localStorage khi khởi tạo
+        const savedCart = localStorage.getItem("cartItems");
+        return savedCart ? JSON.parse(savedCart) : [
+            { id: 1, name: "Souvenir Mug", price: 15, quantity: 2, image: "https://via.placeholder.com/100" },
+            { id: 2, name: "Handmade Keychain", price: 10, quantity: 1, image: "https://via.placeholder.com/100" },
+        ];
+    });
+
+    // Lưu cartItems vào localStorage mỗi khi nó thay đổi
+    useEffect(() => {
+        localStorage.setItem("cartItems", JSON.stringify(cartItems));
+    }, [cartItems]);
 
     const handleIncrease = (id) => {
         setCartItems((prevItems) =>
@@ -41,16 +50,6 @@ const CartPage = () => {
 
     return (
         <div className="cart-page min-vh-100">
-            {/* Hero Section - Copy từ SouvenirsPage, chỉ đổi title */}
-            {/* <div className="hero-section text-white py-5">
-                <div className="container">
-                    <h1 className="display-4 fw-bold text-center">Your Cart</h1>
-                    <p className="lead text-center mt-3">
-                        Review and manage your selected souvenirs
-                    </p>
-                </div>
-            </div> */}
-
             <div className="container py-5">
                 {cartItems.length === 0 ? (
                     <div className="empty-cart text-center">

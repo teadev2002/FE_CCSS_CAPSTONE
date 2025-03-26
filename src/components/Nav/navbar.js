@@ -333,6 +333,7 @@ import {
   Store,
   CircleUser,
   Aperture,
+  Bell,
 } from "lucide-react";
 import Logo from "../../assets/img/CCSSlogo.png";
 import "../../styles/nav.scss";
@@ -344,6 +345,8 @@ export function Navbar() {
   const navigate = useNavigate();
   const [userId, setUserId] = useState(null);
   const accessToken = localStorage.getItem("accessToken");
+  const [notifications, setNotifications] = useState(3);
+  const [cartCount, setCartCount] = useState(0); // State để lưu số lượng món hàng
 
   const getUserIdFromToken = () => {
     const accessToken = localStorage.getItem("accessToken");
@@ -359,9 +362,15 @@ export function Navbar() {
     return null;
   };
 
+  // Lấy số lượng món hàng từ localStorage
   useEffect(() => {
     const id = getUserIdFromToken();
     if (id) setUserId(id);
+
+    // Lấy cartItems từ localStorage và tính số lượng món hàng
+    const savedCart = localStorage.getItem("cartItems");
+    const cartItems = savedCart ? JSON.parse(savedCart) : [];
+    setCartCount(cartItems.length);
   }, []);
 
   const goToProfile = () => {
@@ -476,6 +485,18 @@ export function Navbar() {
             )
           )}
 
+          <div className="dropdown-container notification-container">
+            <div className="dropdown-toggle">
+              <Bell size={20} />
+              {notifications > 0 && (
+                <span className="notification-badge">{notifications}</span>
+              )}
+            </div>
+            <div className="dropdown-menu dropdown-menu-notifications">
+              <div className="dropdown-item">No new notifications</div>
+            </div>
+          </div>
+
           <div className="dropdown-container">
             <div className="dropdown-toggle">
               <CircleUser size={20} />
@@ -486,8 +507,11 @@ export function Navbar() {
                   Profile
                 </div>
               )}
-              <Link to="/cart" className="dropdown-item"> {/* Sửa đường dẫn */}
+              <Link to="/cart" className="dropdown-item cart-item">
                 Cart
+                {cartCount > 0 && (
+                  <span className="cart-badge">{cartCount}</span>
+                )}
               </Link>
               <Link to="/contact" className="dropdown-item">
                 Contact

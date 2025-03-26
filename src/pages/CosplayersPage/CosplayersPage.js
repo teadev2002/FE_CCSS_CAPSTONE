@@ -466,11 +466,10 @@ const CosplayersPage = () => {
                           className="character-card-wrapper"
                         >
                           <Card
-                            className={`character-card ${
-                              selectedCharacter?.name === character.name
+                            className={`character-card ${selectedCharacter?.name === character.name
                                 ? "selected"
                                 : ""
-                            }`}
+                              }`}
                             onClick={() => handleCharacterSelect(character)}
                           >
                             <div className="character-image-container">

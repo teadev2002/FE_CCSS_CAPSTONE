@@ -7,7 +7,7 @@
   left: 0;
   width: 100%;
   z-index: 1000;
-  height: 4.5rem; // Increased slightly for more space
+  height: 4.5rem;
 
   .container {
     display: flex;
@@ -15,7 +15,7 @@
     justify-content: space-between;
     height: 100%;
     max-width: 1400px;
-    padding: 0 1rem; // Reduced horizontal padding
+    padding: 0 1rem;
     margin: 0 auto;
   }
 
@@ -24,45 +24,43 @@
     align-items: center;
 
     .brand-logo {
-      height: 3.2rem; // Tăng từ 2.8rem
-      width: 6.4rem;  // Tăng từ 5.6rem
+      height: 3.2rem;
+      width: 6.4rem;
       transition: transform 0.3s ease, filter 0.3s ease;
 
-      // Phóng to theo chiều xéo khi hover
       &:hover {
-        transform: scale(1.2) rotate(5deg); // Tăng kích thước và xoay nhẹ để tạo hiệu ứng xéo
+        transform: scale(1.2) rotate(5deg);
         filter: brightness(1.2);
       }
 
-      // Đảm bảo logo không vượt quá giới hạn container
       max-width: 100%;
       max-height: 100%;
-      object-fit: contain; // Giữ tỷ lệ logo
+      object-fit: contain;
     }
   }
 
   .nav-menu {
     display: flex;
     align-items: center;
-    gap: 0.75rem; // Reduced from 1.5rem to save horizontal space
+    gap: 1rem;
 
     .nav-link {
       display: flex;
       align-items: center;
-      gap: 0.5rem; // Reduced from 0.75rem
-      padding: 0.5rem 0.75rem; // Reduced padding from 0.75rem 1rem
+      gap: 0.5rem;
+      padding: 0.5rem 0.75rem;
       border-radius: 0.5rem;
       color: #e0e0e0;
       font-weight: 600;
-      font-size: 0.85rem; // Reduced from 0.9rem
+      font-size: 0.85rem;
       text-decoration: none;
       position: relative;
       transition: all 0.3s ease, color 0.3s ease;
 
       svg {
         color: #e0e0e0;
-        width: 20px; // Explicit size reduction from 24px
-        height: 20px; // Explicit size reduction from 24px
+        width: 20px;
+        height: 20px;
       }
 
       &:hover {
@@ -111,18 +109,48 @@
       position: relative;
       cursor: pointer;
 
+      &.notification-container {
+        position: relative;
+
+        .dropdown-toggle {
+          position: relative;
+        }
+
+        .notification-badge {
+          position: absolute;
+          top: -5px;
+          right: -5px;
+          background: #ec4899;
+          color: white;
+          font-size: 0.65rem;
+          font-weight: 700;
+          border-radius: 50%;
+          width: 18px;
+          height: 18px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+          transition: transform 0.3s ease;
+        }
+
+        &:hover .notification-badge {
+          transform: scale(1.1);
+        }
+      }
+
       .dropdown-toggle {
         display: flex;
         align-items: center;
-        padding: 0.5rem 0.75rem; // Reduced padding from 0.75rem 1rem
+        padding: 0.5rem 0.75rem;
         border-radius: 0.5rem;
         transition: all 0.3s ease;
 
         svg {
           color: #e0e0e0;
           transition: color 0.3s ease;
-          width: 20px; // Explicitly set size from 24px
-          height: 20px; // Explicitly set size from 24px
+          width: 20px;
+          height: 20px;
         }
 
         &:hover {
@@ -154,7 +182,7 @@
         &.dropdown-menu-categories {
           left: 50%;
           transform: translateX(-50%) translateY(10px) scale(0.95);
-          width: 200px; // Reduced from 240px
+          width: 200px;
         }
 
         &.dropdown-menu-user {
@@ -164,20 +192,50 @@
         &.festival-dropdown-menu {
           left: 50%;
           transform: translateX(-50%) translateY(10px) scale(0.95);
-          width: 200px; // Reduced from 240px
+          width: 200px;
+        }
+
+        &.dropdown-menu-notifications {
+          right: 0;
+          width: 250px;
         }
 
         .dropdown-item {
-          display: block;
-          padding: 0.6rem 1rem; // Reduced from 0.75rem 1.25rem
+          display: flex;
+          align-items: center;
+          justify-content: space-between; // Để badge nằm bên phải
+          padding: 0.6rem 1rem;
           text-decoration: none;
-          font-size: 0.85rem; // Reduced from 0.9rem
+          font-size: 0.85rem;
           font-weight: 500;
           letter-spacing: 0.03em;
           color: #e0e0e0;
           transition: all 0.3s ease, color 0.3s ease;
           position: relative;
           overflow: hidden;
+
+          &.cart-item {
+            position: relative;
+          }
+
+          .cart-badge {
+            background: #f85caa;
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 700;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+          }
+
+          &:hover .cart-badge {
+            transform: scale(1.1);
+          }
 
           &:before {
             content: "";
@@ -219,6 +277,10 @@
         &.dropdown-menu-user {
           transform: translateY(0) scale(1);
         }
+
+        &.dropdown-menu-notifications {
+          transform: translateY(0) scale(1);
+        }
       }
 
       &::after {
@@ -234,23 +296,41 @@
     }
   }
 
-  // Responsive styles - improved
   @media (max-width: 1024px) {
     .nav-menu {
+      gap: 0.8rem;
+
       .nav-link {
         padding: 0.5rem 0.6rem;
         font-size: 0.8rem;
         gap: 0.3rem;
-        
+
         svg {
           width: 18px;
           height: 18px;
         }
-        
-        // For very tight spaces, hide text and only show icons
+
         @media (max-width: 900px) {
           span {
             display: none;
+          }
+        }
+      }
+
+      .notification-container {
+        .notification-badge {
+          width: 16px;
+          height: 16px;
+          font-size: 0.6rem;
+        }
+      }
+
+      .dropdown-menu {
+        .dropdown-item {
+          .cart-badge {
+            width: 16px;
+            height: 16px;
+            font-size: 0.6rem;
           }
         }
       }
@@ -258,11 +338,11 @@
 
     .brand-container {
       .brand-logo {
-        height: 2.8rem; // Giảm nhẹ trên màn hình nhỏ hơn
+        height: 2.8rem;
         width: 5.6rem;
 
         &:hover {
-          transform: scale(1.15) rotate(5deg); // Giảm mức phóng to để tránh tràn
+          transform: scale(1.15) rotate(5deg);
         }
       }
     }
@@ -270,17 +350,17 @@
 
   @media (max-width: 768px) {
     .container {
-      padding: 0 0.8rem; // Giảm padding cho màn hình nhỏ
+      padding: 0 0.8rem;
       height: 4rem;
     }
 
     .brand-container {
       .brand-logo {
-        height: 2.2rem; // Giảm kích thước trên mobile
+        height: 2.2rem;
         width: 4.4rem;
 
         &:hover {
-          transform: scale(1.1) rotate(5deg); // Giảm mức phóng to hơn nữa
+          transform: scale(1.1) rotate(5deg);
         }
       }
     }
@@ -293,11 +373,11 @@
   @media (max-width: 480px) {
     .brand-container {
       .brand-logo {
-        height: 1.8rem; // Kích thước nhỏ nhất cho điện thoại
+        height: 1.8rem;
         width: 3.6rem;
 
         &:hover {
-          transform: scale(1.05) rotate(5deg); // Hiệu ứng tối thiểu
+          transform: scale(1.05) rotate(5deg);
         }
       }
     }

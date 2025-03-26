@@ -1,4 +1,8 @@
 .homepage {
+  /* Đảm bảo không có thanh kéo ngang */
+  overflow-x: hidden;
+
+  /* Hero Section */
   .hero-section {
     position: relative;
     min-height: 50vh;
@@ -8,18 +12,15 @@
     text-align: center;
     background: linear-gradient(135deg, #510545, #22668a, #1a1a2e);
     animation: gradientShift 10s ease infinite;
-    padding: 4rem 0; // Giữ padding hiện tại, thêm margin-top để tránh đè
-    // margin-top: 4rem; // Đảm bảo khoảng cách trên cùng bằng chiều cao navbar (4rem)
+    padding: 4rem 0;
 
     @keyframes gradientShift {
       0% {
         background-position: 0% 50%;
       }
-
       50% {
         background-position: 100% 50%;
       }
-
       100% {
         background-position: 0% 50%;
       }
@@ -31,140 +32,149 @@
     }
 
     .hero-title {
-      // Chỉnh sửa tiêu đề để đồng bộ với EventPage
-      font-size: 4.5rem; // Giữ kích thước, giống EventPage
-      font-weight: 700; // Thay bằng font-weight: 700, giống EventPage (bỏ in đậm quá mức 800)
-      text-transform: uppercase; // Giữ chữ in hoa, giống EventPage
-      letter-spacing: 2px; // Giữ khoảng cách chữ, giống EventPage
-      background: linear-gradient(90deg, #f85caa, #d9b6f8); // Giữ gradient chữ hồng-tím, giống EventPage
+      font-size: 4.5rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      background: linear-gradient(90deg, #f85caa, #d9b6f8);
       -webkit-background-clip: text;
       background-clip: text;
-      -webkit-text-fill-color: transparent; // Đảm bảo gradient áp dụng, giống EventPage
-      margin-bottom: 1.5rem; // Giữ khoảng cách dưới, giống EventPage
-      text-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); // Giữ bóng chữ, giống EventPage
-      transition: transform 0.3s ease, opacity 0.3s ease; // Giữ hiệu ứng hover, giống EventPage
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 1.5rem;
+      text-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      transition: transform 0.3s ease, opacity 0.3s ease;
 
       &:hover {
-        transform: scale(1.03); // Giữ phóng to nhẹ khi hover, giống EventPage
-        opacity: 0.95; // Giữ giảm độ trong suốt, giống EventPage
+        transform: scale(1.03);
+        opacity: 0.95;
       }
     }
 
     .hero-subtitle {
-      // Chỉnh sửa phụ đề để đồng bộ với EventPage
-      font-size: 1.5rem; // Tăng kích thước, giống EventPage
-      font-weight: 300; // Giữ độ nhẹ nhàng, giống EventPage
-      color: rgba(255, 255, 255, 0.85); // Giữ màu xám nhạt, giống EventPage
-      max-width: 600px; // Giữ max-width, giống EventPage
-      margin: 0 auto; // Giữ căn giữa, giống EventPage
-      transition: opacity 0.3s ease, transform 0.3s ease; // Giữ hiệu ứng hover, giống EventPage
+      font-size: 1.5rem;
+      font-weight: 300;
+      color: rgba(255, 255, 255, 0.85);
+      max-width: 600px;
+      margin: 0 auto;
+      transition: opacity 0.3s ease, transform 0.3s ease;
 
       &:hover {
-        opacity: 0.9; // Giữ giảm độ trong suốt khi hover, giống EventPage
-        transform: translateY(-2px); // Giữ nâng lên nhẹ, giống EventPage
+        opacity: 0.9;
+        transform: translateY(-2px);
       }
     }
 
-
     .carousel-item {
       img {
-        height: 60vh; // Giữ chiều cao hình ảnh carousel
+        height: 60vh;
         width: 100%;
-        object-fit: cover; // Đảm bảo hình ảnh điền đầy container
-        transition: opacity 0.3s ease, transform 0.3s ease; // Thêm hiệu ứng mờ và phóng to
+        object-fit: cover;
+        transition: opacity 0.3s ease, transform 0.3s ease;
 
         .carousel-item:hover & {
-          opacity: 0.9; // Giảm độ trong suốt khi hover
-          transform: scale(1.02); // Phóng to nhẹ khi hover
+          opacity: 0.9;
+          transform: scale(1.02);
         }
       }
 
       .carousel-caption {
         position: absolute;
-        bottom: 15%; // Điều chỉnh vị trí caption lên trên để chữ "g" không bị mất
+        bottom: 15%;
         left: 50%;
         transform: translateX(-50%);
-        background: rgba(0, 0, 0, 0.6); // Nền trong suốt tối, nổi bật
-        padding: 2rem 3rem; // Tăng padding để không gian thoáng hơn
-        border-radius: 12px; // Bo tròn lớn hơn để hiện đại
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3); // Tăng độ sâu bóng đổ
+        background: rgba(0, 0, 0, 0.6);
+        padding: 2rem 3rem;
+        border-radius: 12px;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
         width: 80%;
-        max-width: 900px; // Tăng max-width để text không bị cắt
+        max-width: 900px;
 
         h1 {
-          font-size: 3rem; // Tăng kích thước tiêu đề để nổi bật hơn, đảm bảo chữ "g" hiển thị đầy đủ
+          font-size: 3rem;
           font-weight: 800;
           color: #fff;
           margin-bottom: 1rem;
-          background: linear-gradient(90deg, #ec4899, #9333ea); // Gradient chữ hồng-tím, đồng nhất
+          background: linear-gradient(90deg, #ec4899, #9333ea);
           -webkit-background-clip: text;
           background-clip: text;
           -webkit-text-fill-color: transparent;
-          text-shadow: 0 3px 10px rgba(0, 0, 0, 0.5); // Tăng độ sâu bóng chữ
+          text-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
           transition: transform 0.3s ease, opacity 0.3s ease;
 
           .carousel-item:hover & {
-            transform: scale(1.05); // Phóng to nhẹ khi hover
-            opacity: 0.95; // Giảm độ trong suốt nhẹ khi hover
+            transform: scale(1.05);
+            opacity: 0.95;
           }
         }
 
         p {
-          font-size: 1.3rem; // Tăng kích thước description để dễ đọc hơn
+          font-size: 1.3rem;
           font-weight: 400;
-          color: #e0e0e0; // Màu chữ sáng trên nền tối
-          line-height: 1.7; // Tăng line-height để text thoáng hơn
+          color: #e0e0e0;
+          line-height: 1.7;
           margin: 0;
           transition: opacity 0.3s ease, transform 0.3s ease;
 
           .carousel-item:hover & {
-            opacity: 0.9; // Giảm độ trong suốt khi hover
-            transform: translateY(-2px); // Nâng lên nhẹ khi hover
+            opacity: 0.9;
+            transform: translateY(-2px);
           }
         }
       }
     }
   }
 
+  /* Custom Section để thay thế Container */
+  .custom-section {
+    width: 100%;
+    max-width: 1400px; // Giới hạn chiều rộng tối đa
+    margin: 0 auto; // Căn giữa
+    padding-left: 2rem; // Thêm padding để không sát mép
+    padding-right: 2rem;
+    box-sizing: border-box; // Đảm bảo padding không làm vượt width
+  }
+
+  /* Highlight Cosplayers */
   .featured-characters {
-    padding: 5rem 1rem; // Tăng padding để không gian thoáng hơn
-    background: #ffffff; // Thay nền xám (#f0f4f8) bằng trắng để sáng hơn, đồng nhất
+    padding: 5rem 0;
+    margin-top: 2rem;
+    margin-bottom: 4rem;
 
     h2 {
-      font-size: 2.5rem; // Tăng kích thước tiêu đề để nổi bật hơn, đảm bảo chữ "g" hiển thị đầy đủ
-      font-weight: 700; // Tăng độ đậm để chuyên nghiệp
-      color: #510545; // Màu tiêu đề đồng nhất
-      margin-bottom: 3.5rem; // Tăng khoảng cách dưới để không bị cắt chữ "g"
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 3.5rem;
       text-align: center;
-      background: linear-gradient(90deg, #510545, #22668a); // Gradient chữ tím-xanh
+      background: linear-gradient(90deg, #510545, #22668a);
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
-      text-shadow: 0 3px 10px rgba(0, 0, 0, 0.15); // Tăng độ sâu bóng chữ
-      transition: transform 0.3s ease, opacity 0.3s ease;
+      text-shadow: 0 3px 10px rgba(81, 5, 69, 0.2);
+      transition: transform 0.3s ease;
 
       &:hover {
-        transform: scale(1.03); // Phóng to nhẹ hơn khi hover
-        opacity: 0.95; // Giảm độ trong suốt nhẹ khi hover
+        transform: scale(1.03);
       }
     }
 
     .card-list {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); // Giữ layout grid
-      gap: 3rem; // Tăng khoảng cách giữa các card để thoáng hơn
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 4rem; // Khoảng cách giữa các thẻ
       list-style: none;
       padding: 0;
       margin: 0;
+      justify-items: center; // Căn giữa các thẻ
     }
 
     .character-card {
       position: relative;
-      height: 350px; // Giữ chiều cao cố định
-      border-radius: 15px; // Bo tròn lớn hơn để hiện đại
+      height: 350px;
+      width: 250px; // Đảm bảo kích thước cố định cho thẻ
+      border-radius: 15px;
       overflow: hidden;
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15); // Tăng độ sâu bóng đổ để đẹp hơn
-      transition: all 0.4s ease; // Tăng thời gian transition cho mượt mà
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+      transition: all 0.4s ease;
 
       .card-inner {
         position: relative;
@@ -181,12 +191,12 @@
       .card-img-top {
         width: 100%;
         height: 100%;
-        object-fit: cover; // Đảm bảo hình ảnh điền đầy container
+        object-fit: cover;
         transition: opacity 0.3s ease, box-shadow 0.3s ease;
 
         .character-card:hover & {
-          opacity: 0.9; // Giảm độ trong suốt nhẹ khi hover
-          box-shadow: 0 0 20px rgba(81, 5, 69, 0.3); // Thêm bóng đổ nhẹ cho hình ảnh khi hover
+          opacity: 0.9;
+          box-shadow: 0 0 20px rgba(81, 5, 69, 0.3);
         }
       }
 
@@ -195,199 +205,320 @@
         bottom: 0;
         left: 0;
         right: 0;
-        padding: 1.5rem; // Giữ padding
-        background: rgba(0, 0, 0, 0.7); // Giữ nền tối cho overlay, luôn hiển thị (không cần hover)
+        padding: 1.5rem;
+        background: rgba(0, 0, 0, 0.7);
         color: white;
-        transition: all 0.3s ease; // Thêm transition cho hiệu ứng
-        border-radius: 0 0 15px 15px; // Bo tròn góc dưới để đồng nhất
+        transition: all 0.3s ease;
+        border-radius: 0 0 15px 15px;
 
         h3 {
           margin: 0;
-          font-size: 1.4rem; // Tăng kích thước tên để nổi bật hơn
+          font-size: 1.4rem;
           font-weight: 700;
           color: #fff;
           margin-bottom: 0.5rem;
-          text-shadow: 0 2px 6px rgba(0, 0, 0, 0.3); // Thêm bóng chữ nhẹ
+          text-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
           transition: transform 0.3s ease;
 
           .character-card:hover & {
-            transform: scale(1.05); // Phóng to nhẹ khi hover
+            transform: scale(1.05);
           }
         }
 
         .category-badge {
           display: inline-block;
-          padding: 0.3rem 0.9rem; // Giữ padding badge
-          background: linear-gradient(90deg, #f85caa, #965ec7); // Giữ gradient badge hồng-tím
+          padding: 0.3rem 0.9rem;
+          background: linear-gradient(90deg, #f85caa, #965ec7);
           border-radius: 20px;
-          font-size: 0.9rem; // Giữ kích thước font badge
+          font-size: 0.9rem;
           color: white;
           transition: transform 0.3s ease, box-shadow 0.3s ease;
 
           .character-card:hover & {
-            transform: scale(1.05); // Phóng to nhẹ khi hover
-            box-shadow: 0 2px 8px rgba(236, 72, 153, 0.4); // Thêm bóng đổ nhẹ cho badge khi hover
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(236, 72, 153, 0.4);
           }
         }
       }
 
       &:hover {
-        transform: translateY(-10px); // Nâng lên khi hover
-        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25); // Tăng độ sâu bóng đổ khi hover
-        background: linear-gradient(135deg, rgba(81, 5, 69, 0.05), rgba(34, 102, 138, 0.05)); // Nền gradient nhẹ khi hover
+        transform: translateY(-10px);
+        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25);
       }
     }
 
     .view-all-button {
       display: inline-block;
-      background: linear-gradient(135deg, #510545, #22668a); // Giữ gradient tím-xanh
+      background: linear-gradient(135deg, #510545, #22668a);
       color: white;
-      font-weight: 700; // Giữ độ đậm
-      padding: 14px 35px; // Tăng padding để nút lớn hơn và đẹp hơn
-      font-size: 1.2rem; // Tăng kích thước font để nổi bật
-      border-radius: 30px; // Bo tròn lớn hơn để hiện đại
+      font-weight: 700;
+      padding: 14px 35px;
+      font-size: 1.2rem;
+      border-radius: 30px;
       text-decoration: none;
-      transition: all 0.4s ease; // Tăng thời gian transition
+      transition: all 0.4s ease;
       border: none;
-      box-shadow: 0 6px 20px rgba(81, 5, 69, 0.4); // Tăng độ sâu bóng đổ
+      box-shadow: 0 6px 20px rgba(81, 5, 69, 0.4);
 
       &:hover {
-        transform: translateY(-5px); // Nâng lên nhiều hơn khi hover
-        box-shadow: 0 8px 25px rgba(81, 5, 69, 0.6); // Bóng đổ đậm hơn khi hover
-        opacity: 0.95; // Giảm độ trong suốt nhẹ khi hover
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(81, 5, 69, 0.6);
+        opacity: 0.95;
       }
 
       &:active {
-        transform: translateY(2px); // Hạ xuống khi click
+        transform: translateY(2px);
         box-shadow: 0 3px 10px rgba(81, 5, 69, 0.2);
       }
     }
   }
 
-  .featured-services {
-    padding: 5rem 1rem; // Tăng padding để không gian thoáng hơn
-    background: #ffffff; // Giữ nền trắng, tương phản với featured-characters
+  /* About Us */
+  .about-us {
+    padding: 5rem 0;
+    margin-bottom: 4rem;
 
     h2 {
-      font-size: 2.5rem; // Tăng kích thước tiêu đề để nổi bật hơn
+      font-size: 2.5rem;
       font-weight: 700;
-      color: #510545; // Màu tiêu đề đồng nhất
-      margin-bottom: 3.5rem; // Tăng khoảng cách dưới để không bị cắt chữ
+      margin-bottom: 2rem;
       text-align: center;
-      background: linear-gradient(90deg, #510545, #22668a); // Giữ gradient chữ tím-xanh
+      background: linear-gradient(90deg, #510545, #22668a);
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
-      text-shadow: 0 3px 10px rgba(0, 0, 0, 0.15); // Tăng độ sâu bóng chữ
-      transition: transform 0.3s ease, opacity 0.3s ease;
+      text-shadow: 0 3px 10px rgba(34, 102, 138, 0.2);
+      transition: transform 0.3s ease;
 
       &:hover {
-        transform: scale(1.03); // Phóng to nhẹ hơn khi hover
-        opacity: 0.95; // Giảm độ trong suốt nhẹ khi hover
+        transform: scale(1.03);
+      }
+    }
+
+    p {
+      font-size: 1.2rem;
+      line-height: 1.7;
+      max-width: 600px; // Tăng chiều rộng tối đa của văn bản để cân đối
+      margin: 0 auto 2rem;
+      color: #666;
+      padding: 1rem; // Thêm padding để văn bản trông thoáng hơn
+    }
+
+    .about-us-image-wrapper {
+      position: relative;
+      overflow: hidden;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+      border: 2px solid transparent;
+      background: linear-gradient(135deg, #510545, #22668a) border-box; // Viền gradient
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+      &:hover {
+        transform: scale(1.05);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+      }
+
+      // Lớp phủ (overlay) để tạo chiều sâu
+      &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          135deg,
+          rgba(81, 5, 69, 0.1),
+          rgba(34, 102, 138, 0.1)
+        );
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+
+      &:hover::before {
+        opacity: 1;
+      }
+    }
+
+    .about-us-image {
+      width: 100%;
+      height: 350px; // Cố định chiều cao để cân đối với các thẻ cosplayer
+      object-fit: cover;
+      border-radius: 12px;
+      transition: transform 0.3s ease;
+      display: block;
+
+      .about-us-image-wrapper:hover & {
+        transform: scale(1.1); // Phóng to nhẹ khi hover
+      }
+    }
+
+    // Responsive adjustments for About Us
+    @media (max-width: 768px) {
+      .about-us-image-wrapper {
+        margin: 0 auto;
+        max-width: 90%; // Đảm bảo hình ảnh không vượt quá màn hình
+      }
+
+      .about-us-image {
+        height: 300px; // Giảm chiều cao trên mobile
+      }
+
+      p {
+        max-width: 100%; // Văn bản chiếm toàn bộ chiều rộng trên mobile
+        padding: 0.5rem;
+      }
+    }
+  }
+
+  /* Featured Services */
+  .featured-services {
+    padding: 5rem 0;
+    margin-bottom: 4rem;
+
+    h2 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 3.5rem;
+      text-align: center;
+      background: linear-gradient(90deg, #510545, #22668a);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+      transition: transform 0.3s ease;
+
+      &:hover {
+        transform: scale(1.03);
       }
     }
 
     .service-card {
       overflow: hidden;
-      transition: transform 0.4s ease, box-shadow 0.4s ease; // Tăng thời gian transition
-      border-radius: 15px; // Giữ bo tròn
-      padding: 3rem; // Tăng padding để không gian thoáng hơn
-      background: #ffffff; // Giữ nền trắng
+      transition: transform 0.4s ease, box-shadow 0.4s ease;
+      border-radius: 15px;
+      padding: 3rem;
+      background: #ffffff;
       height: 100%;
       display: flex;
       flex-direction: column;
       align-items: center;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15); // Tăng độ sâu bóng đổ
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      border: 1px solid rgba(81, 5, 69, 0.1);
 
       &:hover {
-        transform: translateY(-12px); // Nâng lên nhiều hơn khi hover
-        box-shadow: 0 20px 45px rgba(0, 0, 0, 0.25); // Tăng độ sâu bóng đổ khi hover
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(240, 244, 248, 0.98)); // Nền gradient nhẹ hơn khi hover
+        transform: translateY(-12px);
+        box-shadow: 0 20px 45px rgba(0, 0, 0, 0.25);
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(240, 244, 248, 0.98));
 
         .service-icon {
-          color: #ec4899; // Thay đổi màu icon sang hồng khi hover
-          transform: scale(1.15); // Phóng to icon nhiều hơn khi hover
+          color: #ec4899;
+          transform: scale(1.15);
         }
       }
 
-      .icon-wrapper {
-        background: linear-gradient(135deg, #510545, #22668a); // Giữ gradient icon
-        width: 90px; // Tăng kích thước icon-wrapper để đẹp hơn
+      .display-4 {
+        background: linear-gradient(135deg, #510545, #22668a);
+        width: 90px;
         height: 90px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        margin-bottom: 2rem; // Tăng khoảng cách dưới icon
+        margin-bottom: 2rem;
         transition: transform 0.3s ease, box-shadow 0.3s ease;
 
         .service-card:hover & {
-          box-shadow: 0 6px 18px rgba(81, 5, 69, 0.4); // Tăng độ sâu bóng đổ cho icon khi hover
-          transform: scale(1.05); // Phóng to nhẹ icon-wrapper khi hover
+          box-shadow: 0 6px 18px rgba(81, 5, 69, 0.4);
+          transform: scale(1.05);
         }
 
         .service-icon {
-          color: white; // Giữ màu icon trắng
+          color: white;
           transition: all 0.3s ease;
         }
       }
 
-      .service-title {
-        font-size: 1.8rem; // Tăng kích thước tiêu đề để nổi bật hơn
-        font-weight: 800; // Tăng độ đậm để chuyên nghiệp
-        margin-bottom: 1.5rem; // Tăng khoảng cách dưới tiêu đề
-        color: #510545; // Màu tiêu đề đồng nhất
+      h3 {
+        font-size: 1.8rem;
+        font-weight: 800;
+        margin-bottom: 1.5rem;
+        color: #510545;
         transition: transform 0.3s ease, color 0.3s ease;
 
         .service-card:hover & {
-          transform: scale(1.05); // Phóng to nhẹ khi hover
-          color: #22668a; // Thay đổi màu sang xanh navy khi hover
+          transform: scale(1.05);
+          color: #22668a;
         }
       }
 
-      .service-description {
+      p {
         color: #666;
-        line-height: 1.7; // Tăng line-height để text thoáng hơn
+        line-height: 1.7;
         margin: 0;
         text-align: center;
-        font-size: 1.1rem; // Tăng kích thước font để dễ đọc hơn
+        font-size: 1.1rem;
         transition: opacity 0.3s ease, transform 0.3s ease;
 
         .service-card:hover & {
-          opacity: 0.9; // Giảm độ trong suốt khi hover
-          transform: translateY(-2px); // Nâng lên nhẹ khi hover
+          opacity: 0.9;
+          transform: translateY(-2px);
         }
       }
     }
+
     .view-all-button {
       display: inline-block;
-      background: linear-gradient(135deg, #510545, #22668a); // Giữ gradient tím-xanh
+      background: linear-gradient(135deg, #510545, #22668a);
       color: white;
-      font-weight: 700; // Giữ độ đậm
-      padding: 14px 35px; // Tăng padding để nút lớn hơn và đẹp hơn
-      font-size: 1.2rem; // Tăng kích thước font để nổi bật
-      border-radius: 30px; // Bo tròn lớn hơn để hiện đại
+      font-weight: 700;
+      padding: 14px 35px;
+      font-size: 1.2rem;
+      border-radius: 30px;
       text-decoration: none;
-      transition: all 0.4s ease; // Tăng thời gian transition
+      transition: all 0.4s ease;
       border: none;
-      box-shadow: 0 6px 20px rgba(81, 5, 69, 0.4); // Tăng độ sâu bóng đổ
+      box-shadow: 0 6px 20px rgba(81, 5, 69, 0.4);
 
       &:hover {
-        transform: translateY(-5px); // Nâng lên nhiều hơn khi hover
-        box-shadow: 0 8px 25px rgba(81, 5, 69, 0.6); // Bóng đổ đậm hơn khi hover
-        opacity: 0.95; // Giảm độ trong suốt nhẹ khi hover
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(81, 5, 69, 0.6);
+        opacity: 0.95;
       }
 
       &:active {
-        transform: translateY(2px); // Hạ xuống khi click
+        transform: translateY(2px);
         box-shadow: 0 3px 10px rgba(81, 5, 69, 0.2);
       }
     }
   }
 
-  // Hover effect for character cards (giữ nguyên cách hiển thị, chỉ làm đẹp hơn)
   .card-list:hover .character-card:not(:hover) {
-    filter: brightness(0.85); // Giảm độ sáng nhẹ hơn, giữ luôn hiển thị tên và category
-    transition: filter 0.3s ease; // Thêm transition cho hiệu ứng
+    filter: brightness(0.85);
+    transition: filter 0.3s ease;
+  }
+
+  // Responsive adjustments
+  @media (max-width: 768px) {
+    .custom-section {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+
+    .featured-characters,
+    .about-us,
+    .featured-services {
+      padding: 3rem 0;
+      margin-bottom: 2rem;
+    }
+
+    .card-list {
+      gap: 2rem; // Giảm khoảng cách trên mobile
+    }
+
+    .character-card {
+      width: 200px; // Giảm kích thước thẻ trên mobile
+      height: 300px;
+    }
   }
 }

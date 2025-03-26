@@ -287,8 +287,8 @@ const FestivalsPage = () => {
                     {ticketType === "Standard"
                       ? 20 * ticketQuantity
                       : ticketType === "VIP"
-                      ? 50 * ticketQuantity
-                      : 80 * ticketQuantity}
+                        ? 50 * ticketQuantity
+                        : 80 * ticketQuantity}
                   </Button>
                 </div>
 
@@ -300,8 +300,8 @@ const FestivalsPage = () => {
                       {ticketType === "Standard"
                         ? 20 * ticketQuantity
                         : ticketType === "VIP"
-                        ? 50 * ticketQuantity
-                        : 80 * ticketQuantity}{" "}
+                          ? 50 * ticketQuantity
+                          : 80 * ticketQuantity}{" "}
                       ({ticketQuantity} x {ticketType})
                     </p>
                     <Form>
