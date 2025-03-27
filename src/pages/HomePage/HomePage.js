@@ -75,12 +75,19 @@ const HomePage = () => {
           <Col md={12}>
             <h2 className="text-center fw-bold mb-4">About Us</h2>
           </Col>
-          <Col md={6}> {/* Cân bằng tỷ lệ: 50% cho văn bản */}
+          <Col md={6}>
+            {" "}
+            {/* Cân bằng tỷ lệ: 50% cho văn bản */}
             <p className="text-muted mb-4 text-center">
-              Welcome to CCSS – your one-stop destination for all things cosplay! Our passionate team brings creativity, authenticity, and excitement to every event, costume, and experience. Explore our world of cosplay and let’s make your fandom dreams come true!
+              Welcome to CCSS – your one-stop destination for all things
+              cosplay! Our passionate team brings creativity, authenticity, and
+              excitement to every event, costume, and experience. Explore our
+              world of cosplay and let’s make your fandom dreams come true!
             </p>
           </Col>
-          <Col md={6}> {/* Cân bằng tỷ lệ: 50% cho hình ảnh */}
+          <Col md={6}>
+            {" "}
+            {/* Cân bằng tỷ lệ: 50% cho hình ảnh */}
             <div className="about-us-image-wrapper">
               <img
                 src="https://images.unsplash.com/photo-1507608616759-54f48f0af0ee?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3"
@@ -187,14 +194,12 @@ const services = [
   },
   {
     title: "Souvenirs Shop",
-    description:
-      "Discover unique keepsakes to cherish your cosplay memories.",
+    description: "Discover unique keepsakes to cherish your cosplay memories.",
     icon: <ShoppingBag size={40} className="service-icon" />,
   },
   {
     title: "Buy Festival Tickets",
-    description:
-      "Get tickets to join events and meet our amazing cosplayers!",
+    description: "Get tickets to join events and meet our amazing cosplayers!",
     icon: <Ticket size={40} className="service-icon" />,
   },
 ];

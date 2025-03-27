@@ -20,7 +20,7 @@
 
 import axios from "axios";
 
-const BASE_URL = "https://localhost:7071/api"; // doi base url khi deploy
+const BASE_URL = "https://localhost:7071"; // doi base url khi deploy
 
 const apiClient = axios.create({
   baseURL: BASE_URL,

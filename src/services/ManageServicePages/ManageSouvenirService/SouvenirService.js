@@ -3,7 +3,7 @@ import { apiClient, formDataClient } from "../../../api/apiClient.js";
 const SourvenirService = {
   getAllProducts: async () => {
     try {
-      const response = await apiClient.get("/Product");
+      const response = await apiClient.get("/api/Product");
       return response.data;
     } catch (error) {
       console.error(
@@ -21,7 +21,7 @@ const SourvenirService = {
       throw error;
     }
     try {
-      const response = await apiClient.get(`/Product/${productId}`);
+      const response = await apiClient.get(`/api/Product/${productId}`);
       return response.data;
     } catch (error) {
       console.error(
@@ -51,7 +51,7 @@ const SourvenirService = {
       }
 
       // Make the POST request using formDataClient
-      const response = await formDataClient.post("/Product", formData);
+      const response = await formDataClient.post("/api/Product", formData);
       return response.data;
     } catch (error) {
       console.error(
@@ -68,7 +68,7 @@ const SourvenirService = {
       throw error;
     }
     try {
-      const response = await apiClient.put("/Product", productData, {
+      const response = await apiClient.put("/api/Product", productData, {
         params: {
           productId: productId,
         },
@@ -90,7 +90,7 @@ const SourvenirService = {
       throw error;
     }
     try {
-      await apiClient.delete("/Product", {
+      await apiClient.delete("/api/Product", {
         params: {
           productId: productId,
         },

@@ -4,7 +4,7 @@ const ProductService = {
   // Get all products
   getProducts: async () => {
     try {
-      const response = await apiClient.get("/Product");
+      const response = await apiClient.get("/api/Product");
       return response.data;
     } catch (error) {
       throw new Error(
@@ -16,7 +16,7 @@ const ProductService = {
   // Get all product images
   getProductImages: async () => {
     try {
-      const response = await apiClient.get("/ProductImage");
+      const response = await apiClient.get("/api/ProductImage");
       return response.data;
     } catch (error) {
       throw new Error(

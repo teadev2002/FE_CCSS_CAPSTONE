@@ -3,7 +3,7 @@ import { apiClient, formDataClient } from "../../api/apiClient.js";
 const CategoryService = {
   getAllCategories: async () => {
     try {
-      const response = await apiClient.get("/Category");
+      const response = await apiClient.get("/api/Category");
       return response.data;
     } catch (error) {
       throw new Error(

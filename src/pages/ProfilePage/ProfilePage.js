@@ -19,6 +19,8 @@ import {
 import ProfileService from "../../services/ProfileService/ProfileService.js"; // Import service
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../../styles/ProfilePage.scss";
+import Box from "@mui/material/Box";
+import LinearProgress from "@mui/material/LinearProgress";
 
 const ProfilePage = () => {
   const { id } = useParams();
@@ -42,9 +44,17 @@ const ProfilePage = () => {
     fetchProfile();
   }, [id]);
 
-  if (loading) return <div>Đang tải...</div>;
-  if (error) return <div>Lỗi: {error}</div>;
-  if (!profile) return <div>Không tìm thấy profile</div>;
+  if (loading) return <div></div>;
+  if (error)
+    return (
+      <div>
+        Lỗi: {error}{" "}
+        <Box sx={{ width: "100%" }}>
+          <LinearProgress />
+        </Box>
+      </div>
+    );
+  if (!profile) return <div>Không tìm thấy profile </div>;
 
   return (
     <div className="profile-page">

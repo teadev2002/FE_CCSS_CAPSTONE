@@ -4,7 +4,7 @@ const CharacterService = {
   // Lấy tất cả characters
   getAllCharacters: async () => {
     try {
-      const response = await apiClient.get("/Character");
+      const response = await apiClient.get("/api/Character");
       return response.data;
     } catch (error) {
       throw new Error(
@@ -16,7 +16,7 @@ const CharacterService = {
   // Lấy character theo ID
   getCharacterById: async (characterId) => {
     try {
-      const response = await apiClient.get(`/Character/${characterId}`);
+      const response = await apiClient.get(`/api/Character/${characterId}`);
       return response.data;
     } catch (error) {
       throw new Error(
@@ -69,7 +69,7 @@ const CharacterService = {
         console.log(`${pair[0]}: ${pair[1]}`);
       }
 
-      const response = await formDataClient.post("/Character", formData);
+      const response = await formDataClient.post("/api/Character", formData);
       return response.data;
     } catch (error) {
       console.log("Chi tiết lỗi:", error.response?.data);
@@ -122,7 +122,7 @@ const CharacterService = {
       }
 
       const response = await formDataClient.put(
-        `/Character/${characterId}`,
+        `/api/Character/${characterId}`,
         formData
       );
       return response.data;
@@ -137,7 +137,7 @@ const CharacterService = {
   // Xóa character
   deleteCharacter: async (characterId) => {
     try {
-      await apiClient.delete(`/Character/?id=${characterId}`);
+      await apiClient.delete(`/api/Character/?id=${characterId}`);
     } catch (error) {
       throw new Error(error.response?.data?.message || "Lỗi khi xóa character");
     }
