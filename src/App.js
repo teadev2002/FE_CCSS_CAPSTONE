@@ -29,7 +29,7 @@ import Sidebar from "./components/AdminSidebar/Sidebar";
 import SidebarManagement from "./components/ManagerSidebar/SidebarManagement.js";
 import NotFound from "./pages/404ErrorPage/NotFound";
 import ManageFestival from "./pages/ManagerPage/ManageFestivalPage/ManageFestival.js";
-import ManageRequest from "./pages/ManagerPage/ManagePage/ManageRequest.js";
+import ManageRequest from "./pages/ManagerPage/ManageRequestPage/ManageRequest.js";
 import ManageSouvenir from "./pages/ManagerPage/ManageSouvenirsPage/ManageSouvenir.js";
 import ManageCosplayer from "./pages/ManagerPage/ManageCosplayerPage/ManageCosplayer.js";
 import ManageCharacter from "./pages/ManagerPage/ManageCharaterPage/ManageCharacter.js";

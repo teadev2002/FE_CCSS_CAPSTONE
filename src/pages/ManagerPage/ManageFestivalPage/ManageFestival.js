@@ -1,31 +1,33 @@
-// src/components/ManageFestival.jsx
 import React, { useState } from "react";
 import {
   Table,
-  Button,
   Modal,
   Form,
   Card,
   Pagination,
   Dropdown,
 } from "react-bootstrap";
+import { Button, Popconfirm } from "antd";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { ArrowUp, ArrowDown } from "lucide-react";
 import "../../../styles/Manager/ManageFestival.scss";
 
 const ManageFestival = () => {
-  // Initial ticket data (mock data updated for new fields)
+  // Initial ticket data (unchanged)
   const [tickets, setTickets] = useState([
     { ticketId: "T001", quantity: 2, price: 50, eventId: "E001" },
     { ticketId: "T002", quantity: 3, price: 50, eventId: "E002" },
-    { ticketId: "T001", quantity: 2, price: 50, eventId: "E001" },
-    { ticketId: "T002", quantity: 3, price: 50, eventId: "E002" },
-    { ticketId: "T001", quantity: 2, price: 50, eventId: "E001" },
-    { ticketId: "T002", quantity: 3, price: 50, eventId: "E002" },
-    { ticketId: "T001", quantity: 2, price: 50, eventId: "E001" },
-    { ticketId: "T002", quantity: 3, price: 50, eventId: "E002" },
-    { ticketId: "T001", quantity: 2, price: 50, eventId: "E001" },
-    { ticketId: "T002", quantity: 3, price: 50, eventId: "E002" },
-    { ticketId: "T001", quantity: 2, price: 50, eventId: "E001" },
-    { ticketId: "T002", quantity: 3, price: 50, eventId: "E002" },
+    { ticketId: "T003", quantity: 2, price: 50, eventId: "E001" },
+    { ticketId: "T004", quantity: 3, price: 50, eventId: "E002" },
+    { ticketId: "T005", quantity: 2, price: 50, eventId: "E001" },
+    { ticketId: "T006", quantity: 3, price: 50, eventId: "E002" },
+    { ticketId: "T007", quantity: 2, price: 50, eventId: "E001" },
+    { ticketId: "T008", quantity: 3, price: 50, eventId: "E002" },
+    { ticketId: "T009", quantity: 2, price: 50, eventId: "E001" },
+    { ticketId: "T010", quantity: 3, price: 50, eventId: "E002" },
+    { ticketId: "T011", quantity: 2, price: 50, eventId: "E001" },
+    { ticketId: "T012", quantity: 3, price: 50, eventId: "E002" },
   ]);
 
   // State for modal visibility and form data
@@ -39,26 +41,63 @@ const ManageFestival = () => {
     eventId: "",
   });
 
+  // Search and sort states
+  const [searchTicket, setSearchTicket] = useState("");
+  const [sortTicket, setSortTicket] = useState({
+    field: "ticketId",
+    order: "asc",
+  });
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(10); // Set to 10 by default
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const rowsPerPageOptions = [10, 20, 30];
 
-  // Calculate pagination
-  const totalPages = Math.ceil(tickets.length / rowsPerPage);
-  const startIndex = (currentPage - 1) * rowsPerPage;
-  const endIndex = startIndex + rowsPerPage;
-  const paginatedTickets = tickets.slice(startIndex, endIndex);
+  // Filter and sort data
+  const filterAndSortData = (data, search, sort) => {
+    let filtered = [...data];
+    if (search) {
+      filtered = filtered.filter(
+        (item) =>
+          item.ticketId.toLowerCase().includes(search.toLowerCase()) ||
+          item.eventId.toLowerCase().includes(search.toLowerCase()) ||
+          String(item.quantity).includes(search) ||
+          String(item.price).includes(search)
+      );
+    }
+    return filtered.sort((a, b) => {
+      const valueA = String(a[sort.field]).toLowerCase();
+      const valueB = String(b[sort.field]).toLowerCase();
+      return sort.order === "asc"
+        ? valueA.localeCompare(valueB)
+        : valueB.localeCompare(valueA);
+    });
+  };
+
+  const filteredTickets = filterAndSortData(tickets, searchTicket, sortTicket);
+  const totalEntries = filteredTickets.length;
+  const totalPages = Math.ceil(totalEntries / rowsPerPage);
+  const paginatedTickets = paginateData(filteredTickets, currentPage);
+
+  // Pagination logic
+  function paginateData(data, page) {
+    const startIndex = (page - 1) * rowsPerPage;
+    const endIndex = startIndex + rowsPerPage;
+    return data.slice(startIndex, endIndex);
+  }
+
+  // Calculate "Showing x to x of x entries"
+  const startEntry = (currentPage - 1) * rowsPerPage + 1;
+  const endEntry = Math.min(currentPage * rowsPerPage, totalEntries);
+  const showingText = `Showing ${startEntry} to ${endEntry} of ${totalEntries} entries`;
 
   // Handle modal open/close
   const handleShowModal = (ticket = null) => {
     if (ticket) {
-      // Edit mode
       setIsEditing(true);
       setCurrentTicket(ticket);
       setFormData({ ...ticket });
     } else {
-      // Add mode
       setIsEditing(false);
       setFormData({
         ticketId: "",
@@ -86,142 +125,210 @@ const ManageFestival = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (isEditing) {
-      // Update ticket
       const updatedTickets = tickets.map((ticket) =>
-        ticket.ticketId === currentTicket.ticketId ? formData : ticket
+        ticket.ticketId === currentTicket.ticketId ? { ...formData } : ticket
       );
       setTickets(updatedTickets);
+      toast.success("Ticket updated successfully!");
     } else {
-      // Add new ticket
-      setTickets([...tickets, formData]);
+      setTickets([...tickets, { ...formData }]);
+      toast.success("Ticket added successfully!");
     }
     handleCloseModal();
   };
 
   // Handle delete ticket
   const handleDelete = (ticketId) => {
-    if (window.confirm("Are you sure you want to delete this ticket?")) {
-      setTickets(tickets.filter((ticket) => ticket.ticketId !== ticketId));
-    }
+    setTickets(tickets.filter((ticket) => ticket.ticketId !== ticketId));
+    toast.success("Ticket deleted successfully!");
+  };
+
+  // Sort handler
+  const handleSort = (field) => {
+    setSortTicket((prev) => ({
+      field,
+      order: prev.field === field && prev.order === "asc" ? "desc" : "asc",
+    }));
+    setCurrentPage(1);
   };
 
   // Handle page change
-  const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
-  };
+  const handlePageChange = (page) => setCurrentPage(page);
 
   // Handle rows per page change
   const handleRowsPerPageChange = (value) => {
     setRowsPerPage(value);
-    setCurrentPage(1); // Reset to first page when rows per page changes
+    setCurrentPage(1);
   };
 
   return (
     <div className="manage-festival">
       <h2 className="manage-festival-title">Festival Ticket Management</h2>
-      <Button
-        variant="primary"
-        onClick={() => handleShowModal()}
-        className="mb-3 add-ticket-btn"
-      >
-        Add New Ticket
-      </Button>
-
-      {/* Table wrapped in Card */}
-      <Card className="ticket-table-card">
-        <Card.Body>
-          <Table striped bordered hover responsive>
-            <thead className="table-header">
-              <tr>
-                <th className="text-center">Ticket ID</th>
-                <th className="text-center">Quantity</th>
-                <th className="text-center">Price ($)</th>
-                <th className="text-center">Event ID</th>
-                <th className="text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {paginatedTickets.map((ticket) => (
-                <tr key={ticket.ticketId}>
-                  <td className="text-center">{ticket.ticketId}</td>
-                  <td className="text-center">{ticket.quantity}</td>
-                  <td className="text-center">{ticket.price}</td>
-                  <td className="text-center">{ticket.eventId}</td>
-                  <td className="text-center">
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      onClick={() => handleShowModal(ticket)}
-                      className="me-2"
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      onClick={() => handleDelete(ticket.ticketId)}
-                    >
-                      Delete
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-
-          {/* Pagination Controls */}
-          <div className="d-flex justify-content-between align-items-center pagination-controls">
-            <div className="rows-per-page">
-              <span>Rows per page: </span>
-              <Dropdown
-                onSelect={(value) => handleRowsPerPageChange(Number(value))}
-                className="d-inline-block"
-              >
-                <Dropdown.Toggle
-                  variant="secondary"
-                  id="dropdown-rows-per-page"
-                >
-                  {rowsPerPage}
-                </Dropdown.Toggle>
-                <Dropdown.Menu>
-                  {rowsPerPageOptions.map((option) => (
-                    <Dropdown.Item key={option} eventKey={option}>
-                      {option}
-                    </Dropdown.Item>
-                  ))}
-                </Dropdown.Menu>
-              </Dropdown>
+      <div className="table-container">
+        <Card className="ticket-table-card">
+          <Card.Body>
+            <div className="table-header">
+              <h3>Tickets</h3>
+              <Form.Control
+                type="text"
+                placeholder="Search by ID, Quantity, Price, or Event..."
+                value={searchTicket}
+                onChange={(e) => setSearchTicket(e.target.value)}
+                className="search-input"
+              />
+              <Button type="primary" onClick={() => handleShowModal()}>
+                Add New Ticket
+              </Button>
             </div>
-            <Pagination>
-              <Pagination.First
-                onClick={() => handlePageChange(1)}
-                disabled={currentPage === 1}
-              />
-              <Pagination.Prev
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-              />
-              {[...Array(totalPages).keys()].map((page) => (
-                <Pagination.Item
-                  key={page + 1}
-                  active={page + 1 === currentPage}
-                  onClick={() => handlePageChange(page + 1)}
-                >
-                  {page + 1}
-                </Pagination.Item>
-              ))}
-              <Pagination.Next
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-              />
-              <Pagination.Last
-                onClick={() => handlePageChange(totalPages)}
-                disabled={currentPage === totalPages}
-              />
-            </Pagination>
-          </div>
-        </Card.Body>
-      </Card>
+            <Table striped bordered hover responsive>
+              <thead>
+                <tr>
+                  <th className="text-center">
+                    <span
+                      className="sortable"
+                      onClick={() => handleSort("ticketId")}
+                    >
+                      Ticket ID
+                      {sortTicket.field === "ticketId" &&
+                        (sortTicket.order === "asc" ? (
+                          <ArrowUp size={16} />
+                        ) : (
+                          <ArrowDown size={16} />
+                        ))}
+                    </span>
+                  </th>
+                  <th className="text-center">
+                    <span
+                      className="sortable"
+                      onClick={() => handleSort("quantity")}
+                    >
+                      Quantity
+                      {sortTicket.field === "quantity" &&
+                        (sortTicket.order === "asc" ? (
+                          <ArrowUp size={16} />
+                        ) : (
+                          <ArrowDown size={16} />
+                        ))}
+                    </span>
+                  </th>
+                  <th className="text-center">
+                    <span
+                      className="sortable"
+                      onClick={() => handleSort("price")}
+                    >
+                      Price ($)
+                      {sortTicket.field === "price" &&
+                        (sortTicket.order === "asc" ? (
+                          <ArrowUp size={16} />
+                        ) : (
+                          <ArrowDown size={16} />
+                        ))}
+                    </span>
+                  </th>
+                  <th className="text-center">
+                    <span
+                      className="sortable"
+                      onClick={() => handleSort("eventId")}
+                    >
+                      Event ID
+                      {sortTicket.field === "eventId" &&
+                        (sortTicket.order === "asc" ? (
+                          <ArrowUp size={16} />
+                        ) : (
+                          <ArrowDown size={16} />
+                        ))}
+                    </span>
+                  </th>
+                  <th className="text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paginatedTickets.map((ticket) => (
+                  <tr key={ticket.ticketId}>
+                    <td className="text-center">{ticket.ticketId}</td>
+                    <td className="text-center">{ticket.quantity}</td>
+                    <td className="text-center">{ticket.price}</td>
+                    <td className="text-center">{ticket.eventId}</td>
+                    <td className="text-center">
+                      <Button
+                        type="primary"
+                        size="small"
+                        onClick={() => handleShowModal(ticket)}
+                        style={{ marginRight: "8px" }}
+                      >
+                        Edit
+                      </Button>
+                      <Popconfirm
+                        title="Are you sure to delete this ticket?"
+                        onConfirm={() => handleDelete(ticket.ticketId)}
+                        okText="Yes"
+                        cancelText="No"
+                      >
+                        <Button type="primary" danger size="small">
+                          Delete
+                        </Button>
+                      </Popconfirm>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+            <div className="pagination-controls">
+              <div className="pagination-info">
+                <span>{showingText}</span>
+                <div className="rows-per-page">
+                  <span>Rows per page: </span>
+                  <Dropdown
+                    onSelect={(value) => handleRowsPerPageChange(Number(value))}
+                    className="d-inline-block"
+                  >
+                    <Dropdown.Toggle
+                      variant="secondary"
+                      id="dropdown-rows-per-page"
+                    >
+                      {rowsPerPage}
+                    </Dropdown.Toggle>
+                    <Dropdown.Menu>
+                      {rowsPerPageOptions.map((option) => (
+                        <Dropdown.Item key={option} eventKey={option}>
+                          {option}
+                        </Dropdown.Item>
+                      ))}
+                    </Dropdown.Menu>
+                  </Dropdown>
+                </div>
+              </div>
+              <Pagination>
+                <Pagination.First
+                  onClick={() => handlePageChange(1)}
+                  disabled={currentPage === 1}
+                />
+                <Pagination.Prev
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                />
+                {[...Array(totalPages).keys()].map((page) => (
+                  <Pagination.Item
+                    key={page + 1}
+                    active={page + 1 === currentPage}
+                    onClick={() => handlePageChange(page + 1)}
+                  >
+                    {page + 1}
+                  </Pagination.Item>
+                ))}
+                <Pagination.Next
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                />
+                <Pagination.Last
+                  onClick={() => handlePageChange(totalPages)}
+                  disabled={currentPage === totalPages}
+                />
+              </Pagination>
+            </div>
+          </Card.Body>
+        </Card>
+      </div>
 
       {/* Modal for Add/Edit Ticket */}
       <Modal
