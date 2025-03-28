@@ -21,7 +21,7 @@ const ModalConfirmSignUp = ({ show, onHide, email }) => {
 
     try {
       // Call the PATCH /api/Auth endpoint to verify the code
-      const response = await apiClient.patch("/Auth", null, {
+      const response = await apiClient.patch("/api/Auth", null, {
         params: {
           email,
           code,

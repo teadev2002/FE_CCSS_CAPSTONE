@@ -1,10 +1,5 @@
 import { useEffect } from "react"; // Thêm useEffect
-import {
-  Route,
-  Routes,
-  BrowserRouter,
-  useLocation,
-} from "react-router-dom"; // Đảm bảo import useLocation
+import { Route, Routes, BrowserRouter, useLocation } from "react-router-dom"; // Đảm bảo import useLocation
 import "./styles/App.scss";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "react-toastify/dist/ReactToastify.css";
@@ -114,7 +109,7 @@ function App() {
         </Routes>
         <ToastContainer
           position="top-right"
-          autoClose={3000}
+          autoClose={1000}
           hideProgressBar={false}
           newestOnTop={false}
           closeOnClick

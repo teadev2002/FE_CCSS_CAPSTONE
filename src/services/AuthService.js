@@ -4,7 +4,7 @@ const AuthService = {
   // Login function
   login: async (email, password) => {
     try {
-      const response = await apiClient.post("/Auth", null, {
+      const response = await apiClient.post("/api/Auth", null, {
         params: {
           email,
           password,
@@ -29,7 +29,7 @@ const AuthService = {
   // Sign up function
   signup: async (name, email, password, birthday, phone, role = "3") => {
     try {
-      const response = await apiClient.post(`/Auth/register/`, {
+      const response = await apiClient.post(`/api/Auth/register/`, {
         name,
         email,
         password,
@@ -62,6 +62,8 @@ const AuthService = {
   logout: () => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
+    localStorage.removeItem("cartId");
+    localStorage.removeItem("accountId");
   },
 };
 

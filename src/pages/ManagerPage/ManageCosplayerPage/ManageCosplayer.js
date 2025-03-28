@@ -1,10 +1,9 @@
 // src/components/ManageCosplayer.jsx
 import React, { useState } from "react";
+import { Button, Form, Dropdown } from "react-bootstrap";
 import CosplayerList from "./CosplayerList";
 import CosplayerForm from "./CosplayerForm";
-import Button from "react-bootstrap/Button";
 import "../../../styles/Manager/ManageCosplayer.scss";
-
 const ManageCosplayer = () => {
   const [cosplayers, setCosplayers] = useState([
     {
@@ -54,6 +53,10 @@ const ManageCosplayer = () => {
     },
   ]);
 
+  const [filteredCosplayers, setFilteredCosplayers] = useState(cosplayers);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [rowsPerPage, setRowsPerPage] = useState(5); // Mặc định là 5 như trong hình
+  const rowsPerPageOptions = [5, 10, 20, 30];
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentCosplayer, setCurrentCosplayer] = useState(null);
@@ -77,42 +80,91 @@ const ManageCosplayer = () => {
 
   const handleCreateOrUpdate = (formData) => {
     if (isEditing) {
-      setCosplayers(
-        cosplayers.map((cosplayer) =>
-          cosplayer.accountId === currentCosplayer.accountId
-            ? formData
-            : cosplayer
-        )
+      const updatedCosplayers = cosplayers.map((cosplayer) =>
+        cosplayer.accountId === currentCosplayer.accountId
+          ? formData
+          : cosplayer
       );
+      setCosplayers(updatedCosplayers);
+      setFilteredCosplayers(updatedCosplayers);
     } else {
-      setCosplayers([...cosplayers, formData]);
+      const updatedCosplayers = [...cosplayers, formData];
+      setCosplayers(updatedCosplayers);
+      setFilteredCosplayers(updatedCosplayers);
     }
     handleCloseModal();
   };
 
   const handleDelete = (accountId) => {
-    if (window.confirm("Are you sure you want to delete this cosplayer?")) {
-      setCosplayers(
-        cosplayers.filter((cosplayer) => cosplayer.accountId !== accountId)
-      );
-    }
+    const updatedCosplayers = cosplayers.filter(
+      (cosplayer) => cosplayer.accountId !== accountId
+    );
+    setCosplayers(updatedCosplayers);
+    setFilteredCosplayers(updatedCosplayers);
+  };
+
+  const handleSearch = (e) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    const filtered = cosplayers.filter(
+      (cosplayer) =>
+        cosplayer.name.toLowerCase().includes(value.toLowerCase()) ||
+        cosplayer.description.toLowerCase().includes(value.toLowerCase())
+    );
+    setFilteredCosplayers(filtered);
+  };
+
+  const handleRowsPerPageChange = (value) => {
+    setRowsPerPage(value);
   };
 
   return (
     <div className="manage-cosplayer-container">
       <h2 className="manage-cosplayer-title">Manage Cosplayers</h2>
-      <Button
-        variant="primary"
-        onClick={() => handleShowModal()}
-        className="mb-3 add-cosplayer-btn"
-      >
-        Add New Cosplayer
-      </Button>
+      <div className="header-controls">
+        <div className="rows-per-page">
+          <span>Rows per page: </span>
+          <Dropdown
+            onSelect={(value) => handleRowsPerPageChange(Number(value))}
+            className="d-inline-block"
+          >
+            <Dropdown.Toggle
+              variant="outline-secondary"
+              id="dropdown-rows-per-page"
+            >
+              {rowsPerPage}
+            </Dropdown.Toggle>
+            <Dropdown.Menu>
+              {rowsPerPageOptions.map((option) => (
+                <Dropdown.Item key={option} eventKey={option}>
+                  {option}
+                </Dropdown.Item>
+              ))}
+            </Dropdown.Menu>
+          </Dropdown>
+        </div>
+        <Form.Control
+          type="text"
+          placeholder="Search by name or description"
+          value={searchTerm}
+          onChange={handleSearch}
+          className="search-bar"
+        />
+        <Button
+          variant="primary"
+          onClick={() => handleShowModal()}
+          className="add-cosplayer-btn"
+        >
+          + Add New Cosplayer
+        </Button>
+      </div>
 
       <CosplayerList
-        cosplayers={cosplayers}
+        cosplayers={filteredCosplayers}
         onEdit={handleShowModal}
         onDelete={handleDelete}
+        rowsPerPage={rowsPerPage}
+        setRowsPerPage={setRowsPerPage}
       />
 
       {showModal && (

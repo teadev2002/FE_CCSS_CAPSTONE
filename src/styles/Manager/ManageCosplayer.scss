@@ -1,255 +1,74 @@
-// src/components/ManageCosplayer.scss
+// src/styles/ManageCosplayer.scss
+
+// Styles cho ManageCosplayer
 .manage-cosplayer-container {
-  text-align: center;
   padding: 20px;
 
   .manage-cosplayer-title {
     margin-bottom: 20px;
-    color: #333;
+    color: #1a1a1a;
     font-size: 24px;
-    font-weight: bold;
-  }
-
-  .add-cosplayer-btn {
-    padding: 8px 16px;
-    border-radius: 5px;
-    font-weight: 500;
-    transition: background-color 0.3s ease;
-    margin-bottom: 16px; // Moved from inline style
-    text-transform: none; // Previously applied to .MuiButton-root
-
-    &:hover {
-      background-color: #0056b3;
-    }
-  }
-
-  .cosplayer-table-card {
-    width: 95%; // Moved from inline style
-    margin: 0 auto;
-    margin-left: 10vh;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5); // Moved from inline style
+    font-weight: 600;
     text-align: center;
-    background-color: #fff; // Previously applied to .MuiDataGrid-root
-    border: none; // Previously applied to .MuiDataGrid-root
-    border-radius: 8px;
-
-    .card-body {
-      padding: 20px;
-      height: 550px; // Set to 550px as requested
-      overflow-y: auto; // To handle overflow when there are many rows
-    }
-
-    .table {
-      margin-bottom: 0;
-
-      .table-header {
-        background-color: #f5f5f5; // Previously applied to .MuiDataGrid-columnHeaders
-        font-weight: bold;
-        color: #333;
-
-        th {
-          padding: 12px;
-          vertical-align: middle;
-          text-align: center;
-          border-bottom: 2px solid #dee2e6;
-
-          // Adjust column widths for better spacing
-          &:nth-child(1) {
-            width: 10%; // Name
-          }
-          &:nth-child(2) {
-            width: 15%; // Email
-          }
-          &:nth-child(3) {
-            width: 15%; // Description
-          }
-          &:nth-child(4) {
-            width: 10%; // Birthday
-          }
-          &:nth-child(5) {
-            width: 10%; // Phone
-          }
-          &:nth-child(6) {
-            width: 8%; // Active
-          }
-          &:nth-child(7) {
-            width: 8%; // On Task
-          }
-          &:nth-child(8) {
-            width: 8%; // Leader
-          }
-          &:nth-child(9) {
-            width: 3.6%; // Task Quantity (previously 12%, now 30% of 12% = 3.6%)
-          }
-          &:nth-child(10) {
-            width: 8%; // Height (cm)
-          }
-          &:nth-child(11) {
-            width: 8%; // Weight (kg)
-          }
-          &:nth-child(12) {
-            width: 8%; // Average Star
-          }
-          &:nth-child(13) {
-            width: 8%; // Salary Index
-          }
-          &:nth-child(14) {
-            width: 8%; // Images
-          }
-          &:nth-child(15) {
-            width: 10%; // Actions
-          }
-        }
-      }
-
-      tbody {
-        td {
-          vertical-align: middle;
-          text-align: center;
-          padding: 10px;
-        }
-
-        tr:hover {
-          background-color: #f0f0f0; // Previously applied to .MuiDataGrid-row:hover
-        }
-      }
-
-      .btn {
-        padding: 5px 10px;
-        font-size: 14px;
-        border-radius: 4px;
-        text-transform: none; // Previously applied to .MuiButton-root
-      }
-    }
-
-    .pagination-controls {
-      margin-top: 15px;
-
-      .rows-per-page {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-
-        span {
-          font-size: 14px;
-          color: #333;
-        }
-
-        .dropdown {
-          .btn-secondary {
-            padding: 5px 10px;
-            font-size: 14px;
-            border-radius: 4px;
-          }
-
-          .dropdown-menu {
-            min-width: 60px;
-            .dropdown-item {
-              font-size: 14px;
-              padding: 5px 10px;
-            }
-          }
-        }
-      }
-
-      .pagination {
-        margin-bottom: 0;
-
-        .page-item {
-          .page-link {
-            padding: 5px 10px;
-            font-size: 14px;
-            border-radius: 4px;
-          }
-
-          &.active .page-link {
-            background-color: #007bff;
-            border-color: #007bff;
-          }
-        }
-      }
-    }
   }
 
-  .cosplayer-modal {
-    .modal-content {
-      border-radius: 8px;
+  .header-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0 10vh;
+
+    .rows-per-page {
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
-    .modal-header {
-      background-color: #f8f9fa;
-      border-bottom: 1px solid #dee2e6;
+    .search-bar {
+      width: 300px;
+      margin: 0 auto;
     }
 
-    .modal-title {
-      font-size: 20px;
+     
+  }
+}
+
+// Styles cho CosplayerList
+.cosplayer-table-card {
+  margin: 20px auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  width: 90%;
+
+  .table-header {
+    background-color: #f3f7fa;
+    th {
       font-weight: 600;
     }
+  }
 
-    .modal-body {
-      padding: 20px;
+  .table {
+    tbody {
+      tr {
+        transition: background-color 0.3s ease; // Thêm hiệu ứng chuyển màu mượt mà
 
-      .form-group {
-        label {
-          font-weight: 500;
-          color: #333;
+        &:hover {
+          background-color: #e9ecef; // Màu nền khi hover
+          cursor: pointer; // Thêm con trỏ chuột để người dùng biết hàng có thể tương tác
         }
-
-        .form-control {
-          border-radius: 5px;
-          border: 1px solid #ced4da;
-          &:focus {
-            border-color: #007bff;
-            box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
-          }
-        }
-
-        .form-check {
-          margin: 16px 0; // Moved from inline style
-          text-align: left; // Align switch label to the left
-        }
-      }
-    }
-
-    .modal-footer {
-      border-top: 1px solid #dee2e6;
-
-      .btn {
-        padding: 8px 16px;
-        border-radius: 5px;
-        text-transform: none;
       }
     }
   }
 
-  .image-management {
-    margin-top: 16px;
+  .pagination-controls {
+    padding-top: 10px;
+    display: flex;
+    justify-content: center; // Căn giữa theo chiều ngang
+    align-items: center; // Căn giữa theo chiều dọc
+    width: 100%; // Đảm bảo chiếm toàn bộ chiều rộng để căn giữa chính xác
 
-    h4 {
-      margin-bottom: 16px;
-      color: #333;
-    }
-
-    .image-preview {
-      display: flex;
-      gap: 16px;
-      margin-top: 16px;
-
-      .image-preview-item {
-        display: flex;
-        align-items: center;
-        background-color: #f5f5f5;
-        padding: 8px;
-        border-radius: 4px;
-
-        .preview-image {
-          width: 100px;
-          height: 100px;
-          object-fit: cover; // Moved from inline style
-          border-radius: 4px;
-          margin-right: 8px; // Moved from inline style
-        }
-      }
+    .pagination {
+      margin: 0; // Loại bỏ margin mặc định của pagination để căn giữa chính xác
     }
   }
 }

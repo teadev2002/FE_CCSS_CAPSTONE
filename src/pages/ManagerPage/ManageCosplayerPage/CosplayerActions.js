@@ -1,25 +1,30 @@
 // src/components/CosplayerActions.jsx
 import React from "react";
 import { Button } from "react-bootstrap";
+import { Popconfirm } from "antd";
 
 const CosplayerActions = ({ row, onEdit, onDelete }) => {
   return (
-    <div>
+    <div className="cosplayer-actions">
       <Button
-        variant="primary"
+        variant="outline-primary"
         size="sm"
         onClick={() => onEdit(row)}
         className="me-2"
       >
         🛠️
       </Button>
-      <Button
-        variant="danger"
-        size="sm"
-        onClick={() => onDelete(row.accountId)}
+      <Popconfirm
+        title="Delete Cosplayer"
+        description="Are you sure you want to delete this cosplayer?"
+        okText="Yes"
+        cancelText="No"
+        onConfirm={() => onDelete(row.accountId)}
       >
-        🗑️
-      </Button>
+        <Button variant="outline-danger" size="sm">
+          🗑️
+        </Button>
+      </Popconfirm>
     </div>
   );
 };
