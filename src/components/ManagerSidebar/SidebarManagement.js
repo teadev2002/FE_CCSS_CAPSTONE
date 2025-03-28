@@ -11,6 +11,8 @@ import {
   UserSearch,
   PersonStanding,
   MessageCircleMore,
+  GitPullRequest,
+  ReceiptText,
 } from "lucide-react";
 import "../../styles/Manager/SidebarManagement.scss";
 
@@ -32,13 +34,31 @@ const SidebarManagement = () => {
 
       <nav className="sidebar-nav">
         <NavLink
-          to="/manage/general"
+          to="/manage/cosplayer"
           className={({ isActive }) =>
             isActive ? "nav-link active" : "nav-link"
           }
         >
-          <Settings2 size={20} />
-          <span>General</span>
+          <Users size={20} />
+          <span>Manage Cosplayer</span>
+        </NavLink>
+        <NavLink
+          to="/manage/request"
+          className={({ isActive }) =>
+            isActive ? "nav-link active" : "nav-link"
+          }
+        >
+          <GitPullRequest size={20} />
+          <span>Manage Request</span>
+        </NavLink>
+        <NavLink
+          to="/manage/contract"
+          className={({ isActive }) =>
+            isActive ? "nav-link active" : "nav-link"
+          }
+        >
+          <ReceiptText size={20} />
+          <span>Manage Contract</span>
         </NavLink>
         <NavLink
           to="/manage/ticket"
@@ -59,15 +79,7 @@ const SidebarManagement = () => {
           <Shapes size={20} />
           <span>Manage Souvenirs</span>
         </NavLink>
-        <NavLink
-          to="/manage/cosplayer"
-          className={({ isActive }) =>
-            isActive ? "nav-link active" : "nav-link"
-          }
-        >
-          <Users size={20} />
-          <span>Manage Cosplayer</span>
-        </NavLink>
+
         <NavLink
           to="*"
           className={({ isActive }) =>

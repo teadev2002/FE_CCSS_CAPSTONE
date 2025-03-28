@@ -29,11 +29,12 @@ import Sidebar from "./components/AdminSidebar/Sidebar";
 import SidebarManagement from "./components/ManagerSidebar/SidebarManagement.js";
 import NotFound from "./pages/404ErrorPage/NotFound";
 import ManageFestival from "./pages/ManagerPage/ManageFestivalPage/ManageFestival.js";
-import ManageGeneral from "./pages/ManagerPage/ManagePage/ManageGeneral.js";
+import ManageRequest from "./pages/ManagerPage/ManagePage/ManageRequest.js";
 import ManageSouvenir from "./pages/ManagerPage/ManageSouvenirsPage/ManageSouvenir.js";
 import ManageCosplayer from "./pages/ManagerPage/ManageCosplayerPage/ManageCosplayer.js";
 import ManageCharacter from "./pages/ManagerPage/ManageCharaterPage/ManageCharacter.js";
 import CartPage from "./pages/CartPage/CartPage.js"; // Import CartPage
+import ManageContract from "./pages/ManagerPage/ManageContractPage/ManageContract.js";
 
 const AppLayout = ({ children }) => {
   const location = useLocation();
@@ -102,10 +103,11 @@ function App() {
             element={<SystemManagementPage />}
           />
           <Route path="/manage/ticket" element={<ManageFestival />} />
-          <Route path="/manage/general" element={<ManageGeneral />} />
+          <Route path="/manage/request" element={<ManageRequest />} />
           <Route path="/manage/souvenir" element={<ManageSouvenir />} />
           <Route path="/manage/cosplayer" element={<ManageCosplayer />} />
           <Route path="/manage/character" element={<ManageCharacter />} />
+          <Route path="/manage/contract" element={<ManageContract />} />
         </Routes>
         <ToastContainer
           position="top-right"

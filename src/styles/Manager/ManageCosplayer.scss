@@ -3,13 +3,16 @@
 // Styles cho ManageCosplayer
 .manage-cosplayer-container {
   padding: 20px;
-
+  background: url('https://i.pinimg.com/originals/d2/ad/3f/d2ad3f633977d1ec518916b5c4fe5acd.jpg') no-repeat center center fixed ; 
+  background-size: cover; 
+ min-height: 100vh;
   .manage-cosplayer-title {
-    margin-bottom: 20px;
-    color: #1a1a1a;
-    font-size: 24px;
-    font-weight: 600;
-    text-align: center;
+    font-size: 32px;
+      font-weight: bold;
+      margin-bottom: 15px;
+      text-align: center;
+      color: #ffffff; /* White text */
+      background: transparent;
   }
 
   .header-controls {
@@ -22,6 +25,7 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      color: #e9ecef;
     }
 
     .search-bar {
@@ -36,10 +40,10 @@
 // Styles cho CosplayerList
 .cosplayer-table-card {
   margin: 20px auto;
-  border-radius: 8px;
+  border-radius: 15px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   width: 90%;
-
+  opacity: 0.9;;
   .table-header {
     background-color: #f3f7fa;
     th {
