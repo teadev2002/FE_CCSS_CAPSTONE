@@ -35,6 +35,7 @@ import ManageCosplayer from "./pages/ManagerPage/ManageCosplayerPage/ManageCospl
 import ManageCharacter from "./pages/ManagerPage/ManageCharaterPage/ManageCharacter.js";
 import CartPage from "./pages/CartPage/CartPage.js"; // Import CartPage
 import ManageContract from "./pages/ManagerPage/ManageContractPage/ManageContract.js";
+import ManageAccount from "./pages/ManagerPage/ManageAccountPage/ManageAccount.js";
 
 const AppLayout = ({ children }) => {
   const location = useLocation();
@@ -108,6 +109,7 @@ function App() {
           <Route path="/manage/cosplayer" element={<ManageCosplayer />} />
           <Route path="/manage/character" element={<ManageCharacter />} />
           <Route path="/manage/contract" element={<ManageContract />} />
+          <Route path="/manage/account" element={<ManageAccount />} />
         </Routes>
         <ToastContainer
           position="top-right"
