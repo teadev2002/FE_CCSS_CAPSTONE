@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Table,
   Modal,
@@ -14,89 +14,30 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { ArrowUp, ArrowDown } from "lucide-react";
 import "../../../styles/Manager/ManageCosplayer.scss";
+import CosplayerService from "../../../services/ManageServicePages/ManageCosplayerService/CosplayerService.js";
 
 const ManageCosplayer = () => {
-  const [cosplayers, setCosplayers] = useState([
-    {
-      accountId: "A001",
-      userName: "sailormoon123",
-      email: "sailor.moon@example.com",
-      password: "hashed_password_123",
-      description: "A magical girl cosplayer.",
-      birthday: "1992-06-30",
-      phone: "123-456-7890",
-      isActive: true,
-      onTask: false,
-      leader: "L001",
-      code: "SM001",
-      taskQuantity: 5,
-      height: 165,
-      weight: 55,
-      averageStar: 4.5,
-      salaryIndex: 1.2,
-      roleId: "R001",
-      images: [
-        {
-          imageId: "IMG001",
-          urlImage:
-            "https://th.bing.com/th/id/OIP.x7XLoIlBDvp_ojNq4ubfPgHaEK?rs=1&pid=ImgDetMain",
-        },
-        {
-          imageId: "IMG002",
-          urlImage:
-            "https://th.bing.com/th/id/OIF.Od7o1O6JjQ0EZCMmyF2AwQ?rs=1&pid=ImgDetMain",
-        },
-      ],
-    },
-    {
-      accountId: "A002",
-      userName: "naruto456",
-      email: "naruto.uzumaki@example.com",
-      password: "hashed_password_456",
-      description: "A ninja cosplayer from Hidden Leaf.",
-      birthday: "1990-10-10",
-      phone: "987-654-3210",
-      isActive: true,
-      onTask: true,
-      leader: "L002",
-      code: "NU001",
-      taskQuantity: 3,
-      height: 170,
-      weight: 60,
-      averageStar: 4.8,
-      salaryIndex: 1.5,
-      roleId: "R002",
-      images: [
-        {
-          imageId: "IMG003",
-          urlImage:
-            "https://th.bing.com/th/id/OIF.Od7o1O6JjQ0EZCMmyF2AwQ?rs=1&pid=ImgDetMain",
-        },
-      ],
-    },
-  ]);
+  const [cosplayers, setCosplayers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   // State for modal visibility and form data
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentCosplayer, setCurrentCosplayer] = useState(null);
   const [formData, setFormData] = useState({
-    userName: "",
+    name: "",
     password: "",
+    confirmPassword: "",
     email: "",
     description: "",
     birthday: "",
     phone: "",
     isActive: true,
-    onTask: false,
+    onTask: null,
     leader: "",
     code: "",
     taskQuantity: 0,
-    height: 0,
-    weight: 0,
     averageStar: 0,
-    salaryIndex: 0,
-    roleId: "",
     images: [],
   });
   const [newImageUrl, setNewImageUrl] = useState("");
@@ -104,7 +45,7 @@ const ManageCosplayer = () => {
   // Search and sort states
   const [searchTerm, setSearchTerm] = useState("");
   const [sortCosplayer, setSortCosplayer] = useState({
-    field: "userName",
+    field: "name",
     order: "asc",
   });
 
@@ -113,21 +54,37 @@ const ManageCosplayer = () => {
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const rowsPerPageOptions = [5, 10, 20, 30];
 
+  // Fetch Cosplayers using useEffect
+  useEffect(() => {
+    const fetchCosplayers = async () => {
+      try {
+        setLoading(true);
+        const data = await CosplayerService.getAllCosplayersByRoleId();
+        setCosplayers(data);
+      } catch (error) {
+        toast.error("Failed to fetch cosplayers!");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCosplayers();
+  }, []);
+
   // Filter and sort data
   const filterAndSortData = (data, search, sort) => {
     let filtered = [...data];
     if (search) {
       filtered = filtered.filter(
         (item) =>
-          item.userName.toLowerCase().includes(search.toLowerCase()) ||
-          item.email.toLowerCase().includes(search.toLowerCase()) ||
-          item.description.toLowerCase().includes(search.toLowerCase()) ||
-          item.leader.toLowerCase().includes(search.toLowerCase())
+          item.name?.toLowerCase().includes(search.toLowerCase()) ||
+          item.email?.toLowerCase().includes(search.toLowerCase()) ||
+          item.description?.toLowerCase().includes(search.toLowerCase()) ||
+          item.leader?.toLowerCase().includes(search.toLowerCase())
       );
     }
     return filtered.sort((a, b) => {
-      const valueA = String(a[sort.field]).toLowerCase();
-      const valueB = String(b[sort.field]).toLowerCase();
+      const valueA = String(a[sort.field] ?? "").toLowerCase();
+      const valueB = String(b[sort.field] ?? "").toLowerCase();
       return sort.order === "asc"
         ? valueA.localeCompare(valueB)
         : valueB.localeCompare(valueA);
@@ -160,26 +117,23 @@ const ManageCosplayer = () => {
     if (cosplayer) {
       setIsEditing(true);
       setCurrentCosplayer(cosplayer);
-      setFormData({ ...cosplayer });
+      setFormData({ ...cosplayer, confirmPassword: "" });
     } else {
       setIsEditing(false);
       setFormData({
-        userName: "",
+        name: "",
         password: "",
+        confirmPassword: "",
         email: "",
         description: "",
         birthday: "",
         phone: "",
         isActive: true,
-        onTask: false,
+        onTask: null,
         leader: "",
         code: "",
         taskQuantity: 0,
-        height: 0,
-        weight: 0,
         averageStar: 0,
-        salaryIndex: 0,
-        roleId: "",
         images: [],
       });
     }
@@ -203,8 +157,11 @@ const ManageCosplayer = () => {
   const handleAddImage = () => {
     if (newImageUrl) {
       const newImage = {
-        imageId: `IMG${Date.now()}`,
+        accountImageId: `AI${Date.now()}`,
         urlImage: newImageUrl,
+        createDate: new Date().toLocaleString(),
+        updateDate: null,
+        isAvatar: null,
       };
       setFormData({ ...formData, images: [...formData.images, newImage] });
       setNewImageUrl("");
@@ -218,7 +175,7 @@ const ManageCosplayer = () => {
     });
   };
 
-  // Handle form submission (Create or Update)
+  // Handle form submission (Create or Update - local only for now)
   const handleSubmit = (e) => {
     e.preventDefault();
     if (isEditing) {
@@ -229,14 +186,20 @@ const ManageCosplayer = () => {
       );
       setCosplayers(updatedCosplayers);
       toast.success("Cosplayer updated successfully!");
+      handleCloseModal();
     } else {
+      if (formData.password !== formData.confirmPassword) {
+        toast.error("Passwords do not match!");
+        return;
+      }
+      const { confirmPassword, ...dataToSave } = formData;
       setCosplayers([
         ...cosplayers,
-        { ...formData, accountId: `A${Date.now()}` },
+        { ...dataToSave, accountId: `A${Date.now()}` },
       ]);
       toast.success("Cosplayer added successfully!");
+      handleCloseModal();
     }
-    handleCloseModal();
   };
 
   // Handle delete cosplayer
@@ -265,6 +228,10 @@ const ManageCosplayer = () => {
     setCurrentPage(1);
   };
 
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div className="manage-cosplayer">
       <h2 className="manage-cosplayer-title">Manage Cosplayers</h2>
@@ -275,7 +242,7 @@ const ManageCosplayer = () => {
               <h3>Cosplayers</h3>
               <Form.Control
                 type="text"
-                placeholder="Search by UserName, Email, Description, or Leader..."
+                placeholder="Search by Name, Email, Description, or Leader..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="search-input"
@@ -287,6 +254,20 @@ const ManageCosplayer = () => {
             <Table striped bordered hover responsive>
               <thead>
                 <tr>
+                  <th className="text-center">
+                    <span
+                      className="sortable"
+                      onClick={() => handleSort("name")}
+                    >
+                      Name
+                      {sortCosplayer.field === "name" &&
+                        (sortCosplayer.order === "asc" ? (
+                          <ArrowUp size={16} />
+                        ) : (
+                          <ArrowDown size={16} />
+                        ))}
+                    </span>
+                  </th>
                   <th className="text-center">
                     <span
                       className="sortable"
@@ -304,10 +285,10 @@ const ManageCosplayer = () => {
                   <th className="text-center">
                     <span
                       className="sortable"
-                      onClick={() => handleSort("userName")}
+                      onClick={() => handleSort("averageStar")}
                     >
-                      UserName
-                      {sortCosplayer.field === "userName" &&
+                      Average Star
+                      {sortCosplayer.field === "averageStar" &&
                         (sortCosplayer.order === "asc" ? (
                           <ArrowUp size={16} />
                         ) : (
@@ -360,6 +341,20 @@ const ManageCosplayer = () => {
                   <th className="text-center">
                     <span
                       className="sortable"
+                      onClick={() => handleSort("images")}
+                    >
+                      Images
+                      {sortCosplayer.field === "images" &&
+                        (sortCosplayer.order === "asc" ? (
+                          <ArrowUp size={16} />
+                        ) : (
+                          <ArrowDown size={16} />
+                        ))}
+                    </span>
+                  </th>
+                  <th className="text-center">
+                    <span
+                      className="sortable"
                       onClick={() => handleSort("taskQuantity")}
                     >
                       Task Quantity
@@ -371,40 +366,28 @@ const ManageCosplayer = () => {
                         ))}
                     </span>
                   </th>
-                  <th className="text-center">
-                    <span
-                      className="sortable"
-                      onClick={() => handleSort("salaryIndex")}
-                    >
-                      Salary Index
-                      {sortCosplayer.field === "salaryIndex" &&
-                        (sortCosplayer.order === "asc" ? (
-                          <ArrowUp size={16} />
-                        ) : (
-                          <ArrowDown size={16} />
-                        ))}
-                    </span>
-                  </th>
-                  <th className="text-center">Images</th>
                   <th className="text-center">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {paginatedCosplayers.map((cosplayer) => (
                   <tr key={cosplayer.accountId}>
+                    <td className="text-center">{cosplayer.name}</td>
                     <td className="text-center">{cosplayer.email}</td>
-                    <td className="text-center">{cosplayer.userName}</td>
+                    <td className="text-center">{cosplayer.averageStar}</td>
                     <td className="text-center">
                       {cosplayer.isActive ? "Yes" : "No"}
                     </td>
                     <td className="text-center">
-                      {cosplayer.onTask ? "Yes" : "No"}
+                      {cosplayer.onTask === null
+                        ? "N/A"
+                        : cosplayer.onTask
+                        ? "Yes"
+                        : "No"}
                     </td>
-                    <td className="text-center">{cosplayer.leader}</td>
-                    <td className="text-center">{cosplayer.taskQuantity}</td>
-                    <td className="text-center">{cosplayer.salaryIndex}</td>
+                    <td className="text-center">{cosplayer.leader || "N/A"}</td>
                     <td className="text-center">
-                      {cosplayer.images.length > 0 ? (
+                      {cosplayer.images && cosplayer.images.length > 0 ? (
                         <Image.PreviewGroup
                           preview={{
                             onChange: (current, prev) =>
@@ -416,7 +399,10 @@ const ManageCosplayer = () => {
                           {cosplayer.images.map((image, index) => (
                             <Image
                               key={index}
-                              src={image.urlImage}
+                              src={
+                                image.urlImage ||
+                                "https://i.etsystatic.com/38041241/r/il/5e2cf9/4295579616/il_1080xN.4295579616_2f2q.jpg"
+                              }
                               alt={`Image ${index + 1}`}
                               width={50}
                               height={50}
@@ -429,8 +415,18 @@ const ManageCosplayer = () => {
                           ))}
                         </Image.PreviewGroup>
                       ) : (
-                        "No images"
+                        <Image
+                          src="https://i.etsystatic.com/38041241/r/il/5e2cf9/4295579616/il_1080xN.4295579616_2f2q.jpg"
+                          alt="Default Image"
+                          width={50}
+                          height={50}
+                          style={{ objectFit: "cover" }}
+                          preview={{ mask: "Zoom" }}
+                        />
                       )}
+                    </td>
+                    <td className="text-center">
+                      {cosplayer.taskQuantity ?? "N/A"}
                     </td>
                     <td className="text-center">
                       <Button
@@ -530,6 +526,16 @@ const ManageCosplayer = () => {
             {isEditing ? (
               <>
                 <Form.Group className="mb-3">
+                  <Form.Label>Name</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </Form.Group>
+                <Form.Group className="mb-3">
                   <Form.Label>Email</Form.Label>
                   <Form.Control
                     type="email"
@@ -540,13 +546,15 @@ const ManageCosplayer = () => {
                   />
                 </Form.Group>
                 <Form.Group className="mb-3">
-                  <Form.Label>UserName</Form.Label>
+                  <Form.Label>Average Star</Form.Label>
                   <Form.Control
-                    type="text"
-                    name="userName"
-                    value={formData.userName}
+                    type="number"
+                    name="averageStar"
+                    value={formData.averageStar}
                     onChange={handleInputChange}
-                    required
+                    min="0"
+                    max="5"
+                    step="0.1"
                   />
                 </Form.Group>
                 <Form.Group className="mb-3">
@@ -577,11 +585,45 @@ const ManageCosplayer = () => {
                   />
                 </Form.Group>
                 <Form.Group className="mb-3">
+                  <Form.Label>Active</Form.Label>
+                  <Form.Control
+                    as="select"
+                    name="isActive"
+                    value={formData.isActive}
+                    onChange={handleInputChange}
+                  >
+                    <option value={true}>Yes</option>
+                    <option value={false}>No</option>
+                  </Form.Control>
+                </Form.Group>
+                <Form.Group className="mb-3">
+                  <Form.Label>On Task</Form.Label>
+                  <Form.Control
+                    as="select"
+                    name="onTask"
+                    value={formData.onTask}
+                    onChange={handleInputChange}
+                  >
+                    <option value={null}>N/A</option>
+                    <option value={true}>Yes</option>
+                    <option value={false}>No</option>
+                  </Form.Control>
+                </Form.Group>
+                <Form.Group className="mb-3">
                   <Form.Label>Leader</Form.Label>
                   <Form.Control
                     type="text"
                     name="leader"
                     value={formData.leader}
+                    onChange={handleInputChange}
+                  />
+                </Form.Group>
+                <Form.Group className="mb-3">
+                  <Form.Label>Code</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="code"
+                    value={formData.code}
                     onChange={handleInputChange}
                   />
                 </Form.Group>
@@ -593,17 +635,6 @@ const ManageCosplayer = () => {
                     value={formData.taskQuantity}
                     onChange={handleInputChange}
                     min="0"
-                  />
-                </Form.Group>
-                <Form.Group className="mb-3">
-                  <Form.Label>Salary Index</Form.Label>
-                  <Form.Control
-                    type="number"
-                    name="salaryIndex"
-                    value={formData.salaryIndex}
-                    onChange={handleInputChange}
-                    min="0"
-                    step="0.1"
                   />
                 </Form.Group>
                 {/* Image Management */}
@@ -664,11 +695,11 @@ const ManageCosplayer = () => {
             ) : (
               <>
                 <Form.Group className="mb-3">
-                  <Form.Label>UserName</Form.Label>
+                  <Form.Label>Name</Form.Label>
                   <Form.Control
                     type="text"
-                    name="userName"
-                    value={formData.userName}
+                    name="name"
+                    value={formData.name}
                     onChange={handleInputChange}
                     required
                   />
@@ -679,6 +710,16 @@ const ManageCosplayer = () => {
                     type="password"
                     name="password"
                     value={formData.password}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </Form.Group>
+                <Form.Group className="mb-3">
+                  <Form.Label>Confirm Password</Form.Label>
+                  <Form.Control
+                    type="password"
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
                     onChange={handleInputChange}
                     required
                   />

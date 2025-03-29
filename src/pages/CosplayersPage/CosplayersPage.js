@@ -1,651 +1,738 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
-  Container,
+  Button,
+  Input,
+  Modal,
+  DatePicker,
+  TimePicker,
+  List,
+  Card,
   Row,
   Col,
-  Card,
-  Button,
-  Form,
-  ListGroup,
+  Checkbox,
+  Pagination,
+  Spin,
   Alert,
-  Badge,
-  InputGroup,
-} from "react-bootstrap";
-import { Search } from "lucide-react";
+} from "antd";
+import { SearchOutlined, CloseOutlined } from "@ant-design/icons";
+import { jwtDecode } from "jwt-decode";
+import dayjs from "dayjs";
 import "../../styles/CosplayersPage.scss";
+import HireCosplayerService from "../../services/HireCosplayerService/HireCosplayerService.js";
+import { toast } from "react-toastify";
+
+const { RangePicker: DateRangePicker } = DatePicker;
+const { RangePicker: TimeRangePicker } = TimePicker;
+
+const DEFAULT_AVATAR_URL =
+  "https://pm1.narvii.com/6324/0d7f51553b6ca0785d3912929088c25acc1bc53f_hq.jpg";
 
 const CosplayersPage = () => {
-  const cosplayers = [
-    {
-      id: 1,
-      name: "Luna Star",
-      avatar:
-        "https://images.pexels.com/photos/19231454/pexels-photo-19231454/free-photo-of-girl-in-anya-forger-costume.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-      description: "Specializes in anime and fantasy characters.",
-      characters: [
-        {
-          name: "Sailor Moon",
-          image:
-            "https://th.bing.com/th/id/R.068d6e18db88dcfee0c5fef0e7d5f60f?rik=ZpQCwm59LxyECQ&pid=ImgRaw&r=0",
-        },
-        {
-          name: "Naruto Uzumaki",
-          image:
-            "https://th.bing.com/th/id/OIP.kN5HWcrqUYMfIVN-rl96ZgHaLH?rs=1&pid=ImgDetMain",
-        },
-        {
-          name: "Spider-Man",
-          image:
-            "https://th.bing.com/th/id/OIP.i6zQCyXX6AW0dBvKVx_xkwHaLH?rs=1&pid=ImgDetMain",
-        },
-      ],
-      availability: [
-        { date: "2025-03-15", start: "10:00", end: "17:00" },
-        { date: "2025-03-16", start: "08:00", end: "17:00" },
-        { date: "2025-03-20", start: "09:00", end: "17:00" },
-      ],
-    },
-    {
-      id: 2,
-      name: "Kai Blade",
-      avatar:
-        "https://gambar.sgp1.digitaloceanspaces.com/wp-content/uploads/2021/02/kameaam.jpg",
-      description: "Known for superhero and sci-fi roles.",
-      characters: [
-        {
-          name: "Spider-Man",
-          image:
-            "https://th.bing.com/th/id/OIP.i6zQCyXX6AW0dBvKVx_xkwHaLH?rs=1&pid=ImgDetMain",
-        },
-        {
-          name: "Iron Man",
-          image:
-            "https://th.bing.com/th/id/OIP.yYsRMvGWgsdr0FALLzcqNgHaLH?rs=1&pid=ImgDetMain",
-        },
-        {
-          name: "Captain America",
-          image:
-            "https://th.bing.com/th/id/OIP.9WZgX8z5j5xY8q8Z9nX9ZwHaLH?rs=1&pid=ImgDetMain",
-        },
-      ],
-      availability: [
-        { date: "2025-03-16", start: "12:00", end: "20:00" },
-        { date: "2025-03-21", start: "11:00", end: "19:00" },
-        { date: "2025-03-26", start: "10:00", end: "18:00" },
-      ],
-    },
-    {
-      id: 3,
-      name: "Mika Moon",
-      avatar:
-        "https://th.bing.com/th/id/OIF.9jqAjB9W9sQhS1bJbUH1sg?rs=1&pid=ImgDetMain",
-      description: "Focuses on historical and mythology themes.",
-      characters: [
-        {
-          name: "Cleopatra",
-          image:
-            "https://th.bing.com/th/id/OIP.hNItRKAu72Yt-X59Vi2DbgHaJQ?rs=1&pid=ImgDetMain",
-        },
-        {
-          name: "Athena",
-          image:
-            "https://th.bing.com/th/id/OIP.yaqP-V5Tqj4Wtosp2enD9wHaLH?rs=1&pid=ImgDetMain",
-        },
-        {
-          name: "Spider-Man",
-          image:
-            "https://th.bing.com/th/id/OIP.i6zQCyXX6AW0dBvKVx_xkwHaLH?rs=1&pid=ImgDetMain",
-        },
-      ],
-      availability: [
-        { date: "2025-03-17", start: "08:00", end: "16:00" },
-        { date: "2025-03-22", start: "10:00", end: "18:00" },
-        { date: "2025-03-27", start: "09:00", end: "17:00" },
-      ],
-    },
-    {
-      id: 4,
-      name: "Ryu Storm",
-      avatar:
-        "https://th.bing.com/th/id/OIP.t8XgOZM7X4zQ7X8Z9X0Z0QHaLH?rs=1&pid=ImgDetMain",
-      description: "Expert in martial arts and action characters.",
-      characters: [
-        {
-          name: "Naruto Uzumaki",
-          image:
-            "https://th.bing.com/th/id/OIP.kN5HWcrqUYMfIVN-rl96ZgHaLH?rs=1&pid=ImgDetMain",
-        },
-        {
-          name: "Goku",
-          image:
-            "https://th.bing.com/th/id/OIP.oAq64jTNwzi081joDeG2KAHaKe?rs=1&pid=ImgDetMain",
-        },
-        {
-          name: "Batman",
-          image:
-            "https://th.bing.com/th/id/OIP.5X8Z9X0Z0Q7X8Z9X0Z0QHaLH?rs=1&pid=ImgDetMain",
-        },
-      ],
-      availability: [
-        { date: "2025-03-18", start: "14:00", end: "22:00" },
-        { date: "2025-03-23", start: "13:00", end: "21:00" },
-        { date: "2025-03-28", start: "15:00", end: "23:00" },
-      ],
-    },
-    {
-      id: 5,
-      name: "Sera Flame",
-      avatar:
-        "https://th.bing.com/th/id/OIP.6X8Z9X0Z0Q7X8Z9X0Z0QHaLH?rs=1&pid=ImgDetMain",
-      description: "Passionate about magical and mythical roles.",
-      characters: [
-        {
-          name: "Sailor Moon",
-          image:
-            "https://th.bing.com/th/id/R.068d6e18db88dcfee0c5fef0e7d5f60f?rik=ZpQCwm59LxyECQ&pid=ImgRaw&r=0",
-        },
-        {
-          name: "Hermione Granger",
-          image:
-            "https://th.bing.com/th/id/OIP.7X8Z9X0Z0Q7X8Z9X0Z0QHaLH?rs=1&pid=ImgDetMain",
-        },
-        {
-          name: "Elsa",
-          image:
-            "https://th.bing.com/th/id/OIP.8X8Z9X0Z0Q7X8Z9X0Z0QHaLH?rs=1&pid=ImgDetMain",
-        },
-      ],
-      availability: [
-        { date: "2025-03-19", start: "09:00", end: "17:00" },
-        { date: "2025-03-24", start: "08:00", end: "16:00" },
-        { date: "2025-03-29", start: "10:00", end: "18:00" },
-      ],
-    },
-  ];
+  const [cosplayers, setCosplayers] = useState([]);
+  const [characters, setCharacters] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false); // Thêm state để kiểm tra login
 
-  const [selectedDate, setSelectedDate] = useState("");
+  const [dateRange, setDateRange] = useState(null);
+  const [timeRange, setTimeRange] = useState(null);
+  const [location, setLocation] = useState("");
+  const [accountCouponId, setAccountCouponId] = useState("");
   const [searchCharacter, setSearchCharacter] = useState("");
-  const [filteredCosplayers, setFilteredCosplayers] = useState(cosplayers); // Hiển thị tất cả khi mới vào
-  const [selectedCosplayer, setSelectedCosplayer] = useState(null);
-  const [selectedCharacter, setSelectedCharacter] = useState(null);
-  const [contract, setContract] = useState([]);
-  const [selectedDates, setSelectedDates] = useState([]);
-  const [timeSlots, setTimeSlots] = useState({});
-  const [error, setError] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [currentCosplayerPage, setCurrentCosplayerPage] = useState(1);
+  const [step, setStep] = useState(1);
+  const [requests, setRequests] = useState([]);
+  const [currentCharacter, setCurrentCharacter] = useState(null);
+  const [filteredCosplayers, setFilteredCosplayers] = useState([]);
+  const [selectedCosplayers, setSelectedCosplayers] = useState([]);
+  const [selectAll, setSelectAll] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [modalData, setModalData] = useState({
+    description: "",
+    listRequestCharacters: [],
+    name: "",
+  });
+  const [accountId, setAccountId] = useState(null);
 
-  const dateRef = useRef(null);
+  const serviceId = "S002";
+  const packageId = "";
+  const dateFormat = "DD/MM/YYYY";
+  const timeFormat = "HH:mm";
+  const characterPageSize = 10;
+  const cosplayerPageSize = 9;
 
-  // Khởi tạo hiển thị toàn bộ cosplayer khi component mount
   useEffect(() => {
-    setFilteredCosplayers(cosplayers); // Đảm bảo hiển thị tất cả khi mới vào
+    const accessToken = localStorage.getItem("accessToken");
+    if (!accessToken) {
+      setError("Bạn cần đăng nhập để sử dụng trang này.");
+      return;
+    }
+
+    setIsAuthenticated(true); // Đánh dấu đã đăng nhập nếu có token
+
+    try {
+      const decoded = jwtDecode(accessToken);
+      const accountName = decoded?.AccountName;
+      const id = decoded?.Id;
+      if (accountName) {
+        setModalData((prev) => ({ ...prev, name: accountName }));
+      }
+      if (id) {
+        setAccountId(id);
+      } else {
+        console.warn("JWT does not contain Id field");
+      }
+    } catch (error) {
+      console.error("Invalid token", error);
+      setError("Token không hợp lệ. Vui lòng đăng nhập lại.");
+      return;
+    }
+
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const [cosplayersData, charactersData] = await Promise.all([
+          HireCosplayerService.getAllCosplayers(),
+          HireCosplayerService.getAllCharacters(),
+        ]);
+
+        const mappedCosplayers = cosplayersData.map((cosplayer) => ({
+          id: cosplayer.accountId,
+          name: cosplayer.name,
+          avatar: cosplayer.images[0]?.urlImage || DEFAULT_AVATAR_URL,
+          description: cosplayer.description || "No description",
+          height: cosplayer.height,
+          weight: cosplayer.weight,
+        }));
+
+        const mappedCharacters = charactersData.map((character) => ({
+          id: character.characterId,
+          name: character.characterName,
+          minHeight: character.minHeight,
+          maxHeight: character.maxHeight,
+          minWeight: character.minWeight,
+          maxWeight: character.maxWeight,
+        }));
+
+        setCosplayers(mappedCosplayers);
+        setCharacters(mappedCharacters);
+      } catch (err) {
+        setError("Không thể tải dữ liệu. Vui lòng thử lại sau.");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
-  // Get available time slots for a specific date from cosplayer's availability
-  const getAvailableTimeSlots = (cosplayer, date) => {
-    const slot = cosplayer.availability.find((slot) => slot.date === date);
-    return slot ? { start: slot.start, end: slot.end } : null;
+  const filteredCharacters = characters.filter((char) =>
+    char.name.toLowerCase().includes(searchCharacter.toLowerCase())
+  );
+
+  const paginatedCharacters = filteredCharacters.slice(
+    (currentPage - 1) * characterPageSize,
+    currentPage * characterPageSize
+  );
+
+  const paginatedCosplayers = filteredCosplayers.slice(
+    (currentCosplayerPage - 1) * cosplayerPageSize,
+    currentCosplayerPage * cosplayerPageSize
+  );
+
+  const handleDateRangeChange = (dates) => {
+    setDateRange(dates);
+    if (dates) setStep(2);
   };
 
-  // Get all available dates for a selected cosplayer
-  const getAvailableDates = (cosplayer) => {
-    return [...new Set(cosplayer.availability.map((slot) => slot.date))];
+  const handleTimeRangeChange = (times) => {
+    setTimeRange(times);
+    if (times) setStep(3);
   };
 
-  // Filter cosplayers based on selected date and character search
-  const handleFilterCosplayers = () => {
-    let result = [...cosplayers]; // Bắt đầu với toàn bộ danh sách
-
-    // Filter by character if search term exists
-    if (searchCharacter.trim()) {
-      result = result.filter((cosplayer) =>
-        cosplayer.characters.some((char) =>
-          char.name
-            .toLowerCase()
-            .replace(/-/g, "")
-            .includes(searchCharacter.toLowerCase().replace(/-/g, ""))
-        )
-      );
-    }
-
-    // Filter by date if selected
-    if (selectedDate) {
-      result = result.filter((cosplayer) =>
-        cosplayer.availability.some((slot) => slot.date === selectedDate)
-      );
-    }
-
-    setFilteredCosplayers(result);
-
-    // Reset selection if the selected cosplayer is no longer in the filtered list
-    if (
-      selectedCosplayer &&
-      !result.some((c) => c.id === selectedCosplayer.id)
-    ) {
-      setSelectedCosplayer(null);
-      setSelectedCharacter(null);
-      setSelectedDates([]);
-      setTimeSlots({});
-    }
+  const handleLocationChange = (e) => {
+    setLocation(e.target.value);
+    if (e.target.value) setStep(4);
   };
 
-  // Trigger filter when selectedDate or searchCharacter changes
-  useEffect(() => {
-    handleFilterCosplayers();
-  }, [selectedDate, searchCharacter]);
-
-  const handleDateChange = (e) => {
-    const value = e.target.value;
-    setSelectedDate(value);
-    setSelectedCosplayer(null);
-    setSelectedCharacter(null);
-    setSelectedDates([]);
-    setTimeSlots({});
+  const handleCouponChange = (e) => {
+    setAccountCouponId(e.target.value);
   };
 
-  const handleSearchChange = (e) => {
-    const value = e.target.value;
-    setSearchCharacter(value);
-  };
-
-  const handleCosplayerSelect = (cosplayer) => {
-    setSelectedCosplayer(cosplayer);
-    setSelectedCharacter(null);
-    setSelectedDates([selectedDate]); // Start with the initially selected date
-    setTimeSlots({ [selectedDate]: {} });
-    setError("");
+  const handleSkipCoupon = () => {
+    setStep(5);
   };
 
   const handleCharacterSelect = (character) => {
-    setSelectedCharacter(character);
-    setError("");
-  };
-
-  const handleDateTimeClick = (ref) => {
-    if (ref.current) ref.current.showPicker();
-  };
-
-  const handleAddDate = (date) => {
-    if (!selectedDates.includes(date)) {
-      setSelectedDates([...selectedDates, date]);
-      setTimeSlots({ ...timeSlots, [date]: {} });
+    if (currentCharacter?.characterId === character.id) {
+      setCurrentCharacter(null);
+      setFilteredCosplayers([]);
+      setSelectedCosplayers([]);
+      setSelectAll(false);
+      setCurrentCosplayerPage(1);
+      setStep(5);
+    } else {
+      const filtered = cosplayers.filter(
+        (cosplayer) =>
+          !requests.some((r) => r.cosplayerIds.includes(cosplayer.id)) &&
+          cosplayer.height > character.minHeight &&
+          cosplayer.height < character.maxHeight &&
+          cosplayer.weight > character.minWeight &&
+          cosplayer.weight < character.maxWeight
+      );
+      setFilteredCosplayers(filtered);
+      setSelectedCosplayers([]);
+      setSelectAll(false);
+      setCurrentCosplayerPage(1);
+      setCurrentCharacter({
+        characterId: character.id,
+        characterName: character.name,
+      });
+      setStep(6);
     }
   };
 
-  const handleTimeSlotChange = (date, field, value) => {
-    setTimeSlots((prev) => ({
+  const handleCosplayerSelect = (cosplayerId) => {
+    setSelectedCosplayers((prev) =>
+      prev.includes(cosplayerId)
+        ? prev.filter((id) => id !== cosplayerId)
+        : [...prev, cosplayerId]
+    );
+  };
+
+  const handleSelectAll = (e) => {
+    setSelectAll(e.target.checked);
+    setSelectedCosplayers(
+      e.target.checked ? paginatedCosplayers.map((c) => c.id) : []
+    );
+  };
+
+  const handleAddCosplayers = () => {
+    if (selectedCosplayers.length === 0) {
+      alert("Please select at least one cosplayer!");
+      return;
+    }
+    setRequests((prev) => [
       ...prev,
-      [date]: {
-        ...(prev[date] || {}),
-        [field]: value,
+      {
+        characterId: currentCharacter.characterId,
+        characterName: currentCharacter.characterName,
+        cosplayerIds: selectedCosplayers,
       },
-    }));
+    ]);
+    setStep(5);
+    setFilteredCosplayers([]);
+    setSelectedCosplayers([]);
+    setSelectAll(false);
+    setCurrentCosplayerPage(1);
+    setCurrentCharacter(null);
   };
 
-  const handleAddContract = () => {
-    if (!selectedCosplayer || !selectedCharacter) {
-      setError("Please select a cosplayer and character!");
+  const handleSendRequest = () => {
+    if (requests.length === 0) {
+      alert("Please select at least one character and cosplayer!");
+      return;
+    }
+    setModalData((prev) => ({
+      ...prev,
+      listRequestCharacters: requests.flatMap((req) =>
+        req.cosplayerIds.map((cosplayerId) => ({
+          characterId: req.characterId,
+          cosplayerId,
+          description: "",
+          quantity: 1,
+        }))
+      ),
+      startDateTime:
+        timeRange && dateRange
+          ? `${timeRange[0].format(timeFormat)} ${dateRange[0].format(
+              dateFormat
+            )}`
+          : "N/A",
+      endDateTime:
+        timeRange && dateRange
+          ? `${timeRange[1].format(timeFormat)} ${dateRange[1].format(
+              dateFormat
+            )}`
+          : "N/A",
+    }));
+    setIsModalVisible(true);
+  };
+
+  const handleRemoveCosplayer = (cosplayerId, characterId) => {
+    setModalData((prev) => ({
+      ...prev,
+      listRequestCharacters: prev.listRequestCharacters.filter(
+        (item) =>
+          !(
+            item.cosplayerId === cosplayerId && item.characterId === characterId
+          )
+      ),
+    }));
+    setRequests((prev) =>
+      prev
+        .map((req) => ({
+          ...req,
+          cosplayerIds: req.cosplayerIds.filter((id) => id !== cosplayerId),
+        }))
+        .filter((req) => req.cosplayerIds.length > 0)
+    );
+  };
+
+  // const handleModalConfirm = () => {
+  //   if (!accountId) {
+  //     alert("Cannot send request: User ID is missing. Please log in again.");
+  //     return;
+  //   }
+
+  //   const totalPrice = modalData.listRequestCharacters.length * 100;
+  //   const requestData = {
+  //     accountId: accountId,
+  //     name: localStorage.getItem("AccountName") || modalData.name || "N/A",
+  //     description: modalData.description || " ",
+  //     price: totalPrice,
+  //     startDate:
+  //       dateRange && timeRange
+  //         ? `${timeRange[0].format(timeFormat)} ${dateRange[0].format(
+  //             dateFormat
+  //           )}`
+  //         : "N/A",
+  //     endDate:
+  //       dateRange && timeRange
+  //         ? `${timeRange[1].format(timeFormat)} ${dateRange[1].format(
+  //             dateFormat
+  //           )}`
+  //         : "N/A",
+  //     location: location || "N/A",
+  //     serviceId: "S002",
+  //     packageId: " ",
+  //     accountCouponId: accountCouponId || null,
+  //     listRequestCharacters: modalData.listRequestCharacters.map((item) => ({
+  //       characterId: item.characterId,
+  //       cosplayerId: item.cosplayerId,
+  //       description: " ",
+  //       quantity: 1,
+  //     })),
+  //   };
+  //   console.log("Request Data:", JSON.stringify(requestData, null, 2));
+  //   setIsModalVisible(false);
+  //   setStep(1);
+  //   setDateRange(null);
+  //   setTimeRange(null);
+  //   setLocation("");
+  //   setAccountCouponId("");
+  //   setRequests([]);
+  //   setFilteredCosplayers([]);
+  //   setSelectedCosplayers([]);
+  //   setSelectAll(false);
+  //   setCurrentCosplayerPage(1);
+  //   setCurrentCharacter(null);
+  // };
+  const handleModalConfirm = async () => {
+    if (!accountId) {
+      alert("Cannot send request: User ID is missing. Please log in again.");
       return;
     }
 
-    if (selectedDates.length === 0) {
-      setError("Please select at least one date!");
-      return;
-    }
-
-    const invalidSlots = selectedDates.filter((date) => {
-      const slot = timeSlots[date];
-      if (!slot.start || !slot.end) return true;
-      const startTime = new Date(`${date}T${slot.start}`);
-      const endTime = new Date(`${date}T${slot.end}`);
-      if (endTime <= startTime) return true;
-
-      const availableSlot = selectedCosplayer.availability.find(
-        (s) => s.date === date
-      );
-      if (!availableSlot) return true;
-      const slotStart = new Date(`${date}T${availableSlot.start}`);
-      const slotEnd = new Date(`${date}T${availableSlot.end}`);
-      return startTime < slotStart || endTime > slotEnd;
-    });
-
-    if (invalidSlots.length > 0) {
-      setError(
-        `Invalid time slots for ${invalidSlots.join(
-          ", "
-        )}! Please ensure times are within the cosplayer's availability and end time is after start time.`
-      );
-      return;
-    }
-
-    const newContract = {
-      cosplayer: selectedCosplayer.name,
-      character: selectedCharacter.name,
-      dates: selectedDates.map((date) => ({
-        date,
-        startTime: timeSlots[date].start,
-        endTime: timeSlots[date].end,
+    const totalPrice = modalData.listRequestCharacters.length * 100;
+    const requestData = {
+      accountId: accountId,
+      name: localStorage.getItem("AccountName") || modalData.name || "N/A",
+      description: modalData.description || " ",
+      price: totalPrice,
+      startDate:
+        dateRange && timeRange
+          ? `${timeRange[0].format(timeFormat)} ${dateRange[0].format(
+              dateFormat
+            )}`
+          : "N/A",
+      endDate:
+        dateRange && timeRange
+          ? `${timeRange[1].format(timeFormat)} ${dateRange[1].format(
+              dateFormat
+            )}`
+          : "N/A",
+      location: location || "N/A",
+      serviceId: "S002",
+      packageId: " ",
+      accountCouponId: accountCouponId || null,
+      listRequestCharacters: modalData.listRequestCharacters.map((item) => ({
+        characterId: item.characterId,
+        cosplayerId: item.cosplayerId,
+        description: " ",
+        quantity: 1,
       })),
     };
-    setContract([...contract, newContract]);
-    setSelectedCosplayer(null);
-    setSelectedCharacter(null);
-    setSelectedDate("");
-    setSelectedDates([]);
-    setTimeSlots({});
-    setError("");
+
+    try {
+      const response = await HireCosplayerService.sendRequestHireCosplayer(
+        requestData
+      );
+      console.log("Request sent successfully:", response);
+      setIsModalVisible(false);
+      setStep(1);
+      setDateRange(null);
+      setTimeRange(null);
+      setLocation("");
+      setAccountCouponId("");
+      setRequests([]);
+      setFilteredCosplayers([]);
+      setSelectedCosplayers([]);
+      setSelectAll(false);
+      setCurrentCosplayerPage(1);
+      setCurrentCharacter(null);
+      toast.success("Request sent successfully!");
+    } catch (error) {
+      console.error("Failed to send request:", error.message);
+      alert(error.message); // Hiển thị lỗi cho người dùng
+    }
   };
+  if (!isAuthenticated) {
+    return (
+      <div
+        className="cosplay-rental-page min-vh-100"
+        style={{ padding: "50px" }}
+      >
+        <Alert
+          message="Lỗi đăng nhập"
+          description={error || "Bạn cần đăng nhập để sử dụng trang này."}
+          type="error"
+          showIcon
+        />
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div
+        className="cosplay-rental-page min-vh-100"
+        style={{ textAlign: "center", padding: "50px" }}
+      >
+        <Spin size="large" tip="Đang tải dữ liệu..." />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div
+        className="cosplay-rental-page min-vh-100"
+        style={{ padding: "50px" }}
+      >
+        <Alert message="Lỗi" description={error} type="error" showIcon />
+      </div>
+    );
+  }
 
   return (
     <div className="cosplay-rental-page min-vh-100">
       <div className="hero-section text-black py-5">
-        <Container>
+        <div className="container">
           <h1 className="display-4 fw-bold text-center">Hire Cosplayers</h1>
           <p className="lead text-center mt-3">
             Book your favorite cosplayers for events
           </p>
-        </Container>
+        </div>
       </div>
 
-      <Container className="py-5">
-        {/* Filter Section: Search and Date */}
-        <Row className="mb-5">
-          {/* Search by Character (Left) */}
-          <Col md={6}>
-            <h3 className="section-title">Search by Character</h3>
-            <Card className="filter-card">
-              <Card.Body>
-                <InputGroup>
-                  <InputGroup.Text>
-                    <Search size={20} />
-                  </InputGroup.Text>
-                  <Form.Control
-                    type="text"
-                    placeholder="Search for a character (e.g., Spider Man)"
-                    value={searchCharacter}
-                    onChange={handleSearchChange}
-                  />
-                </InputGroup>
-              </Card.Body>
-            </Card>
-          </Col>
-
-          {/* Filter by Date (Right) */}
-          <Col md={6}>
-            <h3 className="section-title">Select Date</h3>
-            <Card className="filter-card">
-              <Card.Body>
-                <Form>
-                  <div className="d-flex gap-3 mb-3">
-                    <Form.Group className="flex-grow-1">
-                      <Form.Label>Date</Form.Label>
-                      <div
-                        className="datetime-wrapper"
-                        onClick={() => handleDateTimeClick(dateRef)}
-                      >
-                        <Form.Control
-                          ref={dateRef}
-                          type="date"
-                          value={selectedDate}
-                          onChange={handleDateChange}
-                          min={new Date().toISOString().split("T")[0]}
-                        />
-                      </div>
-                    </Form.Group>
-                  </div>
-                </Form>
-              </Card.Body>
-            </Card>
-          </Col>
-        </Row>
-
-        {/* Cosplayer List and Character Selection/Time Slots side by side */}
-        <Row className="mb-5">
-          {/* Available Cosplayers (Left) */}
-          <Col md={6}>
-            <h3 className="section-title">Available Cosplayers</h3>
-            <ListGroup className="cosplayer-list">
-              {filteredCosplayers.length > 0 ? (
-                filteredCosplayers.map((cosplayer) => {
-                  const slot = selectedDate
-                    ? getAvailableTimeSlots(cosplayer, selectedDate)
-                    : null;
-                  return (
-                    <ListGroup.Item
-                      key={cosplayer.id}
-                      action
-                      onClick={() => handleCosplayerSelect(cosplayer)}
-                      active={selectedCosplayer?.id === cosplayer.id}
-                      className="cosplayer-item"
-                    >
-                      <div className="d-flex align-items-center">
-                        <img
-                          src={cosplayer.avatar}
-                          alt={cosplayer.name}
-                          className="cosplayer-avatar"
-                        />
-                        <div className="ms-3 flex-grow-1">
-                          <h5 className="mb-1">{cosplayer.name}</h5>
-                          <p className="mb-0 text-muted">
-                            {cosplayer.description}
-                          </p>
-                          {selectedDate && slot && (
-                            <p className="mb-0 text-muted">
-                              <strong>Working Hours:</strong>{" "}
-                              {`${slot.start} - ${slot.end}`}
-                            </p>
-                          )}
-                        </div>
-                        <Badge bg="primary" className="select-badge">
-                          {selectedCosplayer?.id === cosplayer.id
-                            ? "Selected"
-                            : "Select"}
-                        </Badge>
-                      </div>
-                    </ListGroup.Item>
-                  );
-                })
-              ) : (
-                <Alert variant="info">
-                  No cosplayers available based on your filters.
-                </Alert>
-              )}
-            </ListGroup>
-          </Col>
-
-          {/* Select Character, Additional Dates, and Time Slots (Right) */}
-          <Col md={6}>
-            {selectedCosplayer && (
-              <>
-                <h3 className="section-title">Select Character & Schedule</h3>
-                <Card className="character-selection-card">
-                  <Card.Body>
-                    <div className="character-grid mb-4">
-                      {selectedCosplayer.characters.map((character) => (
-                        <div
-                          key={character.name}
-                          className="character-card-wrapper"
-                        >
-                          <Card
-                            className={`character-card ${selectedCharacter?.name === character.name
-                                ? "selected"
-                                : ""
-                              }`}
-                            onClick={() => handleCharacterSelect(character)}
-                          >
-                            <div className="character-image-container">
-                              <Card.Img
-                                src={character.image}
-                                alt={character.name}
-                                className="character-image"
-                              />
-                            </div>
-                            <Card.Body className="d-flex flex-column justify-content-end text-center">
-                              <Card.Title>{character.name}</Card.Title>
-                              <Badge
-                                bg={
-                                  selectedCharacter?.name === character.name
-                                    ? "primary"
-                                    : "success"
-                                }
-                                className="status-badge mt-2"
-                              >
-                                {selectedCharacter?.name === character.name
-                                  ? "Selected"
-                                  : "Available"}
-                              </Badge>
-                            </Card.Body>
-                          </Card>
-                        </div>
-                      ))}
-                    </div>
-
-                    <h4 className="mb-3">Select Dates and Time Slots</h4>
-                    {/* Display selected dates and their time slots */}
-                    {selectedDates.map((date) => {
-                      const slot = getAvailableTimeSlots(
-                        selectedCosplayer,
-                        date
-                      );
-                      if (!slot) return null;
-                      return (
-                        <div key={date} className="time-slot-section mb-3">
-                          <h5>
-                            {date} (Available: {slot.start} - {slot.end})
-                          </h5>
-                          <div className="d-flex gap-3">
-                            <Form.Group className="flex-grow-1">
-                              <Form.Label>Start Time</Form.Label>
-                              <Form.Control
-                                type="time"
-                                value={timeSlots[date]?.start || ""}
-                                onChange={(e) =>
-                                  handleTimeSlotChange(
-                                    date,
-                                    "start",
-                                    e.target.value
-                                  )
-                                }
-                                onFocus={(e) =>
-                                  e.target.showPicker && e.target.showPicker()
-                                }
-                                min={slot.start}
-                                max={slot.end}
-                              />
-                            </Form.Group>
-                            <Form.Group className="flex-grow-1">
-                              <Form.Label>End Time</Form.Label>
-                              <Form.Control
-                                type="time"
-                                value={timeSlots[date]?.end || ""}
-                                onChange={(e) =>
-                                  handleTimeSlotChange(
-                                    date,
-                                    "end",
-                                    e.target.value
-                                  )
-                                }
-                                onFocus={(e) =>
-                                  e.target.showPicker && e.target.showPicker()
-                                }
-                                min={timeSlots[date]?.start || slot.start}
-                                max={slot.end}
-                                disabled={!timeSlots[date]?.start}
-                              />
-                            </Form.Group>
-                          </div>
-                        </div>
-                      );
-                    })}
-
-                    {/* Display available dates to add */}
-                    <h5 className="mb-2">Add Another Date</h5>
-                    {selectedCosplayer && (
-                      <ListGroup className="mb-3">
-                        {getAvailableDates(selectedCosplayer)
-                          .filter((date) => !selectedDates.includes(date))
-                          .map((date) => {
-                            const slot = getAvailableTimeSlots(
-                              selectedCosplayer,
-                              date
-                            );
-                            return (
-                              <ListGroup.Item
-                                key={date}
-                                action
-                                onClick={() => handleAddDate(date)}
-                                className="cosplayer-item"
-                              >
-                                {date} (Available: {slot.start} - {slot.end})
-                              </ListGroup.Item>
-                            );
-                          })}
-                      </ListGroup>
-                    )}
-
-                    <Button
-                      variant="primary"
-                      onClick={handleAddContract}
-                      className="mt-4 w-100 add-to-contract-btn"
-                      disabled={
-                        !selectedCharacter ||
-                        selectedDates.some(
-                          (date) =>
-                            !timeSlots[date]?.start || !timeSlots[date]?.end
-                        )
-                      }
-                    >
-                      Add to Contract
-                    </Button>
-                  </Card.Body>
-                </Card>
-              </>
-            )}
-          </Col>
-        </Row>
-
-        {/* Error Message */}
-        {error && (
-          <Row className="mb-5">
-            <Col>
-              <Alert variant="warning">{error}</Alert>
-            </Col>
-          </Row>
+      <div className="container py-5">
+        {step >= 1 && (
+          <div className="filter-card mb-4" style={{ width: "50%" }}>
+            <Row align="middle" gutter={16}>
+              <Col>
+                <h3 className="section-title">Select Date Range:</h3>
+              </Col>
+              <Col>
+                <DateRangePicker
+                  value={dateRange}
+                  onChange={handleDateRangeChange}
+                  format={dateFormat}
+                  style={{ width: "300px" }}
+                />
+              </Col>
+            </Row>
+          </div>
         )}
 
-        {/* Contracts */}
-        {contract.length > 0 && (
-          <Row>
-            <Col>
-              <h3 className="section-title">Your Contracts</h3>
-              <div className="contract-list">
-                {contract.map((item, index) => (
-                  <Card key={index} className="contract-card mb-3">
-                    <Card.Body>
-                      <div className="d-flex justify-content-between align-items-start">
-                        <div>
-                          <Card.Title>{item.cosplayer}</Card.Title>
-                          <Card.Text>
-                            <strong>Character:</strong> {item.character}
-                            <br />
-                            {item.dates.map((date, i) => (
-                              <span key={i}>
-                                <strong>Date:</strong> {date.date}{" "}
-                                {date.startTime} - {date.endTime}
-                                <br />
-                              </span>
-                            ))}
-                          </Card.Text>
-                        </div>
-                        <Badge bg="success">Confirmed</Badge>
-                      </div>
-                    </Card.Body>
+        {step >= 2 && (
+          <div className="filter-card mb-4" style={{ width: "50%" }}>
+            <Row align="middle" gutter={16}>
+              <Col>
+                <h3 className="section-title">Select Time Range:</h3>
+              </Col>
+              <Col>
+                <TimeRangePicker
+                  value={timeRange}
+                  onChange={handleTimeRangeChange}
+                  format={timeFormat}
+                  style={{ width: "200px" }}
+                  defaultValue={[
+                    dayjs("09:00", timeFormat),
+                    dayjs("17:00", timeFormat),
+                  ]}
+                />
+              </Col>
+            </Row>
+          </div>
+        )}
+
+        {step >= 3 && (
+          <div className="filter-card mb-4" style={{ width: "50%" }}>
+            <Row align="middle" gutter={16}>
+              <Col>
+                <h3 className="section-title">Enter Location:</h3>
+              </Col>
+              <Col>
+                <Input
+                  placeholder="Enter event location"
+                  value={location}
+                  onChange={handleLocationChange}
+                  prefix={<SearchOutlined />}
+                  style={{ width: "300px" }}
+                />
+              </Col>
+            </Row>
+          </div>
+        )}
+
+        {step >= 4 && (
+          <div className="filter-card mb-4" style={{ width: "50%" }}>
+            <Row align="middle" gutter={16}>
+              <Col>
+                <h3 className="section-title">Enter Coupon (Optional):</h3>
+              </Col>
+              <Col flex="auto">
+                <Input
+                  placeholder="Enter coupon ID (optional)"
+                  value={accountCouponId}
+                  onChange={handleCouponChange}
+                  style={{ width: "200px" }}
+                />
+              </Col>
+              <Col>
+                <Button onClick={handleSkipCoupon}>Skip</Button>
+              </Col>
+            </Row>
+          </div>
+        )}
+
+        {step >= 5 && (
+          <div className="character-selection-card mb-4">
+            <Row align="middle" gutter={16}>
+              <Col>
+                <h3 className="section-title">Select Character:</h3>
+              </Col>
+              <Col>
+                <Input
+                  placeholder="Search character"
+                  value={searchCharacter}
+                  onChange={(e) => {
+                    setSearchCharacter(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  prefix={<SearchOutlined />}
+                  style={{ width: "250px" }}
+                />
+              </Col>
+            </Row>
+            <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
+              {paginatedCharacters.map((character) => (
+                <Col xs={24} sm={12} md={8} key={character.id}>
+                  <Card
+                    hoverable
+                    className={`character-card ${
+                      currentCharacter?.characterId === character.id
+                        ? "active"
+                        : ""
+                    } ${
+                      requests.some((r) => r.characterId === character.id)
+                        ? "selected"
+                        : ""
+                    }`}
+                    onClick={() => handleCharacterSelect(character)}
+                  >
+                    <p>{character.name}</p>
+                    <p>
+                      Height: {character.minHeight} - {character.maxHeight} (cm)
+                    </p>
+                    <p>
+                      Weight: {character.minWeight} - {character.maxWeight} (kg)
+                    </p>
                   </Card>
-                ))}
-              </div>
-            </Col>
-          </Row>
+                </Col>
+              ))}
+            </Row>
+            <Pagination
+              current={currentPage}
+              pageSize={characterPageSize}
+              total={filteredCharacters.length}
+              onChange={(page) => setCurrentPage(page)}
+              style={{ marginTop: 16, textAlign: "center" }}
+            />
+          </div>
         )}
-      </Container>
+
+        {step >= 6 && (
+          <>
+            <h3 className="section-title">
+              Available Cosplayers for {currentCharacter?.characterName}:
+            </h3>
+            <Checkbox
+              checked={selectAll}
+              onChange={handleSelectAll}
+              className="mb-3"
+            >
+              Select All
+            </Checkbox>
+            <List
+              grid={{ gutter: 16, xs: 1, sm: 2, md: 3 }}
+              dataSource={paginatedCosplayers}
+              renderItem={(cosplayer) => (
+                <List.Item key={cosplayer.id}>
+                  <Card
+                    className={`cosplayer-item ${
+                      selectedCosplayers.includes(cosplayer.id)
+                        ? "selected"
+                        : ""
+                    }`}
+                    onClick={() => handleCosplayerSelect(cosplayer.id)}
+                  >
+                    <img
+                      src={cosplayer.avatar}
+                      alt={cosplayer.name}
+                      className="cosplayer-avatar"
+                      onError={(e) => (e.target.src = DEFAULT_AVATAR_URL)}
+                    />
+                    <h5>{cosplayer.name}</h5>
+                    <p>{cosplayer.description}</p>
+                    <p>Height: {cosplayer.height} (cm)</p>
+                    <p>Weight: {cosplayer.weight} (kg)</p>
+                  </Card>
+                </List.Item>
+              )}
+            />
+            <Pagination
+              current={currentCosplayerPage}
+              pageSize={cosplayerPageSize}
+              total={filteredCosplayers.length}
+              onChange={(page) => setCurrentCosplayerPage(page)}
+              style={{ marginTop: 16, textAlign: "center" }}
+            />
+            <Button
+              type="primary"
+              onClick={handleAddCosplayers}
+              className="mt-3"
+            >
+              Add Cosplayers & Select More
+            </Button>
+          </>
+        )}
+
+        {requests.length > 0 && (
+          <div className="mt-4">
+            <h3 className="section-title">Selected Requests:</h3>
+            <List
+              dataSource={requests}
+              renderItem={(req) => (
+                <List.Item key={req.characterId}>
+                  {req.characterName} - Cosplayers:{" "}
+                  {req.cosplayerIds
+                    .map((id) => cosplayers.find((c) => c.id === id)?.name)
+                    .join(", ")}
+                </List.Item>
+              )}
+            />
+            <Button
+              type="primary"
+              size="large"
+              className="add-to-contract-btn mt-4"
+              onClick={handleSendRequest}
+            >
+              Send Request Hire Cosplayer
+            </Button>
+          </div>
+        )}
+
+        <Modal
+          title="Confirm Your Request"
+          visible={isModalVisible}
+          onOk={handleModalConfirm}
+          onCancel={() => setIsModalVisible(false)}
+          okText="Send Request"
+          cancelText={null}
+        >
+          <p>
+            <strong>Name:</strong>
+          </p>
+          <Input
+            value={modalData.name}
+            onChange={(e) =>
+              setModalData({ ...modalData, name: e.target.value })
+            }
+            placeholder="Your account name"
+            style={{ width: "250px" }}
+          />
+          <p>
+            <strong>Description:</strong>
+          </p>
+          <Input.TextArea
+            value={modalData.description}
+            onChange={(e) =>
+              setModalData({ ...modalData, description: e.target.value })
+            }
+            placeholder="Enter description"
+            style={{ width: "300px" }}
+          />
+          <p>
+            <strong>Start DateTime:</strong> {modalData.startDateTime}
+          </p>
+          <p>
+            <strong>End DateTime:</strong> {modalData.endDateTime}
+          </p>
+          <p>
+            <strong>Location:</strong> {location || "N/A"}
+          </p>
+          <p>
+            <strong>Coupon ID:</strong> {accountCouponId || "N/A"}
+          </p>
+          <h4>List of Requested Characters:</h4>
+          <List
+            dataSource={modalData.listRequestCharacters}
+            renderItem={(item, index) => (
+              <List.Item
+                key={index}
+                actions={[
+                  <Button
+                    type="link"
+                    icon={<CloseOutlined />}
+                    onClick={() =>
+                      handleRemoveCosplayer(item.cosplayerId, item.characterId)
+                    }
+                  />,
+                ]}
+              >
+                <p>
+                  {cosplayers.find((c) => c.id === item.cosplayerId)?.name} -{" "}
+                  {characters.find((c) => c.id === item.characterId)?.name} -{" "}
+                  Quantity:{" "}
+                  <Input
+                    value={item.quantity}
+                    disabled
+                    style={{ width: "50px" }}
+                  />
+                </p>
+              </List.Item>
+            )}
+          />
+          <p>
+            <strong>Price:</strong>{" "}
+            {modalData.listRequestCharacters.length * 100} (Dynamic)
+          </p>
+        </Modal>
+      </div>
     </div>
   );
 };
