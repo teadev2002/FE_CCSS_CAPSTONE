@@ -37,6 +37,17 @@ const HireCosplayerService = {
       );
     }
   },
+
+  // from RequestService
+  getNameCosplayerInRequestByCosplayerId: async (accountId) => {
+    try {
+      const response = await apiClient.get(`/api/Account/${accountId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching cosplayer:", error);
+      throw error;
+    }
+  },
 };
 
 export default HireCosplayerService;

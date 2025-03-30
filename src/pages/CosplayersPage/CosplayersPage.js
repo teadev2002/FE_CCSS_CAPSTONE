@@ -32,8 +32,7 @@ const CosplayersPage = () => {
   const [characters, setCharacters] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false); // Thêm state để kiểm tra login
-
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [dateRange, setDateRange] = useState(null);
   const [timeRange, setTimeRange] = useState(null);
   const [location, setLocation] = useState("");
@@ -54,6 +53,7 @@ const CosplayersPage = () => {
     name: "",
   });
   const [accountId, setAccountId] = useState(null);
+  const [cosplayerPrices, setCosplayerPrices] = useState({});
 
   const serviceId = "S002";
   const packageId = "";
@@ -69,7 +69,7 @@ const CosplayersPage = () => {
       return;
     }
 
-    setIsAuthenticated(true); // Đánh dấu đã đăng nhập nếu có token
+    setIsAuthenticated(true);
 
     try {
       const decoded = jwtDecode(accessToken);
@@ -80,8 +80,6 @@ const CosplayersPage = () => {
       }
       if (id) {
         setAccountId(id);
-      } else {
-        console.warn("JWT does not contain Id field");
       }
     } catch (error) {
       console.error("Invalid token", error);
@@ -127,6 +125,44 @@ const CosplayersPage = () => {
 
     fetchData();
   }, []);
+
+  const calculateCosplayerPrice = (salaryIndex, quantity) => {
+    return 100 * salaryIndex * quantity;
+  };
+
+  useEffect(() => {
+    const fetchCosplayerPrices = async () => {
+      if (isModalVisible && modalData.listRequestCharacters.length > 0) {
+        const prices = {};
+        await Promise.all(
+          modalData.listRequestCharacters.map(async (item) => {
+            try {
+              const cosplayerData =
+                await HireCosplayerService.getNameCosplayerInRequestByCosplayerId(
+                  item.cosplayerId
+                );
+              const salaryIndex = cosplayerData?.salaryIndex || 1;
+              prices[item.cosplayerId] = calculateCosplayerPrice(
+                salaryIndex,
+                item.quantity
+              );
+            } catch (error) {
+              console.warn(
+                `Failed to fetch salaryIndex for cosplayer ${item.cosplayerId}:`,
+                error
+              );
+              prices[item.cosplayerId] = calculateCosplayerPrice(
+                1,
+                item.quantity
+              );
+            }
+          })
+        );
+        setCosplayerPrices(prices);
+      }
+    };
+    fetchCosplayerPrices();
+  }, [isModalVisible, modalData.listRequestCharacters]);
 
   const filteredCharacters = characters.filter((char) =>
     char.name.toLowerCase().includes(searchCharacter.toLowerCase())
@@ -279,64 +315,31 @@ const CosplayersPage = () => {
         }))
         .filter((req) => req.cosplayerIds.length > 0)
     );
+    setCosplayerPrices((prev) => {
+      const newPrices = { ...prev };
+      delete newPrices[cosplayerId];
+      return newPrices;
+    });
   };
 
-  // const handleModalConfirm = () => {
-  //   if (!accountId) {
-  //     alert("Cannot send request: User ID is missing. Please log in again.");
-  //     return;
-  //   }
-
-  //   const totalPrice = modalData.listRequestCharacters.length * 100;
-  //   const requestData = {
-  //     accountId: accountId,
-  //     name: localStorage.getItem("AccountName") || modalData.name || "N/A",
-  //     description: modalData.description || " ",
-  //     price: totalPrice,
-  //     startDate:
-  //       dateRange && timeRange
-  //         ? `${timeRange[0].format(timeFormat)} ${dateRange[0].format(
-  //             dateFormat
-  //           )}`
-  //         : "N/A",
-  //     endDate:
-  //       dateRange && timeRange
-  //         ? `${timeRange[1].format(timeFormat)} ${dateRange[1].format(
-  //             dateFormat
-  //           )}`
-  //         : "N/A",
-  //     location: location || "N/A",
-  //     serviceId: "S002",
-  //     packageId: " ",
-  //     accountCouponId: accountCouponId || null,
-  //     listRequestCharacters: modalData.listRequestCharacters.map((item) => ({
-  //       characterId: item.characterId,
-  //       cosplayerId: item.cosplayerId,
-  //       description: " ",
-  //       quantity: 1,
-  //     })),
-  //   };
-  //   console.log("Request Data:", JSON.stringify(requestData, null, 2));
-  //   setIsModalVisible(false);
-  //   setStep(1);
-  //   setDateRange(null);
-  //   setTimeRange(null);
-  //   setLocation("");
-  //   setAccountCouponId("");
-  //   setRequests([]);
-  //   setFilteredCosplayers([]);
-  //   setSelectedCosplayers([]);
-  //   setSelectAll(false);
-  //   setCurrentCosplayerPage(1);
-  //   setCurrentCharacter(null);
-  // };
   const handleModalConfirm = async () => {
+    // Validation: Kiểm tra xem có ít nhất 1 cosplayer trong listRequestCharacters không
+    if (modalData.listRequestCharacters.length === 0) {
+      toast.error(
+        "Please select at least one cosplayer before sending the request!"
+      );
+      return;
+    }
+
     if (!accountId) {
       alert("Cannot send request: User ID is missing. Please log in again.");
       return;
     }
 
-    const totalPrice = modalData.listRequestCharacters.length * 100;
+    const totalPrice = Object.values(cosplayerPrices).reduce(
+      (sum, price) => sum + price,
+      0
+    );
     const requestData = {
       accountId: accountId,
       name: localStorage.getItem("AccountName") || modalData.name || "N/A",
@@ -383,12 +386,14 @@ const CosplayersPage = () => {
       setSelectAll(false);
       setCurrentCosplayerPage(1);
       setCurrentCharacter(null);
+      setCosplayerPrices({});
       toast.success("Request sent successfully!");
     } catch (error) {
       console.error("Failed to send request:", error.message);
-      alert(error.message); // Hiển thị lỗi cho người dùng
+      alert(error.message);
     }
   };
+
   if (!isAuthenticated) {
     return (
       <div
@@ -716,20 +721,19 @@ const CosplayersPage = () => {
               >
                 <p>
                   {cosplayers.find((c) => c.id === item.cosplayerId)?.name} -{" "}
-                  {characters.find((c) => c.id === item.characterId)?.name} -{" "}
-                  Quantity:{" "}
-                  <Input
-                    value={item.quantity}
-                    disabled
-                    style={{ width: "50px" }}
-                  />
+                  {characters.find((c) => c.id === item.characterId)?.name} -
+                  Quantity: {item.quantity} - Price: $
+                  {cosplayerPrices[item.cosplayerId] || "Loading..."}
                 </p>
               </List.Item>
             )}
           />
           <p>
-            <strong>Price:</strong>{" "}
-            {modalData.listRequestCharacters.length * 100} (Dynamic)
+            <strong>Total Price:</strong> $
+            {Object.values(cosplayerPrices).reduce(
+              (sum, price) => sum + price,
+              0
+            ) || 0}
           </p>
         </Modal>
       </div>

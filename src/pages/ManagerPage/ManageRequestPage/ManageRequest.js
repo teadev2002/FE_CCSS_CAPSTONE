@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Table,
   Modal,
@@ -7,54 +7,91 @@ import {
   Pagination,
   Dropdown,
 } from "react-bootstrap";
-import { Button, Popconfirm } from "antd";
+import { Button, Popconfirm, List } from "antd";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { ArrowUp, ArrowDown } from "lucide-react";
 import "../../../styles/Manager/ManageRequest.scss";
+import RequestService from "../../../services/ManageServicePages/ManageRequestService/RequestService.js";
 
 const ManageRequest = () => {
-  // Initial data for requests
-  const [requests, setRequests] = useState([
-    { id: "S001", statusRequest: "Pending" },
-    { id: "S002", statusRequest: "Approved" },
-    { id: "S003", statusRequest: "Rejected" },
-    { id: "S004", statusRequest: "Pending" },
-    { id: "S005", statusRequest: "Approved" },
-    { id: "S006", statusRequest: "Rejected" },
-  ]);
-
-  // Modal and form state
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentItem, setCurrentItem] = useState(null);
-  const [formData, setFormData] = useState({ id: "", status: "" });
-
-  // Search and sort states
+  const [formData, setFormData] = useState({ status: "" });
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [viewData, setViewData] = useState(null);
   const [searchRequest, setSearchRequest] = useState("");
   const [sortRequest, setSortRequest] = useState({
     field: "statusRequest",
     order: "asc",
   });
-
-  // Pagination states
   const [currentPageRequest, setCurrentPageRequest] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(3);
-  const rowsPerPageOptions = [3, 5, 10];
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const rowsPerPageOptions = [10, 20, 50];
 
-  // Filter and sort data
+  useEffect(() => {
+    const fetchRequests = async () => {
+      try {
+        const data = await RequestService.getAllRequests();
+        const formattedData = data.map((req) => ({
+          id: req.requestId,
+          name: req.name,
+          description: req.description,
+          statusRequest: mapStatus(req.status),
+          startDate: new Date(req.startDate).toLocaleString(),
+          endDate: new Date(req.endDate).toLocaleString(),
+        }));
+        setRequests(formattedData);
+        setLoading(false);
+      } catch (error) {
+        toast.error("Failed to fetch requests from API");
+        setLoading(false);
+      }
+    };
+    fetchRequests();
+  }, []);
+
+  const mapStatus = (status) => {
+    switch (status) {
+      case 0:
+        return "Pending";
+      case 1:
+        return "Browsed";
+      case 2:
+        return "Cancel";
+      default:
+        return "Unknown";
+    }
+  };
+
+  const mapStatusToNumber = (status) => {
+    switch (status) {
+      case "Pending":
+        return 0;
+      case "Browsed":
+        return 1;
+      case "Cancel":
+        return 2;
+      default:
+        return 0;
+    }
+  };
+
   const filterAndSortData = (data, search, sort) => {
     let filtered = [...data];
     if (search) {
-      filtered = filtered.filter(
-        (item) =>
-          item.id.toLowerCase().includes(search.toLowerCase()) ||
-          item.statusRequest.toLowerCase().includes(search.toLowerCase())
+      filtered = filtered.filter((item) =>
+        Object.values(item).some((val) =>
+          String(val).toLowerCase().includes(search.toLowerCase())
+        )
       );
     }
     return filtered.sort((a, b) => {
-      const valueA = a.statusRequest.toLowerCase();
-      const valueB = b.statusRequest.toLowerCase();
+      const valueA = a[sort.field].toString().toLowerCase();
+      const valueB = b[sort.field].toString().toLowerCase();
       return sort.order === "asc"
         ? valueA.localeCompare(valueB)
         : valueB.localeCompare(valueA);
@@ -68,24 +105,18 @@ const ManageRequest = () => {
   );
   const totalPagesRequest = Math.ceil(filteredRequests.length / rowsPerPage);
   const paginatedRequests = paginateData(filteredRequests, currentPageRequest);
+  const totalEntries = filteredRequests.length;
 
-  // Pagination logic
   function paginateData(data, page) {
     const startIndex = (page - 1) * rowsPerPage;
     const endIndex = startIndex + rowsPerPage;
     return data.slice(startIndex, endIndex);
   }
 
-  // Modal handling
-  const handleShowModal = (item = null) => {
-    if (item) {
-      setIsEditing(true);
-      setCurrentItem(item);
-      setFormData({ id: item.id, status: item.statusRequest });
-    } else {
-      setIsEditing(false);
-      setFormData({ id: "", status: "" });
-    }
+  const handleShowModal = (item) => {
+    setIsEditing(true);
+    setCurrentItem(item);
+    setFormData({ status: item.statusRequest });
     setShowModal(true);
   };
 
@@ -95,54 +126,170 @@ const ManageRequest = () => {
     setCurrentItem(null);
   };
 
-  // Form input change
+  const calculateCosplayerPrice = (salaryIndex, quantity) => {
+    return 100 * salaryIndex * quantity;
+  };
+
+  const calculateTotalPrice = (characters) => {
+    return characters.reduce(
+      (total, char) =>
+        total + calculateCosplayerPrice(char.salaryIndex, char.quantity),
+      0
+    );
+  };
+
+  const handleShowViewModal = async (id) => {
+    try {
+      const data = await RequestService.getRequestByRequestId(id);
+      if (!data) {
+        throw new Error("Request data not found");
+      }
+
+      const formattedData = {
+        id: data.requestId,
+        name: data.name || "N/A",
+        description: data.description || "N/A",
+        price: 0,
+        status: mapStatus(data.status),
+        startDateTime: data.startDate
+          ? new Date(data.startDate).toLocaleString()
+          : "N/A",
+        endDateTime: data.endDate
+          ? new Date(data.endDate).toLocaleString()
+          : "N/A",
+        location: data.location || "N/A",
+        listRequestCharacters: [],
+      };
+
+      const charactersList = data.charactersListResponse || [];
+      if (charactersList.length > 0) {
+        const listRequestCharacters = await Promise.all(
+          charactersList.map(async (char) => {
+            try {
+              const characterData = await RequestService.getNameCharacterById(
+                char.characterId
+              );
+              let cosplayerName = "Not Assigned";
+              let salaryIndex = 1;
+
+              if (char.cosplayerId) {
+                try {
+                  const cosplayerData =
+                    await RequestService.getNameCosplayerInRequestByCosplayerId(
+                      char.cosplayerId
+                    );
+                  cosplayerName = cosplayerData?.name || "Unknown";
+                  salaryIndex = cosplayerData?.salaryIndex || 1;
+                } catch (cosplayerError) {
+                  console.warn(
+                    `Failed to fetch cosplayer data for ID ${char.cosplayerId}:`,
+                    cosplayerError
+                  );
+                }
+              }
+
+              const price = calculateCosplayerPrice(
+                salaryIndex,
+                char.quantity || 0
+              );
+
+              return {
+                cosplayerId: char.cosplayerId || null,
+                characterId: char.characterId,
+                cosplayerName,
+                characterName: characterData?.characterName || "Unknown",
+                quantity: char.quantity || 0,
+                salaryIndex,
+                price, // Thêm giá cho từng cosplayer
+              };
+            } catch (charError) {
+              console.warn(
+                `Failed to fetch character data for ID ${char.characterId}:`,
+                charError
+              );
+              return {
+                cosplayerId: char.cosplayerId || null,
+                characterId: char.characterId,
+                cosplayerName: "Not Assigned",
+                characterName: "Unknown",
+                quantity: char.quantity || 0,
+                salaryIndex: 1,
+                price: 0,
+              };
+            }
+          })
+        );
+
+        formattedData.listRequestCharacters = listRequestCharacters;
+        formattedData.price = calculateTotalPrice(listRequestCharacters);
+      }
+
+      setViewData(formattedData);
+      setShowViewModal(true);
+    } catch (error) {
+      toast.error("Failed to fetch request details");
+      console.error("Error in handleShowViewModal:", error);
+    }
+  };
+
+  const handleCloseViewModal = () => {
+    setShowViewModal(false);
+    setViewData(null);
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  // Form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (isEditing) {
+    const requestStatus = mapStatusToNumber(formData.status);
+    try {
+      await RequestService.UpdateRequestStatusById(
+        currentItem.id,
+        requestStatus
+      );
       const updatedRequests = requests.map((req) =>
         req.id === currentItem.id
           ? { ...req, statusRequest: formData.status }
           : req
       );
       setRequests(updatedRequests);
-      toast.success("Request updated successfully!");
-    } else {
-      setRequests([
-        ...requests,
-        { id: formData.id, statusRequest: formData.status },
-      ]);
-      toast.success("Request added successfully!");
+      toast.success("Request status updated successfully!");
+      handleCloseModal();
+    } catch (error) {
+      toast.error("Failed to update request status");
+      console.error("Update error:", error);
     }
-    handleCloseModal();
   };
 
-  // Delete handling
-  const handleDelete = (id) => {
-    setRequests(requests.filter((req) => req.id !== id));
-    toast.success("Request deleted successfully!");
+  const handleDelete = async (id) => {
+    try {
+      await RequestService.DeleteRequestByRequestId(id);
+      setRequests(requests.filter((req) => req.id !== id));
+      toast.success("Request deleted successfully!");
+    } catch (error) {
+      toast.error("Failed to delete request");
+      console.error("Delete error:", error);
+    }
   };
 
-  // Sort handler
-  const handleSort = () => {
+  const handleSort = (field) => {
     setSortRequest((prev) => ({
-      field: "statusRequest",
-      order: prev.order === "asc" ? "desc" : "asc",
+      field,
+      order: prev.field === field && prev.order === "asc" ? "desc" : "asc",
     }));
     setCurrentPageRequest(1);
   };
 
-  // Pagination handlers
   const handlePageChange = (page) => setCurrentPageRequest(page);
   const handleRowsPerPageChange = (value) => {
     setRowsPerPage(value);
     setCurrentPageRequest(1);
   };
+
+  if (loading) return <div>Loading requests...</div>;
 
   return (
     <div className="manage-general">
@@ -154,39 +301,72 @@ const ManageRequest = () => {
               <h3>Requests</h3>
               <Form.Control
                 type="text"
-                placeholder="Search by ID or Status..."
+                placeholder="Search requests..."
                 value={searchRequest}
                 onChange={(e) => setSearchRequest(e.target.value)}
                 className="search-input"
               />
-              <Button type="primary" onClick={() => handleShowModal(null)}>
-                Add Request
-              </Button>
             </div>
             <Table striped bordered hover responsive>
               <thead>
                 <tr>
-                  <th className="text-center">ID</th>
-                  <th className="text-center">
-                    <span className="sortable" onClick={handleSort}>
-                      Status Request
-                      {sortRequest.field === "statusRequest" &&
-                        (sortRequest.order === "asc" ? (
-                          <ArrowUp size={16} />
-                        ) : (
-                          <ArrowDown size={16} />
-                        ))}
-                    </span>
+                  <th onClick={() => handleSort("name")}>
+                    Name{" "}
+                    {sortRequest.field === "name" &&
+                      (sortRequest.order === "asc" ? (
+                        <ArrowUp size={16} />
+                      ) : (
+                        <ArrowDown size={16} />
+                      ))}
                   </th>
-                  <th className="text-center">Actions</th>
+                  <th onClick={() => handleSort("description")}>
+                    Description{" "}
+                    {sortRequest.field === "description" &&
+                      (sortRequest.order === "asc" ? (
+                        <ArrowUp size={16} />
+                      ) : (
+                        <ArrowDown size={16} />
+                      ))}
+                  </th>
+                  <th onClick={() => handleSort("statusRequest")}>
+                    Status{" "}
+                    {sortRequest.field === "statusRequest" &&
+                      (sortRequest.order === "asc" ? (
+                        <ArrowUp size={16} />
+                      ) : (
+                        <ArrowDown size={16} />
+                      ))}
+                  </th>
+                  <th onClick={() => handleSort("startDate")}>
+                    Start Date{" "}
+                    {sortRequest.field === "startDate" &&
+                      (sortRequest.order === "asc" ? (
+                        <ArrowUp size={16} />
+                      ) : (
+                        <ArrowDown size={16} />
+                      ))}
+                  </th>
+                  <th onClick={() => handleSort("endDate")}>
+                    End Date{" "}
+                    {sortRequest.field === "endDate" &&
+                      (sortRequest.order === "asc" ? (
+                        <ArrowUp size={16} />
+                      ) : (
+                        <ArrowDown size={16} />
+                      ))}
+                  </th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {paginatedRequests.map((req) => (
                   <tr key={req.id}>
-                    <td className="text-center">{req.id}</td>
-                    <td className="text-center">{req.statusRequest}</td>
-                    <td className="text-center">
+                    <td>{req.name}</td>
+                    <td>{req.description}</td>
+                    <td>{req.statusRequest}</td>
+                    <td>{req.startDate}</td>
+                    <td>{req.endDate}</td>
+                    <td>
                       <Button
                         type="primary"
                         size="small"
@@ -194,6 +374,14 @@ const ManageRequest = () => {
                         style={{ marginRight: "8px" }}
                       >
                         Edit
+                      </Button>
+                      <Button
+                        type="default"
+                        size="small"
+                        onClick={() => handleShowViewModal(req.id)}
+                        style={{ marginRight: "8px" }}
+                      >
+                        View
                       </Button>
                       <Popconfirm
                         title="Are you sure to delete this request?"
@@ -217,31 +405,19 @@ const ManageRequest = () => {
               rowsPerPage={rowsPerPage}
               onRowsPerPageChange={handleRowsPerPageChange}
               rowsPerPageOptions={rowsPerPageOptions}
+              totalEntries={totalEntries}
+              showingEntries={paginatedRequests.length}
             />
           </Card.Body>
         </Card>
       </div>
 
-      {/* Modal */}
       <Modal show={showModal} onHide={handleCloseModal} centered>
         <Modal.Header closeButton>
-          <Modal.Title>
-            {isEditing ? "Edit Request" : "Add Request"}
-          </Modal.Title>
+          <Modal.Title>Edit Request Status</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form onSubmit={handleSubmit}>
-            <Form.Group className="mb-2">
-              <Form.Label>ID</Form.Label>
-              <Form.Control
-                type="text"
-                name="id"
-                value={formData.id}
-                onChange={handleInputChange}
-                required
-                disabled={isEditing}
-              />
-            </Form.Group>
             <Form.Group className="mb-2">
               <Form.Label>Status</Form.Label>
               <Form.Select
@@ -251,9 +427,9 @@ const ManageRequest = () => {
                 required
               >
                 <option value="">Select Status</option>
-                <option value="Pending">Pending</option>
-                <option value="Approved">Approved</option>
-                <option value="Rejected">Rejected</option>
+                <option value="Pending">Pending 🔃</option>
+                <option value="Browsed">Browsed ✅</option>
+                <option value="Cancel">Cancel ❌</option>
               </Form.Select>
             </Form.Group>
           </Form>
@@ -263,7 +439,59 @@ const ManageRequest = () => {
             Cancel
           </Button>
           <Button variant="primary" onClick={handleSubmit}>
-            {isEditing ? "Update" : "Add"}
+            Update
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      <Modal show={showViewModal} onHide={handleCloseViewModal} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Request Details</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {viewData ? (
+            <div>
+              <p>
+                <strong>Name:</strong> {viewData.name}
+              </p>
+              <p>
+                <strong>Description:</strong> {viewData.description}
+              </p>
+              <p>
+                <strong>Start DateTime:</strong> {viewData.startDateTime}
+              </p>
+              <p>
+                <strong>End DateTime:</strong> {viewData.endDateTime}
+              </p>
+              <p>
+                <strong>Location:</strong> {viewData.location}
+              </p>
+              <p>
+                <strong>Coupon ID:</strong> N/A
+              </p>
+              <h4>List of Requested Characters:</h4>
+              <List
+                dataSource={viewData.listRequestCharacters}
+                renderItem={(item, index) => (
+                  <List.Item key={index}>
+                    <p>
+                      {item.cosplayerName} - {item.characterName} - Quantity:{" "}
+                      {item.quantity} - Price: ${item.price}
+                    </p>
+                  </List.Item>
+                )}
+              />
+              <p>
+                <strong>Total Price:</strong> ${viewData.price}
+              </p>
+            </div>
+          ) : (
+            <p>Loading...</p>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCloseViewModal}>
+            Close
           </Button>
         </Modal.Footer>
       </Modal>
@@ -271,7 +499,6 @@ const ManageRequest = () => {
   );
 };
 
-// Pagination Component
 const PaginationControls = ({
   currentPage,
   totalPages,
@@ -279,22 +506,36 @@ const PaginationControls = ({
   rowsPerPage,
   onRowsPerPageChange,
   rowsPerPageOptions,
+  totalEntries,
+  showingEntries,
 }) => (
-  <div className="pagination-controls">
-    <div className="rows-per-page">
-      <span>Rows per page: </span>
-      <Dropdown onSelect={(value) => onRowsPerPageChange(Number(value))}>
-        <Dropdown.Toggle variant="secondary" id="dropdown-rows-per-page">
-          {rowsPerPage}
-        </Dropdown.Toggle>
-        <Dropdown.Menu>
-          {rowsPerPageOptions.map((option) => (
-            <Dropdown.Item key={option} eventKey={option}>
-              {option}
-            </Dropdown.Item>
-          ))}
-        </Dropdown.Menu>
-      </Dropdown>
+  <div
+    className="pagination-controls"
+    style={{
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+    }}
+  >
+    <div style={{ display: "flex", alignItems: "center" }}>
+      <span style={{ marginRight: "20px" }}>
+        Showing {showingEntries} of {totalEntries} entries
+      </span>
+      <div className="rows-per-page">
+        <span>Rows per page: </span>
+        <Dropdown onSelect={(value) => onRowsPerPageChange(Number(value))}>
+          <Dropdown.Toggle variant="secondary" id="dropdown-rows-per-page">
+            {rowsPerPage}
+          </Dropdown.Toggle>
+          <Dropdown.Menu>
+            {rowsPerPageOptions.map((option) => (
+              <Dropdown.Item key={option} eventKey={option}>
+                {option}
+              </Dropdown.Item>
+            ))}
+          </Dropdown.Menu>
+        </Dropdown>
+      </div>
     </div>
     <Pagination>
       <Pagination.First
