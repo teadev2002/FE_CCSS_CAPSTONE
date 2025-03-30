@@ -229,6 +229,7 @@ import "../../styles/LoginPage.scss";
 import { Link, useNavigate } from "react-router-dom";
 import AuthService from "../../services/AuthService";
 import { toast, ToastContainer } from "react-toastify";
+import { jwtDecode } from "jwt-decode"; // Import jwt-decode
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
@@ -240,6 +241,32 @@ const LoginPage = () => {
   const navigate = useNavigate();
 
   // Handle form submission using AuthService
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   setLoading(true);
+  //   setError(null);
+
+  //   try {
+  //     const response = await AuthService.login(
+  //       formData.email,
+  //       formData.password
+  //     );
+  //     localStorage.setItem("accessToken", response.accessToken); // Lưu token vào localStorage
+  //     toast.success("Đăng nhập thành công!");
+  //     navigate("/"); // Điều hướng về Home
+  //   } catch (err) {
+  //     setError(err.message);
+  //     toast.error(
+  //       "Đăng nhập thất bại: " + (err.message || "Something went wrong")
+  //     );
+  //     console.error("Login error:", err);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  // phân role
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -250,9 +277,29 @@ const LoginPage = () => {
         formData.email,
         formData.password
       );
-      localStorage.setItem("accessToken", response.accessToken); // Lưu token vào localStorage
+      const accessToken = response.accessToken;
+      localStorage.setItem("accessToken", accessToken); // Lưu token vào localStorage
+
+      // Decode token để lấy role
+      let decoded; // Khai báo decoded ở đây
+      let userRole = null;
+      try {
+        decoded = jwtDecode(accessToken); // Gán giá trị cho decoded
+        userRole = decoded.role; // Lấy role từ token
+      } catch (decodeError) {
+        console.error("Lỗi khi giải mã token:", decodeError);
+      }
+
       toast.success("Đăng nhập thành công!");
-      navigate("/"); // Điều hướng về Home
+
+      // Kiểm tra role và điều hướng
+      if (userRole === "Cosplayer" && decoded) {
+        // Kiểm tra decoded tồn tại
+        const userId = decoded.Id; // Lấy Id từ token
+        navigate(`/my-task/${userId}`); // Điều hướng tới /my-task nếu là Cosplayer
+      } else {
+        navigate("/"); // Điều hướng về Home nếu không phải Cosplayer
+      }
     } catch (err) {
       setError(err.message);
       toast.error(
@@ -263,7 +310,7 @@ const LoginPage = () => {
       setLoading(false);
     }
   };
-
+  //========================phân role end=======================================
   // Check for existing token on mount
   useEffect(() => {
     const checkExistingToken = () => {

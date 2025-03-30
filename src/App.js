@@ -37,6 +37,7 @@ import CartPage from "./pages/CartPage/CartPage.js"; // Import CartPage
 import ManageContract from "./pages/ManagerPage/ManageContractPage/ManageContract.js";
 import ManageAccount from "./pages/ManagerPage/ManageAccountPage/ManageAccount.js";
 import MyHistory from "./pages/MyHistoryPage/MyHistory.js";
+import MyTask from "./pages/TaskPage/MyTask.js";
 
 const AppLayout = ({ children }) => {
   const location = useLocation();
@@ -88,6 +89,7 @@ function App() {
           <Route path="/user-profile/:id" element={<ProfilePage />} />
           <Route path="/cart" element={<CartPage />} /> {/* Route cho Cart */}
           <Route path="/my-history/:id" element={<MyHistory />} />
+          <Route path="/my-task/:id" element={<MyTask />} />
           <Route path="/admin/dashboard" element={<DashboardPage />} />
           <Route
             path="/admin/user-performance"
