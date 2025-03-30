@@ -48,6 +48,17 @@ const HireCosplayerService = {
       throw error;
     }
   },
+  getHistoryByAccountId: async (accountId) => {
+    try {
+      const response = await apiClient.get(
+        `/api/Request/GetAllRequestByAccount?accountId=${accountId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching history:", error);
+      throw error;
+    }
+  },
 };
 
 export default HireCosplayerService;

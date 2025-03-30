@@ -54,13 +54,14 @@ const ManageRequest = () => {
     fetchRequests();
   }, []);
 
+  // Sửa hàm mapStatus để xử lý status dưới dạng chuỗi từ API
   const mapStatus = (status) => {
     switch (status) {
-      case 0:
+      case "Pending":
         return "Pending";
-      case 1:
+      case "Browsed":
         return "Browsed";
-      case 2:
+      case "Cancel":
         return "Cancel";
       default:
         return "Unknown";
@@ -200,7 +201,7 @@ const ManageRequest = () => {
                 characterName: characterData?.characterName || "Unknown",
                 quantity: char.quantity || 0,
                 salaryIndex,
-                price, // Thêm giá cho từng cosplayer
+                price,
               };
             } catch (charError) {
               console.warn(
