@@ -54,17 +54,23 @@ const CartPage = () => {
       const cartProductsWithDetails = await Promise.all(
         cartData.listCartProduct.map(async (item) => {
           const productDetails = await CartService.getProductById(item.productId);
+          const quantitySelected = parseInt(item.quantity, 10);
+          const quantityRemaining = parseInt(productDetails.quantity, 10);
+          // Tính tồn kho ban đầu = tồn kho còn lại + số lượng trong giỏ hàng
+          const initialQuantity = quantityRemaining + quantitySelected;
           return {
             cartProductId: item.cartProductId,
             id: item.productId,
             name: productDetails.productName,
-            price: item.price,
-            quantitySelected: item.quantity,
-            quantity: productDetails.quantity,
+            price: parseFloat(item.price),
+            quantitySelected: quantitySelected,
+            quantityRemaining: quantityRemaining, // Tồn kho còn lại
+            initialQuantity: initialQuantity, // Tồn kho ban đầu
             image: productDetails.productImages[0]?.urlImage || "https://via.placeholder.com/100",
           };
         })
       );
+      console.log("Cart items:", cartProductsWithDetails);
       setCartItems(cartProductsWithDetails);
       setLoading(false);
     } catch (err) {
@@ -79,13 +85,13 @@ const CartPage = () => {
 
   const handleIncrease = async (cartProductId, currentQuantity) => {
     const item = cartItems.find((i) => i.cartProductId === cartProductId);
-    if (item.quantitySelected < item.quantity) {
+    if (parseInt(item.quantitySelected, 10) < parseInt(item.initialQuantity, 10)) {
       try {
         const updatedQuantity = currentQuantity + 1;
         await CartService.updateProductQuantity(cartId, [
           { cartProductId, quantity: updatedQuantity },
         ]);
-        await fetchCart(); // Đồng bộ lại dữ liệu từ backend
+        await fetchCart();
         toast.success("Quantity updated!");
         window.dispatchEvent(new Event("storage"));
       } catch (error) {
@@ -103,7 +109,7 @@ const CartPage = () => {
         await CartService.updateProductQuantity(cartId, [
           { cartProductId, quantity: updatedQuantity },
         ]);
-        await fetchCart(); // Đồng bộ lại dữ liệu từ backend
+        await fetchCart();
         toast.success("Quantity updated!");
         window.dispatchEvent(new Event("storage"));
       } catch (error) {
@@ -115,7 +121,7 @@ const CartPage = () => {
   const handleRemove = async (cartProductId) => {
     try {
       await CartService.removeProductFromCart(cartId, [{ cartProductId }]);
-      await fetchCart(); // Đồng bộ lại dữ liệu từ backend
+      await fetchCart();
       toast.success("Item removed from cart!");
       window.dispatchEvent(new Event("storage"));
     } catch (error) {
@@ -162,7 +168,7 @@ const CartPage = () => {
     setCartItems(cartItems.filter((item) => !selectedItems[item.cartProductId]));
     setSelectedItems({});
     setShowConfirmModal(false);
-    await fetchCart(); // Đồng bộ lại sau khi mua
+    await fetchCart();
   };
 
   const handleLoginRedirect = () => {
@@ -210,49 +216,54 @@ const CartPage = () => {
         ) : (
           <div className="cart-content">
             <div className="cart-items">
-              {cartItems.map((item) => (
-                <div className="cart-item" key={item.cartProductId}>
-                  <Form.Check
-                    type="checkbox"
-                    checked={!!selectedItems[item.cartProductId]}
-                    onChange={() => handleSelectItem(item.cartProductId)}
-                    className="me-3"
-                  />
-                  <div className="item-image">
-                    <img src={item.image} alt={item.name} className="img-fluid" />
-                  </div>
-                  <div className="item-details">
-                    <h5 className="item-name">{item.name}</h5>
-                    <p className="item-price">${item.price}</p>
-                    <p className="item-stock">In Stock: {item.quantity}</p>
-                  </div>
-                  <div className="item-quantity">
+              {cartItems.map((item) => {
+                console.log(
+                  `Item: ${item.name}, quantitySelected: ${item.quantitySelected}, initialQuantity (In Stock): ${item.initialQuantity}, disabled: ${item.quantitySelected >= item.initialQuantity}`
+                );
+                return (
+                  <div className="cart-item" key={item.cartProductId}>
+                    <Form.Check
+                      type="checkbox"
+                      checked={!!selectedItems[item.cartProductId]}
+                      onChange={() => handleSelectItem(item.cartProductId)}
+                      className="me-3"
+                    />
+                    <div className="item-image">
+                      <img src={item.image} alt={item.name} className="img-fluid" />
+                    </div>
+                    <div className="item-details">
+                      <h5 className="item-name">{item.name}</h5>
+                      <p className="item-price">${item.price}</p>
+                      <p className="item-stock">In Stock: {item.quantityRemaining}</p>
+                    </div>
+                    <div className="item-quantity">
+                      <Button
+                        variant="outline-secondary"
+                        onClick={() => handleDecrease(item.cartProductId, item.quantitySelected)}
+                        disabled={item.quantitySelected === 1}
+                      >
+                        -
+                      </Button>
+                      <span>{item.quantitySelected}</span>
+                      <Button
+                        variant="outline-secondary"
+                        onClick={() => handleIncrease(item.cartProductId, item.quantitySelected)}
+                        disabled={parseInt(item.quantitySelected, 10) >= parseInt(item.initialQuantity, 10)}
+                      >
+                        +
+                      </Button>
+                    </div>
+                    <div className="item-total">${item.price * item.quantitySelected}</div>
                     <Button
-                      variant="outline-secondary"
-                      onClick={() => handleDecrease(item.cartProductId, item.quantitySelected)}
-                      disabled={item.quantitySelected === 1}
+                      variant="danger"
+                      className="remove-btn"
+                      onClick={() => handleRemove(item.cartProductId)}
                     >
-                      -
-                    </Button>
-                    <span>{item.quantitySelected}</span>
-                    <Button
-                      variant="outline-secondary"
-                      onClick={() => handleIncrease(item.cartProductId, item.quantitySelected)}
-                      disabled={item.quantitySelected >= item.quantity}
-                    >
-                      +
+                      <Trash2 size={18} />
                     </Button>
                   </div>
-                  <div className="item-total">${item.price * item.quantitySelected}</div>
-                  <Button
-                    variant="danger"
-                    className="remove-btn"
-                    onClick={() => handleRemove(item.cartProductId)}
-                  >
-                    <Trash2 size={18} />
-                  </Button>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             <div className="cart-summary">
