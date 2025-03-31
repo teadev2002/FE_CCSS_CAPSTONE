@@ -793,6 +793,7 @@ import {
 import Logo from "../../assets/img/CCSSlogo.png";
 import "../../styles/nav.scss";
 import AuthService from "../../services/AuthService.js";
+import CartService from "../../services/CartService/CartService";
 import { jwtDecode } from "jwt-decode";
 import { toast } from "react-toastify";
 
@@ -804,13 +805,14 @@ export function Navbar() {
   const [cartCount, setCartCount] = useState(0);
 
   const getUserInfoFromToken = () => {
-    const token = localStorage.getItem("accessToken"); // Đổi tên để tránh xung đột
+    const token = localStorage.getItem("accessToken");
     if (token) {
       try {
         const decoded = jwtDecode(token);
+        console.log("Decoded token in Navbar:", decoded); // Debug token
         return {
           id: decoded?.Id,
-          role: decoded?.role,
+          role: decoded?.role, // Lấy role từ token
         };
       } catch (error) {
         console.error("Lỗi khi giải mã token:", error);
@@ -820,20 +822,46 @@ export function Navbar() {
     return { id: null, role: null };
   };
 
+  const updateCartCount = async () => {
+    try {
+      const { id } = getUserInfoFromToken();
+      if (!id) {
+        // Nếu không có userId, thử lấy từ localStorage (fallback)
+        const savedCart = localStorage.getItem("cartItems");
+        const cartItems = savedCart ? JSON.parse(savedCart) : [];
+        setCartCount(cartItems.length);
+        return;
+      }
+      const cartData = await CartService.getCartByAccountId(id);
+      const totalQuantity = cartData.listCartProduct.reduce(
+        (total, item) => total + item.quantity,
+        0
+      );
+      setCartCount(totalQuantity);
+    } catch (error) {
+      console.error("Error updating cart count:", error);
+      // Fallback về localStorage nếu backend lỗi
+      const savedCart = localStorage.getItem("cartItems");
+      const cartItems = savedCart ? JSON.parse(savedCart) : [];
+      setCartCount(cartItems.length);
+    }
+  };
+
   useEffect(() => {
     const { id, role } = getUserInfoFromToken();
     setUserId(id);
     setUserRole(role); // Cập nhật role vào state
 
-    const savedCart = localStorage.getItem("cartItems");
-    const cartItems = savedCart ? JSON.parse(savedCart) : [];
-    setCartCount(cartItems.length);
-  }, []); // Không phụ thuộc vào accessToken
+    updateCartCount();
+    window.addEventListener("storage", updateCartCount);
+
+    return () => window.removeEventListener("storage", updateCartCount);
+  }, []);
 
   const goToProfile = () => {
     const { id } = getUserInfoFromToken();
     if (!id) {
-      toast.warn("Bạn chưa đăng nhập!");
+      toast.warn("You are not logged in!");
       setTimeout(() => navigate("/login"), 2100);
     } else {
       navigate(`/user-profile/${id}`);
@@ -843,7 +871,7 @@ export function Navbar() {
   const goToMyHistory = () => {
     const { id } = getUserInfoFromToken();
     if (!id) {
-      toast.warn("Bạn chưa đăng nhập!");
+      toast.warn("You are not logged in!");
       setTimeout(() => navigate("/login"), 2100);
     } else {
       navigate(`/my-history/${id}`);
@@ -853,7 +881,7 @@ export function Navbar() {
   const goToMyTask = () => {
     const { id, role } = getUserInfoFromToken();
     if (!id) {
-      toast.warn("Bạn chưa đăng nhập!");
+      toast.warn("You are not logged in!");
       setTimeout(() => navigate("/login"), 2100);
       return;
     }
@@ -869,6 +897,9 @@ export function Navbar() {
 
   const handleLogout = () => {
     AuthService.logout();
+    setUserId(null);
+    setUserRole(null);
+    setCartCount(0); // Reset cart count khi logout
     navigate("/login");
   };
 
@@ -986,7 +1017,7 @@ export function Navbar() {
               <CircleUser size={20} />
             </div>
             <div className="dropdown-menu dropdown-menu-user">
-              {localStorage.getItem("accessToken") && ( // Kiểm tra token trực tiếp
+              {userId && (
                 <>
                   <div onClick={goToProfile} className="dropdown-item">
                     Profile
