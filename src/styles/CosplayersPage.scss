@@ -1,5 +1,6 @@
 .cosplay-rental-page {
-  background-color: #f8f9fa;
+  background: linear-gradient(to bottom, #f8f9fa, #e6e9ee);
+  font-family: "Poppins", sans-serif;
 
   .hero-section {
     position: relative;
@@ -57,106 +58,358 @@
     }
   }
 
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
   .section-title {
-    font-size: 18px;
-    font-weight: 700;
+    font-size: 1.2rem;
+    font-weight: 600;
     color: #510545;
-    margin: 0;
-    padding-right: 8px;
-    white-space: nowrap;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .filter-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
   }
 
   .filter-card {
     background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
-    padding: 1rem;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(34, 102, 138, 0.1);
+    padding: 1.5rem;
+    width: 100%;
+    max-width: 600px;
     display: flex;
-    align-items: center;
-    margin-left: auto; // Căn giữa
-    margin-right: auto; // Căn giữa
+    flex-direction: column;
+    gap: 0.5rem;
+    transition: transform 0.3s ease;
+
+    &:hover {
+      transform: translateY(-5px);
+    }
+
+    .custom-date-picker,
+    .custom-time-picker,
+    .custom-input {
+      border-radius: 10px;
+      border: 2px solid #22668a;
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      transition: border-color 0.3s ease;
+
+      &:hover,
+      &:focus {
+        border-color: #510545;
+        box-shadow: 0 0 5px rgba(81, 5, 69, 0.3);
+      }
+    }
+
+    .custom-btn-skip {
+      background: #fff;
+      color: #510545;
+      border: 2px solid #510545;
+      border-radius: 20px;
+      padding: 0.3rem 1.5rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      align-self: flex-start;
+
+      &:hover {
+        background: #510545;
+        color: #fff;
+      }
+    }
   }
 
   .character-selection-card {
     background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
-    padding: 1.5rem;
-  }
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(34, 102, 138, 0.1);
+    padding: 2rem;
+    transition: transform 0.3s ease;
 
-  .character-card {
-    &.ant-card {
-      border-radius: 8px;
+    &:hover {
+      transform: translateY(-5px);
+    }
+
+    .custom-input-search {
+      border-radius: 25px;
+      border: 2px solid #22668a;
+      padding: 0.5rem 1rem;
+      width: 300px;
       transition: all 0.3s ease;
 
-      &.selected {
+      &:hover,
+      &:focus {
         border-color: #510545;
-        background: rgba(81, 5, 69, 0.1);
-      }
-
-      &.active {
-        border-color: #22668a; // Màu viền khi được chọn
-        background: rgba(34, 102, 138, 0.2); // Màu nền khi được chọn
-        color: #fff; // Đổi màu chữ nếu cần
-      }
-
-      &:hover {
-        transform: scale(1.05);
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      }
-
-      .ant-card-body {
-        padding: 12px;
-      }
-
-      p {
-        margin: 0;
+        box-shadow: 0 0 8px rgba(81, 5, 69, 0.2);
       }
     }
-  }
 
-  .cosplayer-item {
-    &.ant-card {
-      border-radius: 12px;
-      background: linear-gradient(135deg, rgba(81, 5, 69, 0.05), rgba(34, 102, 138, 0.05));
-      transition: all 0.5s ease;
+    .character-card {
+      &.ant-card {
+        border-radius: 12px;
+        background: linear-gradient(135deg, #ffffff, #f8f9fa);
+        border: 2px solid #22668a;
+        transition: all 0.3s ease;
 
-      &.selected {
-        border-color: #510545;
-        background: rgba(81, 5, 69, 0.1);
+        &.selected {
+          border-color: #510545;
+          background: rgba(81, 5, 69, 0.05);
+        }
+
+        &.active {
+          border-color: #510545;
+          background: linear-gradient(135deg, #510545, #22668a);
+          color: #fff;
+
+          h4, p {
+            color: #fff;
+          }
+        }
+
+        &:hover {
+          transform: scale(1.05);
+          box-shadow: 0 10px 20px rgba(34, 102, 138, 0.2);
+        }
+
+        .ant-card-body {
+          padding: 1rem;
+          text-align: center;
+        }
+
+        h4 {
+          font-size: 1.2rem;
+          font-weight: 600;
+          margin-bottom: 0.5rem;
+          color: #1a1a2e;
+        }
+
+        p {
+          margin: 0.2rem 0;
+          font-size: 0.9rem;
+          color: #555;
+        }
       }
+    }
 
-      &:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 12px 30px rgba(81, 5, 69, 0.25);
-      }
+    .custom-pagination {
+      margin-top: 2rem;
+      text-align: center;
 
-      .cosplayer-avatar {
-        width: 60px;
-        height: 60px;
+      .ant-pagination-item {
         border-radius: 50%;
-        border: 2px solid #510545;
-        margin-bottom: 1rem;
+        border: 2px solid #22668a;
+
+        &.ant-pagination-item-active {
+          background: #510545;
+          border-color: #510545;
+
+          a {
+            color: #fff;
+          }
+        }
+
+        &:hover {
+          border-color: #510545;
+          a {
+            color: #510545;
+          }
+        }
+      }
+
+      .ant-pagination-prev,
+      .ant-pagination-next {
+        .ant-pagination-item-link {
+          border-radius: 50%;
+          border: 2px solid #22668a;
+          color: #22668a;
+
+          &:hover {
+            border-color: #510545;
+            color: #510545;
+          }
+        }
       }
     }
   }
 
-  .add-to-contract-btn {
-    &.ant-btn {
+  .cosplayer-selection {
+    .custom-checkbox {
+      font-size: 1.1rem;
+      color: #510545;
+
+      .ant-checkbox-checked .ant-checkbox-inner {
+        background-color: #510545;
+        border-color: #510545;
+      }
+
+      &:hover .ant-checkbox-inner {
+        border-color: #510545;
+      }
+    }
+
+    .cosplayer-item {
+      &.ant-card {
+        border-radius: 15px;
+        background: #fff;
+        border: 2px solid #22668a;
+        transition: all 0.4s ease;
+
+        &.selected {
+          border-color: #510545;
+          background: rgba(81, 5, 69, 0.1);
+        }
+
+        &:hover {
+          transform: translateY(-10px);
+          box-shadow: 0 15px 30px rgba(34, 102, 138, 0.25);
+        }
+
+        .cosplayer-avatar {
+          width: 80px;
+          height: 80px;
+          border-radius: 50%;
+          border: 3px solid #510545;
+          margin: 0 auto 1rem;
+          display: block;
+          object-fit: cover;
+          transition: transform 0.3s ease;
+
+          &:hover {
+            transform: scale(1.1);
+          }
+        }
+
+        h5 {
+          font-size: 1.3rem;
+          font-weight: 600;
+          color: #1a1a2e;
+          margin-bottom: 0.5rem;
+        }
+
+        .description {
+          font-size: 0.9rem;
+          color: #666;
+          font-style: italic;
+          margin-bottom: 0.5rem;
+        }
+
+        p {
+          font-size: 0.9rem;
+          color: #555;
+          margin: 0.2rem 0;
+        }
+      }
+    }
+
+    .custom-btn-add {
       background: linear-gradient(135deg, #510545, #22668a);
       border: none;
       border-radius: 25px;
-      height: 48px;
+      padding: 0.5rem 2rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
 
       &:hover {
+        background: linear-gradient(135deg, #22668a, #510545);
         opacity: 0.9;
         transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(81, 5, 69, 0.3);
       }
     }
   }
 
-  .ant-checkbox-wrapper {
-    font-size: 16px;
-    color: #510545;
+  .request-summary {
+    background: #fff;
+    border-radius: 15px;
+    padding: 2rem;
+    box-shadow: 0 8px 20px rgba(34, 102, 138, 0.1);
+
+    .ant-list-item {
+      padding: 1rem;
+      border-bottom: 1px solid #e6e9ee;
+      transition: background 0.3s ease;
+
+      &:hover {
+        background: rgba(81, 5, 69, 0.05);
+      }
+    }
+
+    .custom-btn-send {
+      background: linear-gradient(135deg, #510545, #22668a);
+      border: none;
+      border-radius: 25px;
+      padding: 0.5rem 2rem;
+      font-size: 1.2rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+
+      &:hover {
+        background: linear-gradient(135deg, #22668a, #510545);
+        opacity: 0.9;
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(81, 5, 69, 0.3);
+      }
+    }
+  }
+
+  .custom-modal {
+    .ant-modal-header {
+      background: linear-gradient(135deg, #510545, #22668a);
+      border-radius: 15px 15px 0 0;
+      padding: 1.5rem;
+
+      .ant-modal-title {
+        color: #fff;
+        font-size: 1.5rem;
+        font-weight: 600;
+      }
+    }
+
+    .ant-modal-footer {
+      border-top: none;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: flex-end;
+      gap: 1rem;
+
+      .ant-btn {
+        border-radius: 20px;
+        padding: 0.5rem 1.5rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+      }
+
+      .ant-btn-default {
+        background: #fff;
+        color: #510545;
+        border: 2px solid #510545;
+
+        &:hover {
+          background: #510545;
+          color: #fff;
+        }
+      }
+
+      .ant-btn-primary {
+        background: linear-gradient(135deg, #510545, #22668a);
+        border: none;
+
+        &:hover {
+          background: linear-gradient(135deg, #22668a, #510545);
+          transform: translateY(-2px);
+          box-shadow: 0 5px 15px rgba(81, 5, 69, 0.3);
+        }
+      }
+    }
   }
 }

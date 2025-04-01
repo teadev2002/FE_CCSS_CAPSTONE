@@ -811,7 +811,7 @@ const CosplayersPage = () => {
   useEffect(() => {
     const accessToken = localStorage.getItem("accessToken");
     if (!accessToken) {
-      setError("Bạn cần đăng nhập để sử dụng trang này.");
+      setError("You need to log in to use this page.");
       return;
     }
 
@@ -829,7 +829,7 @@ const CosplayersPage = () => {
       }
     } catch (error) {
       console.error("Invalid token", error);
-      setError("Token không hợp lệ. Vui lòng đăng nhập lại.");
+      setError("Invalid token. Please log in again.");
       return;
     }
 
@@ -862,7 +862,7 @@ const CosplayersPage = () => {
         setCosplayers(mappedCosplayers);
         setCharacters(mappedCharacters);
       } catch (err) {
-        setError("Không thể tải dữ liệu. Vui lòng thử lại sau.");
+        setError("Unable to load data. Please try again later.");
         console.error(err);
       } finally {
         setLoading(false);
@@ -924,9 +924,7 @@ const CosplayersPage = () => {
     currentCosplayerPage * cosplayerPageSize
   );
 
-  // Validation cho DateRangePicker
   const disabledDate = (current) => {
-    // Không cho phép chọn ngày trước hôm nay
     return current && current < dayjs().startOf("day");
   };
 
@@ -975,14 +973,12 @@ const CosplayersPage = () => {
     const [start, end] = times;
     const now = dayjs();
 
-    // Kiểm tra nếu ngày bắt đầu là hôm nay, giờ không được nhỏ hơn hiện tại
     const isStartToday = dateRange && dateRange[0]?.isSame(now, "day");
     if (isStartToday && start.isBefore(now)) {
       toast.error("Start time cannot be in the past!");
       return;
     }
 
-    // Kiểm tra end time phải lớn hơn hoặc bằng start time
     if (end.isBefore(start)) {
       toast.error("End time must be equal to or after start time!");
       return;
@@ -1077,9 +1073,7 @@ const CosplayersPage = () => {
 
   const handleSendRequest = () => {
     if (!dateRange || !timeRange || !location) {
-      toast.error(
-        "Please complete all required fields (date, time, location)!"
-      );
+      toast.error("Please complete all required fields (date, time, location)!");
       return;
     }
     if (requests.length === 0) {
@@ -1211,13 +1205,10 @@ const CosplayersPage = () => {
 
   if (!isAuthenticated) {
     return (
-      <div
-        className="cosplay-rental-page min-vh-100"
-        style={{ padding: "50px" }}
-      >
+      <div className="cosplay-rental-page min-vh-100" style={{ padding: "50px" }}>
         <Alert
-          message="Lỗi đăng nhập"
-          description={error || "Bạn cần đăng nhập để sử dụng trang này."}
+          message="Login Error"
+          description={error || "You need to log in to use this page."}
           type="error"
           showIcon
         />
@@ -1231,18 +1222,15 @@ const CosplayersPage = () => {
         className="cosplay-rental-page min-vh-100"
         style={{ textAlign: "center", padding: "50px" }}
       >
-        <Spin size="large" tip="Đang tải dữ liệu..." />
+        <Spin size="large" tip="Loading data..." />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div
-        className="cosplay-rental-page min-vh-100"
-        style={{ padding: "50px" }}
-      >
-        <Alert message="Lỗi" description={error} type="error" showIcon />
+      <div className="cosplay-rental-page min-vh-100" style={{ padding: "50px" }}>
+        <Alert message="Error" description={error} type="error" showIcon />
       </div>
     );
   }
@@ -1259,87 +1247,66 @@ const CosplayersPage = () => {
       </div>
 
       <div className="container py-5">
-        {step >= 1 && (
-          <div className="filter-card mb-4" style={{ width: "50%" }}>
-            <Row align="middle" gutter={16}>
-              <Col>
-                <h3 className="section-title">Select Date Range:</h3>
-              </Col>
-              <Col>
-                <DateRangePicker
-                  value={dateRange}
-                  onChange={handleDateRangeChange}
-                  format={dateFormat}
-                  disabledDate={disabledDate}
-                  style={{ width: "300px" }}
-                />
-              </Col>
-            </Row>
-          </div>
-        )}
-        {step >= 2 && (
-          <div className="filter-card mb-4" style={{ width: "50%" }}>
-            <Row align="middle" gutter={16}>
-              <Col>
-                <h3 className="section-title">Select Time Range:</h3>
-              </Col>
-              <Col>
-                <TimeRangePicker
-                  value={timeRange}
-                  onChange={handleTimeRangeChange}
-                  format={timeFormat}
-                  disabledTime={disabledTime}
-                  style={{ width: "200px" }}
-                  defaultValue={[
-                    dayjs("09:00", timeFormat),
-                    dayjs("17:00", timeFormat),
-                  ]}
-                />
-              </Col>
-            </Row>
-          </div>
-        )}
-        {step >= 3 && (
-          <div className="filter-card mb-4" style={{ width: "50%" }}>
-            <Row align="middle" gutter={16}>
-              <Col>
-                <h3 className="section-title">Enter Location:</h3>
-              </Col>
-              <Col>
-                <Input
-                  placeholder="Enter event location"
-                  value={location}
-                  onChange={handleLocationChange}
-                  prefix={<SearchOutlined />}
-                  style={{ width: "300px" }}
-                />
-              </Col>
-            </Row>
-          </div>
-        )}
-        {step >= 4 && (
-          <div className="filter-card mb-4" style={{ width: "50%" }}>
-            <Row align="middle" gutter={16}>
-              <Col>
-                <h3 className="section-title">Enter Coupon (Optional):</h3>
-              </Col>
-              <Col flex="auto">
-                <Input
-                  placeholder="Enter coupon ID (optional)"
-                  value={accountCouponId}
-                  onChange={handleCouponChange}
-                  style={{ width: "200px" }}
-                />
-              </Col>
-              <Col>
-                <Button onClick={handleSkipCoupon}>Skip</Button>
-              </Col>
-            </Row>
-          </div>
-        )}
+        <div className="filter-section mb-5">
+          {step >= 1 && (
+            <div className="filter-card">
+              <h3 className="section-title">Select Date Range:</h3>
+              <DateRangePicker
+                value={dateRange}
+                onChange={handleDateRangeChange}
+                format={dateFormat}
+                disabledDate={disabledDate}
+                className="custom-date-picker"
+              />
+            </div>
+          )}
+          {step >= 2 && (
+            <div className="filter-card">
+              <h3 className="section-title">Select Time Range:</h3>
+              <TimeRangePicker
+                value={timeRange}
+                onChange={handleTimeRangeChange}
+                format={timeFormat}
+                disabledTime={disabledTime}
+                className="custom-time-picker"
+                defaultValue={[
+                  dayjs("09:00", timeFormat),
+                  dayjs("17:00", timeFormat),
+                ]}
+              />
+            </div>
+          )}
+          {step >= 3 && (
+            <div className="filter-card">
+              <h3 className="section-title">Enter Location:</h3>
+              <Input
+                placeholder="Enter event location"
+                value={location}
+                onChange={handleLocationChange}
+                prefix={<SearchOutlined />}
+                className="custom-input"
+              />
+            </div>
+          )}
+          {step >= 4 && (
+            <div className="filter-card">
+              <h3 className="section-title">Enter Coupon (Optional):</h3>
+              <Input
+                placeholder="Enter coupon ID (optional)"
+                value={accountCouponId}
+                onChange={handleCouponChange}
+                className="custom-input"
+              />
+              <Button onClick={handleSkipCoupon} className="custom-btn-skip">
+                Skip
+              </Button>
+            </div>
+          )}
+        </div>
+
         {step >= 5 && (
-          <div className="character-selection-card mb-4">
-            <Row align="middle" gutter={16}>
+          <div className="character-selection-card mb-5">
+            <Row align="middle" gutter={16} className="mb-4">
               <Col>
                 <h3 className="section-title">Select Character:</h3>
               </Col>
@@ -1352,11 +1319,11 @@ const CosplayersPage = () => {
                     setCurrentPage(1);
                   }}
                   prefix={<SearchOutlined />}
-                  style={{ width: "250px" }}
+                  className="custom-input-search"
                 />
               </Col>
             </Row>
-            <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
+            <Row gutter={[16, 16]}>
               {paginatedCharacters.map((character) => (
                 <Col xs={24} sm={12} md={8} key={character.id}>
                   <Card
@@ -1372,12 +1339,12 @@ const CosplayersPage = () => {
                     }`}
                     onClick={() => handleCharacterSelect(character)}
                   >
-                    <p>{character.name}</p>
+                    <h4>{character.name}</h4>
                     <p>
-                      Height: {character.minHeight} - {character.maxHeight} (cm)
+                      Height: {character.minHeight} - {character.maxHeight} cm
                     </p>
                     <p>
-                      Weight: {character.minWeight} - {character.maxWeight} (kg)
+                      Weight: {character.minWeight} - {character.maxWeight} kg
                     </p>
                   </Card>
                 </Col>
@@ -1388,20 +1355,20 @@ const CosplayersPage = () => {
               pageSize={characterPageSize}
               total={filteredCharacters.length}
               onChange={(page) => setCurrentPage(page)}
-              style={{ marginTop: 16, textAlign: "center" }}
+              className="custom-pagination"
             />
           </div>
         )}
 
         {step >= 6 && (
-          <>
-            <h3 className="section-title">
+          <div className="cosplayer-selection">
+            <h3 className="section-title mb-4">
               Available Cosplayers for {currentCharacter?.characterName}:
             </h3>
             <Checkbox
               checked={selectAll}
               onChange={handleSelectAll}
-              className="mb-3"
+              className="custom-checkbox mb-4"
             >
               Select All
             </Checkbox>
@@ -1425,9 +1392,9 @@ const CosplayersPage = () => {
                       onError={(e) => (e.target.src = DEFAULT_AVATAR_URL)}
                     />
                     <h5>{cosplayer.name}</h5>
-                    <p>{cosplayer.description}</p>
-                    <p>Height: {cosplayer.height} (cm)</p>
-                    <p>Weight: {cosplayer.weight} (kg)</p>
+                    <p className="description">{cosplayer.description}</p>
+                    <p>Height: {cosplayer.height} cm</p>
+                    <p>Weight: {cosplayer.weight} kg</p>
                   </Card>
                 </List.Item>
               )}
@@ -1437,20 +1404,20 @@ const CosplayersPage = () => {
               pageSize={cosplayerPageSize}
               total={filteredCosplayers.length}
               onChange={(page) => setCurrentCosplayerPage(page)}
-              style={{ marginTop: 16, textAlign: "center" }}
+              className="custom-pagination"
             />
             <Button
               type="primary"
               onClick={handleAddCosplayers}
-              className="mt-3"
+              className="custom-btn-add mt-4"
             >
               Add Cosplayers & Select More
             </Button>
-          </>
+          </div>
         )}
         {requests.length > 0 && (
-          <div className="mt-4">
-            <h3 className="section-title">Selected Requests:</h3>
+          <div className="request-summary mt-5">
+            <h3 className="section-title mb-4">Selected Requests:</h3>
             <List
               dataSource={requests}
               renderItem={(req) => (
@@ -1465,8 +1432,8 @@ const CosplayersPage = () => {
             <Button
               type="primary"
               size="large"
-              className="add-to-contract-btn mt-4"
               onClick={handleSendRequest}
+              className="custom-btn-send mt-4"
             >
               Send Request Hire Cosplayer
             </Button>
@@ -1478,75 +1445,294 @@ const CosplayersPage = () => {
           onOk={handleModalConfirm}
           onCancel={() => setIsModalVisible(false)}
           okText="Send Request"
-          cancelText={null}
+          cancelText="Cancel"
+          style={{
+            fontFamily: "'Poppins', sans-serif",
+          }}
+          bodyStyle={{
+            background: "#fff",
+            borderRadius: "0 0 15px 15px",
+            padding: "2rem",
+            boxShadow: "0 10px 30px rgba(34, 102, 138, 0.2)",
+          }}
+          headerStyle={{
+            background: "linear-gradient(135deg, #510545, #22668a)",
+            borderRadius: "15px 15px 0 0",
+            padding: "1.5rem",
+          }}
         >
-          <p>
-            <strong>Name:</strong>
-          </p>
-          <Input
-            value={modalData.name}
-            onChange={(e) =>
-              setModalData({ ...modalData, name: e.target.value })
-            }
-            placeholder="Your account name"
-            style={{ width: "250px" }}
-          />
-          <p>
-            <strong>Description:</strong>
-          </p>
-          <Input.TextArea
-            value={modalData.description}
-            onChange={(e) =>
-              setModalData({ ...modalData, description: e.target.value })
-            }
-            placeholder="Enter description"
-            style={{ width: "300px" }}
-          />
-          <p>
-            <strong>Start DateTime:</strong> {modalData.startDateTime}
-          </p>
-          <p>
-            <strong>End DateTime:</strong> {modalData.endDateTime}
-          </p>
-          <p>
-            <strong>Location:</strong> {location || "N/A"}
-          </p>
-          <p>
-            <strong>Coupon ID:</strong> {accountCouponId || "N/A"}
-          </p>
-          <h4>List of Requested Characters:</h4>
-          <List
-            dataSource={modalData.listRequestCharacters}
-            renderItem={(item, index) => (
-              <List.Item
-                key={index}
-                actions={[
-                  <Button
-                    type="link"
-                    icon={<CloseOutlined />}
-                    onClick={() =>
-                      handleRemoveCosplayer(item.cosplayerId, item.characterId)
-                    }
-                  />,
-                ]}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "1.5rem",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.5rem",
+              }}
+            >
+              <label
+                style={{
+                  fontSize: "1.1rem",
+                  fontWeight: 600,
+                  color: "#510545",
+                }}
               >
-                <p>
-                  {cosplayers.find((c) => c.id === item.cosplayerId)?.name} -{" "}
-                  {characters.find((c) => c.id === item.characterId)?.name} -
-                  Quantity: {item.quantity} - Price:
-                  {cosplayerPrices[item.cosplayerId] || "Loading..."} VND
-                </p>
-              </List.Item>
-            )}
-          />
-          <p>
-            <strong>Total Price:</strong>
-            {Object.values(cosplayerPrices).reduce(
-              (sum, price) => sum + price,
-              0
-            ) || 0}{" "}
-            VND
-          </p>
+                Name:
+              </label>
+              <Input
+                value={modalData.name}
+                onChange={(e) =>
+                  setModalData({ ...modalData, name: e.target.value })
+                }
+                placeholder="Your account name"
+                style={{
+                  borderRadius: "10px",
+                  border: "2px solid #22668a",
+                  padding: "0.5rem 1rem",
+                  fontSize: "1rem",
+                  transition: "border-color 0.3s ease",
+                }}
+                onFocus={(e) => (e.target.style.borderColor = "#510545")}
+                onBlur={(e) => (e.target.style.borderColor = "#22668a")}
+              />
+            </div>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.5rem",
+              }}
+            >
+              <label
+                style={{
+                  fontSize: "1.1rem",
+                  fontWeight: 600,
+                  color: "#510545",
+                }}
+              >
+                Description:
+              </label>
+              <Input.TextArea
+                value={modalData.description}
+                onChange={(e) =>
+                  setModalData({ ...modalData, description: e.target.value })
+                }
+                placeholder="Enter description"
+                style={{
+                  borderRadius: "10px",
+                  border: "2px solid #22668a",
+                  padding: "0.5rem 1rem",
+                  fontSize: "1rem",
+                  minHeight: "100px",
+                  transition: "border-color 0.3s ease",
+                }}
+                onFocus={(e) => (e.target.style.borderColor = "#510545")}
+                onBlur={(e) => (e.target.style.borderColor = "#22668a")}
+              />
+            </div>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.5rem",
+              }}
+            >
+              <label
+                style={{
+                  fontSize: "1.1rem",
+                  fontWeight: 600,
+                  color: "#510545",
+                }}
+              >
+                Start DateTime:
+              </label>
+              <span
+                style={{
+                  fontSize: "1rem",
+                  color: "#1a1a2e",
+                }}
+              >
+                {modalData.startDateTime}
+              </span>
+            </div>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.5rem",
+              }}
+            >
+              <label
+                style={{
+                  fontSize: "1.1rem",
+                  fontWeight: 600,
+                  color: "#510545",
+                }}
+              >
+                End DateTime:
+              </label>
+              <span
+                style={{
+                  fontSize: "1rem",
+                  color: "#1a1a2e",
+                }}
+              >
+                {modalData.endDateTime}
+              </span>
+            </div>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.5rem",
+              }}
+            >
+              <label
+                style={{
+                  fontSize: "1.1rem",
+                  fontWeight: 600,
+                  color: "#510545",
+                }}
+              >
+                Location:
+              </label>
+              <span
+                style={{
+                  fontSize: "1rem",
+                  color: "#1a1a2e",
+                }}
+              >
+                {location || "N/A"}
+              </span>
+            </div>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.5rem",
+              }}
+            >
+              <label
+                style={{
+                  fontSize: "1.1rem",
+                  fontWeight: 600,
+                  color: "#510545",
+                }}
+              >
+                Coupon ID:
+              </label>
+              <span
+                style={{
+                  fontSize: "1rem",
+                  color: "#1a1a2e",
+                }}
+              >
+                {accountCouponId || "N/A"}
+              </span>
+            </div>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.5rem",
+              }}
+            >
+              <label
+                style={{
+                  fontSize: "1.1rem",
+                  fontWeight: 600,
+                  color: "#510545",
+                }}
+              >
+                Requested Characters:
+              </label>
+              <div
+                style={{
+                  border: "1px solid #e6e9ee",
+                  borderRadius: "10px",
+                  padding: "0.5rem",
+                  background: "#f8f9fa",
+                }}
+              >
+                <List
+                  dataSource={modalData.listRequestCharacters}
+                  renderItem={(item, index) => (
+                    <List.Item
+                      key={index}
+                      actions={[
+                        <Button
+                          type="link"
+                          icon={<CloseOutlined />}
+                          onClick={() =>
+                            handleRemoveCosplayer(item.cosplayerId, item.characterId)
+                          }
+                          style={{
+                            color: "#510545",
+                          }}
+                        />,
+                      ]}
+                      style={{
+                        padding: "0.5rem",
+                        borderBottom:
+                          index < modalData.listRequestCharacters.length - 1
+                            ? "1px solid #e6e9ee"
+                            : "none",
+                      }}
+                    >
+                      <span
+                        style={{
+                          color: "#1a1a2e",
+                          fontSize: "0.95rem",
+                        }}
+                      >
+                        {cosplayers.find((c) => c.id === item.cosplayerId)?.name} as{" "}
+                        {characters.find((c) => c.id === item.characterId)?.name} - 
+                        Quantity: {item.quantity} - 
+                        Price: {cosplayerPrices[item.cosplayerId] || "Loading..."} VND
+                      </span>
+                    </List.Item>
+                  )}
+                />
+              </div>
+            </div>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                paddingTop: "1rem",
+                borderTop: "2px solid #22668a",
+              }}
+            >
+              <label
+                style={{
+                  fontSize: "1.2rem",
+                  fontWeight: 600,
+                  color: "#510545",
+                }}
+              >
+                Total Price:
+              </label>
+              <span
+                style={{
+                  fontSize: "1.2rem",
+                  fontWeight: 600,
+                  color: "#510545",
+                }}
+              >
+                {Object.values(cosplayerPrices).reduce(
+                  (sum, price) => sum + price,
+                  0
+                ) || 0}{" "}
+                VND
+              </span>
+            </div>
+          </div>
         </Modal>
       </div>
     </div>
