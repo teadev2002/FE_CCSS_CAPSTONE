@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Table, Spinner } from "react-bootstrap";
+import {
+  Container,
+  Row,
+  Col,
+  Form,
+  Card,
+  Badge,
+  Spinner,
+} from "react-bootstrap";
 import { Pagination } from "antd";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -7,12 +15,14 @@ import "antd/dist/reset.css";
 import "../../styles/MyTask.scss";
 import { useParams, useNavigate } from "react-router-dom";
 import TaskService from "../../services/TaskService/TaskService";
+import { FileText, Code, CheckCircle, XCircle } from "lucide-react";
 
 const MyTask = () => {
   const [tasks, setTasks] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [page, setPage] = useState(1);
-  const [sort, setSort] = useState({ field: null, order: "asc" });
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All Status");
   const itemsPerPage = 5;
 
   const { id } = useParams();
@@ -63,172 +73,169 @@ const MyTask = () => {
     loadTasks();
   }, [id, navigate]);
 
-  const sortTasks = (field) => {
-    const order = sort.field === field && sort.order === "asc" ? "desc" : "asc";
-    setSort({ field, order });
+  const filteredTasks = tasks.filter((task) => {
+    const matchesSearch = task.taskName
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesStatus =
+      statusFilter === "All Status" || task.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
-    const sortedTasks = [...tasks].sort((a, b) => {
-      if (
-        field === "startDate" ||
-        field === "endDate" ||
-        field === "createDate" ||
-        field === "updateDate"
-      ) {
-        const dateA = new Date(
-          a[field].replace(/(\d{2})\/(\d{2})\/(\d{4})/, "$3-$2-$1")
-        );
-        const dateB = new Date(
-          b[field].replace(/(\d{2})\/(\d{2})\/(\d{4})/, "$3-$2-$1")
-        );
-        return order === "asc" ? dateA - dateB : dateB - dateA;
-      }
-      return order === "asc"
-        ? (a[field] || "").localeCompare(b[field] || "")
-        : (b[field] || "").localeCompare(a[field] || "");
-    });
-
-    setTasks(sortedTasks);
-  };
-
-  const formatDate = (dateStr) => {
-    if (!dateStr) return "N/A";
-    try {
-      const [time, date] = dateStr.split(" ");
-      const [hours, minutes] = time.split(":");
-      const [day, month, year] = date.split("/");
-      const dateObj = new Date(
-        `${year}-${month}-${day}T${hours}:${minutes}:00`
-      );
-      return dateObj.toLocaleDateString("vi-VN");
-    } catch {
-      return "N/A";
-    }
-  };
-
-  const getStatusBadge = (status) => {
-    const statusStyles = {
-      Progressing: "text-primary",
-      Active: "text-success",
-      Done: "text-success",
-      Cancel: "text-secondary",
-    };
-    return (
-      <span className={statusStyles[status] || "text-secondary"}>
-        {status || "Unknown"}
-      </span>
-    );
-  };
-
-  const paginatedTasks = tasks.slice(
+  const paginatedTasks = filteredTasks.slice(
     (page - 1) * itemsPerPage,
     page * itemsPerPage
   );
-  const totalItems = tasks.length;
+  const totalItems = filteredTasks.length;
 
   const handlePageChange = (newPage) => {
     setPage(newPage);
   };
 
+  // Logic cho TaskCard
+  const statusColors = {
+    Progressing: "warning",
+    Active: "primary",
+    Done: "success",
+    Cancel: "secondary",
+  };
+
+  const getIcon = (taskName) => {
+    if (taskName.toLowerCase().includes("document"))
+      return <FileText size={24} />;
+    if (
+      taskName.toLowerCase().includes("api") ||
+      taskName.toLowerCase().includes("develop")
+    )
+      return <Code size={24} />;
+    if (taskName.toLowerCase().includes("test"))
+      return <CheckCircle size={24} />;
+    if (taskName.toLowerCase().includes("migra")) return <XCircle size={24} />;
+    return <FileText size={24} />;
+  };
+
   return (
-    <div className="my-task container vh-100">
-      <h2 className="title-my-task text-center my-4">
-        <span>My Task</span>
-      </h2>
+    <div className="my-task bg-light min-vh-100">
+      <Container className="py-5">
+        <h1 className="text-center mb-5 fw-bold title-my-task">
+          <span>My Task</span>
+        </h1>
 
-      <div className="card">
-        <div className="card-body">
-          {isLoading ? (
-            <div className="text-center">
-              <Spinner animation="border" role="status">
-                <span className="visually-hidden">Loading...</span>
-              </Spinner>
-            </div>
-          ) : tasks.length === 0 ? (
-            <p className="text-center">No tasks available.</p>
-          ) : (
-            <>
-              <Table hover responsive className="text-center">
-                <thead>
-                  <tr>
-                    <th onClick={() => sortTasks("taskName")}>
-                      Task Name{" "}
-                      {sort.field === "taskName" &&
-                        (sort.order === "asc" ? "↑" : "↓")}
-                    </th>
-                    <th onClick={() => sortTasks("location")}>
-                      Location{" "}
-                      {sort.field === "location" &&
-                        (sort.order === "asc" ? "↑" : "↓")}
-                    </th>
-                    <th onClick={() => sortTasks("description")}>
-                      Description{" "}
-                      {sort.field === "description" &&
-                        (sort.order === "asc" ? "↑" : "↓")}
-                    </th>
-                    <th onClick={() => sortTasks("isActive")}>
-                      Active{" "}
-                      {sort.field === "isActive" &&
-                        (sort.order === "asc" ? "↑" : "↓")}
-                    </th>
-                    <th onClick={() => sortTasks("startDate")}>
-                      Start Date{" "}
-                      {sort.field === "startDate" &&
-                        (sort.order === "asc" ? "↑" : "↓")}
-                    </th>
-                    <th onClick={() => sortTasks("endDate")}>
-                      End Date{" "}
-                      {sort.field === "endDate" &&
-                        (sort.order === "asc" ? "↑" : "↓")}
-                    </th>
-                    <th onClick={() => sortTasks("createDate")}>
-                      Create Date{" "}
-                      {sort.field === "createDate" &&
-                        (sort.order === "asc" ? "↑" : "↓")}
-                    </th>
-                    <th onClick={() => sortTasks("updateDate")}>
-                      Update Date{" "}
-                      {sort.field === "updateDate" &&
-                        (sort.order === "asc" ? "↑" : "↓")}
-                    </th>
-                    <th onClick={() => sortTasks("status")}>
-                      Status{" "}
-                      {sort.field === "status" &&
-                        (sort.order === "asc" ? "↑" : "↓")}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedTasks.map((task) => (
-                    <tr key={task.taskId}>
-                      {" "}
-                      {/* Dùng taskId làm key */}
-                      <td>{task.taskName || "N/A"}</td>
-                      <td>{task.location || "N/A"}</td>
-                      <td>{task.description || "N/A"}</td>
-                      <td>{task.isActive ? "Yes" : "No"}</td>
-                      <td>{task.startDate}</td>
-                      <td>{task.endDate}</td>
-                      <td>{task.createDate}</td>
-                      <td>{task.updateDate}</td>
-                      <td>{getStatusBadge(task.status)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </Table>
-
-              <div className="text-center mt-3">
-                <Pagination
-                  current={page}
-                  pageSize={itemsPerPage}
-                  total={totalItems}
-                  onChange={handlePageChange}
-                  showSizeChanger={false}
-                />
-              </div>
-            </>
-          )}
+        {/* Filters and Search */}
+        <div className="filter-section bg-white p-4 rounded shadow mb-5">
+          <Row className="align-items-center g-3">
+            <Col md={6}>
+              <Form.Control
+                type="text"
+                placeholder="Search tasks..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="search-input"
+              />
+            </Col>
+            <Col md={6} className="d-flex gap-3">
+              <Form.Select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option>All Status</option>
+                <option>Progressing</option>
+                <option>Active</option>
+                <option>Done</option>
+                <option>Cancel</option>
+              </Form.Select>
+            </Col>
+          </Row>
         </div>
-      </div>
+
+        {/* Task List */}
+        {isLoading ? (
+          <div className="text-center">
+            <Spinner animation="border" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </Spinner>
+          </div>
+        ) : filteredTasks.length === 0 ? (
+          <p className="text-center">No tasks available.</p>
+        ) : (
+          <Row className="g-4">
+            {paginatedTasks.map((task) => (
+              <Col key={task.taskId} xs={12}>
+                <Card className="task-card shadow">
+                  <Card.Body>
+                    <div className="d-flex flex-column flex-md-row gap-4">
+                      {/* Task Info */}
+                      <div className="flex-grow-1">
+                        <div className="d-flex gap-3">
+                          <div className="icon-circle">
+                            {getIcon(task.taskName)}
+                          </div>
+                          <div className="flex-grow-1">
+                            <div className="d-flex justify-content-between align-items-start">
+                              <h3 className="task-title mb-0">
+                                {task.taskName || "N/A"}
+                              </h3>
+                              <Badge
+                                bg={statusColors[task.status] || "secondary"}
+                              >
+                                {task.status || "Unknown"}
+                              </Badge>
+                            </div>
+                            <div className="text-muted small">
+                              {task.location || "N/A"}
+                            </div>
+                            <p className="description mt-2 mb-0">
+                              {task.description || "N/A"}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Dates and Status */}
+                      <div className="text-md-end">
+                        <div className="d-flex gap-3 align-items-center justify-content-md-end">
+                          <span className="text-muted small">
+                            {task.startDate || "N/A"} to {task.endDate || "N/A"}
+                          </span>
+                          <Badge bg={task.isActive ? "success" : "danger"}>
+                            {task.isActive ? "Yes" : "No"}
+                          </Badge>
+                        </div>
+                        <div className="mt-2 text-muted small">
+                          <div>Created: {task.createDate || "N/A"}</div>
+                          <div>Updated: {task.updateDate || "N/A"}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </Card.Body>
+                </Card>
+              </Col>
+            ))}
+          </Row>
+        )}
+
+        {/* Pagination */}
+        {filteredTasks.length > 0 && (
+          <Row className="mt-5 align-items-center">
+            <Col xs={12} sm={6} className="mb-3 mb-sm-0">
+              <p className="mb-0">
+                Showing <strong>{(page - 1) * itemsPerPage + 1}</strong> to{" "}
+                <strong>{Math.min(page * itemsPerPage, totalItems)}</strong> of{" "}
+                <strong>{totalItems}</strong> results
+              </p>
+            </Col>
+            <Col xs={12} sm={6} className="d-flex justify-content-end">
+              <Pagination
+                current={page}
+                pageSize={itemsPerPage}
+                total={totalItems}
+                onChange={handlePageChange}
+                showSizeChanger={false}
+              />
+            </Col>
+          </Row>
+        )}
+      </Container>
     </div>
   );
 };
