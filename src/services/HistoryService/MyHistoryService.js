@@ -47,11 +47,26 @@ const MyHistoryService = {
   getAllContractByAccountId: async (accountId) => {
     try {
       const response = await apiClient.get(
-        `/api/Contract/acountId/${accountId}`
+        `/api/Contract/accountId/${accountId}`
       );
       return response.data;
     } catch (error) {
       console.error("Error fetching contract:", error);
+      throw error;
+    }
+  },
+
+  updateStatusContract: async (contractId, status) => {
+    try {
+      const response = await apiClient.put(
+        `/api/Contract?contracId=${contractId}&status=${status}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error(
+        "Error updating contract status:",
+        error.response ? error.response.data : error.message
+      );
       throw error;
     }
   },
