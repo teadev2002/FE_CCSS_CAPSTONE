@@ -128,7 +128,7 @@ const ManageRequest = () => {
   };
 
   const calculateCosplayerPrice = (salaryIndex, quantity) => {
-    return 100 * salaryIndex * quantity;
+    return 100000 * salaryIndex * quantity;
   };
 
   const calculateTotalPrice = (characters) => {
@@ -477,13 +477,13 @@ const ManageRequest = () => {
                   <List.Item key={index}>
                     <p>
                       {item.cosplayerName} - {item.characterName} - Quantity:{" "}
-                      {item.quantity} - Price: ${item.price}
+                      {item.quantity} - Price: {item.price} VND
                     </p>
                   </List.Item>
                 )}
               />
               <p>
-                <strong>Total Price:</strong> ${viewData.price}
+                <strong>Total Price:</strong> {viewData.price} VND
               </p>
             </div>
           ) : (

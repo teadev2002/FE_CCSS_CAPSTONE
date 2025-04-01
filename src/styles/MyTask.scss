@@ -4,8 +4,40 @@
   padding: 30px;
   min-height: 100vh;
   background-color: #f8f9fa;
+  @media (max-width: 768px) {
+    padding: 15px;
+  }
+  // .title-my-task {
+  //   span {
+  //     font-size: 2.5rem;
+  //     font-weight: bold;
+  //     background: linear-gradient(90deg, #510545, #22668a);
+  //     -webkit-background-clip: text;
+  //     background-clip: text;
+  //     -webkit-text-fill-color: transparent;
+  //     text-transform: uppercase;
+  //     letter-spacing: 2px;
+  //     border-bottom: 3px solid #510545;
+  //     padding-bottom: 10px;
+  //     transition: transform 0.3s ease;
 
+  //     &:hover {
+  //       transform: scale(1.03);
+  //     }
+  //   }
+  // }
   .title-my-task {
+    @media (prefers-color-scheme: dark) {
+      span {
+        background: linear-gradient(90deg, #9b59b6, #3498db);
+        border-bottom-color: #9b59b6;
+      }
+    }
+    @media (max-width: 768px) {
+      span {
+        font-size: 1.75rem;
+      }
+    }
     span {
       font-size: 2.5rem;
       font-weight: bold;
@@ -18,29 +50,34 @@
       border-bottom: 3px solid #510545;
       padding-bottom: 10px;
       transition: transform 0.3s ease;
-
+  
       &:hover {
         transform: scale(1.03);
       }
     }
   }
-
   .filter-section {
     .search-input {
       padding-left: 2.5rem;
       background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='gray'%3E%3Cpath d='M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z' /%3E%3C/svg%3E") no-repeat 10px center;
       background-size: 16px;
     }
+    .search-input:focus {
+      border-color: #22668a;
+      box-shadow: 0 0 5px rgba(34, 102, 138, 0.5);
+    }
   }
-
   .task-card {
+    &:hover {
+      box-shadow: 0 12px 20px rgba(34, 102, 138, 0.15) !important;
+    }
     border-radius: 10px;
     transition: all 0.2s ease;
     &:hover {
       transform: translateY(-5px);
       box-shadow: 0 12px 20px rgba(81, 5, 69, 0.15) !important;
     }
-
+  
     .icon-circle {
       width: 48px;
       height: 48px;
@@ -49,18 +86,18 @@
       align-items: center;
       justify-content: center;
       background-color: #e9ecef;
-
+  
       svg {
         color: #495057;
       }
     }
-
+  
     .task-title {
       font-size: 1.25rem;
       font-weight: 600;
       color: #212529;
     }
-
+  
     .description {
       display: -webkit-box;
       -webkit-line-clamp: 2;
@@ -70,5 +107,5 @@
     }
   }
 
-  // Loại bỏ .pagination-section
+ 
 }
