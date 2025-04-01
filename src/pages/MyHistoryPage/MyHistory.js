@@ -26,6 +26,7 @@ import {
   CreditCard,
   Eye,
   RefreshCw,
+  Banknote,
 } from "lucide-react";
 import dayjs from "dayjs"; // Để định dạng ngày giờ
 
@@ -512,6 +513,10 @@ const MyHistory = () => {
                                   <div className="text-muted small mt-1">
                                     <Calendar size={16} className="me-1" />
                                     Start Date: {contract.startDate || "N/A"}
+                                  </div>
+                                  <div className="text-muted small mt-1">
+                                    <Banknote size={16} className="me-1" />
+                                    Deposit amount: {contract.amount || "N/A"}
                                   </div>
                                 </div>
                               </div>
