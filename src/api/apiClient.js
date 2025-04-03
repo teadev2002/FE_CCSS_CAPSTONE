@@ -21,11 +21,13 @@
 import axios from "axios";
 
 const BASE_URL = "https://localhost:7071"; // doi base url khi deploy
-
+// const BASE_URL =
+//   "https://beccss-brhnhugne7d5d3aj.southeastasia-01.azurewebsites.net";
 const apiClient = axios.create({
   baseURL: BASE_URL,
   headers: {
     "Content-Type": "application/json",
+    // "Access-Control-Allow-Origin": "*",
   },
 });
 

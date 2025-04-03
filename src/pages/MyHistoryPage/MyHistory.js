@@ -866,10 +866,7 @@ const MyHistory = () => {
                                   </div>
                                   <div className="text-muted small mt-1">
                                     <Calendar size={16} className="me-1" />
-                                    Start Date:{" "}
-                                    {dayjs(contract.startDate).format(
-                                      "DD/MM/YYYY HH:mm"
-                                    ) || "N/A"}
+                                    Start Date: {contract.startDate}
                                   </div>
                                   <div className="text-muted small mt-1">
                                     <Banknote size={16} className="me-1" />
@@ -976,10 +973,7 @@ const MyHistory = () => {
                                   </div>
                                   <div className="text-muted small mt-1">
                                     <Calendar size={16} className="me-1" />
-                                    Start Date:{" "}
-                                    {dayjs(contract.startDate).format(
-                                      "DD/MM/YYYY HH:mm"
-                                    ) || "N/A"}
+                                    Start Date: {contract.startDate}
                                   </div>
                                   <div className="text-muted small mt-1">
                                     <Banknote size={16} className="me-1" />
