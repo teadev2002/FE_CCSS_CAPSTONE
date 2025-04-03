@@ -528,7 +528,7 @@ const MyHistory = () => {
           : [contractData]
       );
     } catch (error) {
-      toast.error(error.message || "Failed to complete contract payment!");
+      //  toast.error(error.message || "Failed to complete contract payment!");
     } finally {
       setPaymentLoading(false);
       setIsCompletePaymentModalVisible(false);
@@ -653,7 +653,10 @@ const MyHistory = () => {
                                   </div>
                                   <div className="text-muted small mt-1">
                                     <Calendar size={16} className="me-1" />
-                                    Start Date: {request.startDate || "N/A"}
+                                    Start Date:{" "}
+                                    {dayjs(request.startDate).format(
+                                      "HH:mm DD/MM/YYYY "
+                                    ) || "N/A"}
                                   </div>
                                 </div>
                               </div>

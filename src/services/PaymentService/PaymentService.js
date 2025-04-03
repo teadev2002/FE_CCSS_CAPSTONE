@@ -24,7 +24,7 @@ const PaymentService = {
     // orderId,
     orderInfo = "",
     amount,
-    purpose, // chọn cọc deposit
+    purpose = 1, // chọn cọc deposit
     accountId,
     accountCouponId = null,
     ticketId,
