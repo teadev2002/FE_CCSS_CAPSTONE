@@ -38,6 +38,9 @@ const ManageCosplayer = () => {
     code: "",
     taskQuantity: 0,
     averageStar: 0,
+    height: 0, // Thêm height
+    weight: 0, // Thêm weight
+    salaryIndex: 0, // Thêm salaryIndex
     images: [],
   });
   const [newImageUrl, setNewImageUrl] = useState("");
@@ -82,9 +85,22 @@ const ManageCosplayer = () => {
           item.leader?.toLowerCase().includes(search.toLowerCase())
       );
     }
+
     return filtered.sort((a, b) => {
-      const valueA = String(a[sort.field] ?? "").toLowerCase();
-      const valueB = String(b[sort.field] ?? "").toLowerCase();
+      const field = sort.field;
+      let valueA = a[field] ?? (typeof a[field] === "number" ? 0 : "");
+      let valueB = b[field] ?? (typeof b[field] === "number" ? 0 : "");
+
+      // Xử lý các trường số (height, weight, salaryIndex)
+      if (["height", "weight", "salaryIndex"].includes(field)) {
+        valueA = Number(valueA) || 0; // Chuyển thành số, mặc định là 0 nếu không hợp lệ
+        valueB = Number(valueB) || 0;
+        return sort.order === "asc" ? valueA - valueB : valueB - valueA;
+      }
+
+      // Xử lý các trường chuỗi hoặc boolean
+      valueA = String(valueA).toLowerCase();
+      valueB = String(valueB).toLowerCase();
       return sort.order === "asc"
         ? valueA.localeCompare(valueB)
         : valueB.localeCompare(valueA);
@@ -134,6 +150,9 @@ const ManageCosplayer = () => {
         code: "",
         taskQuantity: 0,
         averageStar: 0,
+        height: 0, // Thêm height
+        weight: 0, // Thêm weight
+        salaryIndex: 0, // Thêm salaryIndex
         images: [],
       });
     }
@@ -285,6 +304,48 @@ const ManageCosplayer = () => {
                   <th className="text-center">
                     <span
                       className="sortable"
+                      onClick={() => handleSort("height")}
+                    >
+                      Height (cm)
+                      {sortCosplayer.field === "height" &&
+                        (sortCosplayer.order === "asc" ? (
+                          <ArrowUp size={16} />
+                        ) : (
+                          <ArrowDown size={16} />
+                        ))}
+                    </span>
+                  </th>
+                  <th className="text-center">
+                    <span
+                      className="sortable"
+                      onClick={() => handleSort("weight")}
+                    >
+                      Weight (kg)
+                      {sortCosplayer.field === "weight" &&
+                        (sortCosplayer.order === "asc" ? (
+                          <ArrowUp size={16} />
+                        ) : (
+                          <ArrowDown size={16} />
+                        ))}
+                    </span>
+                  </th>
+                  <th className="text-center">
+                    <span
+                      className="sortable"
+                      onClick={() => handleSort("salaryIndex")}
+                    >
+                      Salary Index
+                      {sortCosplayer.field === "salaryIndex" &&
+                        (sortCosplayer.order === "asc" ? (
+                          <ArrowUp size={16} />
+                        ) : (
+                          <ArrowDown size={16} />
+                        ))}
+                    </span>
+                  </th>
+                  <th className="text-center">
+                    <span
+                      className="sortable"
                       onClick={() => handleSort("averageStar")}
                     >
                       Average Star
@@ -313,52 +374,10 @@ const ManageCosplayer = () => {
                   <th className="text-center">
                     <span
                       className="sortable"
-                      onClick={() => handleSort("onTask")}
-                    >
-                      On Task
-                      {sortCosplayer.field === "onTask" &&
-                        (sortCosplayer.order === "asc" ? (
-                          <ArrowUp size={16} />
-                        ) : (
-                          <ArrowDown size={16} />
-                        ))}
-                    </span>
-                  </th>
-                  <th className="text-center">
-                    <span
-                      className="sortable"
-                      onClick={() => handleSort("leader")}
-                    >
-                      Leader
-                      {sortCosplayer.field === "leader" &&
-                        (sortCosplayer.order === "asc" ? (
-                          <ArrowUp size={16} />
-                        ) : (
-                          <ArrowDown size={16} />
-                        ))}
-                    </span>
-                  </th>
-                  <th className="text-center">
-                    <span
-                      className="sortable"
                       onClick={() => handleSort("images")}
                     >
                       Images
                       {sortCosplayer.field === "images" &&
-                        (sortCosplayer.order === "asc" ? (
-                          <ArrowUp size={16} />
-                        ) : (
-                          <ArrowDown size={16} />
-                        ))}
-                    </span>
-                  </th>
-                  <th className="text-center">
-                    <span
-                      className="sortable"
-                      onClick={() => handleSort("taskQuantity")}
-                    >
-                      Task Quantity
-                      {sortCosplayer.field === "taskQuantity" &&
                         (sortCosplayer.order === "asc" ? (
                           <ArrowUp size={16} />
                         ) : (
@@ -374,18 +393,15 @@ const ManageCosplayer = () => {
                   <tr key={cosplayer.accountId}>
                     <td className="text-center">{cosplayer.name}</td>
                     <td className="text-center">{cosplayer.email}</td>
+                    <td className="text-center">{cosplayer.height || "N/A"}</td>
+                    <td className="text-center">{cosplayer.weight || "N/A"}</td>
+                    <td className="text-center">
+                      {cosplayer.salaryIndex || "N/A"}
+                    </td>
                     <td className="text-center">{cosplayer.averageStar}</td>
                     <td className="text-center">
                       {cosplayer.isActive ? "Yes" : "No"}
                     </td>
-                    <td className="text-center">
-                      {cosplayer.onTask === null
-                        ? "N/A"
-                        : cosplayer.onTask
-                        ? "Yes"
-                        : "No"}
-                    </td>
-                    <td className="text-center">{cosplayer.leader || "N/A"}</td>
                     <td className="text-center">
                       {cosplayer.images && cosplayer.images.length > 0 ? (
                         <Image.PreviewGroup
@@ -424,9 +440,6 @@ const ManageCosplayer = () => {
                           preview={{ mask: "Zoom" }}
                         />
                       )}
-                    </td>
-                    <td className="text-center">
-                      {cosplayer.taskQuantity ?? "N/A"}
                     </td>
                     <td className="text-center">
                       <Button
@@ -543,6 +556,36 @@ const ManageCosplayer = () => {
                     value={formData.email}
                     onChange={handleInputChange}
                     required
+                  />
+                </Form.Group>
+                <Form.Group className="mb-3">
+                  <Form.Label>Height (cm)</Form.Label>
+                  <Form.Control
+                    type="number"
+                    name="height"
+                    value={formData.height}
+                    onChange={handleInputChange}
+                    min="0"
+                  />
+                </Form.Group>
+                <Form.Group className="mb-3">
+                  <Form.Label>Weight (kg)</Form.Label>
+                  <Form.Control
+                    type="number"
+                    name="weight"
+                    value={formData.weight}
+                    onChange={handleInputChange}
+                    min="0"
+                  />
+                </Form.Group>
+                <Form.Group className="mb-3">
+                  <Form.Label>Salary Index</Form.Label>
+                  <Form.Control
+                    type="number"
+                    name="salaryIndex"
+                    value={formData.salaryIndex}
+                    onChange={handleInputChange}
+                    min="0"
                   />
                 </Form.Group>
                 <Form.Group className="mb-3">
@@ -722,6 +765,46 @@ const ManageCosplayer = () => {
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
                     required
+                  />
+                </Form.Group>
+                <Form.Group className="mb-3">
+                  <Form.Label>Email</Form.Label>
+                  <Form.Control
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </Form.Group>
+                <Form.Group className="mb-3">
+                  <Form.Label>Height (cm)</Form.Label>
+                  <Form.Control
+                    type="number"
+                    name="height"
+                    value={formData.height}
+                    onChange={handleInputChange}
+                    min="0"
+                  />
+                </Form.Group>
+                <Form.Group className="mb-3">
+                  <Form.Label>Weight (kg)</Form.Label>
+                  <Form.Control
+                    type="number"
+                    name="weight"
+                    value={formData.weight}
+                    onChange={handleInputChange}
+                    min="0"
+                  />
+                </Form.Group>
+                <Form.Group className="mb-3">
+                  <Form.Label>Salary Index</Form.Label>
+                  <Form.Control
+                    type="number"
+                    name="salaryIndex"
+                    value={formData.salaryIndex}
+                    onChange={handleInputChange}
+                    min="0"
                   />
                 </Form.Group>
               </>
