@@ -383,10 +383,12 @@
 import React, { useState, useEffect } from "react";
 import { Search } from "lucide-react";
 import { Modal, Button, Form, Carousel } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
 import "../../styles/SouvenirsPage.scss";
 import ProductService from "../../services/ProductService/ProductService";
 import CartService from "../../services/CartService/CartService";
 import PaymentService from "../../services/PaymentService/PaymentService";
+import { apiClient } from "../../api/apiClient.js";
 import Box from "@mui/material/Box";
 import LinearProgress from "@mui/material/LinearProgress";
 import { toast } from "react-toastify";
@@ -405,15 +407,20 @@ const SouvenirsPage = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState(null);
   const [accountId, setAccountId] = useState(null);
+  const [accountName, setAccountName] = useState(null);
   const [cartId, setCartId] = useState(null);
+  const navigate = useNavigate();
 
-  const getAccountIdFromToken = () => {
+  const getAccountInfoFromToken = () => {
     const accessToken = localStorage.getItem("accessToken");
     if (accessToken) {
       try {
         const decoded = jwtDecode(accessToken);
         console.log("Decoded token in SouvenirsPage:", decoded);
-        return decoded?.Id;
+        return {
+          id: decoded?.Id,
+          accountName: decoded?.AccountName,
+        };
       } catch (error) {
         console.error("Error decoding token:", error);
         return null;
@@ -425,11 +432,14 @@ const SouvenirsPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const fetchedAccountId = getAccountIdFromToken();
-        setAccountId(fetchedAccountId);
+        const accountInfo = getAccountInfoFromToken();
+        if (accountInfo) {
+          setAccountId(accountInfo.id);
+          setAccountName(accountInfo.accountName);
+        }
 
-        if (fetchedAccountId) {
-          const cartData = await CartService.getCartByAccountId(fetchedAccountId);
+        if (accountInfo?.id) {
+          const cartData = await CartService.getCartByAccountId(accountInfo.id);
           setCartId(cartData.cartId);
         }
 
@@ -498,38 +508,107 @@ const SouvenirsPage = () => {
     setShowConfirmModal(true);
   };
 
+  const createOrder = async () => {
+    try {
+      const orderData = {
+        accountId: accountId,
+        orderProducts: [
+          {
+            productId: selectedSouvenir.id,
+            quantity: quantity,
+            createDate: new Date().toISOString(),
+          },
+        ],
+      };
+      const response = await apiClient.post("/api/Order", orderData);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || "Failed to create order");
+    }
+  };
+
+  const checkOrderStatus = async (orderId) => {
+    try {
+      const response = await apiClient.get(`/api/Order/${orderId}`);
+      return response.data.orderStatus;
+    } catch (error) {
+      console.error("Error checking order status:", error);
+      throw new Error("Failed to check order status");
+    }
+  };
+
   const handleFinalConfirm = async () => {
     const totalAmount = selectedSouvenir.price * quantity;
 
-    if (paymentMethod === "Momo") {
-      try {
+    if (!accountId) {
+      toast.error("Please log in to proceed with payment!");
+      return;
+    }
+
+    try {
+      // Tạo order trước khi thanh toán
+      const orderpaymentId = await createOrder();
+
+      // Giảm số lượng tồn kho
+      const newQuantity = selectedSouvenir.quantity - quantity;
+      await ProductService.updateProductQuantity(selectedSouvenir.id, newQuantity);
+
+      if (paymentMethod === "Momo") {
         const paymentData = {
-          fullName: "string", // Mặc định
-          orderId: "string", // Mặc định
-          orderInfo: "string", // Mặc định
-          amount: totalAmount, // Tổng tiền
-          purpose: 3, // Mua hàng
-          accountId: accountId, // Từ token
-          accountCouponId: null, // Luôn là null
-          ticketId: "string", // Mặc định
-          ticketQuantity: "string", // Mặc định
-          contractId: "string", // Mặc định
-          orderpaymentId: `PAY_${Date.now()}`, // Giá trị ngẫu nhiên
+          fullName: accountName || "Unknown",
+          orderInfo: `Purchase ${selectedSouvenir.name}`,
+          amount: totalAmount,
+          purpose: 3,
+          accountId: accountId,
+          accountCouponId: null,
+          ticketId: "string",
+          ticketQuantity: "string",
+          contractId: "string",
+          orderpaymentId: orderpaymentId,
         };
 
         const paymentUrl = await PaymentService.createMomoPayment(paymentData);
         toast.success("Redirecting to MoMo payment...");
-        window.location.href = paymentUrl; // Chuyển hướng đến URL thanh toán
-      } catch (error) {
-        toast.error(error.message);
-        setShowConfirmModal(false);
-        return;
+        window.location.href = paymentUrl;
+
+        const intervalId = setInterval(async () => {
+          try {
+            const status = await checkOrderStatus(orderpaymentId);
+            if (status === 1) {
+              clearInterval(intervalId);
+              toast.success("Payment successful!");
+              setProducts((prevProducts) =>
+                prevProducts.map((product) =>
+                  product.id === selectedSouvenir.id
+                    ? { ...product, quantity: newQuantity }
+                    : product
+                )
+              );
+              handleSouvenirClose();
+              navigate("/success-payment");
+            }
+          } catch (error) {
+            clearInterval(intervalId);
+            toast.error("Error checking payment status");
+          }
+        }, 5000);
+      } else if (paymentMethod === "VNPay") {
+        toast.success(
+          `Purchase confirmed with ${paymentMethod} for ${quantity} ${selectedSouvenir.name}(s)!`
+        );
+        setProducts((prevProducts) =>
+          prevProducts.map((product) =>
+            product.id === selectedSouvenir.id
+              ? { ...product, quantity: newQuantity }
+              : product
+          )
+        );
+        handleSouvenirClose();
+        navigate("/success-payment");
       }
-    } else {
-      toast.success(
-        `Purchase confirmed with ${paymentMethod} for ${quantity} ${selectedSouvenir.name}(s)!`
-      );
-      handleSouvenirClose();
+    } catch (error) {
+      toast.error(error.message);
+      setShowConfirmModal(false);
     }
   };
 
