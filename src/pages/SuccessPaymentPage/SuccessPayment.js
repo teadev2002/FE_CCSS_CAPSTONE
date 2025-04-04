@@ -17,20 +17,20 @@ const SuccessPayment = () => {
     ];
 
     // Create confetti effect
-    for (let i = 0; i < 50; i++) {
-      const confetti = document.createElement("div");
-      confetti.className = "confetti";
-      confetti.style.backgroundColor =
-        colors[Math.floor(Math.random() * colors.length)];
-      confetti.style.left = Math.random() * 100 + "vw";
-      confetti.style.top = Math.random() * 100 + "vh";
-      confetti.style.transform = "rotate(" + Math.random() * 360 + "deg)";
-      confetti.style.width = Math.random() * 8 + 5 + "px";
-      confetti.style.height = Math.random() * 8 + 5 + "px";
-      document.body.appendChild(confetti);
+    // for (let i = 0; i < 50; i++) {
+    //   const confetti = document.createElement("div");
+    //   confetti.className = "confetti";
+    //   confetti.style.backgroundColor =
+    //     colors[Math.floor(Math.random() * colors.length)];
+    //   confetti.style.left = Math.random() * 100 + "vw";
+    //   confetti.style.top = Math.random() * 100 + "vh";
+    //   confetti.style.transform = "rotate(" + Math.random() * 360 + "deg)";
+    //   confetti.style.width = Math.random() * 8 + 5 + "px";
+    //   confetti.style.height = Math.random() * 8 + 5 + "px";
+    //   document.body.appendChild(confetti);
 
-      animateConfetti(confetti);
-    }
+    //   animateConfetti(confetti);
+    // }
 
     function animateConfetti(element) {
       const speed = 1 + Math.random() * 3;

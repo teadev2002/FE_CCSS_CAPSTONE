@@ -26,7 +26,7 @@ const PaymentService = {
     amount,
     purpose = 1, // chọn cọc deposit
     accountId,
-    accountCouponId = null,
+    // accountCouponId = null,
     ticketId,
     ticketQuantity,
     contractId,
@@ -47,7 +47,7 @@ const PaymentService = {
         amount,
         purpose,
         accountId,
-        accountCouponId,
+        // accountCouponId,
         ticketId,
         ticketQuantity,
         contractId,

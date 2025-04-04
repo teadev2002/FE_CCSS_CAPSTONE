@@ -31,6 +31,8 @@ const ManageRequest = () => {
   const [currentPageRequest, setCurrentPageRequest] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const rowsPerPageOptions = [10, 20, 50];
+  // New state for service filter
+  const [selectedService, setSelectedService] = useState("All");
 
   useEffect(() => {
     const fetchRequests = async () => {
@@ -38,8 +40,11 @@ const ManageRequest = () => {
         const data = await RequestService.getAllRequests();
         const formattedData = data.map((req) => ({
           id: req.requestId,
+          serviceId: req.serviceId,
           name: req.name,
           description: req.description,
+          location: req.location,
+          price: req.price,
           statusRequest: mapStatus(req.status),
           startDate: new Date(req.startDate).toLocaleString(),
           endDate: new Date(req.endDate).toLocaleString(),
@@ -54,7 +59,6 @@ const ManageRequest = () => {
     fetchRequests();
   }, []);
 
-  // Sửa hàm mapStatus để xử lý status dưới dạng chuỗi từ API
   const mapStatus = (status) => {
     switch (status) {
       case "Pending":
@@ -81,8 +85,16 @@ const ManageRequest = () => {
     }
   };
 
-  const filterAndSortData = (data, search, sort) => {
+  // Updated filterAndSortData to include serviceId filtering
+  const filterAndSortData = (data, search, sort, serviceFilter) => {
     let filtered = [...data];
+
+    // Filter by serviceId
+    if (serviceFilter !== "All") {
+      filtered = filtered.filter((item) => item.serviceId === serviceFilter);
+    }
+
+    // Filter by search term
     if (search) {
       filtered = filtered.filter((item) =>
         Object.values(item).some((val) =>
@@ -90,6 +102,8 @@ const ManageRequest = () => {
         )
       );
     }
+
+    // Sort the filtered data
     return filtered.sort((a, b) => {
       const valueA = a[sort.field].toString().toLowerCase();
       const valueB = b[sort.field].toString().toLowerCase();
@@ -102,7 +116,8 @@ const ManageRequest = () => {
   const filteredRequests = filterAndSortData(
     requests,
     searchRequest,
-    sortRequest
+    sortRequest,
+    selectedService
   );
   const totalPagesRequest = Math.ceil(filteredRequests.length / rowsPerPage);
   const paginatedRequests = paginateData(filteredRequests, currentPageRequest);
@@ -290,27 +305,61 @@ const ManageRequest = () => {
     setCurrentPageRequest(1);
   };
 
+  // Handle service filter change
+  const handleServiceFilterChange = (value) => {
+    setSelectedService(value);
+    setCurrentPageRequest(1); // Reset to first page when filter changes
+  };
+
   if (loading) return <div>Loading requests...</div>;
 
   return (
     <div className="manage-general">
-      <h2 className="manage-general-title">Manage Request Hire Cosplayer</h2>
+      <h2 className="manage-general-title">Manage Request</h2>
       <div className="table-container">
         <Card className="status-table-card">
           <Card.Body>
             <div className="table-header">
               <h3>Requests</h3>
-              <Form.Control
-                type="text"
-                placeholder="Search requests..."
-                value={searchRequest}
-                onChange={(e) => setSearchRequest(e.target.value)}
-                className="search-input"
-              />
+              <div style={{ display: "flex", gap: "10px" }}>
+                <Form.Control
+                  type="text"
+                  placeholder="Search requests..."
+                  value={searchRequest}
+                  onChange={(e) => setSearchRequest(e.target.value)}
+                  className="search-input"
+                />
+                {/* Service Filter Dropdown */}
+                <Dropdown onSelect={handleServiceFilterChange}>
+                  <Dropdown.Toggle
+                    variant="secondary"
+                    id="dropdown-service-filter"
+                  >
+                    {selectedService === "All"
+                      ? "All Services"
+                      : selectedService === "S001"
+                      ? "Hire Costume"
+                      : selectedService === "S002"
+                      ? "Hire Cosplayer"
+                      : "Event Organization"}
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu>
+                    <Dropdown.Item eventKey="All">All Services</Dropdown.Item>
+                    <Dropdown.Item eventKey="S001">Hire Costume</Dropdown.Item>
+                    <Dropdown.Item eventKey="S002">
+                      Hire Cosplayer
+                    </Dropdown.Item>
+                    <Dropdown.Item eventKey="S003">
+                      Event Organization
+                    </Dropdown.Item>
+                  </Dropdown.Menu>
+                </Dropdown>
+              </div>
             </div>
             <Table striped bordered hover responsive>
               <thead>
                 <tr>
+                  {/* <th>Service Name</th> */}
                   <th onClick={() => handleSort("name")}>
                     Name{" "}
                     {sortRequest.field === "name" &&
@@ -329,6 +378,8 @@ const ManageRequest = () => {
                         <ArrowDown size={16} />
                       ))}
                   </th>
+                  <th>Location</th>
+                  <th>Price</th>
                   <th onClick={() => handleSort("statusRequest")}>
                     Status{" "}
                     {sortRequest.field === "statusRequest" &&
@@ -362,8 +413,17 @@ const ManageRequest = () => {
               <tbody>
                 {paginatedRequests.map((req) => (
                   <tr key={req.id}>
+                    {/* <td>
+                      {req.serviceId === "S001"
+                        ? "Hire Costume"
+                        : req.serviceId === "S002"
+                        ? "Hire Cosplayer"
+                        : "Event Organization"}
+                    </td> */}
                     <td>{req.name}</td>
                     <td>{req.description}</td>
+                    <td>{req.location}</td>
+                    <td>{req.price}</td>
                     <td>{req.statusRequest}</td>
                     <td>{req.startDate}</td>
                     <td>{req.endDate}</td>
