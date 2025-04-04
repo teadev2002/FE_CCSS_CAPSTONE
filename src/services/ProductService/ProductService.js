@@ -33,9 +33,8 @@ const ProductService = {
         ProductService.getProductImages(),
       ]);
 
-      // Combine data
       const combinedData = products
-        .filter((product) => product.isActive) // Only active products
+        .filter((product) => product.isActive)
         .map((product) => {
           const productImage = images.find(
             (img) => img.productId === product.productId
@@ -48,7 +47,7 @@ const ProductService = {
             price: product.price,
             image: productImage
               ? productImage.urlImage
-              : "https://via.placeholder.com/300", // Default image
+              : "https://via.placeholder.com/300",
           };
         });
 
@@ -56,6 +55,44 @@ const ProductService = {
     } catch (error) {
       throw new Error(
         error.response?.data?.message || "Error fetching combined product data"
+      );
+    }
+  },
+
+  // Get product by ID (thêm hàm mới để lấy thông tin sản phẩm hiện tại)
+  getProductById: async (productId) => {
+    try {
+      const response = await apiClient.get(`/api/Product/${productId}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(
+        error.response?.data?.message || "Error fetching product by ID"
+      );
+    }
+  },
+
+  // Update product quantity
+  updateProductQuantity: async (productId, newQuantity) => {
+    try {
+      // Lấy thông tin sản phẩm hiện tại
+      const currentProduct = await ProductService.getProductById(productId);
+
+      // Tạo payload với thông tin hiện tại, chỉ cập nhật quantity
+      const payload = {
+        productName: currentProduct.productName,
+        description: currentProduct.description,
+        quantity: newQuantity,
+        price: currentProduct.price,
+        isActive: currentProduct.isActive,
+      };
+
+      const response = await apiClient.put(`/api/Product?productId=${productId}`, payload);
+      console.log("UpdateProductQuantity response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Error updating product quantity:", error.response?.data || error);
+      throw new Error(
+        error.response?.data?.message || "Error updating product quantity"
       );
     }
   },

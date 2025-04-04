@@ -402,15 +402,17 @@
 import React, { useState, useEffect } from "react";
 import { Trash2 } from "lucide-react";
 import { Button, Form } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
 import "../../styles/CartPage.scss";
 import CartService from "../../services/CartService/CartService";
 import PaymentService from "../../services/PaymentService/PaymentService";
+import ProductService from "../../services/ProductService/ProductService";
+import { apiClient } from "../../api/apiClient.js";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Box from "@mui/material/Box";
 import LinearProgress from "@mui/material/LinearProgress";
 import { jwtDecode } from "jwt-decode";
-import { useNavigate } from "react-router-dom";
 
 const CartPage = () => {
   const [cartItems, setCartItems] = useState([]);
@@ -421,16 +423,20 @@ const CartPage = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState(null);
   const [accountId, setAccountId] = useState(null);
+  const [accountName, setAccountName] = useState(null);
   const [cartId, setCartId] = useState(null);
   const navigate = useNavigate();
 
-  const getAccountIdFromToken = () => {
+  const getAccountInfoFromToken = () => {
     const accessToken = localStorage.getItem("accessToken");
     if (accessToken) {
       try {
         const decoded = jwtDecode(accessToken);
         console.log("Decoded token in CartPage:", decoded);
-        return decoded?.Id;
+        return {
+          id: decoded?.Id,
+          accountName: decoded?.AccountName,
+        };
       } catch (error) {
         console.error("Error decoding token:", error);
         return null;
@@ -440,17 +446,20 @@ const CartPage = () => {
   };
 
   const fetchCart = async () => {
-    const fetchedAccountId = getAccountIdFromToken();
-    setAccountId(fetchedAccountId);
+    const accountInfo = getAccountInfoFromToken();
+    if (accountInfo) {
+      setAccountId(accountInfo.id);
+      setAccountName(accountInfo.accountName);
+    }
 
-    if (!fetchedAccountId) {
+    if (!accountInfo?.id) {
       setError("Please log in to view your cart!");
       setLoading(false);
       return;
     }
 
     try {
-      const cartData = await CartService.getCartByAccountId(fetchedAccountId);
+      const cartData = await CartService.getCartByAccountId(accountInfo.id);
       setCartId(cartData.cartId);
 
       const cartProductsWithDetails = await Promise.all(
@@ -561,42 +570,109 @@ const CartPage = () => {
     setShowConfirmModal(true);
   };
 
+  const createOrder = async () => {
+    const selectedCart = cartItems.filter((item) => selectedItems[item.cartProductId]);
+    try {
+      const orderData = {
+        accountId: accountId,
+        orderProducts: selectedCart.map((item) => ({
+          productId: item.id,
+          quantity: item.quantitySelected,
+          createDate: new Date().toISOString(),
+        })),
+      };
+      const response = await apiClient.post("/api/Order", orderData);
+      return response.data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || "Failed to create order");
+    }
+  };
+
+  const checkOrderStatus = async (orderId) => {
+    try {
+      const response = await apiClient.get(`/api/Order/${orderId}`);
+      return response.data.orderStatus;
+    } catch (error) {
+      console.error ("Error checking order status:", error);
+      throw new Error("Failed to check order status");
+    }
+  };
+
   const handleFinalConfirm = async () => {
     const selectedCart = cartItems.filter((item) => selectedItems[item.cartProductId]);
     const totalAmount = calculateTotal();
 
-    if (paymentMethod === "Momo") {
-      try {
+    if (!accountId) {
+      toast.error("Please log in to proceed with payment!");
+      return;
+    }
+
+    try {
+      // Tạo order trước khi thanh toán
+      const orderpaymentId = await createOrder();
+
+      // Giảm số lượng tồn kho cho từng sản phẩm trong giỏ hàng đã chọn
+      await Promise.all(
+        selectedCart.map(async (item) => {
+          const newQuantity = item.quantityRemaining - item.quantitySelected;
+          await ProductService.updateProductQuantity(item.id, newQuantity);
+        })
+      );
+
+      if (paymentMethod === "Momo") {
         const paymentData = {
-          fullName: "string", // Mặc định
-          orderId: "string", // Mặc định
-          orderInfo: "string", // Mặc định
-          amount: totalAmount, // Tổng tiền
-          purpose: 3, // Mua hàng
-          accountId: accountId, // Từ token
-          accountCouponId: null, // Luôn là null
-          ticketId: "string", // Mặc định
-          ticketQuantity: "string", // Mặc định
-          contractId: "string", // Mặc định
-          orderpaymentId: `PAY_${Date.now()}`, // Giá trị ngẫu nhiên
+          fullName: accountName || "Unknown",
+          orderInfo: "Cart Checkout",
+          amount: totalAmount,
+          purpose: 3,
+          accountId: accountId,
+          accountCouponId: null,
+          ticketId: "string",
+          ticketQuantity: "string",
+          contractId: "string",
+          orderpaymentId: orderpaymentId,
         };
 
         const paymentUrl = await PaymentService.createMomoPayment(paymentData);
         toast.success("Redirecting to MoMo payment...");
-        window.location.href = paymentUrl; // Chuyển hướng đến URL thanh toán
-      } catch (error) {
-        toast.error(error.message);
+        window.location.href = paymentUrl;
+
+        const intervalId = setInterval(async () => {
+          try {
+            const status = await checkOrderStatus(orderpaymentId);
+            if (status === 1) {
+              clearInterval(intervalId);
+              toast.success("Payment successful!");
+              const cartProductIdsToRemove = selectedCart.map((item) => ({
+                cartProductId: item.cartProductId,
+              }));
+              await CartService.removeProductFromCart(cartId, cartProductIdsToRemove);
+              await fetchCart();
+              setSelectedItems({});
+              setShowConfirmModal(false);
+              navigate("/success-payment");
+            }
+          } catch (error) {
+            clearInterval(intervalId);
+            toast.error("Error checking payment status");
+          }
+        }, 5000);
+      } else if (paymentMethod === "VNPay") {
+        toast.success(
+          `Purchase confirmed with ${paymentMethod} for ${selectedCart.length} item(s)!`
+        );
+        const cartProductIdsToRemove = selectedCart.map((item) => ({
+          cartProductId: item.cartProductId,
+        }));
+        await CartService.removeProductFromCart(cartId, cartProductIdsToRemove);
+        await fetchCart();
+        setSelectedItems({});
         setShowConfirmModal(false);
-        return;
+        navigate("/success-payment");
       }
-    } else {
-      toast.success(
-        `Purchase confirmed with ${paymentMethod} for ${selectedCart.length} item(s)!`
-      );
-      setCartItems(cartItems.filter((item) => !selectedItems[item.cartProductId]));
-      setSelectedItems({});
+    } catch (error) {
+      toast.error(error.message);
       setShowConfirmModal(false);
-      await fetchCart();
     }
   };
 
