@@ -39,6 +39,7 @@ import ManageAccount from "./pages/ManagerPage/ManageAccountPage/ManageAccount.j
 import MyHistory from "./pages/MyHistoryPage/MyHistory.js";
 import MyTask from "./pages/TaskPage/MyTask.js";
 import SuccessPayment from "./pages/SuccessPaymentPage/SuccessPayment.js";
+import MyRentalCostume from "./pages/MyRentalCostumePage/MyRentalCostume.js";
 
 const AppLayout = ({ children }) => {
   const location = useLocation();
@@ -91,6 +92,7 @@ function App() {
           <Route path="/cart" element={<CartPage />} /> {/* Route cho Cart */}
           <Route path="/my-history/:id" element={<MyHistory />} />
           <Route path="/my-task/:id" element={<MyTask />} />
+          <Route path="/my-rental-costume/:id" element={<MyRentalCostume />} />
           <Route path="/success-payment" element={<SuccessPayment />} />
           <Route path="/admin/dashboard" element={<DashboardPage />} />
           <Route

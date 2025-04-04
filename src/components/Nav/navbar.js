@@ -1162,6 +1162,15 @@ export function Navbar() {
       navigate(`/my-history/${id}`);
     }
   };
+  const goToMyRentalCostume = () => {
+    const { id } = getUserInfoFromToken();
+    if (!id) {
+      toast.warn("You are not logged in!");
+      setTimeout(() => navigate("/login"), 2100);
+    } else {
+      navigate(`/my-rental-costume/${id}`);
+    }
+  };
 
   const goToMyTask = () => {
     const { id, role } = getUserInfoFromToken();
@@ -1232,28 +1241,41 @@ export function Navbar() {
             { to: "/festivals", label: "Festivals", Icon: Calendar }, // Bỏ dropdown
             { to: "/souvenirs-shop", label: "Souvenirs", Icon: Store },
             { to: "/about", label: "About Us", Icon: Info },
-          ].map(({ to, label, Icon, hasDropdown, dropdownItems, dropdownClass }) => (
-            <div key={to} className="dropdown-container">
-              <NavLink
-                to={to}
-                className={({ isActive }) =>
-                  `nav-link ${isActive ? "nav-link-active" : ""}`
-                }
-              >
-                <Icon size={20} />
-                <span>{label}</span>
-              </NavLink>
-              {hasDropdown && (
-                <div className={`dropdown-menu ${dropdownClass}`}>
-                  {dropdownItems.map((item) => (
-                    <Link key={item.name} to={item.path} className="dropdown-item">
-                      {item.name}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
+          ].map(
+            ({
+              to,
+              label,
+              Icon,
+              hasDropdown,
+              dropdownItems,
+              dropdownClass,
+            }) => (
+              <div key={to} className="dropdown-container">
+                <NavLink
+                  to={to}
+                  className={({ isActive }) =>
+                    `nav-link ${isActive ? "nav-link-active" : ""}`
+                  }
+                >
+                  <Icon size={20} />
+                  <span>{label}</span>
+                </NavLink>
+                {hasDropdown && (
+                  <div className={`dropdown-menu ${dropdownClass}`}>
+                    {dropdownItems.map((item) => (
+                      <Link
+                        key={item.name}
+                        to={item.path}
+                        className="dropdown-item"
+                      >
+                        {item.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )
+          )}
 
           <div className="dropdown-container notification-container">
             <div className="dropdown-toggle">
@@ -1278,7 +1300,10 @@ export function Navbar() {
                     Profile
                   </div>
                   <div onClick={goToMyHistory} className="dropdown-item">
-                    My History
+                    My Rental Cosplayer
+                  </div>
+                  <div onClick={goToMyRentalCostume} className="dropdown-item">
+                    My Rental Costume
                   </div>
                   <div
                     onClick={goToMyTask}
@@ -1300,7 +1325,11 @@ export function Navbar() {
               <Link to="/contact" className="dropdown-item">
                 Contact
               </Link>
-              <Link to="/login" className="dropdown-item" onClick={handleLogout}>
+              <Link
+                to="/login"
+                className="dropdown-item"
+                onClick={handleLogout}
+              >
                 Log Out
               </Link>
             </div>
