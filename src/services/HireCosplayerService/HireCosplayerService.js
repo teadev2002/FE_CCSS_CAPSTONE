@@ -59,6 +59,17 @@ const HireCosplayerService = {
       throw error;
     }
   },
+  getAccountNoTaskByCharacterId: async (characterId, startDate, endDate) => {
+    try {
+      const response = await apiClient.get(
+        `/api/Account/characterId?characterId=${characterId}&startDate=${startDate}&endDate=${endDate}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching accounts:", error);
+      throw error;
+    }
+  },
 };
 
 export default HireCosplayerService;
