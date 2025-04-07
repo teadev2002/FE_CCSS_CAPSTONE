@@ -63,5 +63,40 @@ const MyRentalCostumeService = {
       throw error;
     }
   },
+
+  getAllContractByAccountId: async (accountId) => {
+    try {
+      const response = await apiClient.get(
+        `/api/Contract/accountId/${accountId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching contract:", error);
+      throw error;
+    }
+  },
+  getCharacterById: async (characterId) => {
+    try {
+      const response = await apiClient.get(`/api/Character/${characterId}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(
+        error.response?.data?.message || "Lỗi khi lấy thông tin character"
+      );
+    }
+  },
+  addContractCostume: async (requestId, deposit) => {
+    try {
+      const response = await apiClient.post(
+        `/api/Contract?requestId=${requestId}&deposit=${deposit}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error adding contract costume:", error);
+      throw new Error(
+        error.response?.data?.message || "Lỗi khi thêm contract costume"
+      );
+    }
+  },
 };
 export default MyRentalCostumeService;

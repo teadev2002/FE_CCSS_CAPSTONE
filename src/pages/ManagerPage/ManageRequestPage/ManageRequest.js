@@ -1,18 +1,23 @@
+// =====================================================dùng ant design
+
 import React, { useState, useEffect } from "react";
+import { Table, Form, Card } from "react-bootstrap"; // Giữ lại Table, Form, Card
 import {
-  Table,
+  Button,
+  Popconfirm,
   Modal,
-  Form,
-  Card,
-  Pagination,
   Dropdown,
-} from "react-bootstrap";
-import { Button, Popconfirm, List } from "antd";
+  Pagination,
+  Image,
+  Menu,
+} from "antd"; // Chuyển sang dùng antd cho các component khác
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import "antd/dist/reset.css"; // Đảm bảo style của antd được áp dụng
 import { ArrowUp, ArrowDown } from "lucide-react";
 import "../../../styles/Manager/ManageRequest.scss";
 import RequestService from "../../../services/ManageServicePages/ManageRequestService/RequestService.js";
+import dayjs from "dayjs";
 
 const ManageRequest = () => {
   const [requests, setRequests] = useState([]);
@@ -31,28 +36,33 @@ const ManageRequest = () => {
   const [currentPageRequest, setCurrentPageRequest] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const rowsPerPageOptions = [10, 20, 50];
-  // New state for service filter
   const [selectedService, setSelectedService] = useState("All");
+  const [currentCharacterPage, setCurrentCharacterPage] = useState(1);
+  const charactersPerPage = 2;
 
   useEffect(() => {
     const fetchRequests = async () => {
       try {
         const data = await RequestService.getAllRequests();
+        console.log("Raw API data:", data); // Debug dữ liệu từ API
         const formattedData = data.map((req) => ({
           id: req.requestId,
-          serviceId: req.serviceId,
-          name: req.name,
-          description: req.description,
-          location: req.location,
-          price: req.price,
+          serviceId: req.serviceId || "Unknown",
+          name: req.name || "N/A",
+          description: req.description || "N/A",
+          location: req.location || "N/A",
+          price: req.price || 0,
           statusRequest: mapStatus(req.status),
-          startDate: new Date(req.startDate).toLocaleString(),
-          endDate: new Date(req.endDate).toLocaleString(),
+          startDate: req.startDate
+            ? new Date(req.startDate).toLocaleString()
+            : "N/A",
+          endDate: req.endDate ? new Date(req.endDate).toLocaleString() : "N/A",
         }));
         setRequests(formattedData);
         setLoading(false);
       } catch (error) {
         toast.error("Failed to fetch requests from API");
+        console.error("Fetch error:", error);
         setLoading(false);
       }
     };
@@ -85,16 +95,11 @@ const ManageRequest = () => {
     }
   };
 
-  // Updated filterAndSortData to include serviceId filtering
   const filterAndSortData = (data, search, sort, serviceFilter) => {
     let filtered = [...data];
-
-    // Filter by serviceId
     if (serviceFilter !== "All") {
       filtered = filtered.filter((item) => item.serviceId === serviceFilter);
     }
-
-    // Filter by search term
     if (search) {
       filtered = filtered.filter((item) =>
         Object.values(item).some((val) =>
@@ -102,11 +107,9 @@ const ManageRequest = () => {
         )
       );
     }
-
-    // Sort the filtered data
     return filtered.sort((a, b) => {
-      const valueA = a[sort.field].toString().toLowerCase();
-      const valueB = b[sort.field].toString().toLowerCase();
+      const valueA = a[sort.field]?.toString().toLowerCase() || "";
+      const valueB = b[sort.field]?.toString().toLowerCase() || "";
       return sort.order === "asc"
         ? valueA.localeCompare(valueB)
         : valueB.localeCompare(valueA);
@@ -123,9 +126,9 @@ const ManageRequest = () => {
   const paginatedRequests = paginateData(filteredRequests, currentPageRequest);
   const totalEntries = filteredRequests.length;
 
-  function paginateData(data, page) {
-    const startIndex = (page - 1) * rowsPerPage;
-    const endIndex = startIndex + rowsPerPage;
+  function paginateData(data, page, perPage = rowsPerPage) {
+    const startIndex = (page - 1) * perPage;
+    const endIndex = startIndex + perPage;
     return data.slice(startIndex, endIndex);
   }
 
@@ -142,18 +145,6 @@ const ManageRequest = () => {
     setCurrentItem(null);
   };
 
-  const calculateCosplayerPrice = (salaryIndex, quantity) => {
-    return 100000 * salaryIndex * quantity;
-  };
-
-  const calculateTotalPrice = (characters) => {
-    return characters.reduce(
-      (total, char) =>
-        total + calculateCosplayerPrice(char.salaryIndex, char.quantity),
-      0
-    );
-  };
-
   const handleShowViewModal = async (id) => {
     try {
       const data = await RequestService.getRequestByRequestId(id);
@@ -161,87 +152,109 @@ const ManageRequest = () => {
         throw new Error("Request data not found");
       }
 
-      const formattedData = {
-        id: data.requestId,
-        name: data.name || "N/A",
-        description: data.description || "N/A",
-        price: 0,
-        status: mapStatus(data.status),
-        startDateTime: data.startDate
-          ? new Date(data.startDate).toLocaleString()
-          : "N/A",
-        endDateTime: data.endDate
-          ? new Date(data.endDate).toLocaleString()
-          : "N/A",
-        location: data.location || "N/A",
-        listRequestCharacters: [],
-      };
+      const request = requests.find((req) => req.id === id);
+      const serviceId = request?.serviceId;
 
-      const charactersList = data.charactersListResponse || [];
-      if (charactersList.length > 0) {
-        const listRequestCharacters = await Promise.all(
-          charactersList.map(async (char) => {
-            try {
-              const characterData = await RequestService.getNameCharacterById(
-                char.characterId
-              );
-              let cosplayerName = "Not Assigned";
-              let salaryIndex = 1;
+      if (serviceId === "S001") {
+        const characters = data.charactersListResponse || [];
+        const formattedData = {
+          name: data.name || "N/A",
+          description: data.description || "N/A",
+          startDate: data.startDate
+            ? dayjs(data.startDate).format("HH:mm DD/MM/YYYY")
+            : "N/A",
+          endDate: data.endDate
+            ? dayjs(data.endDate).format("HH:mm DD/MM/YYYY")
+            : "N/A",
+          location: data.location || "N/A",
+          characters: characters.map((char) => ({
+            characterId: char.characterId,
+            maxHeight: char.maxHeight || 0,
+            maxWeight: char.maxWeight || 0,
+            minHeight: char.minHeight || 0,
+            minWeight: char.minWeight || 0,
+            quantity: char.quantity || 0,
+            urlImage: char.characterImages?.[0]?.urlImage || "",
+            description: char.description || "",
+          })),
+        };
+        setViewData(formattedData);
+      } else {
+        const formattedData = {
+          id: data.requestId,
+          name: data.name || "N/A",
+          description: data.description || "N/A",
+          price: 0,
+          status: mapStatus(data.status),
+          startDateTime: data.startDate
+            ? new Date(data.startDate).toLocaleString()
+            : "N/A",
+          endDateTime: data.endDate
+            ? new Date(data.endDate).toLocaleString()
+            : "N/A",
+          location: data.location || "N/A",
+          listRequestCharacters: [],
+        };
 
-              if (char.cosplayerId) {
-                try {
+        const charactersList = data.charactersListResponse || [];
+        if (charactersList.length > 0) {
+          const listRequestCharacters = await Promise.all(
+            charactersList.map(async (char) => {
+              try {
+                const characterData = await RequestService.getNameCharacterById(
+                  char.characterId
+                );
+                let cosplayerName = "Not Assigned";
+                let salaryIndex = 1;
+
+                if (char.cosplayerId) {
                   const cosplayerData =
                     await RequestService.getNameCosplayerInRequestByCosplayerId(
                       char.cosplayerId
                     );
                   cosplayerName = cosplayerData?.name || "Unknown";
                   salaryIndex = cosplayerData?.salaryIndex || 1;
-                } catch (cosplayerError) {
-                  console.warn(
-                    `Failed to fetch cosplayer data for ID ${char.cosplayerId}:`,
-                    cosplayerError
-                  );
                 }
+
+                const price = calculateCosplayerPrice(
+                  salaryIndex,
+                  char.quantity || 0
+                );
+
+                return {
+                  cosplayerId: char.cosplayerId || null,
+                  characterId: char.characterId,
+                  cosplayerName,
+                  characterName: characterData?.characterName || "Unknown",
+                  quantity: char.quantity || 0,
+                  salaryIndex,
+                  price,
+                };
+              } catch (charError) {
+                console.warn(
+                  `Failed to fetch character data for ID ${char.characterId}:`,
+                  charError
+                );
+                return {
+                  cosplayerId: char.cosplayerId || null,
+                  characterId: char.characterId,
+                  cosplayerName: "Not Assigned",
+                  characterName: "Unknown",
+                  quantity: char.quantity || 0,
+                  salaryIndex: 1,
+                  price: 0,
+                };
               }
+            })
+          );
 
-              const price = calculateCosplayerPrice(
-                salaryIndex,
-                char.quantity || 0
-              );
-
-              return {
-                cosplayerId: char.cosplayerId || null,
-                characterId: char.characterId,
-                cosplayerName,
-                characterName: characterData?.characterName || "Unknown",
-                quantity: char.quantity || 0,
-                salaryIndex,
-                price,
-              };
-            } catch (charError) {
-              console.warn(
-                `Failed to fetch character data for ID ${char.characterId}:`,
-                charError
-              );
-              return {
-                cosplayerId: char.cosplayerId || null,
-                characterId: char.characterId,
-                cosplayerName: "Not Assigned",
-                characterName: "Unknown",
-                quantity: char.quantity || 0,
-                salaryIndex: 1,
-                price: 0,
-              };
-            }
-          })
-        );
-
-        formattedData.listRequestCharacters = listRequestCharacters;
-        formattedData.price = calculateTotalPrice(listRequestCharacters);
+          formattedData.listRequestCharacters = listRequestCharacters;
+          formattedData.price = calculateTotalPrice(listRequestCharacters);
+        }
+        setViewData(formattedData);
       }
-
-      setViewData(formattedData);
       setShowViewModal(true);
+      setCurrentCharacterPage(1);
     } catch (error) {
       toast.error("Failed to fetch request details");
       console.error("Error in handleShowViewModal:", error);
@@ -305,11 +318,32 @@ const ManageRequest = () => {
     setCurrentPageRequest(1);
   };
 
-  // Handle service filter change
   const handleServiceFilterChange = (value) => {
     setSelectedService(value);
-    setCurrentPageRequest(1); // Reset to first page when filter changes
+    setCurrentPageRequest(1);
   };
+
+  const calculateCosplayerPrice = (salaryIndex, quantity) => {
+    return 100000 * salaryIndex * quantity;
+  };
+
+  const calculateTotalPrice = (characters) => {
+    return characters.reduce(
+      (total, char) =>
+        total + calculateCosplayerPrice(char.salaryIndex, char.quantity),
+      0
+    );
+  };
+
+  // Menu cho Dropdown của antd
+  const serviceMenu = (
+    <Menu onClick={({ key }) => handleServiceFilterChange(key)}>
+      <Menu.Item key="All">All Services</Menu.Item>
+      <Menu.Item key="S001">Hire Costume</Menu.Item>
+      <Menu.Item key="S002">Hire Cosplayer</Menu.Item>
+      <Menu.Item key="S003">Event Organization</Menu.Item>
+    </Menu>
+  );
 
   if (loading) return <div>Loading requests...</div>;
 
@@ -329,37 +363,23 @@ const ManageRequest = () => {
                   onChange={(e) => setSearchRequest(e.target.value)}
                   className="search-input"
                 />
-                {/* Service Filter Dropdown */}
-                <Dropdown onSelect={handleServiceFilterChange}>
-                  <Dropdown.Toggle
-                    variant="secondary"
-                    id="dropdown-service-filter"
-                  >
+                <Dropdown overlay={serviceMenu}>
+                  <Button>
                     {selectedService === "All"
                       ? "All Services"
                       : selectedService === "S001"
                       ? "Hire Costume"
                       : selectedService === "S002"
                       ? "Hire Cosplayer"
-                      : "Event Organization"}
-                  </Dropdown.Toggle>
-                  <Dropdown.Menu>
-                    <Dropdown.Item eventKey="All">All Services</Dropdown.Item>
-                    <Dropdown.Item eventKey="S001">Hire Costume</Dropdown.Item>
-                    <Dropdown.Item eventKey="S002">
-                      Hire Cosplayer
-                    </Dropdown.Item>
-                    <Dropdown.Item eventKey="S003">
-                      Event Organization
-                    </Dropdown.Item>
-                  </Dropdown.Menu>
+                      : "Event Organization"}{" "}
+                    ▼
+                  </Button>
                 </Dropdown>
               </div>
             </div>
             <Table striped bordered hover responsive>
               <thead>
                 <tr>
-                  {/* <th>Service Name</th> */}
                   <th onClick={() => handleSort("name")}>
                     Name{" "}
                     {sortRequest.field === "name" &&
@@ -411,52 +431,52 @@ const ManageRequest = () => {
                 </tr>
               </thead>
               <tbody>
-                {paginatedRequests.map((req) => (
-                  <tr key={req.id}>
-                    {/* <td>
-                      {req.serviceId === "S001"
-                        ? "Hire Costume"
-                        : req.serviceId === "S002"
-                        ? "Hire Cosplayer"
-                        : "Event Organization"}
-                    </td> */}
-                    <td>{req.name}</td>
-                    <td>{req.description}</td>
-                    <td>{req.location}</td>
-                    <td>{req.price}</td>
-                    <td>{req.statusRequest}</td>
-                    <td>{req.startDate}</td>
-                    <td>{req.endDate}</td>
-                    <td>
-                      <Button
-                        type="primary"
-                        size="small"
-                        onClick={() => handleShowModal(req)}
-                        style={{ marginRight: "8px" }}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        type="default"
-                        size="small"
-                        onClick={() => handleShowViewModal(req.id)}
-                        style={{ marginRight: "8px" }}
-                      >
-                        View
-                      </Button>
-                      <Popconfirm
-                        title="Are you sure to delete this request?"
-                        onConfirm={() => handleDelete(req.id)}
-                        okText="Yes"
-                        cancelText="No"
-                      >
-                        <Button type="primary" danger size="small">
-                          Delete
+                {paginatedRequests.length > 0 ? (
+                  paginatedRequests.map((req) => (
+                    <tr key={req.id}>
+                      <td>{req.name}</td>
+                      <td>{req.description}</td>
+                      <td>{req.location}</td>
+                      <td>{req.price}</td>
+                      <td>{req.statusRequest}</td>
+                      <td>{req.startDate}</td>
+                      <td>{req.endDate}</td>
+                      <td>
+                        <Button
+                          type="primary"
+                          size="small"
+                          onClick={() => handleShowModal(req)}
+                          style={{ marginRight: "8px" }}
+                        >
+                          Edit
                         </Button>
-                      </Popconfirm>
+                        <Button
+                          size="small"
+                          onClick={() => handleShowViewModal(req.id)}
+                          style={{ marginRight: "8px" }}
+                        >
+                          View
+                        </Button>
+                        <Popconfirm
+                          title="Are you sure to delete this request?"
+                          onConfirm={() => handleDelete(req.id)}
+                          okText="Yes"
+                          cancelText="No"
+                        >
+                          <Button type="primary" danger size="small">
+                            Delete
+                          </Button>
+                        </Popconfirm>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="8" className="text-center">
+                      No requests found
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </Table>
             <PaginationControls
@@ -473,44 +493,168 @@ const ManageRequest = () => {
         </Card>
       </div>
 
-      <Modal show={showModal} onHide={handleCloseModal} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Edit Request Status</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form onSubmit={handleSubmit}>
-            <Form.Group className="mb-2">
-              <Form.Label>Status</Form.Label>
-              <Form.Select
-                name="status"
-                value={formData.status}
-                onChange={handleInputChange}
-                required
-              >
-                <option value="">Select Status</option>
-                <option value="Pending">Pending 🔃</option>
-                <option value="Browsed">Browsed ✅</option>
-                <option value="Cancel">Cancel ❌</option>
-              </Form.Select>
-            </Form.Group>
-          </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseModal}>
+      {/* Modal chỉnh sửa status */}
+      <Modal
+        title="Edit Request Status"
+        open={showModal}
+        onCancel={handleCloseModal}
+        footer={[
+          <Button key="cancel" onClick={handleCloseModal}>
             Cancel
-          </Button>
-          <Button variant="primary" onClick={handleSubmit}>
+          </Button>,
+          <Button key="submit" type="primary" onClick={handleSubmit}>
             Update
-          </Button>
-        </Modal.Footer>
+          </Button>,
+        ]}
+      >
+        <Form onSubmit={handleSubmit}>
+          <Form.Group className="mb-2">
+            <Form.Label>Status</Form.Label>
+            <Form.Select
+              name="status"
+              value={formData.status}
+              onChange={handleInputChange}
+              required
+            >
+              <option value="">Select Status</option>
+              <option value="Pending">Pending 🔃</option>
+              <option value="Browsed">Browsed ✅</option>
+              <option value="Cancel">Cancel ❌</option>
+            </Form.Select>
+          </Form.Group>
+        </Form>
       </Modal>
 
-      <Modal show={showViewModal} onHide={handleCloseViewModal} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Request Details</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {viewData ? (
+      {/* Modal xem chi tiết */}
+      <Modal
+        title="Request Details"
+        open={showViewModal}
+        onCancel={handleCloseViewModal}
+        footer={[
+          <Button key="close" onClick={handleCloseViewModal}>
+            Close
+          </Button>,
+        ]}
+        width={800}
+      >
+        {viewData ? (
+          viewData.characters ? (
+            <div>
+              <Form.Group className="mb-3">
+                <Form.Label>Name</Form.Label>
+                <Form.Control value={viewData.name} readOnly />
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>Start Date</Form.Label>
+                <Form.Control value={viewData.startDate} readOnly />
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>End Date</Form.Label>
+                <Form.Control value={viewData.endDate} readOnly />
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>Location</Form.Label>
+                <Form.Control value={viewData.location} readOnly />
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>Description</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={3}
+                  value={viewData.description}
+                  readOnly
+                />
+              </Form.Group>
+              <h5>Costumes</h5>
+              {viewData.characters.length === 0 ? (
+                <p>No costumes found.</p>
+              ) : (
+                <>
+                  {paginateData(
+                    viewData.characters,
+                    currentCharacterPage,
+                    charactersPerPage
+                  ).map((char) => (
+                    <Card key={char.characterId} className="mb-3">
+                      <Card.Body>
+                        <div className="row">
+                          <div className="col-md-6">
+                            <Form.Group className="mb-3">
+                              <Form.Label>Character ID</Form.Label>
+                              <Form.Control value={char.characterId} readOnly />
+                            </Form.Group>
+                            <Form.Group className="mb-3">
+                              <Form.Label>Description</Form.Label>
+                              <Form.Control value={char.description} readOnly />
+                            </Form.Group>
+                            <Form.Group className="mb-3">
+                              <Form.Label>Max Height (cm)</Form.Label>
+                              <Form.Control
+                                type="number"
+                                value={char.maxHeight}
+                                readOnly
+                              />
+                            </Form.Group>
+                            <Form.Group className="mb-3">
+                              <Form.Label>Max Weight (kg)</Form.Label>
+                              <Form.Control
+                                type="number"
+                                value={char.maxWeight}
+                                readOnly
+                              />
+                            </Form.Group>
+                          </div>
+                          <div className="col-md-6">
+                            <Form.Group className="mb-3">
+                              <Form.Label>Min Height (cm)</Form.Label>
+                              <Form.Control
+                                type="number"
+                                value={char.minHeight}
+                                readOnly
+                              />
+                            </Form.Group>
+                            <Form.Group className="mb-3">
+                              <Form.Label>Min Weight (kg)</Form.Label>
+                              <Form.Control
+                                type="number"
+                                value={char.minWeight}
+                                readOnly
+                              />
+                            </Form.Group>
+                            <Form.Group className="mb-3">
+                              <Form.Label>Quantity</Form.Label>
+                              <Form.Control
+                                type="number"
+                                value={char.quantity}
+                                readOnly
+                              />
+                            </Form.Group>
+                            {char.urlImage && (
+                              <Image
+                                src={char.urlImage}
+                                alt="Costume Preview"
+                                width={100}
+                                preview
+                                style={{ display: "block", marginTop: "10px" }}
+                              />
+                            )}
+                          </div>
+                        </div>
+                      </Card.Body>
+                    </Card>
+                  ))}
+                  <Pagination
+                    current={currentCharacterPage}
+                    pageSize={charactersPerPage}
+                    total={viewData.characters.length}
+                    onChange={(page) => setCurrentCharacterPage(page)}
+                    showSizeChanger={false}
+                    style={{ textAlign: "right" }}
+                  />
+                </>
+              )}
+            </div>
+          ) : (
             <div>
               <p>
                 <strong>Name:</strong> {viewData.name}
@@ -527,32 +671,27 @@ const ManageRequest = () => {
               <p>
                 <strong>Location:</strong> {viewData.location}
               </p>
-
               <h4>List of Requested Characters:</h4>
-              <List
-                dataSource={viewData.listRequestCharacters}
-                renderItem={(item, index) => (
-                  <List.Item key={index}>
-                    <p>
+              {viewData.listRequestCharacters.length > 0 ? (
+                <ul>
+                  {viewData.listRequestCharacters.map((item, index) => (
+                    <li key={index}>
                       {item.cosplayerName} - {item.characterName} - Quantity:{" "}
                       {item.quantity} - Price: {item.price} VND
-                    </p>
-                  </List.Item>
-                )}
-              />
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>No characters requested.</p>
+              )}
               <p>
                 <strong>Total Price:</strong> {viewData.price} VND
               </p>
             </div>
-          ) : (
-            <p>Loading...</p>
-          )}
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseViewModal}>
-            Close
-          </Button>
-        </Modal.Footer>
+          )
+        ) : (
+          <p>Loading...</p>
+        )}
       </Modal>
     </div>
   );
@@ -580,49 +719,28 @@ const PaginationControls = ({
       <span style={{ marginRight: "20px" }}>
         Showing {showingEntries} of {totalEntries} entries
       </span>
-      <div className="rows-per-page">
-        <span>Rows per page: </span>
-        <Dropdown onSelect={(value) => onRowsPerPageChange(Number(value))}>
-          <Dropdown.Toggle variant="secondary" id="dropdown-rows-per-page">
-            {rowsPerPage}
-          </Dropdown.Toggle>
-          <Dropdown.Menu>
-            {rowsPerPageOptions.map((option) => (
-              <Dropdown.Item key={option} eventKey={option}>
-                {option}
-              </Dropdown.Item>
-            ))}
-          </Dropdown.Menu>
+      <div className="rows-per-page" style={{ display: "flex", gap: "10px" }}>
+        <span>Rows per page:</span>
+        <Dropdown
+          overlay={
+            <Menu onClick={({ key }) => onRowsPerPageChange(Number(key))}>
+              {rowsPerPageOptions.map((option) => (
+                <Menu.Item key={option}>{option}</Menu.Item>
+              ))}
+            </Menu>
+          }
+        >
+          <Button>{rowsPerPage} ▼</Button>
         </Dropdown>
       </div>
     </div>
-    <Pagination>
-      <Pagination.First
-        onClick={() => onPageChange(1)}
-        disabled={currentPage === 1}
-      />
-      <Pagination.Prev
-        onClick={() => onPageChange(currentPage - 1)}
-        disabled={currentPage === 1}
-      />
-      {[...Array(totalPages).keys()].map((page) => (
-        <Pagination.Item
-          key={page + 1}
-          active={page + 1 === currentPage}
-          onClick={() => onPageChange(page + 1)}
-        >
-          {page + 1}
-        </Pagination.Item>
-      ))}
-      <Pagination.Next
-        onClick={() => onPageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
-      />
-      <Pagination.Last
-        onClick={() => onPageChange(totalPages)}
-        disabled={currentPage === totalPages}
-      />
-    </Pagination>
+    <Pagination
+      current={currentPage}
+      total={totalEntries}
+      pageSize={rowsPerPage}
+      onChange={onPageChange}
+      showSizeChanger={false}
+    />
   </div>
 );
 
