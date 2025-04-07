@@ -17,11 +17,9 @@
       0% {
         background-position: 0% 50%;
       }
-
       50% {
         background-position: 100% 50%;
       }
-
       100% {
         background-position: 0% 50%;
       }
@@ -124,6 +122,63 @@
     }
   }
 
+  .pagination-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 3rem; // Đồng bộ với mt-5 từ Bootstrap
+
+    .ant-pagination {
+      .ant-pagination-item {
+        border-radius: 4px;
+        border: 1px solid #d9d9d9;
+        transition: all 0.3s ease;
+
+        &:hover {
+          border-color: #510545;
+          a {
+            color: #510545;
+          }
+        }
+      }
+
+      .ant-pagination-item-active {
+        background: #510545;
+        border-color: #510545;
+
+        a {
+          color: white;
+        }
+
+        &:hover {
+          background: #22668a;
+          border-color: #22668a;
+        }
+      }
+
+      .ant-pagination-prev,
+      .ant-pagination-next {
+        border-radius: 4px;
+
+        .ant-pagination-item-link {
+          border: 1px solid #d9d9d9;
+          border-radius: 4px;
+          transition: all 0.3s ease;
+
+          &:hover {
+            border-color: #510545;
+            color: #510545;
+          }
+        }
+      }
+
+      .ant-select {
+        .ant-select-selector {
+          border-radius: 4px;
+        }
+      }
+    }
+  }
+
   .costume-card {
     background: white;
     border-radius: 0.5rem;
@@ -160,7 +215,7 @@
     }
 
     .card-content {
-      padding: 1.5rem 1.5rem 0.25rem 1.5rem; // Giảm padding-bottom xuống 0.25rem (4px)
+      padding: 1.5rem 1.5rem 0.25rem 1.5rem;
       display: flex;
       flex-direction: column;
       flex-grow: 1;

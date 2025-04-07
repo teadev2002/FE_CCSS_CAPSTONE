@@ -103,28 +103,85 @@
     @media (min-width: 768px) and (max-width: 991px) { grid-template-columns: repeat(2, 1fr); }
   }
 
+  .pagination-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 3rem; // Đồng bộ với mt-5 từ Bootstrap
+
+    .ant-pagination {
+      .ant-pagination-item {
+        border-radius: 4px;
+        border: 1px solid #d9d9d9;
+        transition: all 0.3s ease;
+
+        &:hover {
+          border-color: #510545;
+          a {
+            color: #510545;
+          }
+        }
+      }
+
+      .ant-pagination-item-active {
+        background: #510545;
+        border-color: #510545;
+
+        a {
+          color: white;
+        }
+
+        &:hover {
+          background: #22668a;
+          border-color: #22668a;
+        }
+      }
+
+      .ant-pagination-prev,
+      .ant-pagination-next {
+        border-radius: 4px;
+
+        .ant-pagination-item-link {
+          border: 1px solid #d9d9d9;
+          border-radius: 4px;
+          transition: all 0.3s ease;
+
+          &:hover {
+            border-color: #510545;
+            color: #510545;
+          }
+        }
+      }
+
+      .ant-select {
+        .ant-select-selector {
+          border-radius: 4px;
+        }
+      }
+    }
+  }
+
   .fest-card {
     background: white;
-    border-radius: 1rem; // Bo góc mềm hơn
+    border-radius: 1rem;
     overflow: hidden;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08); // Bóng nhẹ hơn, sâu hơn
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
     transition: transform 0.3s ease, box-shadow 0.3s ease, border 0.3s ease;
     display: flex;
     flex-direction: column;
-    border: 2px solid transparent; // Khung mặc định trong suốt
+    border: 2px solid transparent;
 
     &:hover {
-      transform: translateY(-8px); // Nâng cao hơn khi hover
-      box-shadow: 0 12px 30px rgba(81, 5, 69, 0.2); // Bóng đậm hơn
-      border: 2px solid #510545; // Viền nổi bật khi hover
-      .fest-card-image img { transform: scale(1.08); } // Zoom ảnh mượt hơn
+      transform: translateY(-8px);
+      box-shadow: 0 12px 30px rgba(81, 5, 69, 0.2);
+      border: 2px solid #510545;
+      .fest-card-image img { transform: scale(1.08); }
     }
 
     .fest-card-image {
       position: relative;
       padding-top: 65%;
       overflow: hidden;
-      background: #f0f0f0; // Nền dự phòng nếu ảnh lỗi
+      background: #f0f0f0;
 
       img {
         position: absolute;
@@ -134,7 +191,6 @@
         height: 100%;
         object-fit: cover;
         transition: transform 0.5s ease;
-        // Bỏ viền xanh dưới ảnh
       }
     }
 
@@ -143,24 +199,24 @@
       display: flex;
       flex-direction: column;
       flex-grow: 1;
-      background: linear-gradient(180deg, #fff, #f9f9f9); // Gradient nhẹ cho nội dung
+      background: linear-gradient(180deg, #fff, #f9f9f9);
 
       .fest-name {
-        font-size: 1.4rem; // Tăng kích thước chữ
+        font-size: 1.4rem;
         font-weight: 700;
         color: #510545;
         margin-bottom: 0.75rem;
-        text-transform: uppercase; // Chữ in hoa cho nổi bật
-        letter-spacing: 0.5px; // Giãn chữ nhẹ
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
       }
 
       .fest-description {
-        color: #4a4a4a; // Màu chữ đậm hơn
+        color: #4a4a4a;
         font-size: 0.95rem;
         line-height: 1.6;
         margin-bottom: 1rem;
         flex-grow: 1;
-        font-style: italic; // Nghiêng nhẹ cho cảm giác tinh tế
+        font-style: italic;
       }
 
       .fest-meta {
@@ -170,7 +226,7 @@
         margin-bottom: 0.75rem;
 
         .fest-date {
-          color: #22668a; // Màu xanh đậm nổi bật
+          color: #22668a;
           font-size: 0.9rem;
           font-weight: 500;
         }
@@ -184,13 +240,13 @@
         display: flex;
         align-items: center;
         &::before {
-          content: "📍 "; // Icon vị trí
+          content: "📍 ";
           margin-right: 0.3rem;
         }
       }
 
       .fest-learn-more-btn {
-        background: linear-gradient(135deg, #510545, #22668a); // Gradient nút
+        background: linear-gradient(135deg, #510545, #22668a);
         color: white;
         border: none;
         border-radius: 0.75rem;
@@ -200,13 +256,13 @@
         width: 100%;
         cursor: pointer;
         transition: all 0.3s ease;
-        text-transform: uppercase; // Chữ in hoa
-        letter-spacing: 1px; // Giãn chữ
+        text-transform: uppercase;
+        letter-spacing: 1px;
 
         &:hover {
-          background: linear-gradient(135deg, #22668a, #510545); // Đổi chiều gradient
-          transform: translateY(-3px); // Nâng nhẹ hơn
-          box-shadow: 0 6px 15px rgba(81, 5, 69, 0.3); // Bóng đậm hơn
+          background: linear-gradient(135deg, #22668a, #510545);
+          transform: translateY(-3px);
+          box-shadow: 0 6px 15px rgba(81, 5, 69, 0.3);
         }
 
         &:active { transform: translateY(0); }
