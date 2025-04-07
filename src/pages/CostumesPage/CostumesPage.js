@@ -729,11 +729,7 @@ const CostumesPage = () => {
             <div className="request-details">
               <div className="request-item" style={{ marginBottom: "16px" }}>
                 <strong>NAME: </strong>
-                <span
-                  contentEditable="true"
-                  style={{ fontSize: "18px" }}
-                  onInput={handleNameChange}
-                >
+                <span style={{ fontSize: "18px" }} onInput={handleNameChange}>
                   {requestData.name}
                 </span>
               </div>
@@ -744,7 +740,7 @@ const CostumesPage = () => {
                   rows={3}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Enter description"
+                  placeholder="Enter your Height and weight"
                 />
               </div>
               <div className="request-item" style={{ marginBottom: "16px" }}>

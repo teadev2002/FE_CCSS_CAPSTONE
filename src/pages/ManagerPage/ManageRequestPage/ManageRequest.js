@@ -527,9 +527,7 @@ const ManageRequest = () => {
               <p>
                 <strong>Location:</strong> {viewData.location}
               </p>
-              <p>
-                <strong>Coupon ID:</strong> N/A
-              </p>
+
               <h4>List of Requested Characters:</h4>
               <List
                 dataSource={viewData.listRequestCharacters}

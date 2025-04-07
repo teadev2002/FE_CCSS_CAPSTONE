@@ -2248,7 +2248,7 @@ const CosplayersPage = () => {
       location: location,
       serviceId: "S002",
       packageId: " ",
-      accountCouponId: accountCouponId || null,
+      // accountCouponId: accountCouponId || null,
       listRequestCharacters: modalData.listRequestCharacters.map((item) => ({
         characterId: item.characterId,
         cosplayerId: item.cosplayerId,
@@ -2695,7 +2695,7 @@ const CosplayersPage = () => {
                 {location || "N/A"}
               </span>
             </div>
-            <div
+            {/* <div
               style={{
                 display: "flex",
                 flexDirection: "column",
@@ -2719,7 +2719,7 @@ const CosplayersPage = () => {
               >
                 {accountCouponId || "N/A"}
               </span>
-            </div>
+            </div> */}
             <div
               style={{
                 display: "flex",
