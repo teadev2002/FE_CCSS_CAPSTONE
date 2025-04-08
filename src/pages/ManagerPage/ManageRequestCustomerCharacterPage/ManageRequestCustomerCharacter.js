@@ -10,7 +10,9 @@ import {
   Image,
 } from "antd";
 import { ArrowUp, ArrowDown } from "lucide-react";
-import RequestCustomerCharacterService from "../../../services/ManageServicePages/ManageRequestCustomerCharacter/RequestCustomerCharacterService.js"; // Đường dẫn tới service
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import RequestCustomerCharacterService from "../../../services/ManageServicePages/ManageRequestCustomerCharacter/RequestCustomerCharacterService.js";
 import "../../../styles/Manager/ManageRequestCustomerCharacter.scss";
 
 const ManageRequestCustomerCharacter = () => {
@@ -21,24 +23,53 @@ const ManageRequestCustomerCharacter = () => {
     order: "asc",
   });
   const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(2);
-  const rowsPerPageOptions = [2, 5, 10];
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const rowsPerPageOptions = [10, 20, 30];
   const [showEditModal, setShowEditModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [currentItem, setCurrentItem] = useState(null);
   const [formData, setFormData] = useState({});
   const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState({});
+  const [accounts, setAccounts] = useState({});
+  const [submitting, setSubmitting] = useState(false); // State để kiểm soát trạng thái submit
 
   // Fetch data từ API khi component mount
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setLoading(true);
         const data =
           await RequestCustomerCharacterService.getRequestCustomerCharacter();
         setCharacters(data);
+
+        const categoryIds = [...new Set(data.map((item) => item.categoryId))];
+        const accountIds = [...new Set(data.map((item) => item.createBy))];
+
+        const categoryPromises = categoryIds.map((id) =>
+          RequestCustomerCharacterService.getCategoryById(id)
+        );
+        const categoryResponses = await Promise.all(categoryPromises);
+        const categoriesData = categoryResponses.reduce((acc, category) => {
+          acc[category.categoryId] = category;
+          return acc;
+        }, {});
+        setCategories(categoriesData);
+
+        const accountPromises = accountIds.map((id) =>
+          RequestCustomerCharacterService.getAccountCustomerCharacter(id)
+        );
+        const accountResponses = await Promise.all(accountPromises);
+        const accountsData = accountResponses.reduce((acc, account) => {
+          acc[account.accountId] = account;
+          return acc;
+        }, {});
+        setAccounts(accountsData);
+
         setLoading(false);
       } catch (error) {
         console.error("Failed to fetch characters:", error);
+        toast.error("Failed to load data.");
         setLoading(false);
       }
     };
@@ -104,18 +135,20 @@ const ManageRequestCustomerCharacter = () => {
   const handleCloseEditModal = () => {
     setShowEditModal(false);
     setCurrentItem(null);
+    setFormData({});
   };
 
   const handleShowViewModal = async (item) => {
     try {
       const detailedData =
-        await RequestCustomerCharacterService.getRequestCustomerCharacter(
+        await RequestCustomerCharacterService.getRequestCustomerCharacterById(
           item.customerCharacterId
         );
-      setCurrentItem(detailedData[0]); // Lấy phần tử đầu tiên từ mảng response
+      setCurrentItem(detailedData[0]);
       setShowViewModal(true);
     } catch (error) {
       console.error("Failed to fetch character details:", error);
+      toast.error("Failed to load character details.");
     }
   };
 
@@ -129,19 +162,75 @@ const ManageRequestCustomerCharacter = () => {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const updatedCharacters = characters.map((char) =>
-      char.customerCharacterId === currentItem.customerCharacterId
-        ? { ...char, ...formData }
-        : char
-    );
-    setCharacters(updatedCharacters);
-    handleCloseEditModal();
+
+    // Validation
+    if (!formData.status) {
+      toast.error("Please select a status.");
+      return;
+    }
+
+    if (
+      formData.status === "Accept" &&
+      (!formData.price || formData.price <= 0)
+    ) {
+      toast.error(
+        "Price is required and must be greater than 0 when status is Accept."
+      );
+      return;
+    }
+
+    if (formData.status === "Reject" && !formData.reason) {
+      toast.error("Reason is required when status is Reject.");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      // Gọi API updateCustomerCharacterStatus
+      await RequestCustomerCharacterService.updateCustomerCharacterStatus({
+        customerCharacterId: currentItem.customerCharacterId,
+        status: formData.status,
+        reason: formData.reason || undefined, // Gửi undefined nếu không có reason
+        price: formData.price ? Number(formData.price) : undefined, // Gửi undefined nếu không có price
+      });
+
+      // Cập nhật state characters
+      const updatedCharacters = characters.map((char) =>
+        char.customerCharacterId === currentItem.customerCharacterId
+          ? {
+              ...char,
+              status: formData.status,
+              reason: formData.reason,
+              price: formData.price,
+            }
+          : char
+      );
+      setCharacters(updatedCharacters);
+
+      toast.success("Customer character updated successfully!");
+      handleCloseEditModal();
+    } catch (error) {
+      console.error("Failed to update customer character:", error);
+      toast.error(error.message || "Failed to update customer character.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleDelete = (id) => {
     setCharacters(characters.filter((char) => char.customerCharacterId !== id));
+  };
+
+  const getCategoryNameById = (categoryId) => {
+    const category = categories[categoryId];
+    return category ? category.categoryName : "N/A";
+  };
+
+  const getAccountNameById = (accountId) => {
+    const account = accounts[accountId];
+    return account ? account.name : "N/A";
   };
 
   const PaginationControls = ({
@@ -219,7 +308,7 @@ const ManageRequestCustomerCharacter = () => {
                           ))}
                       </th>
                       <th onClick={() => handleSort("createBy")}>
-                        Account ID{" "}
+                        Account Name{" "}
                         {sortCharacter.field === "createBy" &&
                           (sortCharacter.order === "asc" ? (
                             <ArrowUp size={16} />
@@ -228,7 +317,7 @@ const ManageRequestCustomerCharacter = () => {
                           ))}
                       </th>
                       <th onClick={() => handleSort("categoryId")}>
-                        Category ID{" "}
+                        Category Name{" "}
                         {sortCharacter.field === "categoryId" &&
                           (sortCharacter.order === "asc" ? (
                             <ArrowUp size={16} />
@@ -262,9 +351,8 @@ const ManageRequestCustomerCharacter = () => {
                       paginatedCharacters.map((item) => (
                         <tr key={item.customerCharacterId}>
                           <td>{item.customerCharacterId}</td>
-                          <td>{item.createBy}</td>{" "}
-                          {/* Account ID thay bằng createBy */}
-                          <td>{item.categoryId}</td>
+                          <td>{getAccountNameById(item.createBy)}</td>
+                          <td>{getCategoryNameById(item.categoryId)}</td>
                           <td>{item.createDate}</td>
                           <td>{item.status}</td>
                           <td>
@@ -329,10 +417,20 @@ const ManageRequestCustomerCharacter = () => {
         open={showEditModal}
         onCancel={handleCloseEditModal}
         footer={[
-          <Button key="cancel" onClick={handleCloseEditModal}>
+          <Button
+            key="cancel"
+            onClick={handleCloseEditModal}
+            disabled={submitting}
+          >
             Cancel
           </Button>,
-          <Button key="submit" type="primary" onClick={handleSubmit}>
+          <Button
+            key="submit"
+            type="primary"
+            onClick={handleSubmit}
+            loading={submitting}
+            disabled={submitting}
+          >
             Update
           </Button>,
         ]}
@@ -349,27 +447,40 @@ const ManageRequestCustomerCharacter = () => {
               <option value="">Select Status</option>
               <option value="Pending">Pending 🔃</option>
               <option value="Accept">Accept ✅</option>
-              <option value="Rejected">Rejected ❌</option>
+              <option value="Reject">Reject ❌</option>
               <option value="Completed">Completed 🎉</option>
             </Form.Select>
           </Form.Group>
           <Form.Group className="mb-2">
-            <Form.Label>Reason</Form.Label>
+            <Form.Label>
+              Reason{" "}
+              {formData.status === "Reject" && (
+                <span style={{ color: "red" }}>*</span>
+              )}
+            </Form.Label>
             <Form.Control
               as="textarea"
               rows={3}
               name="reason"
               value={formData.reason || ""}
               onChange={handleInputChange}
+              required={formData.status === "Reject"}
             />
           </Form.Group>
           <Form.Group className="mb-2">
-            <Form.Label>Price (VND)</Form.Label>
+            <Form.Label>
+              Price (VND){" "}
+              {formData.status === "Accept" && (
+                <span style={{ color: "red" }}>*</span>
+              )}
+            </Form.Label>
             <Form.Control
               type="number"
               name="price"
               value={formData.price || ""}
               onChange={handleInputChange}
+              required={formData.status === "Accept"}
+              min="0"
             />
           </Form.Group>
         </Form>
@@ -393,7 +504,8 @@ const ManageRequestCustomerCharacter = () => {
               {currentItem.customerCharacterId}
             </p>
             <p>
-              <strong>Category ID:</strong> {currentItem.categoryId}
+              <strong>Category Name:</strong>{" "}
+              {getCategoryNameById(currentItem.categoryId)}
             </p>
             <p>
               <strong>Name:</strong> {currentItem.name}
@@ -423,7 +535,8 @@ const ManageRequestCustomerCharacter = () => {
               <strong>Update Date:</strong> {currentItem.updateDate || "N/A"}
             </p>
             <p>
-              <strong>Create By (Account ID):</strong> {currentItem.createBy}
+              <strong>Created By:</strong>{" "}
+              {getAccountNameById(currentItem.createBy)}
             </p>
             <p>
               <strong>Reason:</strong> {currentItem.reason || "N/A"}

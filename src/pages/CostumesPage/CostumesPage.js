@@ -1,4 +1,3 @@
-//================call post
 import React, { useState, useEffect } from "react";
 import { Search } from "lucide-react";
 import { Modal, Button, Carousel, Form } from "react-bootstrap";

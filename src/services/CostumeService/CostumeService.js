@@ -35,34 +35,43 @@ const CostumeService = {
   },
   createCustomerCharacter: async (formData) => {
     try {
-      // Tạo FormData để gửi dữ liệu multipart/form-data
+      // 1. Tạo query parameters từ formData
+      const queryParams = new URLSearchParams({
+        CategoryId: formData.categoryId,
+        Name: formData.name,
+        Description: formData.description,
+        MaxHeight: formData.maxHeight,
+        MaxWeight: formData.maxWeight,
+        MinHeight: formData.minHeight,
+        MinWeight: formData.minWeight,
+        CreateBy: formData.createBy,
+      }).toString();
+
+      // 2. Tạo FormData để gửi hình ảnh (nếu có)
       const data = new FormData();
-
-      // Thêm các trường thông tin vào FormData
-      data.append("CategoryId", formData.categoryId);
-      data.append("Name", formData.name);
-      data.append("Description", formData.description);
-      data.append("MaxHeight", formData.maxHeight);
-      data.append("MaxWeight", formData.maxWeight);
-      data.append("MinHeight", formData.minHeight);
-      data.append("MinWeight", formData.minWeight);
-      data.append("CreateBy", formData.createBy);
-
-      // Thêm danh sách hình ảnh (CustomerCharacterImages)
       if (formData.images && formData.images.length > 0) {
-        formData.images.forEach((image, index) => {
-          data.append(`CustomerCharacterImages`, image);
+        formData.images.forEach((image) => {
+          data.append("CustomerCharacterImages", image);
         });
       }
 
-      // Gửi yêu cầu POST với FormData
-      const response = await apiClient.post("/api/CustomerCharacter", data, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      // 3. Gửi yêu cầu POST với query parameters và body (FormData)
+      const response = await apiClient.post(
+        `/api/CustomerCharacter?${queryParams}`,
+        data,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
 
-      return response.data;
+      // 4. Kiểm tra kết quả trả về
+      if (response.data === true) {
+        return true; // API trả về TRUE, nghĩa là thành công
+      } else {
+        throw new Error("Unexpected response from server");
+      }
     } catch (error) {
       console.error("Error creating customer character:", error);
       throw new Error(

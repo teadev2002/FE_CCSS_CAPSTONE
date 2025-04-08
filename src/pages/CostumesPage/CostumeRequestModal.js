@@ -1,161 +1,9 @@
-// import React, { useState } from "react";
-// import { Upload } from "lucide-react";
-// import { Modal, Button, Form } from "react-bootstrap";
-
-// const CostumeRequestModal = ({ show, handleClose }) => {
-//   const [formData, setFormData] = useState({
-//     costumeName: "",
-//     description: "",
-//     images: [],
-//     requestDate: new Date().toLocaleDateString("en-GB"), // Format as dd/mm/yyyy
-//     agreeToTerms: false,
-//   });
-
-//   const handleImageChange = (e) => {
-//     if (e.target.files) {
-//       setFormData({
-//         ...formData,
-//         images: [...Array.from(e.target.files)],
-//       });
-//     }
-//   };
-
-//   const handleSubmit = (e) => {
-//     e.preventDefault();
-//     console.log("Form submitted:", formData);
-//     handleClose();
-//   };
-
-//   return (
-//     <Modal show={show} onHide={handleClose} centered>
-//       <Modal.Header closeButton>
-//         <Modal.Title>Costume Request</Modal.Title>
-//       </Modal.Header>
-//       <Modal.Body>
-//         <Form onSubmit={handleSubmit}>
-
-//         <Form.Group className="mb-3">
-
-//             <Form.Label>Category Name</Form.Label>
-//             <Form.Control
-//               type="text"
-//               placeholder="Enter Costume name"
-//               value={formData.costumeName}
-//               onChange={(e) =>
-//                 setFormData({ ...formData, costumeName: e.target.value })
-//               }
-//               required
-//             />
-//           </Form.Group>
-//           <Form.Group className="mb-3">
-//             <Form.Label>Costume Name</Form.Label>
-//             <Form.Control
-//               type="text"
-//               placeholder="Enter Costume name"
-//               value={formData.costumeName}
-//               onChange={(e) =>
-//                 setFormData({ ...formData, costumeName: e.target.value })
-//               }
-//               required
-//             />
-//           </Form.Group>
-
-//           <Form.Group className="mb-3">
-//             <Form.Label>Description</Form.Label>
-//             <Form.Control
-//               as="textarea"
-//               rows={3}
-//               placeholder="Enter costume description"
-//               value={formData.description}
-//               onChange={(e) =>
-//                 setFormData({ ...formData, description: e.target.value })
-//               }
-//               required
-//             />
-//           </Form.Group>
-
-//           <Form.Group className="mb-3">
-//             <Form.Label>minHeight</Form.Label>
-//             <Form.Control
-//               as="textarea"
-//               rows={3}
-//               placeholder="Enter costume description"
-//               value={formData.description}
-//               onChange={(e) =>
-//                 setFormData({ ...formData, description: e.target.value })
-//               }
-//               required
-//             />
-//           </Form.Group>
-
-//           <Form.Group className="mb-3">
-//             <Form.Label>Costume Images</Form.Label>
-//             <div className="upload-container">
-//               <Form.Control
-//                 type="file"
-//                 multiple
-//                 accept="image/*"
-//                 onChange={handleImageChange}
-//                 required
-//               />
-//               <div className="upload-icon">
-//                 <Upload size={24} />
-//               </div>
-//             </div>
-//             {formData.images.length > 0 && (
-//               <small className="text-muted">
-//                 {formData.images.length} file(s) selected
-//               </small>
-//             )}
-//           </Form.Group>
-
-//           <Form.Group className="mb-3">
-//             <Form.Label>Request Date</Form.Label>
-//             <Form.Control
-//               type="text"
-//               value={formData.requestDate}
-//               readOnly
-//               className="bg-light"
-//             />
-//           </Form.Group>
-
-//           <Form.Group className="mb-3">
-//             <Form.Check
-//               type="checkbox"
-//               label=" Agree to terms: request must be submitted 1 month in advance"
-//               checked={formData.agreeToTerms}
-//               onChange={(e) =>
-//                 setFormData({ ...formData, agreeToTerms: e.target.checked })
-//               }
-//               required
-//             />
-//           </Form.Group>
-
-//           <div className="d-flex justify-content-end gap-2">
-//             <Button variant="secondary" onClick={handleClose}>
-//               Cancel
-//             </Button>
-//             <Button
-//               variant="primary"
-//               type="submit"
-//               disabled={!formData.agreeToTerms}
-//             >
-//               Submit Request
-//             </Button>
-//           </div>
-//         </Form>
-//       </Modal.Body>
-//     </Modal>
-//   );
-// };
-
-// export default CostumeRequestModal;
-
 import React, { useState, useEffect } from "react";
 import { Upload } from "lucide-react";
 import { Modal, Button, Form } from "react-bootstrap";
-
-import { jwtDecode } from "jwt-decode"; // Để decode JWT
+import { jwtDecode } from "jwt-decode";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import CostumeRequestService from "../../services/CostumeService/CostumeService.js";
 
 const CostumeRequestModal = ({ show, handleClose }) => {
@@ -174,40 +22,39 @@ const CostumeRequestModal = ({ show, handleClose }) => {
   });
 
   const [categories, setCategories] = useState([]); // Danh sách danh mục từ API
+  const [loading, setLoading] = useState(false); // Trạng thái loading khi gửi yêu cầu
 
+  // Lấy danh sách categories và createBy từ token khi modal mở
   useEffect(() => {
-    const fetchInitialData = async () => {
-      try {
-        // Lấy danh sách danh mục
-        const categoriesData = await CostumeRequestService.getCategories();
-        setCategories(categoriesData);
+    if (show) {
+      const fetchInitialData = async () => {
+        try {
+          // Lấy danh sách danh mục
+          const categoriesData = await CostumeRequestService.getCategories();
+          setCategories(categoriesData);
 
-        // Lấy AccountName từ token
-        const accountName = CostumeRequestService.getAccountNameFromToken();
-        setFormData((prev) => ({ ...prev, createBy: accountName }));
-      } catch (error) {
-        console.error("Error fetching initial data:", error);
-      }
-    };
+          // Lấy createBy từ token
+          const token = localStorage.getItem("accessToken");
+          if (token) {
+            const decodedToken = jwtDecode(token);
+            const userId = decodedToken?.Id; // Lấy Id từ token
+            if (userId) {
+              setFormData((prev) => ({ ...prev, createBy: userId }));
+            } else {
+              throw new Error("User ID not found in token");
+            }
+          } else {
+            throw new Error("Access token not found");
+          }
+        } catch (error) {
+          console.error("Error fetching initial data:", error);
+          toast.error(error.message || "Failed to load initial data");
+        }
+      };
 
-    fetchInitialData();
-  }, []);
-
-  useEffect(() => {
-    // Decode accessToken từ localStorage để lấy createBy
-    const token = localStorage.getItem("accessToken");
-    if (token) {
-      try {
-        const decodedToken = jwtDecode(token);
-        const accountName =
-          decodedToken.AccountName || decodedToken.username || "Unknown"; // Điều chỉnh theo cấu trúc token
-        setFormData((prev) => ({ ...prev, createBy: accountName }));
-      } catch (error) {
-        console.error("Error decoding token:", error);
-        setFormData((prev) => ({ ...prev, createBy: "Unknown" }));
-      }
+      fetchInitialData();
     }
-  }, []);
+  }, [show]);
 
   const handleImageChange = (e) => {
     if (e.target.files) {
@@ -218,15 +65,79 @@ const CostumeRequestModal = ({ show, handleClose }) => {
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Form submitted:", formData);
-    handleClose();
-  };
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // Validation
+    if (!formData.categoryId) {
+      toast.error("Please select a category");
+      return;
+    }
+    if (!formData.name) {
+      toast.error("Please enter a name");
+      return;
+    }
+    if (!formData.description) {
+      toast.error("Please enter a description");
+      return;
+    }
+    if (!formData.minHeight || formData.minHeight <= 0) {
+      toast.error("Please enter a valid minimum height (greater than 0)");
+      return;
+    }
+    if (!formData.maxHeight || formData.maxHeight <= 0) {
+      toast.error("Please enter a valid maximum height (greater than 0)");
+      return;
+    }
+    if (!formData.minWeight || formData.minWeight <= 0) {
+      toast.error("Please enter a valid minimum weight (greater than 0)");
+      return;
+    }
+    if (!formData.maxWeight || formData.maxWeight <= 0) {
+      toast.error("Please enter a valid maximum weight (greater than 0)");
+      return;
+    }
+    if (!formData.images || formData.images.length === 0) {
+      toast.error("Please upload at least one image");
+      return;
+    }
+    if (!formData.createBy) {
+      toast.error("User ID (createBy) is missing");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Gửi yêu cầu tạo CustomerCharacter
+      const result = await CostumeRequestService.createCustomerCharacter({
+        categoryId: formData.categoryId,
+        name: formData.name,
+        description: formData.description,
+        minHeight: Number(formData.minHeight),
+        maxHeight: Number(formData.maxHeight),
+        minWeight: Number(formData.minWeight),
+        maxWeight: Number(formData.maxWeight),
+        createBy: formData.createBy,
+        images: formData.images,
+      });
+
+      if (result === true) {
+        toast.success("Costume request submitted successfully!");
+        handleClose();
+      } else {
+        throw new Error("Unexpected response from server");
+      }
+    } catch (error) {
+      console.error("Error submitting costume request:", error);
+      toast.error(error.message || "Failed to submit costume request");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -260,7 +171,7 @@ const CostumeRequestModal = ({ show, handleClose }) => {
             <Form.Control
               type="text"
               name="name"
-              placeholder="Enter Costume name"
+              placeholder="Enter costume name"
               value={formData.name}
               onChange={handleChange}
               required
@@ -291,6 +202,7 @@ const CostumeRequestModal = ({ show, handleClose }) => {
               value={formData.minHeight}
               onChange={handleChange}
               required
+              min="0"
             />
           </Form.Group>
 
@@ -304,6 +216,7 @@ const CostumeRequestModal = ({ show, handleClose }) => {
               value={formData.maxHeight}
               onChange={handleChange}
               required
+              min="0"
             />
           </Form.Group>
 
@@ -317,6 +230,7 @@ const CostumeRequestModal = ({ show, handleClose }) => {
               value={formData.minWeight}
               onChange={handleChange}
               required
+              min="0"
             />
           </Form.Group>
 
@@ -330,6 +244,7 @@ const CostumeRequestModal = ({ show, handleClose }) => {
               value={formData.maxWeight}
               onChange={handleChange}
               required
+              min="0"
             />
           </Form.Group>
 
@@ -382,7 +297,7 @@ const CostumeRequestModal = ({ show, handleClose }) => {
           <Form.Group className="mb-3">
             <Form.Check
               type="checkbox"
-              label=" Agree to terms: request must be submitted 1 month in advance"
+              label="Agree to terms: request must be submitted 1 month in advance"
               checked={formData.agreeToTerms}
               onChange={(e) =>
                 setFormData({ ...formData, agreeToTerms: e.target.checked })
@@ -392,15 +307,19 @@ const CostumeRequestModal = ({ show, handleClose }) => {
           </Form.Group>
 
           <div className="d-flex justify-content-end gap-2">
-            <Button variant="secondary" onClick={handleClose}>
+            <Button
+              variant="secondary"
+              onClick={handleClose}
+              disabled={loading}
+            >
               Cancel
             </Button>
             <Button
               variant="primary"
               type="submit"
-              disabled={!formData.agreeToTerms}
+              disabled={!formData.agreeToTerms || loading}
             >
-              Submit Request
+              {loading ? "Submitting..." : "Submit Request"}
             </Button>
           </div>
         </Form>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Container, Row, Col, Form, Card, Badge } from "react-bootstrap";
 import {
   Pagination,
@@ -25,16 +25,18 @@ const { Option } = Select;
 const MyCustomerCharacter = () => {
   const [requests, setRequests] = useState([]);
   const [filteredPendingRequests, setFilteredPendingRequests] = useState([]);
-  const [filteredBrowsedRequests, setFilteredBrowsedRequests] = useState([]);
+  const [filteredAcceptRequests, setFilteredAcceptRequests] = useState([]);
+  const [filteredRejectRequests, setFilteredRejectRequests] = useState([]);
   const [filteredCompletedRequests, setFilteredCompletedRequests] = useState(
     []
   );
   const [currentPendingPage, setCurrentPendingPage] = useState(1);
-  const [currentBrowsedPage, setCurrentBrowsedPage] = useState(1);
+  const [currentAcceptPage, setCurrentAcceptPage] = useState(1);
+  const [currentRejectPage, setCurrentRejectPage] = useState(1);
   const [currentCompletedPage, setCurrentCompletedPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm] = useDebounce(searchTerm, 300);
-  const [isModalVisible, setIsModalVisible] = useState(false); // Modal hợp nhất
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const [modalData, setModalData] = useState({
     customerCharacterId: "",
     name: "",
@@ -51,9 +53,9 @@ const MyCustomerCharacter = () => {
     reason: null,
     images: [],
   });
-  const [newImages, setNewImages] = useState([]); // State để lưu trữ ảnh mới
-  const [categories, setCategories] = useState([]); // State để lưu danh sách categories
-  const [accounts, setAccounts] = useState({}); // State để lưu thông tin accounts
+  const [newImages, setNewImages] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [accounts, setAccounts] = useState({});
   const [loading, setLoading] = useState(false);
 
   const itemsPerPage = 5;
@@ -68,19 +70,16 @@ const MyCustomerCharacter = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Lấy danh sách yêu cầu
         const requestData =
           await RequestCustomerCharacterService.getRequestCustomerCharacterByAccountId(
             accountId
           );
         setRequests(Array.isArray(requestData) ? requestData : []);
 
-        // Lấy danh sách categories
         const categoryData =
           await RequestCustomerCharacterService.getAllCategory();
         setCategories(Array.isArray(categoryData) ? categoryData : []);
 
-        // Lấy thông tin accounts từ createBy
         const accountIds = [...new Set(requestData.map((req) => req.createBy))];
         const accountPromises = accountIds.map((id) =>
           RequestCustomerCharacterService.getAccountCustomerCharacter(id)
@@ -101,38 +100,46 @@ const MyCustomerCharacter = () => {
     fetchData();
   }, [accountId]);
 
+  // Hàm chuyển đổi createDate sang định dạng DD/MM/YYYY
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    if (isNaN(date)) return "";
+    return date.toLocaleDateString("en-GB"); // Định dạng DD/MM/YYYY
+  };
+
   // Lọc các requests theo trạng thái và từ khóa tìm kiếm
-  useEffect(() => {
-    const filteredPending = requests
-      .filter((req) => req.status === "Pending")
-      .filter(
-        (req) =>
-          req.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-          req.createDate.includes(debouncedSearchTerm)
-      );
-    setFilteredPendingRequests(filteredPending);
-    setCurrentPendingPage(1);
+  const filteredRequests = useMemo(() => {
+    const searchLower = debouncedSearchTerm.toLowerCase();
 
-    const filteredBrowsed = requests
-      .filter((req) => req.status === "Browsed")
-      .filter(
-        (req) =>
-          req.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-          req.createDate.includes(debouncedSearchTerm)
-      );
-    setFilteredBrowsedRequests(filteredBrowsed);
-    setCurrentBrowsedPage(1);
+    const filterByStatusAndSearch = (status) =>
+      requests.filter((req) => {
+        const matchesStatus = req.status === status;
+        const formattedDate = formatDate(req.createDate);
+        const matchesSearch =
+          req.name.toLowerCase().includes(searchLower) ||
+          formattedDate.includes(debouncedSearchTerm);
+        return matchesStatus && (debouncedSearchTerm ? matchesSearch : true);
+      });
 
-    const filteredCompleted = requests
-      .filter((req) => req.status === "Completed")
-      .filter(
-        (req) =>
-          req.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-          req.createDate.includes(debouncedSearchTerm)
-      );
-    setFilteredCompletedRequests(filteredCompleted);
-    setCurrentCompletedPage(1);
+    return {
+      pending: filterByStatusAndSearch("Pending"),
+      accept: filterByStatusAndSearch("Accept"),
+      reject: filterByStatusAndSearch("Reject"),
+      completed: filterByStatusAndSearch("Completed"),
+    };
   }, [debouncedSearchTerm, requests]);
+
+  useEffect(() => {
+    setFilteredPendingRequests(filteredRequests.pending);
+    setFilteredAcceptRequests(filteredRequests.accept);
+    setFilteredRejectRequests(filteredRequests.reject);
+    setFilteredCompletedRequests(filteredRequests.completed);
+
+    setCurrentPendingPage(1);
+    setCurrentAcceptPage(1);
+    setCurrentRejectPage(1);
+    setCurrentCompletedPage(1);
+  }, [filteredRequests]);
 
   const paginate = (data, page, perPage) => {
     const start = (page - 1) * perPage;
@@ -156,7 +163,7 @@ const MyCustomerCharacter = () => {
       reason: request.reason,
       images: request.customerCharacterImageResponses || [],
     });
-    setNewImages([]); // Reset ảnh mới khi mở modal
+    setNewImages([]);
     setIsModalVisible(true);
   };
 
@@ -228,13 +235,11 @@ const MyCustomerCharacter = () => {
     }));
   };
 
-  // Hàm tìm categoryName dựa trên categoryId
   const getCategoryNameById = (categoryId) => {
     const category = categories.find((cat) => cat.categoryId === categoryId);
     return category ? category.categoryName : "N/A";
   };
 
-  // Hàm tìm name dựa trên accountId
   const getAccountNameById = (accountId) => {
     const account = accounts[accountId];
     return account ? account.name : "N/A";
@@ -243,22 +248,28 @@ const MyCustomerCharacter = () => {
   const getStatusBadge = (status) => {
     const statusColors = {
       Pending: "primary",
-      Browsed: "success",
+      Accept: "success",
+      Reject: "danger",
       Completed: "success",
     };
     return <Badge bg={statusColors[status] || "secondary"}>{status}</Badge>;
   };
 
-  const isEditable = modalData.status === "Pending"; // Kiểm tra nếu status là Pending thì cho phép chỉnh sửa
+  const isEditable = modalData.status === "Pending";
 
   const currentPendingItems = paginate(
     filteredPendingRequests,
     currentPendingPage,
     itemsPerPage
   );
-  const currentBrowsedItems = paginate(
-    filteredBrowsedRequests,
-    currentBrowsedPage,
+  const currentAcceptItems = paginate(
+    filteredAcceptRequests,
+    currentAcceptPage,
+    itemsPerPage
+  );
+  const currentRejectItems = paginate(
+    filteredRejectRequests,
+    currentRejectPage,
     itemsPerPage
   );
   const currentCompletedItems = paginate(
@@ -279,7 +290,7 @@ const MyCustomerCharacter = () => {
             <Col md={12}>
               <Form.Control
                 type="text"
-                placeholder="Search by name or date..."
+                placeholder="Search by name or date (DD/MM/YYYY)..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="search-input"
@@ -315,7 +326,7 @@ const MyCustomerCharacter = () => {
                                     <h3 className="rental-title">{req.name}</h3>
                                     <div className="text-muted small">
                                       <Calendar size={16} /> Create Date:{" "}
-                                      {req.createDate}
+                                      {formatDate(req.createDate)}
                                     </div>
                                     {getStatusBadge(req.status)}
                                   </div>
@@ -349,13 +360,13 @@ const MyCustomerCharacter = () => {
               )}
             </TabPane>
 
-            <TabPane tab="Browsed Requests" key="2">
-              {currentBrowsedItems.length === 0 ? (
-                <p className="text-center">No browsed requests found.</p>
+            <TabPane tab="Accept Requests" key="2">
+              {currentAcceptItems.length === 0 ? (
+                <p className="text-center">No accept requests found.</p>
               ) : (
                 <>
                   <Row className="g-4">
-                    {currentBrowsedItems.map((req) => (
+                    {currentAcceptItems.map((req) => (
                       <Col key={req.customerCharacterId} xs={12}>
                         <Card className="rental-card shadow">
                           <Card.Body>
@@ -369,7 +380,7 @@ const MyCustomerCharacter = () => {
                                     <h3 className="rental-title">{req.name}</h3>
                                     <div className="text-muted small">
                                       <Calendar size={16} /> Create Date:{" "}
-                                      {req.createDate}
+                                      {formatDate(req.createDate)}
                                     </div>
                                     {getStatusBadge(req.status)}
                                   </div>
@@ -392,10 +403,10 @@ const MyCustomerCharacter = () => {
                     ))}
                   </Row>
                   <Pagination
-                    current={currentBrowsedPage}
+                    current={currentAcceptPage}
                     pageSize={itemsPerPage}
-                    total={filteredBrowsedRequests.length}
-                    onChange={(page) => setCurrentBrowsedPage(page)}
+                    total={filteredAcceptRequests.length}
+                    onChange={(page) => setCurrentAcceptPage(page)}
                     showSizeChanger={false}
                     style={{ marginTop: "20px", textAlign: "right" }}
                   />
@@ -403,7 +414,61 @@ const MyCustomerCharacter = () => {
               )}
             </TabPane>
 
-            <TabPane tab="Completed Requests" key="3">
+            <TabPane tab="Reject Requests" key="3">
+              {currentRejectItems.length === 0 ? (
+                <p className="text-center">No reject requests found.</p>
+              ) : (
+                <>
+                  <Row className="g-4">
+                    {currentRejectItems.map((req) => (
+                      <Col key={req.customerCharacterId} xs={12}>
+                        <Card className="rental-card shadow">
+                          <Card.Body>
+                            <div className="d-flex flex-column flex-md-row gap-4 align-items-md-center">
+                              <div className="flex-grow-1">
+                                <div className="d-flex gap-3">
+                                  <div className="icon-circle">
+                                    <FileText size={24} />
+                                  </div>
+                                  <div>
+                                    <h3 className="rental-title">{req.name}</h3>
+                                    <div className="text-muted small">
+                                      <Calendar size={16} /> Create Date:{" "}
+                                      {formatDate(req.createDate)}
+                                    </div>
+                                    {getStatusBadge(req.status)}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="d-flex gap-2 align-items-center">
+                                <Button
+                                  type="primary"
+                                  size="small"
+                                  className="btn-view"
+                                  onClick={() => handleOpenModal(req)}
+                                >
+                                  <Eye size={16} /> View
+                                </Button>
+                              </div>
+                            </div>
+                          </Card.Body>
+                        </Card>
+                      </Col>
+                    ))}
+                  </Row>
+                  <Pagination
+                    current={currentRejectPage}
+                    pageSize={itemsPerPage}
+                    total={filteredRejectRequests.length}
+                    onChange={(page) => setCurrentRejectPage(page)}
+                    showSizeChanger={false}
+                    style={{ marginTop: "20px", textAlign: "right" }}
+                  />
+                </>
+              )}
+            </TabPane>
+
+            <TabPane tab="Completed Requests" key="4">
               {currentCompletedItems.length === 0 ? (
                 <p className="text-center">No completed requests found.</p>
               ) : (
@@ -423,7 +488,7 @@ const MyCustomerCharacter = () => {
                                     <h3 className="rental-title">{req.name}</h3>
                                     <div className="text-muted small">
                                       <Calendar size={16} /> Create Date:{" "}
-                                      {req.createDate}
+                                      {formatDate(req.createDate)}
                                     </div>
                                     {getStatusBadge(req.status)}
                                   </div>
@@ -503,7 +568,7 @@ const MyCustomerCharacter = () => {
               <Input
                 value={modalData.name}
                 onChange={(e) => handleInputChange("name", e.target.value)}
-                disabled={true} // Luôn disabled vì bạn đã disable trong modal Edit
+                disabled={true}
               />
             </Form.Group>
             <Form.Group className="mb-3">
@@ -587,11 +652,18 @@ const MyCustomerCharacter = () => {
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>Create Date</Form.Label>
-              <Input value={modalData.createDate} disabled />
+              <Input value={formatDate(modalData.createDate)} disabled />
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>Update Date</Form.Label>
-              <Input value={modalData.updateDate || "N/A"} disabled />
+              <Input
+                value={
+                  modalData.updateDate
+                    ? formatDate(modalData.updateDate)
+                    : "N/A"
+                }
+                disabled
+              />
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>Created By</Form.Label>
@@ -622,7 +694,7 @@ const MyCustomerCharacter = () => {
                     style={{ display: "block", marginRight: "10px" }}
                   />
                   <div>
-                    <p>Create Date: {img.createDate}</p>
+                    <p>Create Date: {formatDate(img.createDate)}</p>
                     {isEditable && (
                       <Button
                         danger
