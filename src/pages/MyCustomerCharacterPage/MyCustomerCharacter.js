@@ -1,64 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Form, Card, Badge } from "react-bootstrap";
-import { Pagination, Modal, Input, Button, Tabs, Image } from "antd";
+import { Pagination, Modal, Input, Button, Tabs, Image, Spin } from "antd";
 import { FileText, Calendar, Eye } from "lucide-react";
 import { useDebounce } from "use-debounce";
+import { jwtDecode } from "jwt-decode";
+import RequestCustomerCharacterService from "../../services/MyCustomerCharacterService/MyCustomerCharacterService.js";
 import "antd/dist/reset.css";
 import "../../styles/MyCustomerCharacter.scss";
 
 const { TabPane } = Tabs;
 
 const MyCustomerCharacter = () => {
-  // Mock data cho các yêu cầu nhân vật tùy chỉnh
-  const mockRequests = [
-    {
-      customerCharacterId: "CC001",
-      name: "Dark Knight",
-      description: "A black armored knight costume",
-      categoryId: "CAT01",
-      createDate: "2025-04-01 10:30",
-      status: "Pending",
-      images: [
-        {
-          customerCharacterImageId: "IMG001",
-          urlImage: "https://via.placeholder.com/150",
-          createDate: "2025-04-01 10:30",
-        },
-      ],
-    },
-    {
-      customerCharacterId: "CC002",
-      name: "Ice Queen",
-      description: "A shimmering blue dress with crown",
-      categoryId: "CAT02",
-      createDate: "2025-04-02 14:15",
-      status: "Browsed",
-      images: [
-        {
-          customerCharacterImageId: "IMG002",
-          urlImage: "https://via.placeholder.com/150",
-          createDate: "2025-04-02 14:15",
-        },
-      ],
-    },
-    {
-      customerCharacterId: "CC003",
-      name: "Fire Dragon",
-      description: "Red scales and wings",
-      categoryId: "CAT03",
-      createDate: "2025-04-03 09:45",
-      status: "Completed",
-      images: [
-        {
-          customerCharacterImageId: "IMG003",
-          urlImage: "https://via.placeholder.com/150",
-          createDate: "2025-04-03 09:45",
-        },
-      ],
-    },
-  ];
-
-  const [requests, setRequests] = useState(mockRequests);
+  const [requests, setRequests] = useState([]);
   const [filteredPendingRequests, setFilteredPendingRequests] = useState([]);
   const [filteredBrowsedRequests, setFilteredBrowsedRequests] = useState([]);
   const [filteredCompletedRequests, setFilteredCompletedRequests] = useState(
@@ -77,10 +30,42 @@ const MyCustomerCharacter = () => {
     categoryId: "",
     createDate: "",
     status: "",
+    maxHeight: 0,
+    maxWeight: 0,
+    minHeight: 0,
+    minWeight: 0,
+    updateDate: null,
+    createBy: "",
+    reason: null,
     images: [],
   });
+  const [loading, setLoading] = useState(false);
 
   const itemsPerPage = 5;
+
+  // Lấy accountId từ token
+  const accessToken = localStorage.getItem("accessToken");
+  const decoded = jwtDecode(accessToken);
+  const accountId = decoded?.Id;
+
+  // Gọi API để lấy danh sách yêu cầu
+  useEffect(() => {
+    const fetchRequests = async () => {
+      setLoading(true);
+      try {
+        const data =
+          await RequestCustomerCharacterService.getRequestCustomerCharacterByAccountId(
+            accountId
+          );
+        setRequests(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error("Failed to fetch customer character requests:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRequests();
+  }, [accountId]);
 
   // Lọc các requests theo trạng thái và từ khóa tìm kiếm
   useEffect(() => {
@@ -128,7 +113,14 @@ const MyCustomerCharacter = () => {
       categoryId: request.categoryId,
       createDate: request.createDate,
       status: request.status,
-      images: request.images,
+      maxHeight: request.maxHeight,
+      maxWeight: request.maxWeight,
+      minHeight: request.minHeight,
+      minWeight: request.minWeight,
+      updateDate: request.updateDate,
+      createBy: request.createBy,
+      reason: request.reason,
+      images: request.customerCharacterImageResponses || [],
     });
     setIsViewModalVisible(true);
   };
@@ -179,169 +171,176 @@ const MyCustomerCharacter = () => {
           </Row>
         </div>
 
-        <Tabs defaultActiveKey="1" type="card">
-          <TabPane tab="Pending Requests" key="1">
-            {currentPendingItems.length === 0 ? (
-              <p className="text-center">No pending requests found.</p>
-            ) : (
-              <>
-                <Row className="g-4">
-                  {currentPendingItems.map((req) => (
-                    <Col key={req.customerCharacterId} xs={12}>
-                      <Card className="rental-card shadow">
-                        <Card.Body>
-                          <div className="d-flex flex-column flex-md-row gap-4 align-items-md-center">
-                            <div className="flex-grow-1">
-                              <div className="d-flex gap-3">
-                                <div className="icon-circle">
-                                  <FileText size={24} />
-                                </div>
-                                <div>
-                                  <h3 className="rental-title">{req.name}</h3>
-                                  <div className="text-muted small">
-                                    <Calendar size={16} /> Create Date:{" "}
-                                    {req.createDate}
+        {loading ? (
+          <Spin
+            tip="Loading..."
+            style={{ display: "block", textAlign: "center" }}
+          />
+        ) : (
+          <Tabs defaultActiveKey="1" type="card">
+            <TabPane tab="Pending Requests" key="1">
+              {currentPendingItems.length === 0 ? (
+                <p className="text-center">No pending requests found.</p>
+              ) : (
+                <>
+                  <Row className="g-4">
+                    {currentPendingItems.map((req) => (
+                      <Col key={req.customerCharacterId} xs={12}>
+                        <Card className="rental-card shadow">
+                          <Card.Body>
+                            <div className="d-flex flex-column flex-md-row gap-4 align-items-md-center">
+                              <div className="flex-grow-1">
+                                <div className="d-flex gap-3">
+                                  <div className="icon-circle">
+                                    <FileText size={24} />
                                   </div>
-                                  {getStatusBadge(req.status)}
+                                  <div>
+                                    <h3 className="rental-title">{req.name}</h3>
+                                    <div className="text-muted small">
+                                      <Calendar size={16} /> Create Date:{" "}
+                                      {req.createDate}
+                                    </div>
+                                    {getStatusBadge(req.status)}
+                                  </div>
                                 </div>
                               </div>
+                              <div className="d-flex gap-2 align-items-center">
+                                <Button
+                                  type="primary"
+                                  size="small"
+                                  className="btn-view"
+                                  onClick={() => handleViewRequest(req)}
+                                >
+                                  <Eye size={16} /> View
+                                </Button>
+                              </div>
                             </div>
-                            <div className="d-flex gap-2 align-items-center">
-                              <Button
-                                type="primary"
-                                size="small"
-                                className="btn-view"
-                                onClick={() => handleViewRequest(req)}
-                              >
-                                <Eye size={16} /> View
-                              </Button>
-                            </div>
-                          </div>
-                        </Card.Body>
-                      </Card>
-                    </Col>
-                  ))}
-                </Row>
-                <Pagination
-                  current={currentPendingPage}
-                  pageSize={itemsPerPage}
-                  total={filteredPendingRequests.length}
-                  onChange={(page) => setCurrentPendingPage(page)}
-                  showSizeChanger={false}
-                  style={{ marginTop: "20px", textAlign: "right" }}
-                />
-              </>
-            )}
-          </TabPane>
+                          </Card.Body>
+                        </Card>
+                      </Col>
+                    ))}
+                  </Row>
+                  <Pagination
+                    current={currentPendingPage}
+                    pageSize={itemsPerPage}
+                    total={filteredPendingRequests.length}
+                    onChange={(page) => setCurrentPendingPage(page)}
+                    showSizeChanger={false}
+                    style={{ marginTop: "20px", textAlign: "right" }}
+                  />
+                </>
+              )}
+            </TabPane>
 
-          <TabPane tab="Browsed Requests" key="2">
-            {currentBrowsedItems.length === 0 ? (
-              <p className="text-center">No browsed requests found.</p>
-            ) : (
-              <>
-                <Row className="g-4">
-                  {currentBrowsedItems.map((req) => (
-                    <Col key={req.customerCharacterId} xs={12}>
-                      <Card className="rental-card shadow">
-                        <Card.Body>
-                          <div className="d-flex flex-column flex-md-row gap-4 align-items-md-center">
-                            <div className="flex-grow-1">
-                              <div className="d-flex gap-3">
-                                <div className="icon-circle">
-                                  <FileText size={24} />
-                                </div>
-                                <div>
-                                  <h3 className="rental-title">{req.name}</h3>
-                                  <div className="text-muted small">
-                                    <Calendar size={16} /> Create Date:{" "}
-                                    {req.createDate}
+            <TabPane tab="Browsed Requests" key="2">
+              {currentBrowsedItems.length === 0 ? (
+                <p className="text-center">No browsed requests found.</p>
+              ) : (
+                <>
+                  <Row className="g-4">
+                    {currentBrowsedItems.map((req) => (
+                      <Col key={req.customerCharacterId} xs={12}>
+                        <Card className="rental-card shadow">
+                          <Card.Body>
+                            <div className="d-flex flex-column flex-md-row gap-4 align-items-md-center">
+                              <div className="flex-grow-1">
+                                <div className="d-flex gap-3">
+                                  <div className="icon-circle">
+                                    <FileText size={24} />
                                   </div>
-                                  {getStatusBadge(req.status)}
+                                  <div>
+                                    <h3 className="rental-title">{req.name}</h3>
+                                    <div className="text-muted small">
+                                      <Calendar size={16} /> Create Date:{" "}
+                                      {req.createDate}
+                                    </div>
+                                    {getStatusBadge(req.status)}
+                                  </div>
                                 </div>
                               </div>
+                              <div className="d-flex gap-2 align-items-center">
+                                <Button
+                                  type="primary"
+                                  size="small"
+                                  className="btn-view"
+                                  onClick={() => handleViewRequest(req)}
+                                >
+                                  <Eye size={16} /> View
+                                </Button>
+                              </div>
                             </div>
-                            <div className="d-flex gap-2 align-items-center">
-                              <Button
-                                type="primary"
-                                size="small"
-                                className="btn-view"
-                                onClick={() => handleViewRequest(req)}
-                              >
-                                <Eye size={16} /> View
-                              </Button>
-                            </div>
-                          </div>
-                        </Card.Body>
-                      </Card>
-                    </Col>
-                  ))}
-                </Row>
-                <Pagination
-                  current={currentBrowsedPage}
-                  pageSize={itemsPerPage}
-                  total={filteredBrowsedRequests.length}
-                  onChange={(page) => setCurrentBrowsedPage(page)}
-                  showSizeChanger={false}
-                  style={{ marginTop: "20px", textAlign: "right" }}
-                />
-              </>
-            )}
-          </TabPane>
+                          </Card.Body>
+                        </Card>
+                      </Col>
+                    ))}
+                  </Row>
+                  <Pagination
+                    current={currentBrowsedPage}
+                    pageSize={itemsPerPage}
+                    total={filteredBrowsedRequests.length}
+                    onChange={(page) => setCurrentBrowsedPage(page)}
+                    showSizeChanger={false}
+                    style={{ marginTop: "20px", textAlign: "right" }}
+                  />
+                </>
+              )}
+            </TabPane>
 
-          <TabPane tab="Completed Requests" key="3">
-            {currentCompletedItems.length === 0 ? (
-              <p className="text-center">No completed requests found.</p>
-            ) : (
-              <>
-                <Row className="g-4">
-                  {currentCompletedItems.map((req) => (
-                    <Col key={req.customerCharacterId} xs={12}>
-                      <Card className="rental-card shadow">
-                        <Card.Body>
-                          <div className="d-flex flex-column flex-md-row gap-4 align-items-md-center">
-                            <div className="flex-grow-1">
-                              <div className="d-flex gap-3">
-                                <div className="icon-circle">
-                                  <FileText size={24} />
-                                </div>
-                                <div>
-                                  <h3 className="rental-title">{req.name}</h3>
-                                  <div className="text-muted small">
-                                    <Calendar size={16} /> Create Date:{" "}
-                                    {req.createDate}
+            <TabPane tab="Completed Requests" key="3">
+              {currentCompletedItems.length === 0 ? (
+                <p className="text-center">No completed requests found.</p>
+              ) : (
+                <>
+                  <Row className="g-4">
+                    {currentCompletedItems.map((req) => (
+                      <Col key={req.customerCharacterId} xs={12}>
+                        <Card className="rental-card shadow">
+                          <Card.Body>
+                            <div className="d-flex flex-column flex-md-row gap-4 align-items-md-center">
+                              <div className="flex-grow-1">
+                                <div className="d-flex gap-3">
+                                  <div className="icon-circle">
+                                    <FileText size={24} />
                                   </div>
-                                  {getStatusBadge(req.status)}
+                                  <div>
+                                    <h3 className="rental-title">{req.name}</h3>
+                                    <div className="text-muted small">
+                                      <Calendar size={16} /> Create Date:{" "}
+                                      {req.createDate}
+                                    </div>
+                                    {getStatusBadge(req.status)}
+                                  </div>
                                 </div>
                               </div>
+                              <div className="d-flex gap-2 align-items-center">
+                                <Button
+                                  type="primary"
+                                  size="small"
+                                  className="btn-view"
+                                  onClick={() => handleViewRequest(req)}
+                                >
+                                  <Eye size={16} /> View
+                                </Button>
+                              </div>
                             </div>
-                            <div className="d-flex gap-2 align-items-center">
-                              <Button
-                                type="primary"
-                                size="small"
-                                className="btn-view"
-                                onClick={() => handleViewRequest(req)}
-                              >
-                                <Eye size={16} /> View
-                              </Button>
-                            </div>
-                          </div>
-                        </Card.Body>
-                      </Card>
-                    </Col>
-                  ))}
-                </Row>
-                <Pagination
-                  current={currentCompletedPage}
-                  pageSize={itemsPerPage}
-                  total={filteredCompletedRequests.length}
-                  onChange={(page) => setCurrentCompletedPage(page)}
-                  showSizeChanger={false}
-                  style={{ marginTop: "20px", textAlign: "right" }}
-                />
-              </>
-            )}
-          </TabPane>
-        </Tabs>
+                          </Card.Body>
+                        </Card>
+                      </Col>
+                    ))}
+                  </Row>
+                  <Pagination
+                    current={currentCompletedPage}
+                    pageSize={itemsPerPage}
+                    total={filteredCompletedRequests.length}
+                    onChange={(page) => setCurrentCompletedPage(page)}
+                    showSizeChanger={false}
+                    style={{ marginTop: "20px", textAlign: "right" }}
+                  />
+                </>
+              )}
+            </TabPane>
+          </Tabs>
+        )}
 
         {/* Modal xem chi tiết */}
         <Modal
@@ -373,12 +372,40 @@ const MyCustomerCharacter = () => {
               <Input value={modalData.categoryId} disabled />
             </Form.Group>
             <Form.Group className="mb-3">
+              <Form.Label>Max Height (cm)</Form.Label>
+              <Input value={modalData.maxHeight} disabled />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Max Weight (kg)</Form.Label>
+              <Input value={modalData.maxWeight} disabled />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Min Height (cm)</Form.Label>
+              <Input value={modalData.minHeight} disabled />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Min Weight (kg)</Form.Label>
+              <Input value={modalData.minWeight} disabled />
+            </Form.Group>
+            <Form.Group className="mb-3">
               <Form.Label>Create Date</Form.Label>
               <Input value={modalData.createDate} disabled />
             </Form.Group>
             <Form.Group className="mb-3">
+              <Form.Label>Update Date</Form.Label>
+              <Input value={modalData.updateDate || "N/A"} disabled />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Created By (Account ID)</Form.Label>
+              <Input value={modalData.createBy} disabled />
+            </Form.Group>
+            <Form.Group className="mb-3">
               <Form.Label>Status</Form.Label>
               <Input value={modalData.status} disabled />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Reason</Form.Label>
+              <Input value={modalData.reason || "N/A"} disabled />
             </Form.Group>
             <h5>Images</h5>
             {modalData.images.length === 0 ? (

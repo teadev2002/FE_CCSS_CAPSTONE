@@ -1,4 +1,4 @@
-import { apiClient, formDataClient } from "../../../api/apiClient.js";
+import { apiClient, formDataClient } from "../../api/apiClient.js";
 
 const RequestCustomerCharacterService = {
   getRequestCustomerCharacterByAccountId: async (id) => {
