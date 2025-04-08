@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { Search } from "lucide-react";
 import { Modal, Button, Form, Carousel } from "react-bootstrap";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import "../../styles/FestivalsPage.scss";
 import FestivalService from "../../services/FestivalService/FestivalService";
-import { apiClient } from "../../api/apiClient.js"; // Giả định bạn đã có apiClient
+import PaymentService from "../../services/PaymentService/PaymentService";
+import { apiClient } from "../../api/apiClient.js";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { jwtDecode } from "jwt-decode";
+import { Pagination } from "antd";
 
 const FestivalsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -14,19 +17,52 @@ const FestivalsPage = () => {
   const [selectedFestival, setSelectedFestival] = useState(null);
   const [ticketQuantity, setTicketQuantity] = useState(1);
   const [showPurchaseForm, setShowPurchaseForm] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [festivals, setFestivals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [paymentMethod, setPaymentMethod] = useState("");
-  const [cosplayerDetails, setCosplayerDetails] = useState({}); // Lưu thông tin cosplayers
+  const [paymentMethod, setPaymentMethod] = useState(null);
+  const [cosplayerDetails, setCosplayerDetails] = useState({});
+  const [accountId, setAccountId] = useState(null);
+  const [accountName, setAccountName] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(8);
+  const navigate = useNavigate();
 
   const { category } = useParams();
   const selectedCategory = category || "all";
 
-  // Gọi API để lấy danh sách festivals
-  useEffect(() => {
-    const fetchFestivals = async () => {
+  const formatPrice = (price) => {
+    return `${price.toLocaleString("vi-VN")} VND`;
+  };
+
+  const getAccountInfoFromToken = () => {
+    const accessToken = localStorage.getItem("accessToken");
+    if (accessToken) {
       try {
+        const decoded = jwtDecode(accessToken);
+        console.log("Decoded token in FestivalsPage:", decoded);
+        return {
+          id: decoded?.Id,
+          accountName: decoded?.AccountName,
+        };
+      } catch (error) {
+        console.error("Error decoding token:", error);
+        return null;
+      }
+    }
+    return null;
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const accountInfo = getAccountInfoFromToken();
+        if (accountInfo) {
+          setAccountId(accountInfo.id);
+          setAccountName(accountInfo.accountName);
+        }
+
         const festivalData = await FestivalService.getAllFestivals();
         setFestivals(festivalData);
         setLoading(false);
@@ -36,10 +72,9 @@ const FestivalsPage = () => {
         toast.error("Failed to load festivals");
       }
     };
-    fetchFestivals();
+    fetchData();
   }, []);
 
-  // Gọi API để lấy thông tin cosplayer khi chọn festival
   useEffect(() => {
     const fetchCosplayerDetails = async () => {
       if (!selectedFestival || !selectedFestival.eventCharacterResponses) return;
@@ -48,10 +83,10 @@ const FestivalsPage = () => {
       try {
         await Promise.all(
           selectedFestival.eventCharacterResponses.map(async (cosplayer) => {
-            const response = await apiClient.get(
-              `/api/Character/${cosplayer.characterId}`
+            const response = await FestivalService.getCosplayerByEventCharacterId(
+              cosplayer.eventCharacterId
             );
-            details[cosplayer.characterId] = response.data;
+            details[cosplayer.eventCharacterId] = response;
           })
         );
         setCosplayerDetails(details);
@@ -73,15 +108,16 @@ const FestivalsPage = () => {
     setSelectedFestival(null);
     setTicketQuantity(1);
     setShowPurchaseForm(false);
-    setPaymentMethod("");
-    setCosplayerDetails({}); // Reset cosplayer details
+    setShowConfirmModal(false);
+    setPaymentMethod(null);
+    setCosplayerDetails({});
   };
 
   const handleIncrease = () => {
     if (selectedFestival && ticketQuantity < selectedFestival.ticket.quantity) {
       setTicketQuantity((prev) => prev + 1);
     } else {
-      toast.error("Quantity exceeds available tickets");
+      toast.error("Quantity exceeds available tickets!");
     }
   };
 
@@ -89,23 +125,126 @@ const FestivalsPage = () => {
     setTicketQuantity((prev) => (prev > 1 ? prev - 1 : 1));
 
   const handleBuyNow = () => {
+    if (!accountId) {
+      toast.error("Please log in to proceed with payment!");
+      return;
+    }
     setShowPurchaseForm(true);
+  };
+
+  const createOrder = async () => {
+    try {
+      const orderData = {
+        accountId: accountId,
+        orderTickets: [
+          {
+            ticketId: selectedFestival.ticket.ticketId,
+            quantity: ticketQuantity,
+            createDate: new Date().toISOString(),
+          },
+        ],
+      };
+      const response = await apiClient.post("/api/Order", orderData);
+      return response.data.orderpaymentId;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || "Failed to create order");
+    }
+  };
+
+  const checkOrderStatus = async (orderId) => {
+    try {
+      const response = await apiClient.get(`/api/Order/${orderId}`);
+      return response.data.orderStatus;
+    } catch (error) {
+      console.error("Error checking order status:", error);
+      throw new Error("Failed to check order status");
+    }
   };
 
   const handleConfirmPurchase = () => {
     if (!paymentMethod) {
-      toast.error("Please select a payment method");
+      toast.error("Please select a payment method!");
       return;
     }
-    toast.success(
-      `Purchased ${ticketQuantity} ticket(s) with ${paymentMethod} successfully!`
-    );
-    handleFestivalClose();
+    setShowPurchaseForm(false);
+    setShowConfirmModal(true);
+  };
+
+  const handleFinalConfirm = async () => {
+    const totalAmount = selectedFestival.ticket.price * ticketQuantity;
+
+    if (!accountId) {
+      toast.error("Please log in to proceed with payment!");
+      return;
+    }
+
+    try {
+      const orderpaymentId = await createOrder();
+
+      if (paymentMethod === "Momo") {
+        const paymentData = {
+          fullName: accountName || "Unknown",
+          orderInfo: `Purchase tickets for ${selectedFestival.eventName}`,
+          amount: totalAmount,
+          purpose: 0,
+          accountId: accountId,
+          accountCouponId: null,
+          ticketId: selectedFestival.ticket.ticketId,
+          ticketQuantity: ticketQuantity.toString(),
+          contractId: null,
+          orderpaymentId: orderpaymentId,
+        };
+
+        const paymentUrl = await PaymentService.createMomoPayment(paymentData);
+        toast.success("Redirecting to MoMo payment...");
+        localStorage.setItem("paymentSource", "festivals"); // Lưu source vào localStorage
+        window.location.href = paymentUrl;
+
+        const intervalId = setInterval(async () => {
+          try {
+            const status = await checkOrderStatus(orderpaymentId);
+            if (status === 1) {
+              clearInterval(intervalId);
+              toast.success("Payment successful!");
+              handleFestivalClose();
+              navigate("/success-payment", { state: { source: "festivals" } });
+            }
+          } catch (error) {
+            clearInterval(intervalId);
+            toast.error("Error checking payment status");
+          }
+        }, 5000);
+      } else if (paymentMethod === "VNPay") {
+        toast.success(
+          `Purchase confirmed with ${paymentMethod} for ${ticketQuantity} ticket(s)!`
+        );
+        localStorage.setItem("paymentSource", "festivals"); // Lưu source vào localStorage
+        handleFestivalClose();
+        navigate("/success-payment", { state: { source: "festivals" } });
+      }
+    } catch (error) {
+      toast.error(error.message);
+      setShowConfirmModal(false);
+    }
+  };
+
+  const handleBackToPayment = () => {
+    setShowConfirmModal(false);
+    setShowPurchaseForm(true);
   };
 
   const filteredFestivals = festivals.filter((festival) =>
     festival.eventName.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const paginatedFestivals = filteredFestivals.slice(startIndex, endIndex);
+
+  const handlePageChange = (page, pageSize) => {
+    setCurrentPage(page);
+    setPageSize(pageSize);
+  };
 
   if (loading) return <div className="text-center py-5">Loading festivals...</div>;
   if (error) return <div className="text-center py-5 text-danger">{error}</div>;
@@ -140,7 +279,7 @@ const FestivalsPage = () => {
         </div>
 
         <div className="fest-grid">
-          {filteredFestivals.map((festival) => (
+          {paginatedFestivals.map((festival) => (
             <div className="fest-card" key={festival.eventId}>
               <div className="fest-card-image">
                 <img
@@ -170,10 +309,25 @@ const FestivalsPage = () => {
               </div>
             </div>
           ))}
-          {filteredFestivals.length === 0 && (
-            <p className="text-center mt-4">No festivals found.</p>
-          )}
         </div>
+
+        {filteredFestivals.length === 0 ? (
+          <p className="text-center mt-4">No festivals found.</p>
+        ) : (
+          <div className="pagination-container mt-5">
+            <Pagination
+              current={currentPage}
+              pageSize={pageSize}
+              total={filteredFestivals.length}
+              onChange={handlePageChange}
+              showSizeChanger
+              pageSizeOptions={["4", "8", "12", "16"]}
+              showTotal={(total, range) =>
+                `${range[0]}-${range[1]} of ${total} items`
+              }
+            />
+          </div>
+        )}
       </div>
 
       <Modal
@@ -221,7 +375,6 @@ const FestivalsPage = () => {
                   </div>
                 </div>
 
-                {/* Activities - Grid */}
                 {selectedFestival.eventActivityResponse?.length > 0 && (
                   <div style={{ marginTop: "1.5rem", marginBottom: "1.5rem" }}>
                     <h5
@@ -285,7 +438,6 @@ const FestivalsPage = () => {
                   </div>
                 )}
 
-                {/* Participating Cosplayers - Grid cố định 3 cột */}
                 {selectedFestival.eventCharacterResponses?.length > 0 && (
                   <div style={{ marginTop: "1.5rem", marginBottom: "1.5rem" }}>
                     <h5
@@ -308,7 +460,7 @@ const FestivalsPage = () => {
                       {selectedFestival.eventCharacterResponses.map(
                         (cosplayer) => {
                           const cosplayerData =
-                            cosplayerDetails[cosplayer.characterId];
+                            cosplayerDetails[cosplayer.eventCharacterId];
                           const avatarImage = cosplayerData?.images?.find(
                             (img) => img.isAvatar
                           );
@@ -344,7 +496,7 @@ const FestivalsPage = () => {
                                     avatarImage?.urlImage ||
                                     "https://i.pinimg.com/736x/87/e2/85/87e285975715a638cd744653bba51902.jpg"
                                   }
-                                  alt={cosplayerData?.characterName || "Cosplayer"}
+                                  alt={cosplayerData?.name || "Cosplayer"}
                                   style={{
                                     width: "100%",
                                     height: "100%",
@@ -376,8 +528,7 @@ const FestivalsPage = () => {
                                     marginBottom: "0.5rem",
                                   }}
                                 >
-                                  {cosplayerData?.characterName ||
-                                    `Cosplayer ${cosplayer.eventCharacterId}`}
+                                  {cosplayerData?.name || "Unknown Cosplayer"}
                                 </h6>
                                 <p
                                   style={{
@@ -386,7 +537,7 @@ const FestivalsPage = () => {
                                     margin: 0,
                                   }}
                                 >
-                                  Cosplaying as {cosplayerData?.characterName || cosplayer.characterId}
+                                  {cosplayerData?.description || "No description available"}
                                 </p>
                               </div>
                             </div>
@@ -400,8 +551,8 @@ const FestivalsPage = () => {
                 <div className="fest-ticket-section mt-4">
                   <h5>Purchase Tickets</h5>
                   <p>
-                    Available: {selectedFestival.ticket.quantity} | Price: $
-                    {selectedFestival.ticket.price}
+                    Available: {selectedFestival.ticket.quantity} | Price:{" "}
+                    {formatPrice(selectedFestival.ticket.price)}
                   </p>
                   <div className="fest-ticket-quantity mb-3">
                     <Form.Label>Quantity</Form.Label>
@@ -417,6 +568,10 @@ const FestivalsPage = () => {
                       <Button
                         variant="outline-secondary"
                         onClick={handleIncrease}
+                        disabled={
+                          selectedFestival.ticket.quantity === 0 ||
+                          ticketQuantity >= selectedFestival.ticket.quantity
+                        }
                       >
                         +
                       </Button>
@@ -426,43 +581,60 @@ const FestivalsPage = () => {
                     variant="primary"
                     className="fest-buy-ticket-btn"
                     onClick={handleBuyNow}
+                    disabled={selectedFestival.ticket.quantity === 0}
                   >
-                    Buy Now - ${selectedFestival.ticket.price * ticketQuantity}
+                    Buy Now -{" "}
+                    {formatPrice(selectedFestival.ticket.price * ticketQuantity)}
                   </Button>
                 </div>
 
                 {showPurchaseForm && (
                   <div className="fest-purchase-form mt-4">
-                    <h5>Payment Options</h5>
-                    <p>
-                      Total: ${selectedFestival.ticket.price * ticketQuantity} (
-                      {ticketQuantity} ticket(s))
-                    </p>
+                    <h5>Select Payment Method</h5>
                     <Form>
                       <Form.Check
                         type="radio"
                         label="MoMo"
                         name="paymentMethod"
-                        value="MoMo"
-                        onChange={(e) => setPaymentMethod(e.target.value)}
+                        onChange={() => setPaymentMethod("Momo")}
                         className="mb-2"
                       />
                       <Form.Check
                         type="radio"
                         label="VNPay"
                         name="paymentMethod"
-                        value="VNPay"
-                        onChange={(e) => setPaymentMethod(e.target.value)}
+                        onChange={() => setPaymentMethod("VNPay")}
                         className="mb-2"
                       />
                       <Button
-                        variant="success"
-                        className="fest-confirm-purchase-btn"
+                        variant="primary"
                         onClick={handleConfirmPurchase}
+                        className="mt-3"
                       >
                         Confirm Purchase
                       </Button>
                     </Form>
+                  </div>
+                )}
+
+                {showConfirmModal && (
+                  <div className="fest-purchase-form mt-4">
+                    <h5>Confirm Payment</h5>
+                    <p>
+                      Are you sure you want to pay{" "}
+                      {formatPrice(selectedFestival.ticket.price * ticketQuantity)}{" "}
+                      for {ticketQuantity} ticket(s) with {paymentMethod}?
+                    </p>
+                    <Button
+                      variant="success"
+                      onClick={handleFinalConfirm}
+                      className="me-2"
+                    >
+                      Yes
+                    </Button>
+                    <Button variant="secondary" onClick={handleBackToPayment}>
+                      No
+                    </Button>
                   </div>
                 )}
               </div>
