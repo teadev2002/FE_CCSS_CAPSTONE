@@ -52,6 +52,15 @@ const SidebarManagement = () => {
           <span>Manage Request</span>
         </NavLink>
         <NavLink
+          to="/manage/request-customer-character"
+          className={({ isActive }) =>
+            isActive ? "nav-link active" : "nav-link"
+          }
+        >
+          <GitPullRequest size={20} />
+          <span>Manage Re CusChar</span>
+        </NavLink>
+        <NavLink
           to="/manage/contract"
           className={({ isActive }) =>
             isActive ? "nav-link active" : "nav-link"
@@ -60,6 +69,7 @@ const SidebarManagement = () => {
           <ReceiptText size={20} />
           <span>Manage Contract</span>
         </NavLink>
+
         <NavLink
           to="/manage/ticket"
           className={({ isActive }) =>

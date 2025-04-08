@@ -40,7 +40,7 @@ import MyHistory from "./pages/MyHistoryPage/MyHistory.js";
 import MyTask from "./pages/TaskPage/MyTask.js";
 import SuccessPayment from "./pages/SuccessPaymentPage/SuccessPayment.js";
 import MyRentalCostume from "./pages/MyRentalCostumePage/MyRentalCostume.js";
-
+import ManageRequestCustomerCharacter from "./pages/ManagerPage/ManageRequestCustomerCharacterPage/ManageRequestCustomerCharacter.js";
 const AppLayout = ({ children }) => {
   const location = useLocation();
 
@@ -118,6 +118,10 @@ function App() {
           <Route path="/manage/character" element={<ManageCharacter />} />
           <Route path="/manage/contract" element={<ManageContract />} />
           <Route path="/manage/account" element={<ManageAccount />} />
+          <Route
+            path="/manage/request-customer-character"
+            element={<ManageRequestCustomerCharacter />}
+          />
         </Routes>
         <ToastContainer
           position="top-right"

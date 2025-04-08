@@ -1010,7 +1010,7 @@ import PaymentService from "../../services/PaymentService/PaymentService.js";
 import { FileText, DollarSign, Calendar, CreditCard, Eye } from "lucide-react";
 import dayjs from "dayjs";
 import { useDebounce } from "use-debounce";
-
+import MyCustomerCharacter from "../MyCustomerCharacterPage/MyCustomerCharacter.js";
 const { TabPane } = Tabs;
 const { TextArea } = Input;
 
@@ -1198,7 +1198,12 @@ const MyRentalCostume = () => {
         fullRequestData: requestDetails,
       });
 
-      setIsViewModalVisible(true); // Luôn hiển thị modal chỉ xem
+      // Open the edit modal if the status is "Pending"
+      if (requestDetails.status === "Pending") {
+        setIsEditModalVisible(true);
+      } else {
+        setIsViewModalVisible(true); // Open the view modal for other statuses
+      }
       setCurrentCharacterPage(1);
     } catch (error) {
       console.error("Failed to fetch request details:", error);
@@ -1207,7 +1212,6 @@ const MyRentalCostume = () => {
       setLoading(false);
     }
   };
-
   const handleSubmitEdit = async () => {
     const { characters, fullRequestData } = modalData;
     if (characters.some((char) => char.quantity <= 0)) {
@@ -2008,6 +2012,7 @@ const MyRentalCostume = () => {
           </Form>
         </Modal>
       </Container>
+      <MyCustomerCharacter />
     </div>
   );
 };
