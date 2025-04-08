@@ -1,14 +1,26 @@
 import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Form, Card, Badge } from "react-bootstrap";
-import { Pagination, Modal, Input, Button, Tabs, Image, Spin } from "antd";
-import { FileText, Calendar, Eye } from "lucide-react";
+import {
+  Pagination,
+  Modal,
+  Input,
+  Button,
+  Tabs,
+  Image,
+  Spin,
+  Select,
+} from "antd";
+import { FileText, Calendar, Eye, Delete } from "lucide-react";
 import { useDebounce } from "use-debounce";
 import { jwtDecode } from "jwt-decode";
-import RequestCustomerCharacterService from "../../services/MyCustomerCharacterService/MyCustomerCharacterService.js";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "antd/dist/reset.css";
 import "../../styles/MyCustomerCharacter.scss";
+import RequestCustomerCharacterService from "../../services/MyCustomerCharacterService/MyCustomerCharacterService.js";
 
 const { TabPane } = Tabs;
+const { Option } = Select;
 
 const MyCustomerCharacter = () => {
   const [requests, setRequests] = useState([]);
@@ -22,7 +34,7 @@ const MyCustomerCharacter = () => {
   const [currentCompletedPage, setCurrentCompletedPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm] = useDebounce(searchTerm, 300);
-  const [isViewModalVisible, setIsViewModalVisible] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false); // Modal hợp nhất
   const [modalData, setModalData] = useState({
     customerCharacterId: "",
     name: "",
@@ -39,6 +51,9 @@ const MyCustomerCharacter = () => {
     reason: null,
     images: [],
   });
+  const [newImages, setNewImages] = useState([]); // State để lưu trữ ảnh mới
+  const [categories, setCategories] = useState([]); // State để lưu danh sách categories
+  const [accounts, setAccounts] = useState({}); // State để lưu thông tin accounts
   const [loading, setLoading] = useState(false);
 
   const itemsPerPage = 5;
@@ -48,23 +63,42 @@ const MyCustomerCharacter = () => {
   const decoded = jwtDecode(accessToken);
   const accountId = decoded?.Id;
 
-  // Gọi API để lấy danh sách yêu cầu
+  // Gọi API để lấy danh sách yêu cầu, categories và thông tin accounts
   useEffect(() => {
-    const fetchRequests = async () => {
+    const fetchData = async () => {
       setLoading(true);
       try {
-        const data =
+        // Lấy danh sách yêu cầu
+        const requestData =
           await RequestCustomerCharacterService.getRequestCustomerCharacterByAccountId(
             accountId
           );
-        setRequests(Array.isArray(data) ? data : []);
+        setRequests(Array.isArray(requestData) ? requestData : []);
+
+        // Lấy danh sách categories
+        const categoryData =
+          await RequestCustomerCharacterService.getAllCategory();
+        setCategories(Array.isArray(categoryData) ? categoryData : []);
+
+        // Lấy thông tin accounts từ createBy
+        const accountIds = [...new Set(requestData.map((req) => req.createBy))];
+        const accountPromises = accountIds.map((id) =>
+          RequestCustomerCharacterService.getAccountCustomerCharacter(id)
+        );
+        const accountResponses = await Promise.all(accountPromises);
+        const accountsData = accountResponses.reduce((acc, account) => {
+          acc[account.accountId] = account;
+          return acc;
+        }, {});
+        setAccounts(accountsData);
       } catch (error) {
-        console.error("Failed to fetch customer character requests:", error);
+        console.error("Failed to fetch data:", error);
+        toast.error("Failed to load data.");
       } finally {
         setLoading(false);
       }
     };
-    fetchRequests();
+    fetchData();
   }, [accountId]);
 
   // Lọc các requests theo trạng thái và từ khóa tìm kiếm
@@ -105,7 +139,7 @@ const MyCustomerCharacter = () => {
     return data.slice(start, start + perPage);
   };
 
-  const handleViewRequest = (request) => {
+  const handleOpenModal = (request) => {
     setModalData({
       customerCharacterId: request.customerCharacterId,
       name: request.name,
@@ -122,7 +156,88 @@ const MyCustomerCharacter = () => {
       reason: request.reason,
       images: request.customerCharacterImageResponses || [],
     });
-    setIsViewModalVisible(true);
+    setNewImages([]); // Reset ảnh mới khi mở modal
+    setIsModalVisible(true);
+  };
+
+  const handleImageUpload = (e) => {
+    const files = Array.from(e.target.files);
+    setNewImages(files);
+  };
+
+  const handleRemoveImage = (imageId) => {
+    setModalData((prev) => ({
+      ...prev,
+      images: prev.images.filter(
+        (img) => img.customerCharacterImageId !== imageId
+      ),
+    }));
+  };
+
+  const handleUpdateRequest = async () => {
+    setLoading(true);
+    try {
+      const updateData = {
+        accountId: accountId,
+        customerCharacterRequestId: modalData.customerCharacterId,
+        name: modalData.name,
+        description: modalData.description,
+        categoryId: modalData.categoryId,
+        minHeight: modalData.minHeight,
+        maxHeight: modalData.maxHeight,
+        minWeight: modalData.minWeight,
+        maxWeight: modalData.maxWeight,
+        images: newImages,
+      };
+
+      const response =
+        await RequestCustomerCharacterService.UpdateCustomerCharacter(
+          updateData
+        );
+
+      setRequests((prev) =>
+        prev.map((req) =>
+          req.customerCharacterId === modalData.customerCharacterId
+            ? {
+                ...req,
+                ...modalData,
+                customerCharacterImageResponses:
+                  response.images || modalData.images,
+              }
+            : req
+        )
+      );
+
+      toast.success("Customer character updated successfully!");
+      setIsModalVisible(false);
+      setNewImages([]);
+    } catch (error) {
+      console.error("Failed to update customer character:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to update customer character."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleInputChange = (field, value) => {
+    setModalData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  // Hàm tìm categoryName dựa trên categoryId
+  const getCategoryNameById = (categoryId) => {
+    const category = categories.find((cat) => cat.categoryId === categoryId);
+    return category ? category.categoryName : "N/A";
+  };
+
+  // Hàm tìm name dựa trên accountId
+  const getAccountNameById = (accountId) => {
+    const account = accounts[accountId];
+    return account ? account.name : "N/A";
   };
 
   const getStatusBadge = (status) => {
@@ -133,6 +248,8 @@ const MyCustomerCharacter = () => {
     };
     return <Badge bg={statusColors[status] || "secondary"}>{status}</Badge>;
   };
+
+  const isEditable = modalData.status === "Pending"; // Kiểm tra nếu status là Pending thì cho phép chỉnh sửa
 
   const currentPendingItems = paginate(
     filteredPendingRequests,
@@ -209,7 +326,7 @@ const MyCustomerCharacter = () => {
                                   type="primary"
                                   size="small"
                                   className="btn-view"
-                                  onClick={() => handleViewRequest(req)}
+                                  onClick={() => handleOpenModal(req)}
                                 >
                                   <Eye size={16} /> View
                                 </Button>
@@ -263,7 +380,7 @@ const MyCustomerCharacter = () => {
                                   type="primary"
                                   size="small"
                                   className="btn-view"
-                                  onClick={() => handleViewRequest(req)}
+                                  onClick={() => handleOpenModal(req)}
                                 >
                                   <Eye size={16} /> View
                                 </Button>
@@ -317,7 +434,7 @@ const MyCustomerCharacter = () => {
                                   type="primary"
                                   size="small"
                                   className="btn-view"
-                                  onClick={() => handleViewRequest(req)}
+                                  onClick={() => handleOpenModal(req)}
                                 >
                                   <Eye size={16} /> View
                                 </Button>
@@ -342,50 +459,131 @@ const MyCustomerCharacter = () => {
           </Tabs>
         )}
 
-        {/* Modal xem chi tiết */}
+        {/* Modal hợp nhất View và Edit */}
         <Modal
-          title="View Customer Character Request"
-          open={isViewModalVisible}
-          onCancel={() => setIsViewModalVisible(false)}
-          footer={[
-            <Button key="close" onClick={() => setIsViewModalVisible(false)}>
-              Close
-            </Button>,
-          ]}
+          title={
+            isEditable
+              ? "Edit Customer Character Request"
+              : "View Customer Character Request"
+          }
+          open={isModalVisible}
+          onOk={
+            isEditable ? handleUpdateRequest : () => setIsModalVisible(false)
+          }
+          onCancel={() => setIsModalVisible(false)}
+          okText={isEditable ? "Update" : "Close"}
+          cancelText="Cancel"
+          confirmLoading={loading}
           width={600}
+          footer={
+            isEditable
+              ? [
+                  <Button key="cancel" onClick={() => setIsModalVisible(false)}>
+                    Cancel
+                  </Button>,
+                  <Button
+                    key="update"
+                    type="primary"
+                    onClick={handleUpdateRequest}
+                    loading={loading}
+                  >
+                    Update
+                  </Button>,
+                ]
+              : [
+                  <Button key="close" onClick={() => setIsModalVisible(false)}>
+                    Close
+                  </Button>,
+                ]
+          }
         >
           <Form>
             <Form.Group className="mb-3">
-              <Form.Label>Customer Character ID</Form.Label>
-              <Input value={modalData.customerCharacterId} disabled />
-            </Form.Group>
-            <Form.Group className="mb-3">
               <Form.Label>Name</Form.Label>
-              <Input value={modalData.name} disabled />
+              <Input
+                value={modalData.name}
+                onChange={(e) => handleInputChange("name", e.target.value)}
+                disabled={true} // Luôn disabled vì bạn đã disable trong modal Edit
+              />
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>Description</Form.Label>
-              <Input.TextArea value={modalData.description} disabled rows={3} />
+              <Input.TextArea
+                value={modalData.description}
+                onChange={(e) =>
+                  handleInputChange("description", e.target.value)
+                }
+                rows={3}
+                disabled={!isEditable}
+              />
             </Form.Group>
             <Form.Group className="mb-3">
-              <Form.Label>Category ID</Form.Label>
-              <Input value={modalData.categoryId} disabled />
+              <Form.Label>Category</Form.Label>
+              {isEditable ? (
+                <Select
+                  value={modalData.categoryId}
+                  onChange={(value) => handleInputChange("categoryId", value)}
+                  style={{ width: "100%" }}
+                >
+                  {categories.map((category) => (
+                    <Option
+                      key={category.categoryId}
+                      value={category.categoryId}
+                    >
+                      {category.categoryName}
+                    </Option>
+                  ))}
+                </Select>
+              ) : (
+                <Input
+                  value={getCategoryNameById(modalData.categoryId)}
+                  disabled
+                />
+              )}
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>Max Height (cm)</Form.Label>
-              <Input value={modalData.maxHeight} disabled />
+              <Input
+                type="number"
+                value={modalData.maxHeight}
+                onChange={(e) =>
+                  handleInputChange("maxHeight", Number(e.target.value))
+                }
+                disabled={!isEditable}
+              />
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>Max Weight (kg)</Form.Label>
-              <Input value={modalData.maxWeight} disabled />
+              <Input
+                type="number"
+                value={modalData.maxWeight}
+                onChange={(e) =>
+                  handleInputChange("maxWeight", Number(e.target.value))
+                }
+                disabled={!isEditable}
+              />
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>Min Height (cm)</Form.Label>
-              <Input value={modalData.minHeight} disabled />
+              <Input
+                type="number"
+                value={modalData.minHeight}
+                onChange={(e) =>
+                  handleInputChange("minHeight", Number(e.target.value))
+                }
+                disabled={!isEditable}
+              />
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>Min Weight (kg)</Form.Label>
-              <Input value={modalData.minWeight} disabled />
+              <Input
+                type="number"
+                value={modalData.minWeight}
+                onChange={(e) =>
+                  handleInputChange("minWeight", Number(e.target.value))
+                }
+                disabled={!isEditable}
+              />
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>Create Date</Form.Label>
@@ -396,8 +594,8 @@ const MyCustomerCharacter = () => {
               <Input value={modalData.updateDate || "N/A"} disabled />
             </Form.Group>
             <Form.Group className="mb-3">
-              <Form.Label>Created By (Account ID)</Form.Label>
-              <Input value={modalData.createBy} disabled />
+              <Form.Label>Created By</Form.Label>
+              <Input value={getAccountNameById(modalData.createBy)} disabled />
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>Status</Form.Label>
@@ -412,17 +610,47 @@ const MyCustomerCharacter = () => {
               <p>No images available.</p>
             ) : (
               modalData.images.map((img) => (
-                <div key={img.customerCharacterImageId} className="mb-3">
+                <div
+                  key={img.customerCharacterImageId}
+                  className="mb-3 d-flex align-items-center"
+                >
                   <Image
                     src={img.urlImage}
                     alt="Character Image"
                     width={100}
                     preview
-                    style={{ display: "block", marginBottom: "10px" }}
+                    style={{ display: "block", marginRight: "10px" }}
                   />
-                  <p>Create Date: {img.createDate}</p>
+                  <div>
+                    <p>Create Date: {img.createDate}</p>
+                    {isEditable && (
+                      <Button
+                        danger
+                        size="small"
+                        onClick={() =>
+                          handleRemoveImage(img.customerCharacterImageId)
+                        }
+                      >
+                        <Delete size={16} /> Remove
+                      </Button>
+                    )}
+                  </div>
                 </div>
               ))
+            )}
+            {isEditable && (
+              <Form.Group className="mb-3">
+                <Form.Label>Upload New Images</Form.Label>
+                <Input
+                  type="file"
+                  multiple
+                  onChange={handleImageUpload}
+                  accept="image/*"
+                />
+                {newImages.length > 0 && (
+                  <p>Selected {newImages.length} new image(s)</p>
+                )}
+              </Form.Group>
             )}
           </Form>
         </Modal>
