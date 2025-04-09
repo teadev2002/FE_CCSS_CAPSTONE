@@ -18,6 +18,23 @@ const PaymentService = {
     }
   },
 
+  createVnpayPayment: async (paymentData) => {
+    try {
+      console.log("Creating VNPay payment with data:", paymentData);
+      const response = await apiClient.post("/api/VNPay", paymentData);
+      console.log("CreateVnpayPayment response:", response.data);
+      return response.data; // Trả về URL thanh toán từ VNPay
+    } catch (error) {
+      console.error(
+        "Error creating VNPay payment:",
+        error.response?.data || error.message
+      );
+      throw new Error(
+        error.response?.data?.message || "Error creating VNPay payment"
+      );
+    }
+  },
+
   DepositPayment: async ({
     fullName,
     // orderId,

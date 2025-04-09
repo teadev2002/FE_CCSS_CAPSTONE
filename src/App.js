@@ -1,5 +1,5 @@
-import { useEffect } from "react"; // Thêm useEffect
-import { Route, Routes, BrowserRouter, useLocation } from "react-router-dom"; // Đảm bảo import useLocation
+import { useEffect } from "react";
+import { Route, Routes, BrowserRouter, useLocation } from "react-router-dom";
 import "./styles/App.scss";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "react-toastify/dist/ReactToastify.css";
@@ -33,7 +33,7 @@ import ManageRequest from "./pages/ManagerPage/ManageRequestPage/ManageRequest.j
 import ManageSouvenir from "./pages/ManagerPage/ManageSouvenirsPage/ManageSouvenir.js";
 import ManageCosplayer from "./pages/ManagerPage/ManageCosplayerPage/ManageCosplayer.js";
 import ManageCharacter from "./pages/ManagerPage/ManageCharaterPage/ManageCharacter.js";
-import CartPage from "./pages/CartPage/CartPage.js"; // Import CartPage
+import CartPage from "./pages/CartPage/CartPage.js";
 import ManageContract from "./pages/ManagerPage/ManageContractPage/ManageContract.js";
 import ManageAccount from "./pages/ManagerPage/ManageAccountPage/ManageAccount.js";
 import MyHistory from "./pages/MyHistoryPage/MyHistory.js";
@@ -41,14 +41,15 @@ import MyTask from "./pages/TaskPage/MyTask.js";
 import SuccessPayment from "./pages/SuccessPaymentPage/SuccessPayment.js";
 import MyRentalCostume from "./pages/MyRentalCostumePage/MyRentalCostume.js";
 import ManageRequestCustomerCharacter from "./pages/ManagerPage/ManageRequestCustomerCharacterPage/ManageRequestCustomerCharacter.js";
-import MyEventOrganize from "./pages/MyEventOrganizePage/MyEventOrganize.js"; // Import MyEventOrganize
+import MyEventOrganize from "./pages/MyEventOrganizePage/MyEventOrganize.js";
+import PurchaseHistory from "./pages/PurchaseHistoryPage/PurchaseHistory.js"; // Thêm import PurchaseHistory
+
 const AppLayout = ({ children }) => {
   const location = useLocation();
 
-  // Thêm logic cuộn về đầu trang khi đường dẫn thay đổi
   useEffect(() => {
-    window.scrollTo(0, 0); // Cuộn về đầu trang
-  }, [location.pathname]); // Chạy lại mỗi khi pathname thay đổi
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
 
   const isAdminPage = location.pathname.startsWith("/admin");
   const isManagePage = location.pathname.startsWith("/manage");
@@ -90,11 +91,12 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/sign-up" element={<SignupPage />} />
           <Route path="/user-profile/:id" element={<ProfilePage />} />
-          <Route path="/cart" element={<CartPage />} /> {/* Route cho Cart */}
+          <Route path="/cart" element={<CartPage />} />
           <Route path="/my-history/:id" element={<MyHistory />} />
           <Route path="/my-task/:id" element={<MyTask />} />
           <Route path="/my-rental-costume/:id" element={<MyRentalCostume />} />
           <Route path="/my-event-organize/:id" element={<MyEventOrganize />} />
+          <Route path="/my-purchase-history/:id" element={<PurchaseHistory />} /> {/* Thêm route PurchaseHistory */}
           <Route path="/success-payment" element={<SuccessPayment />} />
           <Route path="/admin/dashboard" element={<DashboardPage />} />
           <Route
