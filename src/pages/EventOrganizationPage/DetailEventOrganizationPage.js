@@ -457,20 +457,20 @@ const DetailEventOrganizationPage = () => {
       prev.some((sc) => sc.cosplayer.id === cosplayer.id)
         ? prev.filter((sc) => sc.cosplayer.id !== cosplayer.id)
         : [
-          ...prev,
-          {
-            cosplayer,
-            character:
-              characters.find(
-                (char) =>
-                  char.name.toLowerCase() === characterSearch.toLowerCase() &&
-                  cosplayer.categories.includes(char.category) &&
-                  (cosplayer.gender === char.gender ||
-                    cosplayer.crossGenderAllowed)
-              )?.name || null,
-            note: cosplayerNotes[cosplayer.id] || "",
-          },
-        ]
+            ...prev,
+            {
+              cosplayer,
+              character:
+                characters.find(
+                  (char) =>
+                    char.name.toLowerCase() === characterSearch.toLowerCase() &&
+                    cosplayer.categories.includes(char.category) &&
+                    (cosplayer.gender === char.gender ||
+                      cosplayer.crossGenderAllowed)
+                )?.name || null,
+              note: cosplayerNotes[cosplayer.id] || "",
+            },
+          ]
     );
   };
 
@@ -489,9 +489,7 @@ const DetailEventOrganizationPage = () => {
   const handleCosplayerNote = (cosplayerId, note) => {
     setCosplayerNotes((prev) => ({ ...prev, [cosplayerId]: note }));
     setSelectedCosplayers((prev) =>
-      prev.map((sc) =>
-        sc.cosplayer.id === cosplayerId ? { ...sc, note } : sc
-      )
+      prev.map((sc) => (sc.cosplayer.id === cosplayerId ? { ...sc, note } : sc))
     );
   };
 
@@ -567,8 +565,9 @@ const DetailEventOrganizationPage = () => {
               {filteredPackages.map((pkg) => (
                 <Col md={4} className="mb-4" key={pkg.name}>
                   <Card
-                    className={`package-card ${selectedPackage?.name === pkg.name ? "selected" : ""
-                      }`}
+                    className={`package-card ${
+                      selectedPackage?.name === pkg.name ? "selected" : ""
+                    }`}
                     onClick={() => setSelectedPackage(pkg)}
                   >
                     <Card.Img variant="top" src={pkg.image} />
@@ -761,12 +760,13 @@ const DetailEventOrganizationPage = () => {
                   {filterCosplayersByCharacterAndGender().map((cosplayer) => (
                     <Col md={4} className="mb-4" key={cosplayer.id}>
                       <Card
-                        className={`cosplayer-card ${selectedCosplayers.some(
-                          (sc) => sc.cosplayer.id === cosplayer.id
-                        )
+                        className={`cosplayer-card ${
+                          selectedCosplayers.some(
+                            (sc) => sc.cosplayer.id === cosplayer.id
+                          )
                             ? "selected"
                             : ""
-                          }`}
+                        }`}
                         onClick={() => toggleCosplayerSelection(cosplayer)}
                       >
                         <Card.Img variant="top" src={cosplayer.image} />
@@ -956,12 +956,13 @@ const DetailEventOrganizationPage = () => {
                   <strong>Cosplayers:</strong>{" "}
                   {useCosplayerList
                     ? selectedCosplayers
-                      .map(
-                        (sc) =>
-                          `${sc.cosplayer.name} as ${sc.character} (Note: ${sc.note || "None"
-                          })`
-                      )
-                      .join(", ")
+                        .map(
+                          (sc) =>
+                            `${sc.cosplayer.name} as ${sc.character} (Note: ${
+                              sc.note || "None"
+                            })`
+                        )
+                        .join(", ")
                     : manualQuantity}
                 </p>
                 {useCosplayerList && (
@@ -1114,12 +1115,13 @@ const DetailEventOrganizationPage = () => {
             <strong>Cosplayers:</strong>{" "}
             {useCosplayerList
               ? selectedCosplayers
-                .map(
-                  (sc) =>
-                    `${sc.cosplayer.name} as ${sc.character} (Note: ${sc.note || "None"
-                    })`
-                )
-                .join(", ")
+                  .map(
+                    (sc) =>
+                      `${sc.cosplayer.name} as ${sc.character} (Note: ${
+                        sc.note || "None"
+                      })`
+                  )
+                  .join(", ")
               : manualQuantity}
           </p>
           {useCosplayerList && (
@@ -1145,8 +1147,9 @@ const DetailEventOrganizationPage = () => {
       {/* Sidebar for Selected Cosplayers */}
       {step === 3 && selectedCosplayers.length > 0 && (
         <div
-          className={`selected-cosplayers-sidebar ${!isSidebarVisible ? "hidden" : ""
-            }`}
+          className={`selected-cosplayers-sidebar ${
+            !isSidebarVisible ? "hidden" : ""
+          }`}
           id="selected-cosplayers-sidebar"
         >
           <h5>Selected Cosplayers</h5>
@@ -1225,18 +1228,6 @@ const DetailEventOrganizationPage = () => {
           )}
         </div>
       )}
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick={false}
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
     </div>
   );
 };

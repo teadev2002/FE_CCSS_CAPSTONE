@@ -41,6 +41,7 @@ import MyTask from "./pages/TaskPage/MyTask.js";
 import SuccessPayment from "./pages/SuccessPaymentPage/SuccessPayment.js";
 import MyRentalCostume from "./pages/MyRentalCostumePage/MyRentalCostume.js";
 import ManageRequestCustomerCharacter from "./pages/ManagerPage/ManageRequestCustomerCharacterPage/ManageRequestCustomerCharacter.js";
+import MyEventOrganize from "./pages/MyEventOrganizePage/MyEventOrganize.js"; // Import MyEventOrganize
 const AppLayout = ({ children }) => {
   const location = useLocation();
 
@@ -93,6 +94,7 @@ function App() {
           <Route path="/my-history/:id" element={<MyHistory />} />
           <Route path="/my-task/:id" element={<MyTask />} />
           <Route path="/my-rental-costume/:id" element={<MyRentalCostume />} />
+          <Route path="/my-event-organize/:id" element={<MyEventOrganize />} />
           <Route path="/success-payment" element={<SuccessPayment />} />
           <Route path="/admin/dashboard" element={<DashboardPage />} />
           <Route

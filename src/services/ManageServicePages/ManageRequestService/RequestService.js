@@ -43,7 +43,7 @@ const RequestService = {
 
   DeleteRequestByRequestId: async (id) => {
     try {
-      const response = await apiClient.delete(`/api/Request/${id}`);
+      const response = await apiClient.delete(`/api/Request?requestId=${id}`);
       return response.data;
     } catch (error) {
       console.error("Error fetching request:", error);

@@ -122,7 +122,7 @@ const CharacterService = {
       }
 
       const response = await formDataClient.put(
-        `/api/Character/${characterId}`,
+        `/api/Character?id=${characterId}`,
         formData
       );
       return response.data;

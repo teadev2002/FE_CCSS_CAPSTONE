@@ -1171,6 +1171,15 @@ export function Navbar() {
       navigate(`/my-rental-costume/${id}`);
     }
   };
+  const goToMyEventOrganize = () => {
+    const { id } = getUserInfoFromToken();
+    if (!id) {
+      toast.warn("You are not logged in!");
+      setTimeout(() => navigate("/login"), 2100);
+    } else {
+      navigate(`/my-event-organize/${id}`);
+    }
+  };
 
   const goToMyTask = () => {
     const { id, role } = getUserInfoFromToken();
@@ -1304,6 +1313,9 @@ export function Navbar() {
                   </div>
                   <div onClick={goToMyRentalCostume} className="dropdown-item">
                     My Rental Costume
+                  </div>
+                  <div onClick={goToMyEventOrganize} className="dropdown-item">
+                    My Event Organize
                   </div>
                   <div
                     onClick={goToMyTask}

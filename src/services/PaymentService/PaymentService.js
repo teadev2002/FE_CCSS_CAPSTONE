@@ -27,10 +27,10 @@ const PaymentService = {
     purpose = 1, // chọn cọc deposit
     accountId,
     // accountCouponId = null,
-    ticketId,
-    ticketQuantity,
+    // ticketId,
+    // ticketQuantity,
     contractId,
-    orderpaymentId,
+    // orderpaymentId,
   }) => {
     try {
       // Kiểm tra token trước khi gửi request
@@ -48,10 +48,10 @@ const PaymentService = {
         purpose,
         accountId,
         // accountCouponId,
-        ticketId,
-        ticketQuantity,
+        // ticketId,
+        // ticketQuantity,
         contractId,
-        orderpaymentId,
+        // orderpaymentId,
       };
 
       // Gửi yêu cầu POST tới endpoint /api/Momo
