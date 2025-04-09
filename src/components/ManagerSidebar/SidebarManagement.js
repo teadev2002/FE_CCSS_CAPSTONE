@@ -58,7 +58,7 @@ const SidebarManagement = () => {
           }
         >
           <GitPullRequest size={20} />
-          <span>Manage Re CusChar</span>
+          <span>Manage Request CusChar</span>
         </NavLink>
         <NavLink
           to="/manage/contract"
