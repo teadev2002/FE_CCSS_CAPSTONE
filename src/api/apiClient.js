@@ -20,7 +20,7 @@
 
 import axios from "axios";
 
-const BASE_URL = "https://localhost:7071"; // doi base url khi deploy
+const BASE_URL = "https://localhost:7071";
 // const BASE_URL =
 //   "https://beccss-brhnhugne7d5d3aj.southeastasia-01.azurewebsites.net";
 const apiClient = axios.create({
@@ -41,7 +41,7 @@ apiClient.interceptors.request.use((config) => {
 
 const createFormDataClient = (config = {}) => {
   return axios.create({
-    baseURL: BASE_URL, // Sử dụng lại BASE_URL
+    baseURL: BASE_URL,
     headers: {
       "Content-Type": "multipart/form-data",
       ...config.headers,

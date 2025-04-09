@@ -1,5 +1,3 @@
-// =====================================================dùng ant design
-
 import React, { useState, useEffect } from "react";
 import { Table, Form, Card } from "react-bootstrap"; // Giữ lại Table, Form, Card
 import {
@@ -145,6 +143,121 @@ const ManageRequest = () => {
     setCurrentItem(null);
   };
 
+  // const handleShowViewModal = async (id) => {
+  //   try {
+  //     const data = await RequestService.getRequestByRequestId(id);
+  //     if (!data) {
+  //       throw new Error("Request data not found");
+  //     }
+
+  //     const request = requests.find((req) => req.id === id);
+  //     const serviceId = request?.serviceId;
+
+  //     if (serviceId === "S001") {
+  //       const characters = data.charactersListResponse || [];
+  //       const formattedData = {
+  //         name: data.name || "N/A",
+  //         description: data.description || "N/A",
+  //         startDate: data.startDate
+  //           ? dayjs(data.startDate).format("HH:mm DD/MM/YYYY")
+  //           : "N/A",
+  //         endDate: data.endDate
+  //           ? dayjs(data.endDate).format("HH:mm DD/MM/YYYY")
+  //           : "N/A",
+  //         location: data.location || "N/A",
+  //         characters: characters.map((char) => ({
+  //           characterId: char.characterId,
+  //           maxHeight: char.maxHeight || 0,
+  //           maxWeight: char.maxWeight || 0,
+  //           minHeight: char.minHeight || 0,
+  //           minWeight: char.minWeight || 0,
+  //           quantity: char.quantity || 0,
+  //           urlImage: char.characterImages?.[0]?.urlImage || "",
+  //           description: char.description || "",
+  //         })),
+  //       };
+  //       setViewData(formattedData);
+  //     } else {
+  //       const formattedData = {
+  //         id: data.requestId,
+  //         name: data.name || "N/A",
+  //         description: data.description || "N/A",
+  //         price: 0,
+  //         status: mapStatus(data.status),
+  //         startDateTime: data.startDate
+  //           ? new Date(data.startDate).toLocaleString()
+  //           : "N/A",
+  //         endDateTime: data.endDate
+  //           ? new Date(data.endDate).toLocaleString()
+  //           : "N/A",
+  //         location: data.location || "N/A",
+  //         listRequestCharacters: [],
+  //       };
+
+  //       const charactersList = data.charactersListResponse || [];
+  //       if (charactersList.length > 0) {
+  //         const listRequestCharacters = await Promise.all(
+  //           charactersList.map(async (char) => {
+  //             try {
+  //               const characterData = await RequestService.getNameCharacterById(
+  //                 char.characterId
+  //               );
+  //               let cosplayerName = "Not Assigned";
+  //               let salaryIndex = 1;
+
+  //               if (char.cosplayerId) {
+  //                 const cosplayerData =
+  //                   await RequestService.getNameCosplayerInRequestByCosplayerId(
+  //                     char.cosplayerId
+  //                   );
+  //                 cosplayerName = cosplayerData?.name || "Unknown";
+  //                 salaryIndex = cosplayerData?.salaryIndex || 1;
+  //               }
+
+  //               const price = calculateCosplayerPrice(
+  //                 salaryIndex,
+  //                 char.quantity || 0
+  //               );
+
+  //               return {
+  //                 cosplayerId: char.cosplayerId || null,
+  //                 characterId: char.characterId,
+  //                 cosplayerName,
+  //                 characterName: characterData?.characterName || "Unknown",
+  //                 quantity: char.quantity || 0,
+  //                 salaryIndex,
+  //                 price,
+  //               };
+  //             } catch (charError) {
+  //               console.warn(
+  //                 `Failed to fetch character data for ID ${char.characterId}:`,
+  //                 charError
+  //               );
+  //               return {
+  //                 cosplayerId: char.cosplayerId || null,
+  //                 characterId: char.characterId,
+  //                 cosplayerName: "Not Assigned",
+  //                 characterName: "Unknown",
+  //                 quantity: char.quantity || 0,
+  //                 salaryIndex: 1,
+  //                 price: 0,
+  //               };
+  //             }
+  //           })
+  //         );
+
+  //         formattedData.listRequestCharacters = listRequestCharacters;
+  //         formattedData.price = calculateTotalPrice(listRequestCharacters);
+  //       }
+  //       setViewData(formattedData);
+  //     }
+  //     setShowViewModal(true);
+  //     setCurrentCharacterPage(1);
+  //   } catch (error) {
+  //     toast.error("Failed to fetch request details");
+  //     console.error("Error in handleShowViewModal:", error);
+  //   }
+  // };
   const handleShowViewModal = async (id) => {
     try {
       const data = await RequestService.getRequestByRequestId(id);
@@ -187,70 +300,93 @@ const ManageRequest = () => {
           price: 0,
           status: mapStatus(data.status),
           startDateTime: data.startDate
-            ? new Date(data.startDate).toLocaleString()
+            ? dayjs(data.startDate).format("HH:mm DD/MM/YYYY")
             : "N/A",
           endDateTime: data.endDate
-            ? new Date(data.endDate).toLocaleString()
+            ? dayjs(data.endDate).format("HH:mm DD/MM/YYYY")
             : "N/A",
           location: data.location || "N/A",
           listRequestCharacters: [],
         };
 
+        // Lấy giá package cho S003
+        let packagePrice = 0;
+        if (serviceId === "S003" && data.packageId) {
+          try {
+            const packageData = await RequestService.getPackageById(
+              data.packageId
+            );
+            packagePrice = packageData?.price || 0;
+          } catch (error) {
+            console.warn(
+              `Failed to fetch package for ID ${data.packageId}:`,
+              error
+            );
+          }
+        }
+
         const charactersList = data.charactersListResponse || [];
+        let totalCharactersPrice = 0;
+
         if (charactersList.length > 0) {
           const listRequestCharacters = await Promise.all(
             charactersList.map(async (char) => {
+              let cosplayerName = "Not Assigned";
+              let salaryIndex = 1;
+              let characterPrice = 0;
+              let characterName = "Unknown";
+
+              // Lấy thông tin character
               try {
-                const characterData = await RequestService.getNameCharacterById(
+                const characterData = await RequestService.getCharacterById(
                   char.characterId
                 );
-                let cosplayerName = "Not Assigned";
-                let salaryIndex = 1;
+                characterName = characterData?.characterName || "Unknown";
+                characterPrice = characterData?.price || 0;
+              } catch (error) {
+                console.warn(
+                  `Failed to fetch character for ID ${char.characterId}:`,
+                  error
+                );
+              }
 
-                if (char.cosplayerId) {
+              // Lấy thông tin cosplayer nếu có
+              if (char.cosplayerId) {
+                try {
                   const cosplayerData =
                     await RequestService.getNameCosplayerInRequestByCosplayerId(
                       char.cosplayerId
                     );
-                  cosplayerName = cosplayerData?.name || "Unknown";
+                  cosplayerName = cosplayerData?.name || "Not Assigned";
                   salaryIndex = cosplayerData?.salaryIndex || 1;
+                } catch (error) {
+                  console.warn(
+                    `Failed to fetch cosplayer for ID ${char.cosplayerId}:`,
+                    error
+                  );
                 }
-
-                const price = calculateCosplayerPrice(
-                  salaryIndex,
-                  char.quantity || 0
-                );
-
-                return {
-                  cosplayerId: char.cosplayerId || null,
-                  characterId: char.characterId,
-                  cosplayerName,
-                  characterName: characterData?.characterName || "Unknown",
-                  quantity: char.quantity || 0,
-                  salaryIndex,
-                  price,
-                };
-              } catch (charError) {
-                console.warn(
-                  `Failed to fetch character data for ID ${char.characterId}:`,
-                  charError
-                );
-                return {
-                  cosplayerId: char.cosplayerId || null,
-                  characterId: char.characterId,
-                  cosplayerName: "Not Assigned",
-                  characterName: "Unknown",
-                  quantity: char.quantity || 0,
-                  salaryIndex: 1,
-                  price: 0,
-                };
               }
+
+              const price = characterPrice * (char.quantity || 0) * salaryIndex;
+              totalCharactersPrice += price;
+
+              return {
+                cosplayerId: char.cosplayerId || null,
+                characterId: char.characterId,
+                cosplayerName,
+                characterName,
+                quantity: char.quantity || 0,
+                salaryIndex,
+                price,
+              };
             })
           );
 
           formattedData.listRequestCharacters = listRequestCharacters;
-          formattedData.price = calculateTotalPrice(listRequestCharacters);
         }
+
+        // Tổng giá = packagePrice + totalCharactersPrice
+        formattedData.price = packagePrice + totalCharactersPrice;
         setViewData(formattedData);
       }
       setShowViewModal(true);
@@ -260,7 +396,6 @@ const ManageRequest = () => {
       console.error("Error in handleShowViewModal:", error);
     }
   };
-
   const handleCloseViewModal = () => {
     setShowViewModal(false);
     setViewData(null);
@@ -544,6 +679,7 @@ const ManageRequest = () => {
                 <Form.Label>Name</Form.Label>
                 <Form.Control value={viewData.name} readOnly />
               </Form.Group>
+
               <Form.Group className="mb-3">
                 <Form.Label>Start Date</Form.Label>
                 <Form.Control value={viewData.startDate} readOnly />

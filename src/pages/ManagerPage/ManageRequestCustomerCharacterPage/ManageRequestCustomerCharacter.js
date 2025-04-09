@@ -298,7 +298,10 @@ const ManageRequestCustomerCharacter = () => {
                 <Table striped bordered hover responsive>
                   <thead>
                     <tr>
-                      <th onClick={() => handleSort("customerCharacterId")}>
+                      <th
+                        onClick={() => handleSort("customerCharacterId")}
+                        style={{ display: "none" }}
+                      >
                         Customer Character ID{" "}
                         {sortCharacter.field === "customerCharacterId" &&
                           (sortCharacter.order === "asc" ? (
@@ -350,7 +353,9 @@ const ManageRequestCustomerCharacter = () => {
                     {paginatedCharacters.length > 0 ? (
                       paginatedCharacters.map((item) => (
                         <tr key={item.customerCharacterId}>
-                          <td>{item.customerCharacterId}</td>
+                          <td style={{ display: "none" }}>
+                            {item.customerCharacterId}
+                          </td>
                           <td>{getAccountNameById(item.createBy)}</td>
                           <td>{getCategoryNameById(item.categoryId)}</td>
                           <td>{item.createDate}</td>
@@ -499,7 +504,7 @@ const ManageRequestCustomerCharacter = () => {
       >
         {currentItem ? (
           <div>
-            <p>
+            <p style={{ display: "none" }}>
               <strong>Customer Character ID:</strong>{" "}
               {currentItem.customerCharacterId}
             </p>

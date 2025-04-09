@@ -1510,6 +1510,12 @@ const MyRentalCostume = () => {
                                       "HH:mm DD/MM/YYYY"
                                     )}
                                   </div>
+                                  <div className="text-muted small">
+                                    <Calendar size={16} /> Return Date:{" "}
+                                    {dayjs(req.endDate).format(
+                                      "HH:mm DD/MM/YYYY"
+                                    )}
+                                  </div>
                                   {getStatusBadge(req.status)}
                                 </div>
                               </div>
@@ -1582,9 +1588,11 @@ const MyRentalCostume = () => {
                                   </div>
                                   <div className="text-muted small">
                                     <Calendar size={16} /> Start Date:{" "}
-                                    {dayjs(contract.startDate).format(
-                                      "HH:mm DD/MM/YYYY"
-                                    )}
+                                    {contract.startDate}
+                                  </div>
+                                  <div className="text-muted small">
+                                    <Calendar size={16} /> Return Date:{" "}
+                                    {contract.endDate}
                                   </div>
                                   {getStatusBadge(contract.status)}
                                 </div>
@@ -1655,9 +1663,11 @@ const MyRentalCostume = () => {
                                   </div>
                                   <div className="text-muted small">
                                     <Calendar size={16} /> Start Date:{" "}
-                                    {dayjs(contract.startDate).format(
-                                      "HH:mm DD/MM/YYYY"
-                                    )}
+                                    {contract.startDate}
+                                  </div>
+                                  <div className="text-muted small">
+                                    <Calendar size={16} /> Return Date:{" "}
+                                    {contract.endDate}
                                   </div>
                                   {getStatusBadge(contract.status)}
                                 </div>

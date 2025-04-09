@@ -249,7 +249,7 @@ const CostumeRequestModal = ({ show, handleClose }) => {
           </Form.Group>
 
           {/* CreateBy (read-only) */}
-          <Form.Group className="mb-3">
+          <Form.Group className="mb-3" style={{ display: "none" }}>
             <Form.Label>Created By</Form.Label>
             <Form.Control
               type="text"
