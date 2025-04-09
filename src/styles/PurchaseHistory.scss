@@ -25,6 +25,46 @@
     }
   }
 
+  .sort-container {
+    display: flex;
+    justify-content: flex-end;
+
+    .sort-dropdown {
+      background: linear-gradient(135deg, #510545, #22668a);
+      border: none;
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      font-weight: 500;
+      transition: all 0.3s ease;
+
+      &:hover {
+        background: linear-gradient(135deg, #22668a, #510545);
+        color: white;
+      }
+
+      &:focus {
+        box-shadow: 0 0 5px rgba(81, 5, 69, 0.5);
+      }
+    }
+
+    .dropdown-menu {
+      border-radius: 0.5rem;
+      border: 1px solid #510545;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+      .dropdown-item {
+        color: #510545;
+        transition: all 0.3s ease;
+
+        &:hover {
+          background: linear-gradient(135deg, #f8e6f2, #e6f0fa);
+          color: #22668a;
+        }
+      }
+    }
+  }
+
   .purchase-card {
     border-radius: 15px;
     background: #fff;
@@ -73,7 +113,7 @@
 
     .product-details {
       flex-grow: 1;
-      min-width: 0; /* Ngăn tràn thông tin */
+      min-width: 0;
     }
 
     .icon-circle {
@@ -153,6 +193,63 @@
     }
   }
 
+  .pagination-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 3rem;
+
+    .ant-pagination {
+      .ant-pagination-item {
+        border-radius: 4px;
+        border: 1px solid #d9d9d9;
+        transition: all 0.3s ease;
+
+        &:hover {
+          border-color: #510545;
+          a {
+            color: #510545;
+          }
+        }
+      }
+
+      .ant-pagination-item-active {
+        background: #510545;
+        border-color: #510545;
+
+        a {
+          color: white;
+        }
+
+        &:hover {
+          background: #22668a;
+          border-color: #22668a;
+        }
+      }
+
+      .ant-pagination-prev,
+      .ant-pagination-next {
+        border-radius: 4px;
+
+        .ant-pagination-item-link {
+          border: 1px solid #d9d9d9;
+          border-radius: 4px;
+          transition: all 0.3s ease;
+
+          &:hover {
+            border-color: #510545;
+            color: #510545;
+          }
+        }
+      }
+
+      .ant-select {
+        .ant-select-selector {
+          border-radius: 4px;
+        }
+      }
+    }
+  }
+
   .ant-tabs-card {
     .ant-tabs-nav {
       margin-bottom: 30px;
@@ -170,15 +267,6 @@
           font-weight: 600;
         }
       }
-    }
-  }
-
-  .ant-pagination-item-active {
-    background: #510545;
-    border-color: #510545;
-
-    a {
-      color: #fff;
     }
   }
 }

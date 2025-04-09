@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Card, Badge } from "react-bootstrap";
+import { Container, Row, Col, Card, Badge, Dropdown } from "react-bootstrap";
 import { Pagination, Tabs, Spin } from "antd";
 import { FileText, DollarSign, Ticket, ShoppingBag, Calendar } from "lucide-react";
 import "../../styles/PurchaseHistory.scss";
@@ -13,10 +13,12 @@ const PurchaseHistory = () => {
   const [purchasedOrders, setPurchasedOrders] = useState([]);
   const [currentTicketsPage, setCurrentTicketsPage] = useState(1);
   const [currentOrdersPage, setCurrentOrdersPage] = useState(1);
+  const [ticketPageSize, setTicketPageSize] = useState(5);
+  const [orderPageSize, setOrderPageSize] = useState(5);
   const [loading, setLoading] = useState(false);
   const [accountId, setAccountId] = useState(null);
-
-  const itemsPerPage = 5;
+  const [ticketSortOrder, setTicketSortOrder] = useState("newest");
+  const [orderSortOrder, setOrderSortOrder] = useState("newest");
 
   // Lấy accountId từ token
   const getAccountInfoFromToken = () => {
@@ -37,7 +39,7 @@ const PurchaseHistory = () => {
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0"); // Tháng bắt đầu từ 0
+    const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
     return `${day}-${month}-${year}`;
   };
@@ -61,10 +63,23 @@ const PurchaseHistory = () => {
 
       try {
         const ticketsData = await PurchaseHistoryService.getAllTicketsByAccountId(id);
-        setFestivalTickets(ticketsData);
-
         const ordersData = await PurchaseHistoryService.getAllOrdersByAccountId(id);
-        setPurchasedOrders(ordersData);
+
+        // Sắp xếp trên FE
+        setFestivalTickets(
+          [...ticketsData].sort((a, b) =>
+            ticketSortOrder === "newest"
+              ? new Date(b.ticket.event.startDate) - new Date(a.ticket.event.startDate)
+              : new Date(a.ticket.event.startDate) - new Date(b.ticket.event.startDate)
+          )
+        );
+        setPurchasedOrders(
+          [...ordersData].sort((a, b) =>
+            orderSortOrder === "newest"
+              ? new Date(b.orderDate) - new Date(a.orderDate)
+              : new Date(a.orderDate) - new Date(b.orderDate)
+          )
+        );
       } catch (error) {
         console.error("Failed to fetch purchase history:", error);
       } finally {
@@ -72,7 +87,7 @@ const PurchaseHistory = () => {
       }
     };
     fetchPurchaseHistory();
-  }, []);
+  }, [ticketSortOrder, orderSortOrder]);
 
   // Hàm phân trang
   const paginate = (data, page, perPage) => {
@@ -85,8 +100,18 @@ const PurchaseHistory = () => {
     return type === 0 ? "Normal" : "Premium";
   };
 
-  const currentTickets = paginate(festivalTickets, currentTicketsPage, itemsPerPage);
-  const currentOrders = paginate(purchasedOrders, currentOrdersPage, itemsPerPage);
+  const currentTickets = paginate(festivalTickets, currentTicketsPage, ticketPageSize);
+  const currentOrders = paginate(purchasedOrders, currentOrdersPage, orderPageSize);
+
+  const handleTicketPageChange = (page, pageSize) => {
+    setCurrentTicketsPage(page);
+    setTicketPageSize(pageSize);
+  };
+
+  const handleOrderPageChange = (page, pageSize) => {
+    setCurrentOrdersPage(page);
+    setOrderPageSize(pageSize);
+  };
 
   return (
     <div className="purchase-history bg-light min-vh-100">
@@ -98,6 +123,21 @@ const PurchaseHistory = () => {
         <Tabs defaultActiveKey="1" type="card">
           {/* Tab cho vé festival */}
           <TabPane tab="Festival Tickets" key="1">
+            <div className="sort-container mb-3">
+              <Dropdown>
+                <Dropdown.Toggle className="sort-dropdown" id="ticket-sort-dropdown">
+                  Sort: {ticketSortOrder === "newest" ? "Newest to Oldest" : "Oldest to Newest"}
+                </Dropdown.Toggle>
+                <Dropdown.Menu>
+                  <Dropdown.Item onClick={() => setTicketSortOrder("newest")}>
+                    Newest to Oldest
+                  </Dropdown.Item>
+                  <Dropdown.Item onClick={() => setTicketSortOrder("oldest")}>
+                    Oldest to Newest
+                  </Dropdown.Item>
+                </Dropdown.Menu>
+              </Dropdown>
+            </div>
             {loading ? (
               <div className="text-center">
                 <Spin tip="Loading..." />
@@ -161,20 +201,38 @@ const PurchaseHistory = () => {
                     </Col>
                   ))}
                 </Row>
-                <Pagination
-                  current={currentTicketsPage}
-                  pageSize={itemsPerPage}
-                  total={festivalTickets.length}
-                  onChange={(page) => setCurrentTicketsPage(page)}
-                  showSizeChanger={false}
-                  style={{ marginTop: "20px", textAlign: "right" }}
-                />
+                <div className="pagination-container mt-5">
+                  <Pagination
+                    current={currentTicketsPage}
+                    pageSize={ticketPageSize}
+                    total={festivalTickets.length}
+                    onChange={handleTicketPageChange}
+                    showSizeChanger
+                    pageSizeOptions={["4", "8", "12", "16"]}
+                    showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
+                  />
+                </div>
               </>
             )}
           </TabPane>
 
           {/* Tab cho sản phẩm đã mua */}
           <TabPane tab="Purchased Products" key="2">
+            <div className="sort-container mb-3">
+              <Dropdown>
+                <Dropdown.Toggle className="sort-dropdown" id="order-sort-dropdown">
+                  Sort: {orderSortOrder === "newest" ? "Newest to Oldest" : "Oldest to Newest"}
+                </Dropdown.Toggle>
+                <Dropdown.Menu>
+                  <Dropdown.Item onClick={() => setOrderSortOrder("newest")}>
+                    Newest to Oldest
+                  </Dropdown.Item>
+                  <Dropdown.Item onClick={() => setOrderSortOrder("oldest")}>
+                    Oldest to Newest
+                  </Dropdown.Item>
+                </Dropdown.Menu>
+              </Dropdown>
+            </div>
             {loading ? (
               <div className="text-center">
                 <Spin tip="Loading..." />
@@ -247,14 +305,17 @@ const PurchaseHistory = () => {
                     </Col>
                   ))}
                 </Row>
-                <Pagination
-                  current={currentOrdersPage}
-                  pageSize={itemsPerPage}
-                  total={purchasedOrders.length}
-                  onChange={(page) => setCurrentOrdersPage(page)}
-                  showSizeChanger={false}
-                  style={{ marginTop: "20px", textAlign: "right" }}
-                />
+                <div className="pagination-container mt-5">
+                  <Pagination
+                    current={currentOrdersPage}
+                    pageSize={orderPageSize}
+                    total={purchasedOrders.length}
+                    onChange={handleOrderPageChange}
+                    showSizeChanger
+                    pageSizeOptions={["4", "8", "12", "16"]}
+                    showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
+                  />
+                </div>
               </>
             )}
           </TabPane>
