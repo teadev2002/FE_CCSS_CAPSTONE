@@ -5,7 +5,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import "../../styles/FestivalsPage.scss";
 import FestivalService from "../../services/FestivalService/FestivalService";
 import PaymentService from "../../services/PaymentService/PaymentService";
-import { apiClient } from "../../api/apiClient.js";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { jwtDecode } from "jwt-decode";
@@ -16,6 +15,7 @@ const FestivalsPage = () => {
   const [showFestivalModal, setShowFestivalModal] = useState(false);
   const [selectedFestival, setSelectedFestival] = useState(null);
   const [ticketQuantity, setTicketQuantity] = useState(1);
+  const [selectedTicketType, setSelectedTicketType] = useState(null);
   const [showPurchaseForm, setShowPurchaseForm] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [festivals, setFestivals] = useState([]);
@@ -41,7 +41,6 @@ const FestivalsPage = () => {
     if (accessToken) {
       try {
         const decoded = jwtDecode(accessToken);
-        console.log("Decoded token in FestivalsPage:", decoded);
         return {
           id: decoded?.Id,
           accountName: decoded?.AccountName,
@@ -100,6 +99,7 @@ const FestivalsPage = () => {
 
   const handleFestivalShow = (festival) => {
     setSelectedFestival(festival);
+    setSelectedTicketType(festival.ticket[0]); // Mặc định chọn loại vé đầu tiên
     setShowFestivalModal(true);
   };
 
@@ -107,6 +107,7 @@ const FestivalsPage = () => {
     setShowFestivalModal(false);
     setSelectedFestival(null);
     setTicketQuantity(1);
+    setSelectedTicketType(null);
     setShowPurchaseForm(false);
     setShowConfirmModal(false);
     setPaymentMethod(null);
@@ -114,7 +115,7 @@ const FestivalsPage = () => {
   };
 
   const handleIncrease = () => {
-    if (selectedFestival && ticketQuantity < selectedFestival.ticket.quantity) {
+    if (selectedTicketType && ticketQuantity < selectedTicketType.quantity) {
       setTicketQuantity((prev) => prev + 1);
     } else {
       toast.error("Quantity exceeds available tickets!");
@@ -124,41 +125,21 @@ const FestivalsPage = () => {
   const handleDecrease = () =>
     setTicketQuantity((prev) => (prev > 1 ? prev - 1 : 1));
 
+  const handleTicketTypeChange = (e) => {
+    const ticketId = parseInt(e.target.value);
+    const selected = selectedFestival.ticket.find(
+      (ticket) => ticket.ticketId === ticketId
+    );
+    setSelectedTicketType(selected);
+    setTicketQuantity(1); // Reset số lượng khi đổi loại vé
+  };
+
   const handleBuyNow = () => {
     if (!accountId) {
       toast.error("Please log in to proceed with payment!");
       return;
     }
     setShowPurchaseForm(true);
-  };
-
-  const createOrder = async () => {
-    try {
-      const orderData = {
-        accountId: accountId,
-        orderTickets: [
-          {
-            ticketId: selectedFestival.ticket.ticketId,
-            quantity: ticketQuantity,
-            createDate: new Date().toISOString(),
-          },
-        ],
-      };
-      const response = await apiClient.post("/api/Order", orderData);
-      return response.data.orderpaymentId;
-    } catch (error) {
-      throw new Error(error.response?.data?.message || "Failed to create order");
-    }
-  };
-
-  const checkOrderStatus = async (orderId) => {
-    try {
-      const response = await apiClient.get(`/api/Order/${orderId}`);
-      return response.data.orderStatus;
-    } catch (error) {
-      console.error("Error checking order status:", error);
-      throw new Error("Failed to check order status");
-    }
   };
 
   const handleConfirmPurchase = () => {
@@ -171,16 +152,19 @@ const FestivalsPage = () => {
   };
 
   const handleFinalConfirm = async () => {
-    const totalAmount = selectedFestival.ticket.price * ticketQuantity;
-
+    const totalAmount = selectedTicketType?.price * ticketQuantity;
+  
     if (!accountId) {
       toast.error("Please log in to proceed with payment!");
       return;
     }
-
+  
+    if (!selectedTicketType || !selectedTicketType.ticketId) {
+      toast.error("Please select a valid ticket type!");
+      return;
+    }
+  
     try {
-      const orderpaymentId = await createOrder();
-
       if (paymentMethod === "Momo") {
         const paymentData = {
           fullName: accountName || "Unknown",
@@ -189,41 +173,33 @@ const FestivalsPage = () => {
           purpose: 0,
           accountId: accountId,
           accountCouponId: null,
-          ticketId: selectedFestival.ticket.ticketId,
+          ticketId: selectedTicketType.ticketId.toString(), // Chuyển ticketId thành string
           ticketQuantity: ticketQuantity.toString(),
           contractId: null,
-          orderpaymentId: orderpaymentId,
+          orderpaymentId: null,
         };
-
+  
+        console.log("Payment Data:", paymentData); // Log để kiểm tra dữ liệu gửi đi
+  
         const paymentUrl = await PaymentService.createMomoPayment(paymentData);
+        if (!paymentUrl) {
+          throw new Error("Failed to create MoMo payment URL");
+        }
+  
         toast.success("Redirecting to MoMo payment...");
-        localStorage.setItem("paymentSource", "festivals"); // Lưu source vào localStorage
+        localStorage.setItem("paymentSource", "festivals");
         window.location.href = paymentUrl;
-
-        const intervalId = setInterval(async () => {
-          try {
-            const status = await checkOrderStatus(orderpaymentId);
-            if (status === 1) {
-              clearInterval(intervalId);
-              toast.success("Payment successful!");
-              handleFestivalClose();
-              navigate("/success-payment", { state: { source: "festivals" } });
-            }
-          } catch (error) {
-            clearInterval(intervalId);
-            toast.error("Error checking payment status");
-          }
-        }, 5000);
       } else if (paymentMethod === "VNPay") {
         toast.success(
           `Purchase confirmed with ${paymentMethod} for ${ticketQuantity} ticket(s)!`
         );
-        localStorage.setItem("paymentSource", "festivals"); // Lưu source vào localStorage
+        localStorage.setItem("paymentSource", "festivals");
         handleFestivalClose();
         navigate("/success-payment", { state: { source: "festivals" } });
       }
     } catch (error) {
-      toast.error(error.message);
+      console.error("Error in handleFinalConfirm:", error);
+      toast.error(error.message || "Failed to process payment");
       setShowConfirmModal(false);
     }
   };
@@ -550,9 +526,23 @@ const FestivalsPage = () => {
 
                 <div className="fest-ticket-section mt-4">
                   <h5>Purchase Tickets</h5>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Ticket Type</Form.Label>
+                    <Form.Select
+                      value={selectedTicketType?.ticketId || ""}
+                      onChange={handleTicketTypeChange}
+                      className="ticket-type-dropdown"
+                    >
+                      {selectedFestival.ticket.map((ticket) => (
+                        <option key={ticket.ticketId} value={ticket.ticketId}>
+                          Type {ticket.ticketType} - {formatPrice(ticket.price)} (Available: {ticket.quantity})
+                        </option>
+                      ))}
+                    </Form.Select>
+                  </Form.Group>
                   <p>
-                    Available: {selectedFestival.ticket.quantity} | Price:{" "}
-                    {formatPrice(selectedFestival.ticket.price)}
+                    Available: {selectedTicketType?.quantity} | Price:{" "}
+                    {formatPrice(selectedTicketType?.price)}
                   </p>
                   <div className="fest-ticket-quantity mb-3">
                     <Form.Label>Quantity</Form.Label>
@@ -569,8 +559,9 @@ const FestivalsPage = () => {
                         variant="outline-secondary"
                         onClick={handleIncrease}
                         disabled={
-                          selectedFestival.ticket.quantity === 0 ||
-                          ticketQuantity >= selectedFestival.ticket.quantity
+                          !selectedTicketType ||
+                          selectedTicketType.quantity === 0 ||
+                          ticketQuantity >= selectedTicketType.quantity
                         }
                       >
                         +
@@ -581,10 +572,10 @@ const FestivalsPage = () => {
                     variant="primary"
                     className="fest-buy-ticket-btn"
                     onClick={handleBuyNow}
-                    disabled={selectedFestival.ticket.quantity === 0}
+                    disabled={!selectedTicketType || selectedTicketType.quantity === 0}
                   >
                     Buy Now -{" "}
-                    {formatPrice(selectedFestival.ticket.price * ticketQuantity)}
+                    {formatPrice(selectedTicketType?.price * ticketQuantity || 0)}
                   </Button>
                 </div>
 
@@ -622,7 +613,7 @@ const FestivalsPage = () => {
                     <h5>Confirm Payment</h5>
                     <p>
                       Are you sure you want to pay{" "}
-                      {formatPrice(selectedFestival.ticket.price * ticketQuantity)}{" "}
+                      {formatPrice(selectedTicketType?.price * ticketQuantity)}{" "}
                       for {ticketQuantity} ticket(s) with {paymentMethod}?
                     </p>
                     <Button

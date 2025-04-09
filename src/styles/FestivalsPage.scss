@@ -367,28 +367,53 @@
             margin-bottom: 1rem;
             font-weight: 600;
           }
-
+      
+          .ticket-type-dropdown {
+            border: 2px solid #510545;
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            color: #510545;
+            background: white;
+            transition: all 0.3s ease;
+            font-weight: 500;
+      
+            &:hover {
+              background-color: rgba(81, 5, 69, 0.1);
+              border-color: #22668a;
+            }
+      
+            &:focus {
+              border-color: #22668a;
+              box-shadow: 0 0 5px rgba(34, 102, 138, 0.3);
+              outline: none;
+            }
+      
+            option {
+              color: #4a4a4a;
+            }
+          }
+      
           .form-select,
           .btn-outline-secondary {
             border: 2px solid #510545;
             color: #510545;
             transition: all 0.3s ease;
-
+      
             &:hover { background-color: rgba(81, 5, 69, 0.1); }
           }
-
+      
           .fest-ticket-quantity {
             .btn-outline-secondary {
               padding: 0.5rem 1rem;
               font-size: 1.2rem;
             }
-
+      
             span {
               font-size: 1.2rem;
               color: #4a4a4a;
             }
           }
-
+      
           .fest-buy-ticket-btn {
             background: linear-gradient(135deg, #510545, #22668a);
             border: none;
@@ -396,7 +421,7 @@
             font-weight: 600;
             width: 100%;
             transition: all 0.3s ease;
-
+      
             &:hover {
               opacity: 0.9;
               transform: translateY(-2px);
