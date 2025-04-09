@@ -94,6 +94,11 @@ const CartPage = () => {
 
   useEffect(() => {
     fetchCart();
+    // Lắng nghe sự kiện storageUpdate để cập nhật giỏ hàng
+    window.addEventListener("storageUpdate", fetchCart);
+    return () => {
+      window.removeEventListener("storageUpdate", fetchCart);
+    };
   }, []);
 
   const handleIncrease = async (cartProductId, currentQuantity) => {
@@ -106,7 +111,7 @@ const CartPage = () => {
         ]);
         await fetchCart();
         toast.success("Quantity updated!");
-        window.dispatchEvent(new Event("storage"));
+        window.dispatchEvent(new Event("storageUpdate"));
       } catch (error) {
         toast.error(error.message);
       }
@@ -124,7 +129,7 @@ const CartPage = () => {
         ]);
         await fetchCart();
         toast.success("Quantity updated!");
-        window.dispatchEvent(new Event("storage"));
+        window.dispatchEvent(new Event("storageUpdate"));
       } catch (error) {
         toast.error(error.message);
       }
@@ -136,7 +141,7 @@ const CartPage = () => {
       await CartService.removeProductFromCart(cartId, [{ cartProductId }]);
       await fetchCart();
       toast.success("Item removed from cart!");
-      window.dispatchEvent(new Event("storage"));
+      window.dispatchEvent(new Event("storageUpdate"));
     } catch (error) {
       toast.error(error.message);
     }
@@ -213,13 +218,6 @@ const CartPage = () => {
     try {
       const orderpaymentId = await createOrder();
 
-      await Promise.all(
-        selectedCart.map(async (item) => {
-          const newQuantity = item.quantityRemaining - item.quantitySelected;
-          await ProductService.updateProductQuantity(item.id, newQuantity);
-        })
-      );
-
       if (paymentMethod === "Momo") {
         const paymentData = {
           fullName: accountName || "Unknown",
@@ -236,42 +234,108 @@ const CartPage = () => {
 
         const paymentUrl = await PaymentService.createMomoPayment(paymentData);
         toast.success("Redirecting to MoMo payment...");
-        localStorage.setItem("paymentSource", "cart"); // Lưu source vào localStorage
+        localStorage.setItem("paymentSource", "cart");
         window.location.href = paymentUrl;
 
         const intervalId = setInterval(async () => {
           try {
             const status = await checkOrderStatus(orderpaymentId);
-            if (status === 1) {
+            if (status === 1) { // Complete
               clearInterval(intervalId);
-              toast.success("Payment successful!");
+              await Promise.all(
+                selectedCart.map(async (item) => {
+                  const newQuantity = item.initialQuantity - item.quantitySelected;
+                  await ProductService.updateProductQuantity(item.id, newQuantity);
+                })
+              );
               const cartProductIdsToRemove = selectedCart.map((item) => ({
                 cartProductId: item.cartProductId,
               }));
               await CartService.removeProductFromCart(cartId, cartProductIdsToRemove);
+              toast.success("Payment successful!");
               await fetchCart();
               setSelectedItems({});
               setShowConfirmModal(false);
+              window.dispatchEvent(new Event("storageUpdate")); // Thông báo cập nhật
               navigate("/success-payment", { state: { source: "cart" } });
+            } else if (status === 2) { // Cancel
+              clearInterval(intervalId);
+              toast.error("Payment was canceled!");
+              setShowConfirmModal(false);
+            } else if (status === 0) { // Pending
+              // Continue waiting
             }
           } catch (error) {
             clearInterval(intervalId);
             toast.error("Error checking payment status");
+            setShowConfirmModal(false);
           }
         }, 5000);
+
+        setTimeout(() => {
+          clearInterval(intervalId);
+          toast.error("Payment timeout. Please try again.");
+          setShowConfirmModal(false);
+        }, 120000); // 2 minutes timeout
       } else if (paymentMethod === "VNPay") {
-        toast.success(
-          `Purchase confirmed with ${paymentMethod} for ${selectedCart.length} item(s)!`
-        );
-        localStorage.setItem("paymentSource", "cart"); // Lưu source vào localStorage
-        const cartProductIdsToRemove = selectedCart.map((item) => ({
-          cartProductId: item.cartProductId,
-        }));
-        await CartService.removeProductFromCart(cartId, cartProductIdsToRemove);
-        await fetchCart();
-        setSelectedItems({});
-        setShowConfirmModal(false);
-        navigate("/success-payment", { state: { source: "cart" } });
+        const paymentData = {
+          fullName: accountName || "Unknown",
+          orderInfo: "Cart Checkout",
+          amount: totalAmount,
+          purpose: 3,
+          accountId: accountId,
+          accountCouponId: null,
+          ticketId: "string",
+          ticketQuantity: "string",
+          contractId: "string",
+          orderpaymentId: orderpaymentId,
+        };
+
+        const paymentUrl = await PaymentService.createVNPayPayment(paymentData);
+        toast.success("Redirecting to VNPay payment...");
+        localStorage.setItem("paymentSource", "cart");
+        window.location.href = paymentUrl;
+
+        const intervalId = setInterval(async () => {
+          try {
+            const status = await checkOrderStatus(orderpaymentId);
+            if (status === 1) { // Complete
+              clearInterval(intervalId);
+              await Promise.all(
+                selectedCart.map(async (item) => {
+                  const newQuantity = item.initialQuantity - item.quantitySelected;
+                  await ProductService.updateProductQuantity(item.id, newQuantity);
+                })
+              );
+              const cartProductIdsToRemove = selectedCart.map((item) => ({
+                cartProductId: item.cartProductId,
+              }));
+              await CartService.removeProductFromCart(cartId, cartProductIdsToRemove);
+              toast.success("Payment successful with VNPay!");
+              await fetchCart();
+              setSelectedItems({});
+              setShowConfirmModal(false);
+              window.dispatchEvent(new Event("storageUpdate")); // Thông báo cập nhật
+              navigate("/success-payment", { state: { source: "cart" } });
+            } else if (status === 2) { // Cancel
+              clearInterval(intervalId);
+              toast.error("Payment with VNPay was canceled!");
+              setShowConfirmModal(false);
+            } else if (status === 0) { // Pending
+              // Continue waiting
+            }
+          } catch (error) {
+            clearInterval(intervalId);
+            toast.error("Error checking payment status");
+            setShowConfirmModal(false);
+          }
+        }, 5000);
+
+        setTimeout(() => {
+          clearInterval(intervalId);
+          toast.error("Payment timeout. Please try again.");
+          setShowConfirmModal(false);
+        }, 120000); // 2 minutes timeout
       }
     } catch (error) {
       toast.error(error.message);

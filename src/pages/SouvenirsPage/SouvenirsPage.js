@@ -41,7 +41,6 @@ const SouvenirsPage = () => {
     if (accessToken) {
       try {
         const decoded = jwtDecode(accessToken);
-        console.log("Decoded token in SouvenirsPage:", decoded);
         return {
           id: decoded?.Id,
           accountName: decoded?.AccountName,
@@ -54,30 +53,37 @@ const SouvenirsPage = () => {
     return null;
   };
 
+  const fetchProducts = async () => {
+    try {
+      const combinedData = await ProductService.getCombinedProductData();
+      setProducts(combinedData);
+      setLoading(false);
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const accountInfo = getAccountInfoFromToken();
-        if (accountInfo) {
-          setAccountId(accountInfo.id);
-          setAccountName(accountInfo.accountName);
-        }
+    const accountInfo = getAccountInfoFromToken();
+    if (accountInfo) {
+      setAccountId(accountInfo.id);
+      setAccountName(accountInfo.accountName);
+    }
 
-        if (accountInfo?.id) {
-          const cartData = await CartService.getCartByAccountId(accountInfo.id);
-          setCartId(cartData.cartId);
-        }
+    if (accountInfo?.id) {
+      CartService.getCartByAccountId(accountInfo.id).then((cartData) => {
+        setCartId(cartData.cartId);
+      });
+    }
 
-        const combinedData = await ProductService.getCombinedProductData();
-        setProducts(combinedData);
-        setLoading(false);
-      } catch (err) {
-        setError(err.message);
-        setLoading(false);
-      }
+    fetchProducts();
+
+    // Lắng nghe sự kiện storage để cập nhật danh sách sản phẩm
+    window.addEventListener("storageUpdate", fetchProducts);
+    return () => {
+      window.removeEventListener("storageUpdate", fetchProducts);
     };
-
-    fetchData();
   }, []);
 
   const handleSouvenirShow = (souvenir) => {
@@ -117,7 +123,7 @@ const SouvenirsPage = () => {
       const productData = [{ productId: selectedSouvenir.id, quantity }];
       await CartService.addProductToCart(cartId, productData);
       toast.success(`${selectedSouvenir.name} has been added to your cart!`);
-      window.dispatchEvent(new Event("storage"));
+      window.dispatchEvent(new Event("storageUpdate")); // Cập nhật giao diện
       handleSouvenirClose();
     } catch (error) {
       toast.error(error.message);
@@ -157,7 +163,6 @@ const SouvenirsPage = () => {
       const response = await apiClient.get(`/api/Order/${orderId}`);
       return response.data.orderStatus;
     } catch (error) {
-      console.error("Error checking order status:", error);
       throw new Error("Failed to check order status");
     }
   };
@@ -172,8 +177,6 @@ const SouvenirsPage = () => {
 
     try {
       const orderpaymentId = await createOrder();
-      const newQuantity = selectedSouvenir.quantity - quantity;
-      await ProductService.updateProductQuantity(selectedSouvenir.id, newQuantity);
 
       if (paymentMethod === "Momo") {
         const paymentData = {
@@ -191,14 +194,16 @@ const SouvenirsPage = () => {
 
         const paymentUrl = await PaymentService.createMomoPayment(paymentData);
         toast.success("Redirecting to MoMo payment...");
-        localStorage.setItem("paymentSource", "souvenirs"); // Lưu source vào localStorage
+        localStorage.setItem("paymentSource", "souvenirs");
         window.location.href = paymentUrl;
 
         const intervalId = setInterval(async () => {
           try {
             const status = await checkOrderStatus(orderpaymentId);
-            if (status === 1) {
+            if (status === 1) { // Complete
               clearInterval(intervalId);
+              const newQuantity = selectedSouvenir.quantity - quantity;
+              await ProductService.updateProductQuantity(selectedSouvenir.id, newQuantity);
               toast.success("Payment successful!");
               setProducts((prevProducts) =>
                 prevProducts.map((product) =>
@@ -207,28 +212,84 @@ const SouvenirsPage = () => {
                     : product
                 )
               );
+              window.dispatchEvent(new Event("storageUpdate")); // Thông báo cập nhật
               handleSouvenirClose();
               navigate("/success-payment", { state: { source: "souvenirs" } });
+            } else if (status === 2) { // Cancel
+              clearInterval(intervalId);
+              toast.error("Payment was canceled!");
+              handleSouvenirClose();
+            } else if (status === 0) { // Pending
+              // Continue waiting
             }
           } catch (error) {
             clearInterval(intervalId);
             toast.error("Error checking payment status");
+            handleSouvenirClose();
           }
         }, 5000);
+
+        setTimeout(() => {
+          clearInterval(intervalId);
+          toast.error("Payment timeout. Please try again.");
+          handleSouvenirClose();
+        }, 120000); // 2 minutes timeout
       } else if (paymentMethod === "VNPay") {
-        toast.success(
-          `Purchase confirmed with ${paymentMethod} for ${quantity} ${selectedSouvenir.name}(s)!`
-        );
-        localStorage.setItem("paymentSource", "souvenirs"); // Lưu source vào localStorage
-        setProducts((prevProducts) =>
-          prevProducts.map((product) =>
-            product.id === selectedSouvenir.id
-              ? { ...product, quantity: newQuantity }
-              : product
-          )
-        );
-        handleSouvenirClose();
-        navigate("/success-payment", { state: { source: "souvenirs" } });
+        const paymentData = {
+          fullName: accountName || "Unknown",
+          orderInfo: `Purchase ${selectedSouvenir.name}`,
+          amount: totalAmount,
+          purpose: 3,
+          accountId: accountId,
+          accountCouponId: null,
+          ticketId: "string",
+          ticketQuantity: "string",
+          contractId: "string",
+          orderpaymentId: orderpaymentId,
+        };
+
+        const paymentUrl = await PaymentService.createVNPayPayment(paymentData);
+        toast.success("Redirecting to VNPay payment...");
+        localStorage.setItem("paymentSource", "souvenirs");
+        window.location.href = paymentUrl;
+
+        const intervalId = setInterval(async () => {
+          try {
+            const status = await checkOrderStatus(orderpaymentId);
+            if (status === 1) { // Complete
+              clearInterval(intervalId);
+              const newQuantity = selectedSouvenir.quantity - quantity;
+              await ProductService.updateProductQuantity(selectedSouvenir.id, newQuantity);
+              toast.success("Payment successful with VNPay!");
+              setProducts((prevProducts) =>
+                prevProducts.map((product) =>
+                  product.id === selectedSouvenir.id
+                    ? { ...product, quantity: newQuantity }
+                    : product
+                )
+              );
+              window.dispatchEvent(new Event("storageUpdate")); // Thông báo cập nhật
+              handleSouvenirClose();
+              navigate("/success-payment", { state: { source: "souvenirs" } });
+            } else if (status === 2) { // Cancel
+              clearInterval(intervalId);
+              toast.error("Payment with VNPay was canceled!");
+              handleSouvenirClose();
+            } else if (status === 0) { // Pending
+              // Continue waiting
+            }
+          } catch (error) {
+            clearInterval(intervalId);
+            toast.error("Error checking payment status");
+            handleSouvenirClose();
+          }
+        }, 5000);
+
+        setTimeout(() => {
+          clearInterval(intervalId);
+          toast.error("Payment timeout. Please try again.");
+          handleSouvenirClose();
+        }, 120000); // 2 minutes timeout
       }
     } catch (error) {
       toast.error(error.message);

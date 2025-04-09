@@ -2,7 +2,6 @@ import { apiClient } from "../../api/apiClient.js";
 
 const PaymentService = {
   createMomoPayment: async (paymentData) => {
-    // thanh toán mua hàng 100%
     try {
       console.log("Creating MoMo payment with data:", paymentData);
       const response = await apiClient.post("/api/Momo", paymentData);
@@ -11,7 +10,7 @@ const PaymentService = {
     } catch (error) {
       console.error(
         "Error creating MoMo payment:",
-        error.response?.data || error
+        error.response?.data || error.message
       );
       throw new Error(
         error.response?.data?.message || "Error creating MoMo payment"
