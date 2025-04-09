@@ -285,13 +285,10 @@ const CartPage = () => {
           purpose: 3,
           accountId: accountId,
           accountCouponId: null,
-          ticketId: "string",
-          ticketQuantity: "string",
-          contractId: "string",
           orderpaymentId: orderpaymentId,
         };
 
-        const paymentUrl = await PaymentService.createVNPayPayment(paymentData);
+        const paymentUrl = await PaymentService.createVnpayPayment(paymentData);
         toast.success("Redirecting to VNPay payment...");
         localStorage.setItem("paymentSource", "cart");
         window.location.href = paymentUrl;

@@ -122,16 +122,11 @@ const FestivalsPage = () => {
     }
   };
 
-  const handleDecrease = () =>
-    setTicketQuantity((prev) => (prev > 1 ? prev - 1 : 1));
+  const handleDecrease = () => setTicketQuantity((prev) => (prev > 1 ? prev - 1 : 1));
 
-  const handleTicketTypeChange = (e) => {
-    const ticketId = parseInt(e.target.value);
-    const selected = selectedFestival.ticket.find(
-      (ticket) => ticket.ticketId === ticketId
-    );
-    setSelectedTicketType(selected);
-    setTicketQuantity(1); // Reset số lượng khi đổi loại vé
+  const handleTicketTypeSelect = (ticket) => {
+    setSelectedTicketType(ticket);
+    setTicketQuantity(1); // Reset số lượng khi chọn loại vé mới
   };
 
   const handleBuyNow = () => {
@@ -153,17 +148,17 @@ const FestivalsPage = () => {
 
   const handleFinalConfirm = async () => {
     const totalAmount = selectedTicketType?.price * ticketQuantity;
-  
+
     if (!accountId) {
       toast.error("Please log in to proceed with payment!");
       return;
     }
-  
+
     if (!selectedTicketType || !selectedTicketType.ticketId) {
       toast.error("Please select a valid ticket type!");
       return;
     }
-  
+
     try {
       if (paymentMethod === "Momo") {
         const paymentData = {
@@ -173,29 +168,44 @@ const FestivalsPage = () => {
           purpose: 0,
           accountId: accountId,
           accountCouponId: null,
-          ticketId: selectedTicketType.ticketId.toString(), // Chuyển ticketId thành string
+          ticketId: selectedTicketType.ticketId.toString(),
           ticketQuantity: ticketQuantity.toString(),
           contractId: null,
           orderpaymentId: null,
         };
-  
-        console.log("Payment Data:", paymentData); // Log để kiểm tra dữ liệu gửi đi
-  
+
+        console.log("Payment Data (MoMo):", paymentData);
+
         const paymentUrl = await PaymentService.createMomoPayment(paymentData);
         if (!paymentUrl) {
           throw new Error("Failed to create MoMo payment URL");
         }
-  
+
         toast.success("Redirecting to MoMo payment...");
         localStorage.setItem("paymentSource", "festivals");
         window.location.href = paymentUrl;
       } else if (paymentMethod === "VNPay") {
-        toast.success(
-          `Purchase confirmed with ${paymentMethod} for ${ticketQuantity} ticket(s)!`
-        );
+        const paymentData = {
+          purpose: 0,
+          amount: totalAmount,
+          accountId: accountId,
+          accountCouponId: null,
+          ticketId: selectedTicketType.ticketId.toString(),
+          ticketQuantity: ticketQuantity.toString(),
+          contractId: null,
+          orderPaymentId: null,
+        };
+
+        console.log("Payment Data (VNPay):", paymentData);
+
+        const paymentUrl = await PaymentService.createVnpayPayment(paymentData);
+        if (!paymentUrl) {
+          throw new Error("Failed to create VNPay payment URL");
+        }
+
+        toast.success("Redirecting to VNPay payment...");
         localStorage.setItem("paymentSource", "festivals");
-        handleFestivalClose();
-        navigate("/success-payment", { state: { source: "festivals" } });
+        window.location.href = paymentUrl;
       }
     } catch (error) {
       console.error("Error in handleFinalConfirm:", error);
@@ -355,7 +365,7 @@ const FestivalsPage = () => {
                   <div style={{ marginTop: "1.5rem", marginBottom: "1.5rem" }}>
                     <h5
                       style={{
-                        color: "#4a4a4a",
+                        color: "#000000",
                         fontWeight: 600,
                         marginBottom: "1rem",
                       }}
@@ -365,51 +375,47 @@ const FestivalsPage = () => {
                     <div
                       style={{
                         display: "grid",
-                        gridTemplateColumns:
-                          "repeat(auto-fill, minmax(200px, 1fr))",
+                        gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
                         gap: "1rem",
                       }}
                     >
-                      {selectedFestival.eventActivityResponse.map(
-                        (activity) => (
-                          <div
-                            key={activity.eventActivityId}
+                      {selectedFestival.eventActivityResponse.map((activity) => (
+                        <div
+                          key={activity.eventActivityId}
+                          style={{
+                            background: "white",
+                            borderRadius: "0.5rem",
+                            padding: "1rem",
+                            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.05)",
+                            transition: "transform 0.3s ease",
+                          }}
+                          onMouseEnter={(e) =>
+                            (e.currentTarget.style.transform = "translateY(-5px)")
+                          }
+                          onMouseLeave={(e) =>
+                            (e.currentTarget.style.transform = "translateY(0)")
+                          }
+                        >
+                          <h6
                             style={{
-                              background: "white",
-                              borderRadius: "0.5rem",
-                              padding: "1rem",
-                              boxShadow: "0 4px 8px rgba(0, 0, 0, 0.05)",
-                              transition: "transform 0.3s ease",
+                              color: "#000000",
+                              fontWeight: 600,
+                              marginBottom: "0.5rem",
                             }}
-                            onMouseEnter={(e) =>
-                              (e.currentTarget.style.transform =
-                                "translateY(-5px)")
-                            }
-                            onMouseLeave={(e) =>
-                              (e.currentTarget.style.transform = "translateY(0)")
-                            }
                           >
-                            <h6
-                              style={{
-                                color: "#4a4a4a",
-                                fontWeight: 600,
-                                marginBottom: "0.5rem",
-                              }}
-                            >
-                              {activity.activity.name}
-                            </h6>
-                            <p
-                              style={{
-                                color: "#4a4a4a",
-                                fontSize: "0.9rem",
-                                margin: 0,
-                              }}
-                            >
-                              {activity.activity.description}
-                            </p>
-                          </div>
-                        )
-                      )}
+                            {activity.activity.name}
+                          </h6>
+                          <p
+                            style={{
+                              color: "#4a4a4a",
+                              fontSize: "0.9rem",
+                              margin: 0,
+                            }}
+                          >
+                            {activity.activity.description}
+                          </p>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
@@ -418,7 +424,7 @@ const FestivalsPage = () => {
                   <div style={{ marginTop: "1.5rem", marginBottom: "1.5rem" }}>
                     <h5
                       style={{
-                        color: "#4a4a4a",
+                        color: "#000000",
                         fontWeight: 600,
                         marginBottom: "1rem",
                       }}
@@ -433,141 +439,206 @@ const FestivalsPage = () => {
                         maxWidth: "100%",
                       }}
                     >
-                      {selectedFestival.eventCharacterResponses.map(
-                        (cosplayer) => {
-                          const cosplayerData =
-                            cosplayerDetails[cosplayer.eventCharacterId];
-                          const avatarImage = cosplayerData?.images?.find(
-                            (img) => img.isAvatar
-                          );
-                          return (
+                      {selectedFestival.eventCharacterResponses.map((cosplayer) => {
+                        const cosplayerData = cosplayerDetails[cosplayer.eventCharacterId];
+                        const avatarImage = cosplayerData?.images?.find(
+                          (img) => img.isAvatar
+                        );
+                        return (
+                          <div
+                            key={cosplayer.eventCharacterId}
+                            style={{
+                              background: "white",
+                              borderRadius: "0.5rem",
+                              overflow: "hidden",
+                              boxShadow: "0 4px 8px rgba(0, 0, 0, 0.05)",
+                              transition: "transform 0.3s ease",
+                              maxWidth: "100%",
+                            }}
+                            onMouseEnter={(e) =>
+                              (e.currentTarget.style.transform = "translateY(-5px)")
+                            }
+                            onMouseLeave={(e) =>
+                              (e.currentTarget.style.transform = "translateY(0)")
+                            }
+                          >
                             <div
-                              key={cosplayer.eventCharacterId}
                               style={{
-                                background: "white",
-                                borderRadius: "0.5rem",
+                                width: "100%",
+                                height: "200px",
                                 overflow: "hidden",
-                                boxShadow: "0 4px 8px rgba(0, 0, 0, 0.05)",
-                                transition: "transform 0.3s ease",
-                                maxWidth: "100%",
+                                backgroundColor: "#f0f0f0",
                               }}
-                              onMouseEnter={(e) =>
-                                (e.currentTarget.style.transform =
-                                  "translateY(-5px)")
-                              }
-                              onMouseLeave={(e) =>
-                                (e.currentTarget.style.transform = "translateY(0)")
-                              }
                             >
-                              <div
+                              <img
+                                src={
+                                  avatarImage?.urlImage ||
+                                  "https://i.pinimg.com/736x/87/e2/85/87e285975715a638cd744653bba51902.jpg"
+                                }
+                                alt={cosplayerData?.name || "Cosplayer"}
                                 style={{
                                   width: "100%",
-                                  height: "200px",
-                                  overflow: "hidden",
-                                  backgroundColor: "#f0f0f0",
+                                  height: "100%",
+                                  objectFit: "cover",
+                                  transition: "transform 0.3s ease",
                                 }}
-                              >
-                                <img
-                                  src={
-                                    avatarImage?.urlImage ||
-                                    "https://i.pinimg.com/736x/87/e2/85/87e285975715a638cd744653bba51902.jpg"
-                                  }
-                                  alt={cosplayerData?.name || "Cosplayer"}
-                                  style={{
-                                    width: "100%",
-                                    height: "100%",
-                                    objectFit: "cover",
-                                    transition: "transform 0.3s ease",
-                                  }}
-                                  onMouseEnter={(e) =>
-                                    (e.currentTarget.style.transform = "scale(1.05)")
-                                  }
-                                  onMouseLeave={(e) =>
-                                    (e.currentTarget.style.transform = "scale(1)")
-                                  }
-                                  onError={(e) =>
-                                    (e.currentTarget.src =
-                                      "https://i.pinimg.com/736x/87/e2/85/87e285975715a638cd744653bba51902.jpg")
-                                  }
-                                />
-                              </div>
-                              <div
-                                style={{
-                                  padding: "1rem",
-                                  textAlign: "center",
-                                }}
-                              >
-                                <h6
-                                  style={{
-                                    color: "#4a4a4a",
-                                    fontWeight: 600,
-                                    marginBottom: "0.5rem",
-                                  }}
-                                >
-                                  {cosplayerData?.name || "Unknown Cosplayer"}
-                                </h6>
-                                <p
-                                  style={{
-                                    color: "#4a4a4a",
-                                    fontSize: "0.8rem",
-                                    margin: 0,
-                                  }}
-                                >
-                                  {cosplayerData?.description || "No description available"}
-                                </p>
-                              </div>
+                                onMouseEnter={(e) =>
+                                  (e.currentTarget.style.transform = "scale(1.05)")
+                                }
+                                onMouseLeave={(e) =>
+                                  (e.currentTarget.style.transform = "scale(1)")
+                                }
+                                onError={(e) =>
+                                  (e.currentTarget.src =
+                                    "https://i.pinimg.com/736x/87/e2/85/87e285975715a638cd744653bba51902.jpg")
+                                }
+                              />
                             </div>
-                          );
-                        }
-                      )}
+                            <div
+                              style={{
+                                padding: "1rem",
+                                textAlign: "center",
+                              }}
+                            >
+                              <h6
+                                style={{
+                                  color: "#000000",
+                                  fontWeight: 600,
+                                  marginBottom: "0.5rem",
+                                }}
+                              >
+                                {cosplayerData?.name || "Unknown Cosplayer"}
+                              </h6>
+                              <p
+                                style={{
+                                  color: "#4a4a4a",
+                                  fontSize: "0.8rem",
+                                  margin: 0,
+                                }}
+                              >
+                                {cosplayerData?.description || "No description available"}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
 
                 <div className="fest-ticket-section mt-4">
                   <h5>Purchase Tickets</h5>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Ticket Type</Form.Label>
-                    <Form.Select
-                      value={selectedTicketType?.ticketId || ""}
-                      onChange={handleTicketTypeChange}
-                      className="ticket-type-dropdown"
+                  <div style={{ marginTop: "1.5rem", marginBottom: "1.5rem" }}>
+                    <h6
+                      style={{
+                        color: "#000000",
+                        fontWeight: 600,
+                        marginBottom: "1rem",
+                      }}
+                    >
+                      Select Ticket Type
+                    </h6>
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(2, 1fr)", // Chỉ 2 loại vé
+                        gap: "1rem",
+                        maxWidth: "100%",
+                      }}
                     >
                       {selectedFestival.ticket.map((ticket) => (
-                        <option key={ticket.ticketId} value={ticket.ticketId}>
-                          Type {ticket.ticketType} - {formatPrice(ticket.price)} (Available: {ticket.quantity})
-                        </option>
+                        <div
+                          key={ticket.ticketId}
+                          style={{
+                            background:
+                              selectedTicketType?.ticketId === ticket.ticketId
+                                ? "linear-gradient(135deg, #f8e6f2, #e6f0fa)" // Gradient nhạt khi chọn
+                                : "white",
+                            borderRadius: "0.5rem",
+                            padding: "1rem",
+                            boxShadow: "0 6px 20px rgba(0, 0, 0, 0.08)",
+                            transition: "transform 0.3s ease, background 0.3s ease",
+                            cursor: "pointer",
+                            border:
+                              selectedTicketType?.ticketId === ticket.ticketId
+                                ? "2px solid #510545" // Viền gradient khi chọn
+                                : "2px solid transparent",
+                          }}
+                          onClick={() => handleTicketTypeSelect(ticket)}
+                          onMouseEnter={(e) =>
+                            (e.currentTarget.style.transform = "translateY(-8px)")
+                          }
+                          onMouseLeave={(e) =>
+                            (e.currentTarget.style.transform = "translateY(0)")
+                          }
+                        >
+                          <h6
+                            style={{
+                              color: "#510545",
+                              fontWeight: 600,
+                              marginBottom: "0.5rem",
+                              textTransform: "uppercase",
+                            }}
+                          >
+                            {ticket.ticketType === 0 ? "Normal" : "Premium"} -{" "}
+                            {formatPrice(ticket.price)}
+                          </h6>
+                          <p
+                            style={{
+                              color: "#4a4a4a",
+                              fontSize: "0.9rem",
+                              marginBottom: "0.5rem",
+                              fontStyle: "italic",
+                            }}
+                          >
+                            {ticket.description}
+                          </p>
+                          <p
+                            style={{
+                              color: "#22668a",
+                              fontSize: "0.8rem",
+                              margin: 0,
+                              fontWeight: 500,
+                            }}
+                          >
+                            Available: {ticket.quantity}
+                          </p>
+                        </div>
                       ))}
-                    </Form.Select>
-                  </Form.Group>
-                  <p>
-                    Available: {selectedTicketType?.quantity} | Price:{" "}
-                    {formatPrice(selectedTicketType?.price)}
-                  </p>
-                  <div className="fest-ticket-quantity mb-3">
-                    <Form.Label>Quantity</Form.Label>
-                    <div className="d-flex align-items-center">
-                      <Button
-                        variant="outline-secondary"
-                        onClick={handleDecrease}
-                        disabled={ticketQuantity === 1}
-                      >
-                        -
-                      </Button>
-                      <span className="mx-3">{ticketQuantity}</span>
-                      <Button
-                        variant="outline-secondary"
-                        onClick={handleIncrease}
-                        disabled={
-                          !selectedTicketType ||
-                          selectedTicketType.quantity === 0 ||
-                          ticketQuantity >= selectedTicketType.quantity
-                        }
-                      >
-                        +
-                      </Button>
                     </div>
                   </div>
+
+                  {selectedTicketType && (
+                    <div className="fest-ticket-quantity mb-3">
+                      <Form.Label style={{ color: "#510545", fontWeight: 600 }}>
+                        Quantity
+                      </Form.Label>
+                      <div className="d-flex align-items-center">
+                        <Button
+                          variant="outline-secondary"
+                          onClick={handleDecrease}
+                          disabled={ticketQuantity === 1}
+                        >
+                          -
+                        </Button>
+                        <span className="mx-3" style={{ color: "#4a4a4a", fontSize: "1.2rem" }}>
+                          {ticketQuantity}
+                        </span>
+                        <Button
+                          variant="outline-secondary"
+                          onClick={handleIncrease}
+                          disabled={
+                            !selectedTicketType ||
+                            selectedTicketType.quantity === 0 ||
+                            ticketQuantity >= selectedTicketType.quantity
+                          }
+                        >
+                          +
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
                   <Button
                     variant="primary"
                     className="fest-buy-ticket-btn"
@@ -589,6 +660,7 @@ const FestivalsPage = () => {
                         name="paymentMethod"
                         onChange={() => setPaymentMethod("Momo")}
                         className="mb-2"
+                        style={{ color: "#4a4a4a" }}
                       />
                       <Form.Check
                         type="radio"
@@ -596,11 +668,16 @@ const FestivalsPage = () => {
                         name="paymentMethod"
                         onChange={() => setPaymentMethod("VNPay")}
                         className="mb-2"
+                        style={{ color: "#4a4a4a" }}
                       />
                       <Button
                         variant="primary"
                         onClick={handleConfirmPurchase}
                         className="mt-3"
+                        style={{
+                          background: "linear-gradient(135deg, #510545, #22668a)",
+                          border: "none",
+                        }}
                       >
                         Confirm Purchase
                       </Button>
@@ -620,10 +697,21 @@ const FestivalsPage = () => {
                       variant="success"
                       onClick={handleFinalConfirm}
                       className="me-2"
+                      style={{
+                        background: "linear-gradient(135deg, #28a745, #218838)",
+                        border: "none",
+                      }}
                     >
                       Yes
                     </Button>
-                    <Button variant="secondary" onClick={handleBackToPayment}>
+                    <Button
+                      variant="secondary"
+                      onClick={handleBackToPayment}
+                      style={{
+                        background: "linear-gradient(135deg, #6b7280, #4a4a4a)",
+                        border: "none",
+                      }}
+                    >
                       No
                     </Button>
                   </div>

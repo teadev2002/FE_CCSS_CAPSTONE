@@ -2925,7 +2925,7 @@ const MyEventOrganize = () => {
     <div className="my-event-organize bg-light min-vh-100">
       <Container className="py-5">
         <h1 className="text-center mb-5 fw-bold title-my-event">
-          <span>My Event Organize</span>
+          <span>My Event Organization</span>
         </h1>
 
         <div className="filter-section bg-white p-4 rounded shadow mb-5">

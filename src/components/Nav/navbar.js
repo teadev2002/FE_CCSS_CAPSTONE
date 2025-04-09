@@ -1162,6 +1162,7 @@ export function Navbar() {
       navigate(`/my-history/${id}`);
     }
   };
+
   const goToMyRentalCostume = () => {
     const { id } = getUserInfoFromToken();
     if (!id) {
@@ -1171,6 +1172,7 @@ export function Navbar() {
       navigate(`/my-rental-costume/${id}`);
     }
   };
+
   const goToMyEventOrganize = () => {
     const { id } = getUserInfoFromToken();
     if (!id) {
@@ -1178,6 +1180,16 @@ export function Navbar() {
       setTimeout(() => navigate("/login"), 2100);
     } else {
       navigate(`/my-event-organize/${id}`);
+    }
+  };
+
+  const goToMyPurchaseHistory = () => {
+    const { id } = getUserInfoFromToken();
+    if (!id) {
+      toast.warn("You are not logged in!");
+      setTimeout(() => navigate("/login"), 2100);
+    } else {
+      navigate(`/my-purchase-history/${id}`);
     }
   };
 
@@ -1247,7 +1259,7 @@ export function Navbar() {
               label: "Event Organization",
               Icon: Aperture,
             },
-            { to: "/festivals", label: "Festivals", Icon: Calendar }, // Bỏ dropdown
+            { to: "/festivals", label: "Festivals", Icon: Calendar },
             { to: "/souvenirs-shop", label: "Souvenirs", Icon: Store },
             { to: "/about", label: "About Us", Icon: Info },
           ].map(
@@ -1315,7 +1327,10 @@ export function Navbar() {
                     My Rental Costume
                   </div>
                   <div onClick={goToMyEventOrganize} className="dropdown-item">
-                    My Event Organize
+                    My Event Organization
+                  </div>
+                  <div onClick={goToMyPurchaseHistory} className="dropdown-item">
+                    Purchase History
                   </div>
                   <div
                     onClick={goToMyTask}
