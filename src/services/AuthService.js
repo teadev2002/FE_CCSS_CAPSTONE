@@ -1,5 +1,5 @@
-// import apiClient from "../api/apiClient.js";
 import { apiClient, formDataClient } from "../api/apiClient.js";
+
 const AuthService = {
   // Login function
   login: async (email, password) => {
@@ -27,18 +27,18 @@ const AuthService = {
   },
 
   // Sign up function
-  signup: async (name, email, password, birthday, phone, role = "3") => {
+  signup: async (name, email, password, birthday, phone) => {
     try {
       const response = await apiClient.post(`/api/Auth/register/`, {
         name,
         email,
         password,
-        description: "New user", // Add a default description since it's required by the API but not in the form
+        description: "New user",
         birthday,
         phone,
       });
 
-      return response.data; // Return the response data (e.g., "Please enter code")
+      return response.data;
     } catch (error) {
       throw new Error(error.response?.data?.message || "Sign up failed");
     }
@@ -47,7 +47,7 @@ const AuthService = {
   // Check if user is authenticated
   isAuthenticated: () => {
     const token = localStorage.getItem("accessToken");
-    return !!token; // Returns true if token exists, false otherwise
+    return !!token;
   },
 
   // Get tokens from localStorage
@@ -58,12 +58,26 @@ const AuthService = {
     };
   },
 
-  // Logout function (to be used in Navbar)
+  // Logout function
   logout: () => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("cartId");
     localStorage.removeItem("accountId");
+  },
+
+  // Forgot password function
+  forgotPassword: async (email) => {
+    try {
+      const response = await apiClient.put(
+        `/api/Auth/${encodeURIComponent(email)}`
+      );
+      return response.data; // Giả định API trả về thông báo như "Please check your email"
+    } catch (error) {
+      throw new Error(
+        error.response?.data?.message || "Forgot password failed"
+      );
+    }
   },
 };
 

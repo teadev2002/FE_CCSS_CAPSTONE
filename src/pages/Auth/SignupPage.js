@@ -1,4 +1,3 @@
-// SignupPage.js
 import React, { useState } from "react";
 import { Container, Row, Col, Form, Button } from "react-bootstrap";
 import { User, Mail, Lock, Calendar, Phone, ArrowRight } from "lucide-react";
@@ -9,6 +8,11 @@ import "react-toastify/dist/ReactToastify.css";
 import "../../styles/SignUpPage.scss";
 import AuthService from "../../services/AuthService";
 import ModalConfirmSignUp from "./ModalConfirmSignUp";
+import dayjs from "dayjs"; // Thêm thư viện dayjs
+import customParseFormat from "dayjs/plugin/customParseFormat";
+
+// Kích hoạt plugin customParseFormat
+dayjs.extend(customParseFormat);
 
 const SignupPage = () => {
   const [formData, setFormData] = useState({
@@ -16,7 +20,7 @@ const SignupPage = () => {
     email: "",
     password: "",
     confirmPassword: "",
-    birthday: "",
+    birthday: "", // Lưu giá trị từ input type="date" (YYYY-MM-DD)
     phone: "",
   });
   const [errors, setErrors] = useState({});
@@ -30,28 +34,56 @@ const SignupPage = () => {
 
   const validateForm = () => {
     const newErrors = {};
+
+    // Kiểm tra tên
     if (!formData.name.trim()) newErrors.name = "Name is required.";
+
+    // Kiểm tra email
     if (!formData.email.trim()) {
       newErrors.email = "Email is required.";
     } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
       newErrors.email = "Email is invalid.";
     }
+
+    // Kiểm tra mật khẩu
     if (!formData.password) {
       newErrors.password = "Password is required.";
     } else if (formData.password.length < 6) {
       newErrors.password = "Password must be at least 6 characters.";
     }
+
+    // Kiểm tra xác nhận mật khẩu
     if (formData.confirmPassword !== formData.password) {
       newErrors.confirmPassword = "Passwords do not match.";
     }
-    if (!formData.birthday) {
-      newErrors.birthday = "Birthday is required.";
-    }
+
+    // Kiểm tra số điện thoại
     if (!formData.phone.trim()) {
       newErrors.phone = "Phone number is required.";
     } else if (!/^\+?\d{10,}$/.test(formData.phone)) {
       newErrors.phone = "Phone number is invalid (e.g., +1234567890).";
     }
+
+    // Kiểm tra ngày sinh
+    if (!formData.birthday) {
+      newErrors.birthday = "Birthday is required.";
+    } else {
+      // Input type="date" trả về định dạng YYYY-MM-DD
+      const birthday = dayjs(formData.birthday, "YYYY-MM-DD", true);
+
+      // Kiểm tra định dạng và ngày hợp lệ
+      if (!birthday.isValid()) {
+        newErrors.birthday = "Birthday is not a valid date.";
+      } else {
+        // Kiểm tra ngày không trong tương lai
+        const today = dayjs();
+        // So sánh chỉ ngày, bỏ qua giờ
+        if (birthday.isAfter(today, "day")) {
+          newErrors.birthday = "Birthday cannot be in the future.";
+        }
+      }
+    }
+
     return newErrors;
   };
 
@@ -62,19 +94,21 @@ const SignupPage = () => {
 
     if (Object.keys(newErrors).length === 0) {
       try {
-        // Call the signup API
+        // Chuẩn hóa birthday: thêm giờ mặc định 08:00 và chuyển sang định dạng HH:mm DD/MM/YYYY
+        const birthdayFormatted = dayjs(formData.birthday).format(
+          "08:00 DD/MM/YYYY"
+        );
+
         const response = await AuthService.signup(
           formData.name,
           formData.email,
           formData.password,
-          formData.birthday,
+          birthdayFormatted, // Gửi định dạng HH:mm DD/MM/YYYY
           formData.phone
         );
 
-        // Log the response for debugging
         console.log("Signup Response:", response);
 
-        // Check if the response indicates the email already exists
         if (response === "Email existed!!!") {
           toast.error(
             "This email is already registered. Please use a different email.",
@@ -88,7 +122,7 @@ const SignupPage = () => {
               theme: "light",
             }
           );
-          return; // Stop further execution (don’t show the modal)
+          return;
         } else {
           setShowModal(true);
           toast.info("Please check your email for a verification code.", {
@@ -101,10 +135,7 @@ const SignupPage = () => {
             theme: "light",
           });
         }
-
-        // If signup is successful, show the modal for verification
       } catch (error) {
-        // Handle other errors from the API or network issues
         toast.error(error.message || "Sign up failed. Please try again.", {
           position: "top-right",
           autoClose: 3000,
@@ -213,11 +244,11 @@ const SignupPage = () => {
                   <Calendar size={18} className="input-icon" />
                   <Form.Group className="mb-3" controlId="formBirthday">
                     <Form.Control
-                      type="date"
+                      type="date" // Sử dụng type="date" của Bootstrap
                       name="birthday"
                       value={formData.birthday}
                       onChange={handleInputChange}
-                      placeholder="Birthday"
+                      placeholder="Select Birthday"
                     />
                   </Form.Group>
                 </div>
