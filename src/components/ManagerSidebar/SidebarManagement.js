@@ -13,6 +13,7 @@ import {
   MessageCircleMore,
   GitPullRequest,
   ReceiptText,
+  ListChecks,
 } from "lucide-react";
 import "../../styles/Manager/SidebarManagement.scss";
 
@@ -59,6 +60,15 @@ const SidebarManagement = () => {
         >
           <GitPullRequest size={20} />
           <span>Manage Request CusChar</span>
+        </NavLink>
+        <NavLink
+          to="/manage/assign-task"
+          className={({ isActive }) =>
+            isActive ? "nav-link active" : "nav-link"
+          }
+        >
+          <ListChecks size={20} />
+          <span> Manage Assign Task</span>
         </NavLink>
         <NavLink
           to="/manage/contract"

@@ -1,7 +1,7 @@
-// import React, { useState, useEffect } from "react";
+// import React, { useState, useEffect, useMemo } from "react";
 // import { Search } from "lucide-react";
 // import { Modal, Button, Carousel, Form } from "react-bootstrap";
-// import { useParams } from "react-router-dom";
+// import { useParams, useNavigate } from "react-router-dom";
 // import {
 //   Drawer,
 //   List,
@@ -16,7 +16,36 @@
 // import CostumeRequestModal from "./CostumeRequestModal.js";
 // import CostumeService from "../../services/CostumeService/CostumeService.js";
 // import { toast } from "react-toastify";
-// import { useNavigate } from "react-router-dom";
+
+// // Custom hook for authentication
+// const useAuth = () => {
+//   const token = localStorage.getItem("accessToken");
+//   if (!token) return null;
+//   try {
+//     const decoded = jwtDecode(token);
+//     if (decoded.exp * 1000 < Date.now()) {
+//       localStorage.removeItem("accessToken");
+//       return null;
+//     }
+//     return {
+//       accountId: decoded.Id || "",
+//       accountName: decoded.AccountName || "",
+//     };
+//   } catch {
+//     return null;
+//   }
+// };
+
+// // Utility function for date formatting
+// const formatDate = (date) => {
+//   const hours = date.getHours().toString().padStart(2, "0");
+//   const minutes = date.getMinutes().toString().padStart(2, "0");
+//   const day = date.getDate().toString().padStart(2, "0");
+//   const month = (date.getMonth() + 1).toString().padStart(2, "0");
+//   const year = date.getFullYear();
+//   return `${hours}:${minutes} ${day}/${month}/${year}`;
+// };
+
 // const CostumesPage = () => {
 //   const [searchTerm, setSearchTerm] = useState("");
 //   const [showRequestModal, setShowRequestModal] = useState(false);
@@ -33,11 +62,12 @@
 //   const [requestData, setRequestData] = useState(null);
 //   const [description, setDescription] = useState("");
 //   const [location, setLocation] = useState("");
-//   const [isSending, setIsSending] = useState(false); // Trạng thái loading khi gửi yêu cầu
-//   const [sendRequestTrigger, setSendRequestTrigger] = useState(null); // Trạng thái để kích hoạt useEffect
+//   const [returnDate, setReturnDate] = useState(""); // New state for return date
+//   const [isSending, setIsSending] = useState(false);
 //   const navigate = useNavigate();
 //   const params = useParams();
 //   const category = params.category || "all";
+//   const auth = useAuth();
 
 //   useEffect(() => {
 //     const savedFavorites = localStorage.getItem("favorites");
@@ -84,50 +114,23 @@
 //   }, []);
 
 //   useEffect(() => {
-//     localStorage.setItem("favorites", JSON.stringify(favorites));
+//     const debounce = setTimeout(() => {
+//       localStorage.setItem("favorites", JSON.stringify(favorites));
+//     }, 500);
+//     return () => clearTimeout(debounce);
 //   }, [favorites]);
 
-//   // useEffect để gọi API khi sendRequestTrigger thay đổi
-//   useEffect(() => {
-//     if (sendRequestTrigger) {
-//       const sendRequest = async () => {
-//         setIsSending(true);
-//         try {
-//           await CostumeService.sendRequestHireCostume(sendRequestTrigger);
-//           toast.success("Request sent successfully!");
-//           setShowConfirmModal(false);
-//           setShowDrawer(false);
-//           setDescription("");
-//           setLocation("");
-//           setRequestData(null);
-//           setFavorites([]); // Xóa danh sách favorites sau khi gửi yêu cầu thành công
-//           localStorage.removeItem("favorites"); // Xóa favorites khỏi localStorage
-//         } catch (error) {
-//           toast.error(error.message || "Failed to send request!");
-//         } finally {
-//           setIsSending(false);
-//           setSendRequestTrigger(null); // Reset trigger sau khi gọi API
-//         }
-//       };
-
-//       sendRequest();
-//     }
-//   }, [sendRequestTrigger]);
-
-//   // const handleRequestShow = () => setShowRequestModal(true);
 //   const handleRequestShow = () => {
-//     const accessToken = localStorage.getItem("accessToken");
-//     if (!accessToken) {
+//     if (!auth) {
 //       toast.warn("You must login to use this feature", {
-//         autoClose: 2000, // Thời gian hiển thị toast (2 giây)
-//         onClose: () => {
-//           navigate("/login"); // Chuyển hướng sau khi toast biến mất
-//         },
+//         autoClose: 2000,
+//         onClose: () => navigate("/login"),
 //       });
 //     } else {
 //       setShowRequestModal(true);
 //     }
 //   };
+
 //   const handleRequestClose = () => setShowRequestModal(false);
 
 //   const handleGalleryShow = (costume) => {
@@ -150,14 +153,13 @@
 //             : item
 //         )
 //       );
-//       toast.success("Costume added to favorites!");
 //     } else {
 //       setFavorites([
 //         ...favorites,
 //         { ...costume, quantity: 1, selected: false },
 //       ]);
-//       toast.success("Costume added to favorites!");
 //     }
+//     toast.success("Costume added to favorites!");
 //   };
 
 //   const updateQuantity = (id, value) => {
@@ -186,12 +188,31 @@
 
 //   const handleSelectAll = (e) => {
 //     const checked = e.target.checked;
-//     setFavorites(
-//       favorites.map((item) => ({
-//         ...item,
-//         selected: checked,
-//       }))
-//     );
+//     setFavorites(favorites.map((item) => ({ ...item, selected: checked })));
+//   };
+
+//   const createRequestData = (items, price) => {
+//     const now = new Date();
+//     const startDateObj = new Date(now.getTime() + 1 * 60 * 1000);
+//     const startDate = formatDate(startDateObj);
+
+//     return {
+//       accountId: auth.accountId,
+//       name: auth.accountName,
+//       description: description || null,
+//       price,
+//       startDate,
+//       endDate: returnDate || "", // Will be updated by user input
+//       location: location || "",
+//       serviceId: "S001",
+//       packageId: "",
+//       listRequestCharacters: items.map((item) => ({
+//         characterId: item.id,
+//         cosplayerId: "",
+//         description: item.description || "",
+//         quantity: item.quantity,
+//       })),
+//     };
 //   };
 
 //   const handleConfirmRequest = () => {
@@ -201,150 +222,28 @@
 //       return;
 //     }
 
-//     const accessToken = localStorage.getItem("accessToken");
-//     let accountId = "";
-//     let accountName = "";
-//     if (accessToken) {
-//       try {
-//         const decodedToken = jwtDecode(accessToken);
-//         accountId = decodedToken.Id || "";
-//         accountName = decodedToken.AccountName || "";
-//       } catch (err) {
-//         console.error("Error decoding accessToken:", err);
-//         toast.error("Invalid access token!");
-//         return;
-//       }
-//     } else {
-//       toast.error("No access token found! Please log in.");
+//     if (!auth) {
+//       toast.error("Please log in to proceed.");
 //       return;
 //     }
 
-//     const now = new Date();
-//     const startDateObj = new Date(now.getTime() + 1 * 60 * 1000);
-
-//     const startDate = `${startDateObj
-//       .getHours()
-//       .toString()
-//       .padStart(2, "0")}:${startDateObj
-//       .getMinutes()
-//       .toString()
-//       .padStart(2, "0")} ${startDateObj
-//       .getDate()
-//       .toString()
-//       .padStart(2, "0")}/${(startDateObj.getMonth() + 1)
-//       .toString()
-//       .padStart(2, "0")}/${startDateObj.getFullYear()}`;
-
-//     const endDateObj = new Date(now);
-//     endDateObj.setMonth(now.getMonth() + 1);
-//     const endDate = `${endDateObj
-//       .getHours()
-//       .toString()
-//       .padStart(2, "0")}:${endDateObj
-//       .getMinutes()
-//       .toString()
-//       .padStart(2, "0")} ${endDateObj.getDate().toString().padStart(2, "0")}/${(
-//       endDateObj.getMonth() + 1
-//     )
-//       .toString()
-//       .padStart(2, "0")}/${endDateObj.getFullYear()}`;
-
-//     const requestData = {
-//       accountId: accountId,
-//       name: accountName,
-//       description: description || null,
-//       price: selectedItems.reduce(
-//         (total, item) => total + item.price * item.quantity,
-//         0
-//       ),
-//       startDate: startDate,
-//       endDate: endDate,
-//       location: location || "",
-//       serviceId: "S001",
-//       packageId: "",
-//       listRequestCharacters: selectedItems.map((item) => ({
-//         characterId: item.id,
-//         cosplayerId: "",
-//         description: item.description || "",
-//         quantity: item.quantity,
-//       })),
-//     };
-
-//     console.log("Request Data:", JSON.stringify(requestData, null, 2));
+//     const price = selectedItems.reduce(
+//       (total, item) => total + item.price * item.quantity,
+//       0
+//     );
+//     const requestData = createRequestData(selectedItems, price);
 //     setRequestData(requestData);
 //     setShowConfirmModal(true);
 //   };
 
 //   const handleRentNow = (costume) => {
-//     const accessToken = localStorage.getItem("accessToken");
-//     let accountId = "";
-//     let accountName = "";
-//     if (accessToken) {
-//       try {
-//         const decodedToken = jwtDecode(accessToken);
-//         accountId = decodedToken.Id || "";
-//         accountName = decodedToken.AccountName || "";
-//       } catch (err) {
-//         console.error("Error decoding accessToken:", err);
-//         toast.error("Invalid access token!");
-//         return;
-//       }
-//     } else {
-//       toast.error("No access token found! Please log in.");
+//     if (!auth) {
+//       toast.error("Please log in to proceed.");
 //       return;
 //     }
 
-//     const now = new Date();
-//     const startDateObj = new Date(now.getTime() + 1 * 60 * 1000);
-
-//     const startDate = `${startDateObj
-//       .getHours()
-//       .toString()
-//       .padStart(2, "0")}:${startDateObj
-//       .getMinutes()
-//       .toString()
-//       .padStart(2, "0")} ${startDateObj
-//       .getDate()
-//       .toString()
-//       .padStart(2, "0")}/${(startDateObj.getMonth() + 1)
-//       .toString()
-//       .padStart(2, "0")}/${startDateObj.getFullYear()}`;
-
-//     const endDateObj = new Date(now);
-//     endDateObj.setMonth(now.getMonth() + 1);
-//     const endDate = `${endDateObj
-//       .getHours()
-//       .toString()
-//       .padStart(2, "0")}:${endDateObj
-//       .getMinutes()
-//       .toString()
-//       .padStart(2, "0")} ${endDateObj.getDate().toString().padStart(2, "0")}/${(
-//       endDateObj.getMonth() + 1
-//     )
-//       .toString()
-//       .padStart(2, "0")}/${endDateObj.getFullYear()}`;
-
-//     const requestData = {
-//       accountId: accountId,
-//       name: accountName,
-//       description: description || null,
-//       price: costume.price * 1,
-//       startDate: startDate,
-//       endDate: endDate,
-//       location: location || "",
-//       serviceId: "S001",
-//       packageId: "",
-//       listRequestCharacters: [
-//         {
-//           characterId: costume.id,
-//           cosplayerId: "",
-//           description: costume.description || "",
-//           quantity: 1,
-//         },
-//       ],
-//     };
-
-//     console.log("Rent Now Request Data:", JSON.stringify(requestData, null, 2));
+//     const price = costume.price * 1;
+//     const requestData = createRequestData([{ ...costume, quantity: 1 }], price);
 //     setRequestData(requestData);
 //     setShowConfirmModal(true);
 //   };
@@ -371,35 +270,70 @@
 //     });
 //   };
 
-//   const handleFinalSendRequest = () => {
+//   const handleFinalSendRequest = async () => {
+//     if (!location || !description || !returnDate) {
+//       toast.error("Please fill in all required fields!");
+//       return;
+//     }
+
+//     // Validate return date
+//     const startDateObj = new Date(
+//       requestData.startDate.split(" ")[1].split("/").reverse().join("-") +
+//         "T" +
+//         requestData.startDate.split(" ")[0]
+//     );
+//     const returnDateObj = new Date(returnDate + "T08:00:00");
+//     if (returnDateObj <= startDateObj) {
+//       toast.error("Return date must be after start date!");
+//       return;
+//     }
+
 //     const updatedRequestData = {
 //       ...requestData,
 //       description: description || null,
 //       location: location || "",
+//       endDate: `08:00 ${returnDate.split("-")[2]}/${returnDate.split("-")[1]}/${
+//         returnDate.split("-")[0]
+//       }`,
 //     };
-//     console.log(
-//       "Final Request Data:",
-//       JSON.stringify(updatedRequestData, null, 2)
-//     );
-//     // Kích hoạt useEffect để gọi API
-//     setSendRequestTrigger(updatedRequestData);
+
+//     setIsSending(true);
+//     try {
+//       await CostumeService.sendRequestHireCostume(updatedRequestData);
+//       toast.success("Request sent successfully!");
+//       setShowConfirmModal(false);
+//       setShowDrawer(false);
+//       setDescription("");
+//       setLocation("");
+//       setReturnDate("");
+//       setRequestData(null);
+//       setFavorites([]);
+//       localStorage.removeItem("favorites");
+//     } catch (error) {
+//       toast.error(error.message || "Failed to send request!");
+//     } finally {
+//       setIsSending(false);
+//     }
 //   };
 
 //   const handleConfirmModalClose = () => {
 //     setShowConfirmModal(false);
 //     setDescription("");
 //     setLocation("");
+//     setReturnDate("");
 //   };
 
-//   const filteredCostumes = costumes.filter((costume) => {
-//     const matchesCategory =
-//       category === "all" ||
-//       costume.category.toLowerCase() === category.toLowerCase();
-//     const matchesSearch = costume.name
-//       .toLowerCase()
-//       .includes(searchTerm.toLowerCase());
-//     return matchesCategory && matchesSearch;
-//   });
+//   const filteredCostumes = useMemo(() => {
+//     return costumes.filter((costume) => {
+//       const matchesCategory =
+//         category === "all" ||
+//         costume.category.toLowerCase() === category.toLowerCase();
+//       const matchesSearch = costume.name
+//         .toLowerCase()
+//         .includes(searchTerm.toLowerCase());
+//       return matchesCategory && matchesSearch;
+//     });
+//   }, [costumes, category, searchTerm]);
 
 //   const totalPrice = favorites.reduce(
 //     (total, item) =>
@@ -417,11 +351,6 @@
 //   const handlePageChange = (page, pageSize) => {
 //     setCurrentPage(page);
 //     setPageSize(pageSize);
-//   };
-
-//   const handleNameChange = (e) => {
-//     const newName = e.target.innerText;
-//     setRequestData((prev) => ({ ...prev, name: newName }));
 //   };
 
 //   if (loading) return <div className="text-center py-5">Loading...</div>;
@@ -485,7 +414,7 @@
 //                 <div className="card-image">
 //                   <img
 //                     src={costume.image}
-//                     alt={costume.name}
+//                     alt={`Thumbnail of ${costume.name} costume`}
 //                     className="img-fluid"
 //                   />
 //                 </div>
@@ -494,6 +423,9 @@
 //                   <p className="costume-price">
 //                     Price: {costume.price.toLocaleString()} VND
 //                   </p>
+//                   <p className="costume-price">Quantity: {costume.quantity}</p>
+//                 {/* FIX HERE */}
+
 //                   <div className="button-group">
 //                     <button
 //                       className="hire-button mb-2"
@@ -654,7 +586,7 @@
 //                 >
 //                   <img
 //                     src={item.image}
-//                     alt={item.name}
+//                     alt={`Thumbnail of ${item.name}`}
 //                     style={{ width: 50, height: 50, objectFit: "cover" }}
 //                   />
 //                   <div style={{ textAlign: "right" }}>
@@ -741,9 +673,17 @@
 //             <div className="request-details">
 //               <div className="request-item" style={{ marginBottom: "16px" }}>
 //                 <strong>Name: </strong>
-//                 <span style={{ fontSize: "18px" }} onInput={handleNameChange}>
-//                   {requestData.name}
-//                 </span>
+//                 <Form.Control
+//                   type="text"
+//                   value={requestData.name}
+//                   onChange={(e) =>
+//                     setRequestData((prev) => ({
+//                       ...prev,
+//                       name: e.target.value,
+//                     }))
+//                   }
+//                   aria-label="Requestor name"
+//                 />
 //               </div>
 //               <div className="request-item" style={{ marginBottom: "16px" }}>
 //                 <strong>Description:</strong>
@@ -752,12 +692,28 @@
 //                   rows={3}
 //                   value={description}
 //                   onChange={(e) => setDescription(e.target.value)}
-//                   placeholder="Enter your Height and weight"
+//                   placeholder="Enter your height and weight"
+//                   aria-label="Request description"
 //                 />
 //               </div>
 //               <div className="request-item" style={{ marginBottom: "16px" }}>
-//                 <strong>Date Hire: </strong>
+//                 <strong>Start Date: </strong>
 //                 <span>{requestData.startDate}</span>
+//               </div>
+//               <div className="request-item" style={{ marginBottom: "16px" }}>
+//                 <strong>Return Date: </strong>
+//                 <Form.Control
+//                   type="date"
+//                   value={returnDate}
+//                   onChange={(e) => setReturnDate(e.target.value)}
+//                   min={
+//                     new Date(new Date().setDate(new Date().getDate() + 1))
+//                       .toISOString()
+//                       .split("T")[0]
+//                   }
+//                   aria-label="Return date"
+//                 />
+//                 <p style={{ fontSize: "12px" }}>Shop opening at: 8:00 AM</p>
 //               </div>
 //               <div className="request-item" style={{ marginBottom: "16px" }}>
 //                 <strong>Location:</strong>
@@ -765,13 +721,12 @@
 //                   type="text"
 //                   value={location}
 //                   onChange={(e) => setLocation(e.target.value)}
-//                   placeholder="Input location...."
+//                   placeholder="Input location..."
+//                   aria-label="Request location"
 //                 />
 //               </div>
 //               <div className="request-item" style={{ marginBottom: "16px" }}>
-//                 <strong style={{ marginBottom: "16px" }}>
-//                   Request Hire Costume:
-//                 </strong>
+//                 <strong>Request Hire Costume:</strong>
 //                 <div className="character-list">
 //                   {requestData.listRequestCharacters.map((character, index) => {
 //                     const item =
@@ -829,7 +784,7 @@
 //           <Button
 //             variant="primary"
 //             onClick={handleFinalSendRequest}
-//             disabled={!location || isSending}
+//             disabled={!location || !description || !returnDate || isSending}
 //           >
 //             {isSending ? "Sending..." : "Send Request"}
 //           </Button>
@@ -905,7 +860,7 @@ const CostumesPage = () => {
   const [requestData, setRequestData] = useState(null);
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
-  const [returnDate, setReturnDate] = useState(""); // New state for return date
+  const [returnDate, setReturnDate] = useState("");
   const [isSending, setIsSending] = useState(false);
   const navigate = useNavigate();
   const params = useParams();
@@ -943,7 +898,7 @@ const CostumesPage = () => {
           maxHeight: costume.maxHeight,
           minWeight: costume.minWeight,
           maxWeight: costume.maxWeight,
-          quantity: 1,
+          quantity: costume.quantity || 0, // Use API-provided quantity with fallback
         }));
         setCostumes(formattedCostumes);
       } catch (err) {
@@ -1006,6 +961,14 @@ const CostumesPage = () => {
   };
 
   const updateQuantity = (id, value) => {
+    // Optional: Validate against available quantity
+    /*
+    const costume = costumes.find((c) => c.id === id);
+    if (value > costume.quantity) {
+      toast.error(`Cannot select more than ${costume.quantity} available items`);
+      return;
+    }
+    */
     setFavorites(
       favorites.map((item) =>
         item.id === id ? { ...item, quantity: value } : item
@@ -1045,7 +1008,7 @@ const CostumesPage = () => {
       description: description || null,
       price,
       startDate,
-      endDate: returnDate || "", // Will be updated by user input
+      endDate: returnDate || "",
       location: location || "",
       serviceId: "S001",
       packageId: "",
@@ -1092,6 +1055,14 @@ const CostumesPage = () => {
   };
 
   const updateRequestQuantity = (characterId, value) => {
+    // Optional: Validate against available quantity
+    /*
+    const costume = costumes.find((c) => c.id === characterId);
+    if (value > costume.quantity) {
+      toast.error(`Cannot request more than ${costume.quantity} available items`);
+      return;
+    }
+    */
     setRequestData((prev) => {
       const updatedList = prev.listRequestCharacters.map((character) =>
         character.characterId === characterId
@@ -1266,6 +1237,7 @@ const CostumesPage = () => {
                   <p className="costume-price">
                     Price: {costume.price.toLocaleString()} VND
                   </p>
+                  <p className="costume-price">Quantity: {costume.quantity}</p>
                   <div className="button-group">
                     <button
                       className="hire-button mb-2"
@@ -1348,9 +1320,6 @@ const CostumesPage = () => {
                 <p>{selectedCostume.description}</p>
                 <div className="costume-info">
                   <div className="info-item">
-                    <strong>Category:</strong> {selectedCostume.category}
-                  </div>
-                  <div className="info-item">
                     <strong>Height:</strong> {selectedCostume.height}
                   </div>
                   <div className="info-item">
@@ -1362,6 +1331,10 @@ const CostumesPage = () => {
                   <div className="info-item">
                     <strong>Price:</strong>{" "}
                     {selectedCostume.price.toLocaleString()} VND
+                  </div>
+                  <div className="info-item">
+                    <strong>Available Quantity:</strong>{" "}
+                    {selectedCostume.quantity}
                   </div>
                   <div className="info-item">
                     <strong>Create Date:</strong> {selectedCostume.createDate}
@@ -1454,10 +1427,10 @@ const CostumesPage = () => {
                       >
                         ❌
                       </AntButton>
-                      <div style={{ marginBottom: 4 }}>
-                        Item Total:{" "}
-                        {(item.price * item.quantity).toLocaleString()} VND
-                      </div>
+                    </div>
+                    <div style={{ marginTop: 4 }}>
+                      Item Total:{" "}
+                      {(item.price * item.quantity).toLocaleString()} VND
                     </div>
                   </div>
                 </div>

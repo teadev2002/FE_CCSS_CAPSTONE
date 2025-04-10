@@ -43,7 +43,7 @@ import MyRentalCostume from "./pages/MyRentalCostumePage/MyRentalCostume.js";
 import ManageRequestCustomerCharacter from "./pages/ManagerPage/ManageRequestCustomerCharacterPage/ManageRequestCustomerCharacter.js";
 import MyEventOrganize from "./pages/MyEventOrganizePage/MyEventOrganize.js";
 import PurchaseHistory from "./pages/PurchaseHistoryPage/PurchaseHistory.js"; // Thêm import PurchaseHistory
-
+import ManageAssignTask from "./pages/ManagerPage/ManageAssignTaskPage/ManageAssignTask.js";
 const AppLayout = ({ children }) => {
   const location = useLocation();
 
@@ -96,7 +96,11 @@ function App() {
           <Route path="/my-task/:id" element={<MyTask />} />
           <Route path="/my-rental-costume/:id" element={<MyRentalCostume />} />
           <Route path="/my-event-organize/:id" element={<MyEventOrganize />} />
-          <Route path="/my-purchase-history/:id" element={<PurchaseHistory />} /> {/* Thêm route PurchaseHistory */}
+          <Route
+            path="/my-purchase-history/:id"
+            element={<PurchaseHistory />}
+          />{" "}
+          {/* Thêm route PurchaseHistory */}
           <Route path="/success-payment" element={<SuccessPayment />} />
           <Route path="/admin/dashboard" element={<DashboardPage />} />
           <Route
@@ -126,6 +130,7 @@ function App() {
             path="/manage/request-customer-character"
             element={<ManageRequestCustomerCharacter />}
           />
+          <Route path="/manage/assign-task" element={<ManageAssignTask />} />
         </Routes>
         <ToastContainer
           position="top-right"
