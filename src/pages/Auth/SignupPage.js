@@ -8,11 +8,6 @@ import "react-toastify/dist/ReactToastify.css";
 import "../../styles/SignUpPage.scss";
 import AuthService from "../../services/AuthService";
 import ModalConfirmSignUp from "./ModalConfirmSignUp";
-import dayjs from "dayjs"; // Thêm thư viện dayjs
-import customParseFormat from "dayjs/plugin/customParseFormat";
-
-// Kích hoạt plugin customParseFormat
-dayjs.extend(customParseFormat);
 
 const SignupPage = () => {
   const [formData, setFormData] = useState({
@@ -20,7 +15,7 @@ const SignupPage = () => {
     email: "",
     password: "",
     confirmPassword: "",
-    birthday: "", // Lưu giá trị từ input type="date" (YYYY-MM-DD)
+    birthday: "", // Giá trị từ input type="date" (YYYY-MM-DD)
     phone: "",
   });
   const [errors, setErrors] = useState({});
@@ -30,6 +25,15 @@ const SignupPage = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({ ...prevData, [name]: value }));
+  };
+
+  // Hàm định dạng ngày từ YYYY-MM-DD sang DD/MM/YYYY
+  const formatDateToDDMMYYYY = (dateString) => {
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, "0"); // Lấy ngày, thêm số 0 nếu cần
+    const month = String(date.getMonth() + 1).padStart(2, "0"); // Lấy tháng (tháng bắt đầu từ 0, nên +1)
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`; // Trả về định dạng DD/MM/YYYY
   };
 
   const validateForm = () => {
@@ -68,19 +72,13 @@ const SignupPage = () => {
     if (!formData.birthday) {
       newErrors.birthday = "Birthday is required.";
     } else {
-      // Input type="date" trả về định dạng YYYY-MM-DD
-      const birthday = dayjs(formData.birthday, "YYYY-MM-DD", true);
+      // So sánh ngày sinh với ngày hiện tại
+      const today = new Date();
+      const birthday = new Date(formData.birthday);
 
-      // Kiểm tra định dạng và ngày hợp lệ
-      if (!birthday.isValid()) {
-        newErrors.birthday = "Birthday is not a valid date.";
-      } else {
-        // Kiểm tra ngày không trong tương lai
-        const today = dayjs();
-        // So sánh chỉ ngày, bỏ qua giờ
-        if (birthday.isAfter(today, "day")) {
-          newErrors.birthday = "Birthday cannot be in the future.";
-        }
+      // Kiểm tra ngày không trong tương lai
+      if (birthday > today) {
+        newErrors.birthday = "Birthday cannot be in the future.";
       }
     }
 
@@ -94,16 +92,15 @@ const SignupPage = () => {
 
     if (Object.keys(newErrors).length === 0) {
       try {
-        // Chuẩn hóa birthday: thêm giờ mặc định 08:00 và chuyển sang định dạng HH:mm DD/MM/YYYY
-        const birthdayFormatted = dayjs(formData.birthday).format(
-          "08:00 DD/MM/YYYY"
-        );
+        // Định dạng birthday từ YYYY-MM-DD sang DD/MM/YYYY
+        const birthdayFormatted = formatDateToDDMMYYYY(formData.birthday);
 
+        // Gửi dữ liệu đến API với birthday đã được định dạng
         const response = await AuthService.signup(
           formData.name,
           formData.email,
           formData.password,
-          birthdayFormatted, // Gửi định dạng HH:mm DD/MM/YYYY
+          birthdayFormatted, // Gửi định dạng DD/MM/YYYY
           formData.phone
         );
 
@@ -244,7 +241,7 @@ const SignupPage = () => {
                   <Calendar size={18} className="input-icon" />
                   <Form.Group className="mb-3" controlId="formBirthday">
                     <Form.Control
-                      type="date" // Sử dụng type="date" của Bootstrap
+                      type="date"
                       name="birthday"
                       value={formData.birthday}
                       onChange={handleInputChange}
