@@ -49,6 +49,10 @@ const LoginPage = () => {
       if (userRole === "Cosplayer" && decoded) {
         const userId = decoded.Id;
         navigate(`/my-task/${userId}`);
+      } else if (userRole === "Manager" && decoded) {
+        navigate(`/manage/request`);
+      } else if (userRole === "Consultant" && decoded) {
+        navigate(`/manage/contract`);
       } else {
         navigate("/");
       }
