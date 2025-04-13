@@ -7,15 +7,31 @@ import {
   Card,
   Badge,
   Spinner,
+  Modal,
+  Button,
 } from "react-bootstrap";
-import { Pagination } from "antd";
+import { Tabs, Pagination } from "antd";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "antd/dist/reset.css";
 import "../../styles/MyTask.scss";
 import { useParams, useNavigate } from "react-router-dom";
 import TaskService from "../../services/TaskService/TaskService";
-import { FileText, Code, CheckCircle, XCircle } from "lucide-react";
+import {
+  FileText,
+  Code,
+  CheckCircle,
+  XCircle,
+  Calendar,
+  Clock,
+  MapPin,
+  User,
+  Tag,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+
+const { TabPane } = Tabs;
 
 const MyTask = () => {
   const [tasks, setTasks] = useState([]);
@@ -23,11 +39,135 @@ const MyTask = () => {
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All Status");
+  const [view, setView] = useState("list");
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [calendarDays, setCalendarDays] = useState([]);
+  const [accountName, setAccountName] = useState(null);
+  const [isLoadingAccount, setIsLoadingAccount] = useState(false);
   const itemsPerPage = 5;
 
   const { id } = useParams();
   const navigate = useNavigate();
 
+  // Logic cho Calendar
+  useEffect(() => {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const firstDayOfWeek = firstDay.getDay();
+    const daysFromPrevMonth = firstDayOfWeek;
+    const prevMonthLastDay = new Date(year, month, 0).getDate();
+    const days = [];
+
+    for (let i = daysFromPrevMonth - 1; i >= 0; i--) {
+      days.push(new Date(year, month - 1, prevMonthLastDay - i));
+    }
+
+    for (let i = 1; i <= lastDay.getDate(); i++) {
+      days.push(new Date(year, month, i));
+    }
+
+    const remainingDays = 42 - days.length;
+    for (let i = 1; i <= remainingDays; i++) {
+      days.push(new Date(year, month + 1, i));
+    }
+
+    setCalendarDays(days);
+  }, [currentDate]);
+
+  const prevMonth = () => {
+    setCurrentDate(
+      new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1)
+    );
+  };
+
+  const nextMonth = () => {
+    setCurrentDate(
+      new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1)
+    );
+  };
+
+  const getTasksForDay = (day) => {
+    const dayStart = new Date(day);
+    dayStart.setHours(0, 0, 0, 0); // Đặt về đầu ngày để so sánh
+
+    return tasks.filter((task) => {
+      // Parse startDate và endDate
+      const parseDate = (dateString) => {
+        const [, datePart] = dateString.split(" ");
+        const [day, month, year] = datePart.split("/").map(Number);
+        return new Date(year, month - 1, day);
+      };
+
+      const taskStart = parseDate(task.startDate);
+      const taskEnd = parseDate(task.endDate);
+
+      // Đặt taskStart và taskEnd về đầu ngày để so sánh
+      taskStart.setHours(0, 0, 0, 0);
+      taskEnd.setHours(23, 59, 59, 999); // Đặt taskEnd về cuối ngày
+
+      // Kiểm tra nếu day nằm trong khoảng [taskStart, taskEnd]
+      return dayStart >= taskStart && dayStart <= taskEnd;
+    });
+  };
+
+  const formatMonth = (date) => {
+    return date.toLocaleString("default", { month: "long", year: "numeric" });
+  };
+
+  const isCurrentMonth = (day) => {
+    return day.getMonth() === currentDate.getMonth();
+  };
+
+  const isToday = (day) => {
+    const today = new Date();
+    return (
+      day.getDate() === today.getDate() &&
+      day.getMonth() === today.getMonth() &&
+      day.getFullYear() === today.getFullYear()
+    );
+  };
+
+  // Logic cho TaskList
+  const statusColors = {
+    Progressing: "warning",
+    Active: "primary",
+    Done: "success",
+    Cancel: "secondary",
+  };
+
+  const getIcon = (taskName) => {
+    if (taskName.toLowerCase().includes("document"))
+      return <FileText size={24} />;
+    if (
+      taskName.toLowerCase().includes("api") ||
+      taskName.toLowerCase().includes("develop")
+    )
+      return <Code size={24} />;
+    if (taskName.toLowerCase().includes("test"))
+      return <CheckCircle size={24} />;
+    if (taskName.toLowerCase().includes("migra")) return <XCircle size={24} />;
+    return <FileText size={24} />;
+  };
+
+  const filteredTasks = tasks.filter((task) => {
+    const matchesSearch = task.taskName
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesStatus =
+      statusFilter === "All Status" || task.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  const paginatedTasks = filteredTasks.slice(
+    (page - 1) * itemsPerPage,
+    page * itemsPerPage
+  );
+  const totalItems = filteredTasks.length;
+
+  // Logic tải tasks
   useEffect(() => {
     const loadTasks = async () => {
       if (!id) {
@@ -73,45 +213,51 @@ const MyTask = () => {
     loadTasks();
   }, [id, navigate]);
 
-  const filteredTasks = tasks.filter((task) => {
-    const matchesSearch = task.taskName
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    const matchesStatus =
-      statusFilter === "All Status" || task.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  // Logic tải account name cho TaskDetail
+  useEffect(() => {
+    if (selectedTask?.accountId) {
+      const fetchAccountName = async () => {
+        setIsLoadingAccount(true);
+        try {
+          const accountData = await TaskService.getProfileById(
+            selectedTask.accountId
+          );
+          setAccountName(accountData.name || "N/A");
+        } catch (error) {
+          console.error("Error fetching account name:", error.message);
+          setAccountName("N/A");
+          toast.error(`Failed to load account name: ${error.message}`, {
+            position: "top-right",
+            autoClose: 3000,
+          });
+        } finally {
+          setIsLoadingAccount(false);
+        }
+      };
+      fetchAccountName();
+    } else {
+      setAccountName(null);
+    }
+  }, [selectedTask?.accountId]);
 
-  const paginatedTasks = filteredTasks.slice(
-    (page - 1) * itemsPerPage,
-    page * itemsPerPage
-  );
-  const totalItems = filteredTasks.length;
+  const handleTaskClick = (task) => {
+    setSelectedTask(task);
+  };
+
+  const handleCloseDetail = () => {
+    setSelectedTask(null);
+    setAccountName(null);
+  };
 
   const handlePageChange = (newPage) => {
     setPage(newPage);
   };
 
-  // Logic cho TaskCard
-  const statusColors = {
-    Progressing: "warning",
-    Active: "primary",
-    Done: "success",
-    Cancel: "secondary",
-  };
-
-  const getIcon = (taskName) => {
-    if (taskName.toLowerCase().includes("document"))
-      return <FileText size={24} />;
-    if (
-      taskName.toLowerCase().includes("api") ||
-      taskName.toLowerCase().includes("develop")
-    )
-      return <Code size={24} />;
-    if (taskName.toLowerCase().includes("test"))
-      return <CheckCircle size={24} />;
-    if (taskName.toLowerCase().includes("migra")) return <XCircle size={24} />;
-    return <FileText size={24} />;
+  // Logic formatDate cho TaskDetail
+  const formatDate = (dateString) => {
+    const [time, date] = dateString.split(" ");
+    const [day, month, year] = date.split("/");
+    return `${day}/${month}/${year} ${time}`;
   };
 
   return (
@@ -121,7 +267,6 @@ const MyTask = () => {
           <span>My Task</span>
         </h1>
 
-        {/* Filters and Search */}
         <div className="filter-section bg-white p-4 rounded shadow mb-5">
           <Row className="align-items-center g-3">
             <Col md={6}>
@@ -148,92 +293,274 @@ const MyTask = () => {
           </Row>
         </div>
 
-        {/* Task List */}
-        {isLoading ? (
-          <div className="text-center">
-            <Spinner animation="border" role="status">
-              <span className="visually-hidden">Loading...</span>
-            </Spinner>
-          </div>
-        ) : filteredTasks.length === 0 ? (
-          <p className="text-center">No tasks available.</p>
-        ) : (
-          <Row className="g-4">
-            {paginatedTasks.map((task) => (
-              <Col key={task.taskId} xs={12}>
-                <Card className="task-card shadow">
-                  <Card.Body>
-                    <div className="d-flex flex-column flex-md-row gap-4">
-                      {/* Task Info */}
-                      <div className="flex-grow-1">
-                        <div className="d-flex gap-3">
-                          <div className="icon-circle">
-                            {getIcon(task.taskName)}
-                          </div>
-                          <div className="flex-grow-1">
-                            <div className="d-flex justify-content-between align-items-start">
-                              <h3 className="task-title mb-0">
-                                {task.taskName || "N/A"}
-                              </h3>
-                              <Badge
-                                bg={statusColors[task.status] || "secondary"}
-                              >
-                                {task.status || "Unknown"}
-                              </Badge>
+        <Tabs
+          activeKey={view}
+          onChange={(key) => setView(key)}
+          className="tabs"
+        >
+          <TabPane tab="List View" key="list">
+            {isLoading ? (
+              <div className="text-center">
+                <Spinner animation="border" role="status">
+                  <span className="visually-hidden">Loading...</span>
+                </Spinner>
+              </div>
+            ) : (
+              <>
+                <Row className="g-4">
+                  {paginatedTasks.length === 0 ? (
+                    <Col>
+                      <p className="text-center">No tasks available.</p>
+                    </Col>
+                  ) : (
+                    paginatedTasks.map((task) => (
+                      <Col key={task.taskId} xs={12}>
+                        <Card
+                          className="task-card shadow"
+                          onClick={() => handleTaskClick(task)}
+                        >
+                          <Card.Body>
+                            <div className="d-flex flex-column flex-md-row gap-4">
+                              <div className="flex-grow-1">
+                                <div className="d-flex gap-3">
+                                  <div className="icon-circle">
+                                    {getIcon(task.taskName)}
+                                  </div>
+                                  <div className="flex-grow-1">
+                                    <div className="d-flex justify-content-between align-items-start">
+                                      <h3 className="task-title mb-0">
+                                        {task.taskName || "N/A"}
+                                      </h3>
+                                      <Badge
+                                        bg={
+                                          statusColors[task.status] ||
+                                          "secondary"
+                                        }
+                                      >
+                                        {task.status || "Unknown"}
+                                      </Badge>
+                                    </div>
+                                    <div className="text-muted small">
+                                      {task.location || "N/A"}
+                                    </div>
+                                    <p className="description mt-2 mb-0">
+                                      {task.description || "N/A"}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="text-md-end">
+                                <div className="d-flex gap-3 align-items-center justify-content-md-end">
+                                  <span className="text-muted small">
+                                    {task.startDate || "N/A"} to{" "}
+                                    {task.endDate || "N/A"}
+                                  </span>
+                                  <Badge
+                                    bg={task.isActive ? "success" : "danger"}
+                                  >
+                                    {task.isActive ? "Yes" : "No"}
+                                  </Badge>
+                                </div>
+                                <div className="mt-2 text-muted small">
+                                  <div>Created: {task.createDate || "N/A"}</div>
+                                  <div>Updated: {task.updateDate || "N/A"}</div>
+                                </div>
+                              </div>
                             </div>
-                            <div className="text-muted small">
-                              {task.location || "N/A"}
-                            </div>
-                            <p className="description mt-2 mb-0">
-                              {task.description || "N/A"}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
+                          </Card.Body>
+                        </Card>
+                      </Col>
+                    ))
+                  )}
+                </Row>
+                {totalItems > 0 && (
+                  <Row className="mt-5 align-items-center">
+                    <Col xs={12} sm={6} className="mb-3 mb-sm-0">
+                      <p className="mb-0">
+                        Showing <strong>{(page - 1) * itemsPerPage + 1}</strong>{" "}
+                        to{" "}
+                        <strong>
+                          {Math.min(page * itemsPerPage, totalItems)}
+                        </strong>{" "}
+                        of <strong>{totalItems}</strong> results
+                      </p>
+                    </Col>
+                    <Col xs={12} sm={6} className="d-flex justify-content-end">
+                      <Pagination
+                        current={page}
+                        pageSize={itemsPerPage}
+                        total={totalItems}
+                        onChange={handlePageChange}
+                        showSizeChanger={false}
+                      />
+                    </Col>
+                  </Row>
+                )}
+              </>
+            )}
+          </TabPane>
+          <TabPane tab="Calendar View" key="calendar">
+            {isLoading ? (
+              <div className="text-center">
+                <Spinner animation="border" role="status">
+                  <span className="visually-hidden">Loading...</span>
+                </Spinner>
+              </div>
+            ) : (
+              <div className="calendar-container">
+                <div className="calendar-header">
+                  <Button
+                    variant="outline-secondary"
+                    size="sm"
+                    onClick={prevMonth}
+                  >
+                    <ChevronLeft size={16} />
+                  </Button>
+                  <h4>{formatMonth(currentDate)}</h4>
+                  <Button
+                    variant="outline-secondary"
+                    size="sm"
+                    onClick={nextMonth}
+                  >
+                    <ChevronRight size={16} />
+                  </Button>
+                </div>
 
-                      {/* Dates and Status */}
-                      <div className="text-md-end">
-                        <div className="d-flex gap-3 align-items-center justify-content-md-end">
-                          <span className="text-muted small">
-                            {task.startDate || "N/A"} to {task.endDate || "N/A"}
+                <div className="calendar-grid">
+                  {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
+                    (day) => (
+                      <div key={day} className="calendar-day-header">
+                        {day}
+                      </div>
+                    )
+                  )}
+
+                  {calendarDays.map((day, index) => {
+                    const dayTasks = getTasksForDay(day);
+                    return (
+                      <div
+                        key={index}
+                        className={`calendar-day ${
+                          isCurrentMonth(day) ? "current-month" : "other-month"
+                        } ${isToday(day) ? "today" : ""} ${
+                          dayTasks.length > 0 ? "has-tasks" : ""
+                        }`}
+                      >
+                        <div className="day-number">
+                          <span className={isToday(day) ? "today-number" : ""}>
+                            {day.getDate()}
                           </span>
-                          <Badge bg={task.isActive ? "success" : "danger"}>
-                            {task.isActive ? "Yes" : "No"}
-                          </Badge>
                         </div>
-                        <div className="mt-2 text-muted small">
-                          <div>Created: {task.createDate || "N/A"}</div>
-                          <div>Updated: {task.updateDate || "N/A"}</div>
+                        <div className="tasks">
+                          {dayTasks.map((task) => (
+                            <div
+                              key={task.taskId}
+                              onClick={() => handleTaskClick(task)}
+                              className="task"
+                              style={{ backgroundColor: task.color }}
+                            >
+                              {task.taskName}
+                            </div>
+                          ))}
                         </div>
                       </div>
-                    </div>
-                  </Card.Body>
-                </Card>
-              </Col>
-            ))}
-          </Row>
-        )}
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </TabPane>
+        </Tabs>
 
-        {/* Pagination */}
-        {filteredTasks.length > 0 && (
-          <Row className="mt-5 align-items-center">
-            <Col xs={12} sm={6} className="mb-3 mb-sm-0">
-              <p className="mb-0">
-                Showing <strong>{(page - 1) * itemsPerPage + 1}</strong> to{" "}
-                <strong>{Math.min(page * itemsPerPage, totalItems)}</strong> of{" "}
-                <strong>{totalItems}</strong> results
-              </p>
-            </Col>
-            <Col xs={12} sm={6} className="d-flex justify-content-end">
-              <Pagination
-                current={page}
-                pageSize={itemsPerPage}
-                total={totalItems}
-                onChange={handlePageChange}
-                showSizeChanger={false}
-              />
-            </Col>
-          </Row>
+        {/* TaskDetail Modal */}
+        {selectedTask && (
+          <Modal show={!!selectedTask} onHide={handleCloseDetail} centered>
+            <Modal.Header closeButton className="modal-header">
+              <Modal.Title>{selectedTask.taskName}</Modal.Title>
+            </Modal.Header>
+            <Modal.Body className="modal-body">
+              <div className="detail-item">
+                <MapPin size={20} className="icon" />
+                <div>
+                  <strong>Location</strong>
+                  <p>{selectedTask.location || "N/A"}</p>
+                </div>
+              </div>
+
+              <div className="detail-item">
+                <Calendar size={20} className="icon" />
+                <div>
+                  <strong>Date & Time</strong>
+                  <p>Start: {formatDate(selectedTask.startDate)}</p>
+                  <p>End: {formatDate(selectedTask.endDate)}</p>
+                </div>
+              </div>
+
+              <div className="detail-item">
+                <FileText size={20} className="icon" />
+                <div>
+                  <strong>Description</strong>
+                  <p>{selectedTask.description || "N/A"}</p>
+                </div>
+              </div>
+
+              <hr className="divider" />
+
+              <div className="detail-grid">
+                <div className="detail-item">
+                  <Tag size={20} className="icon" />
+                  <div>
+                    <strong>Task Name</strong>
+                    <p>{selectedTask.taskName || "N/A"}</p>
+                  </div>
+                </div>
+
+                <div className="detail-item">
+                  <User size={20} className="icon" />
+                  <div>
+                    <strong>Account Name</strong>
+                    <p>{isLoadingAccount ? "Loading..." : accountName}</p>
+                  </div>
+                </div>
+
+                <div className="detail-item">
+                  <Clock size={20} className="icon" />
+                  <div>
+                    <strong>Created</strong>
+                    <p>{formatDate(selectedTask.createDate)}</p>
+                  </div>
+                </div>
+
+                <div className="detail-item">
+                  <Clock size={20} className="icon" />
+                  <div>
+                    <strong>Updated</strong>
+                    <p>{formatDate(selectedTask.updateDate)}</p>
+                  </div>
+                </div>
+
+                <div className="detail-item">
+                  {selectedTask.isActive ? (
+                    <CheckCircle size={20} className="icon-success" />
+                  ) : (
+                    <XCircle size={20} className="icon-error" />
+                  )}
+                  <div>
+                    <strong>Status</strong>
+                    <p>{selectedTask.isActive ? "Active" : "Inactive"}</p>
+                  </div>
+                </div>
+              </div>
+            </Modal.Body>
+            <Modal.Footer>
+              <Button variant="secondary" onClick={handleCloseDetail}>
+                Close
+              </Button>
+              <Button variant="primary" className="edit-button">
+                Edit Task
+              </Button>
+            </Modal.Footer>
+          </Modal>
         )}
       </Container>
     </div>
