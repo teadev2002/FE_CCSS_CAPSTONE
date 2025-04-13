@@ -461,4 +461,31 @@ $link-color: #0095f6;
       }
     }
   }
+  .image-gallery {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px; // Space between images
+  
+    .ant-image {
+      flex: 0 0 calc(25% - 8px); // 25% width for 4 images per row, minus gap
+      max-width: 150px; // Match the width prop on Image
+    }
+  
+    // Ensure the image itself takes up the full width of the container
+    .ant-image-img {
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+  }
+  
+  .additional-images {
+    text-align: center;
+    h5 {
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+    }
+  }
 }
