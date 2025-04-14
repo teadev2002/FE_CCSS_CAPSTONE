@@ -1,0 +1,106 @@
+.ticket-check {
+  padding: 10px;
+  background: url('https://i.pinimg.com/originals/d2/ad/3f/d2ad3f633977d1ec518916b5c4fe5acd.jpg') no-repeat center center fixed;
+  background-size: cover;
+  min-height: 100vh;
+
+  .ticket-check-title {
+    font-size: 32px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    text-align: center;
+    color: #ffffff;
+    background: transparent;
+  }
+
+  .form-container {
+    display: flex;
+    padding: 10px;
+  }
+
+  .ticket-check-card {
+    width: 90%;
+    margin: 10px auto;
+    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.2);
+    background: #fff;
+    border-radius: 15px;
+    opacity: 0.9;
+
+    .card-body {
+      padding: 15px;
+    }
+
+    .form-header {
+      margin-bottom: 10px;
+
+      h3 {
+        font-size: 20px;
+        font-weight: 600;
+        margin: 0;
+        text-align: center;
+      }
+    }
+
+    .form-group {
+      label {
+        font-weight: 500;
+        color: #333;
+        margin-bottom: 4px;
+      }
+
+      .ant-input {
+        border-radius: 5px;
+        border: 1px solid #ced4da;
+        padding: 6px 10px;
+        font-size: 16px;
+
+        &:focus {
+          border-color: #007bff;
+          box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+        }
+      }
+    }
+
+    .form-actions {
+      text-align: center;
+      margin-top: 20px;
+
+      .ant-btn-primary {
+        padding: 6px 20px;
+        font-size: 16px;
+        border-radius: 5px;
+        text-transform: none;
+
+        &[disabled] {
+          background: #d9d9d9;
+          border-color: #d9d9d9;
+          color: #999;
+          cursor: not-allowed;
+        }
+      }
+    }
+
+    .out-of-quantity {
+      color: #ff4d4f;
+      font-weight: bold;
+      text-align: center;
+      margin-top: 10px;
+      font-size: 16px;
+    }
+
+    .ticket-stats {
+      margin-top: 20px;
+      text-align: center;
+
+      p {
+        font-size: 16px;
+        color: #333;
+        margin: 5px 0;
+
+        strong {
+          color: #007bff;
+        }
+      }
+    }
+  }
+}

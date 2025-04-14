@@ -1,10 +1,11 @@
-// còn lỗi  và update
+// còn lỗi và update
 //boot
 
 import React, { useState, useEffect } from "react";
 import CharacterList from "./CharacterList";
 import CharacterForm from "./CharacterForm";
-import Button from "react-bootstrap/Button";
+import { Card } from "react-bootstrap"; // Chỉ giữ Card, bỏ Button Bootstrap
+import { Button } from "antd"; // Sử dụng Ant Design Button
 import CharacterService from "../../../services/ManageServicePages/ManageCharacterService/CharacterService";
 import { toast } from "react-toastify";
 import "../../../styles/Manager/ManageCharacter.scss";
@@ -109,35 +110,41 @@ const ManageCharacter = () => {
   };
 
   return (
-    <div className="manage-character-container">
+    <div className="manage-character">
       <h2 className="manage-character-title">Manage Characters</h2>
-      <Button
-        variant="primary"
-        onClick={() => handleShowModal()}
-        className="mb-3"
-        disabled={loading}
-      >
-        Add New Character
-      </Button>
-
-      {error && <p className="text-danger">{error}</p>}
-      <CharacterList
-        characters={characters}
-        onEdit={handleShowModal}
-        onDelete={handleDelete}
-        loading={loading}
-      />
-
-      {openModal && (
-        <CharacterForm
-          open={openModal}
-          onClose={handleCloseModal}
-          onSubmit={handleCreateOrUpdate}
-          initialData={currentCharacter}
-          isEditing={isEditing}
-          loading={loading}
-        />
-      )}
+      <div className="table-container">
+        <Card className="character-table-card">
+          <Card.Body>
+            <div className="table-header">
+              <h3>Characters</h3>
+              <Button
+                type="primary"
+                onClick={() => handleShowModal()}
+                disabled={loading}
+              >
+                Add New Character
+              </Button>
+            </div>
+            {error && <p className="error-message">{error}</p>}
+            <CharacterList
+              characters={characters}
+              onEdit={handleShowModal}
+              onDelete={handleDelete}
+              loading={loading}
+            />
+            {openModal && (
+              <CharacterForm
+                open={openModal}
+                onClose={handleCloseModal}
+                onSubmit={handleCreateOrUpdate}
+                initialData={currentCharacter}
+                isEditing={isEditing}
+                loading={loading}
+              />
+            )}
+          </Card.Body>
+        </Card>
+      </div>
     </div>
   );
 };

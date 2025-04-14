@@ -86,7 +86,8 @@
 //     }
 //   }
 .sidebar {
-  width: 70px; /* Chiều rộng khi thu gọn */
+  width: 70px;
+  /* Chiều rộng khi thu gọn */
   height: 100vh;
   background: #2c3e50;
   color: #fff;
@@ -95,10 +96,12 @@
   top: 0;
   transition: width 0.3s ease;
   z-index: 1000;
-  overflow: hidden; /* Giữ để ẩn nội dung dư thừa */
+  overflow: hidden;
+  /* Giữ để ẩn nội dung dư thừa */
 
   &:hover {
-    width: 250px; /* Chiều rộng khi mở rộng */
+    width: 250px;
+    /* Chiều rộng khi mở rộng */
   }
 
   .sidebar-header {
@@ -113,13 +116,15 @@
       font-size: 1.25rem;
       font-weight: 600;
       white-space: nowrap;
-      opacity: 0; /* Ẩn khi thu gọn */
+      opacity: 0;
+      /* Ẩn khi thu gọn */
       transition: opacity 0.1s ease;
     }
   }
 
   &:hover .sidebar-header .brand {
-    opacity: 1; /* Hiện chữ khi hover */
+    opacity: 1;
+    /* Hiện chữ khi hover */
   }
 
   .sidebar-nav {
@@ -144,22 +149,27 @@
         background: #3498db;
       }
 
-      svg { /* Đảm bảo icon luôn hiển thị */
-        flex-shrink: 0; /* Ngăn icon bị co lại */
-        width: 20px; /* Kích thước cố định cho icon */
+      svg {
+        /* Đảm bảo icon luôn hiển thị */
+        flex-shrink: 0;
+        /* Ngăn icon bị co lại */
+        width: 20px;
+        /* Kích thước cố định cho icon */
         height: 20px;
       }
 
       span {
         margin-left: 0.75rem;
-        opacity: 0; /* Ẩn chữ khi thu gọn */
+        opacity: 0;
+        /* Ẩn chữ khi thu gọn */
         transition: opacity 0.1s ease;
       }
     }
   }
 
   &:hover .sidebar-nav .nav-link span {
-    opacity: 1; /* Hiện chữ khi hover */
+    opacity: 1;
+    /* Hiện chữ khi hover */
   }
 }
 

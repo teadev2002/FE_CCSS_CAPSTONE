@@ -484,7 +484,7 @@ const ManageRequest = () => {
 
   return (
     <div className="manage-general">
-      <h2 className="manage-general-title">Manage Request</h2>
+      <h2 className="manage-general-title">Manage Requests</h2>
       <div className="table-container">
         <Card className="status-table-card">
           <Card.Body>
@@ -503,10 +503,10 @@ const ManageRequest = () => {
                     {selectedService === "All"
                       ? "All Services"
                       : selectedService === "S001"
-                      ? "Hire Costume"
-                      : selectedService === "S002"
-                      ? "Hire Cosplayer"
-                      : "Event Organization"}{" "}
+                        ? "Hire Costume"
+                        : selectedService === "S002"
+                          ? "Hire Cosplayer"
+                          : "Event Organization"}{" "}
                     ▼
                   </Button>
                 </Dropdown>
