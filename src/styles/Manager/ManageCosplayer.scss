@@ -47,6 +47,7 @@
         border-radius: 5px;
         border: 1px solid #ced4da;
         padding: 5px 10px;
+
         &:focus {
           border-color: #007bff;
           box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
@@ -135,6 +136,7 @@
 
             .dropdown-menu {
               min-width: 60px;
+
               .dropdown-item {
                 font-size: 14px;
                 padding: 4px 8px;
@@ -194,6 +196,7 @@
           border-radius: 5px;
           border: 1px solid #ced4da;
           padding: 6px 10px;
+
           &:focus {
             border-color: #007bff;
             box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);

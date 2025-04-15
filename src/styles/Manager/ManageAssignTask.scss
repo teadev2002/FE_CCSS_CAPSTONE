@@ -16,6 +16,7 @@ $transition-speed: 0.3s;
 
 @mixin card-hover {
   transition: all $transition-speed ease-in-out;
+
   &:hover {
     transform: translateY(-4px);
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
@@ -27,7 +28,7 @@ $transition-speed: 0.3s;
   background: url('https://i.pinimg.com/originals/d2/ad/3f/d2ad3f633977d1ec518916b5c4fe5acd.jpg') no-repeat center center fixed;
   background-size: cover;
   min-height: 100vh;
-  
+
 }
 
 .mat-container {
@@ -101,7 +102,7 @@ $transition-speed: 0.3s;
   border: none;
   border-radius: $border-radius;
   background: #fff;
-   
+
   .card-title {
     font-size: 1.2rem;
     color: $text-primary;
@@ -220,6 +221,7 @@ $transition-speed: 0.3s;
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);

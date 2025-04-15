@@ -1,56 +1,192 @@
-.manage-character-container {
-  text-align: center;
-  padding: 20px;
+.manage-character {
+  padding: 10px;
+  background: url('https://i.pinimg.com/originals/d2/ad/3f/d2ad3f633977d1ec518916b5c4fe5acd.jpg') no-repeat center center fixed;
+  background-size: cover;
+  min-height: 100vh;
 
   .manage-character-title {
-    margin-bottom: 20px;
-    color: #333;
-    font-size: 24px;
+    font-size: 32px;
     font-weight: bold;
+    margin-bottom: 15px;
+    text-align: center;
+    color: #ffffff;
+    background: transparent;
   }
 
-  .table {
-    background-color: #fff;
+  .table-container {
+    display: flex;
+    padding: 10px;
   }
 
-  .table thead {
-    background-color: #f5f5f5;
-    font-weight: bold;
-  }
+  .character-table-card {
+    width: 90%;
+    margin: 10px auto;
+    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.2);
+    background: #fff;
+    border-radius: 15px;
+    opacity: 0.9;
 
-  .table tbody tr:hover {
-    background-color: #f0f0f0;
-  }
-
-  .image-management {
-    margin-top: 16px;
-
-    h4 {
-      margin-bottom: 16px;
-      color: #333;
+    .card-body {
+      padding: 15px;
     }
 
-    .image-preview {
-      .image-preview-item {
-        background-color: #f5f5f5;
-        padding: 8px;
+    .table-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+
+      h3 {
+        font-size: 20px;
+        font-weight: 600;
+        margin: 0;
+      }
+
+      .ant-btn-primary {
+        padding: 5px 10px;
+        font-size: 14px;
         border-radius: 4px;
+      }
+    }
+
+    .error-message {
+      color: #ff4d4f;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+
+    .table {
+      margin-bottom: 0;
+
+      th,
+      td {
+        vertical-align: middle;
+        padding: 8px;
+        text-align: center;
+      }
+
+      thead {
+        background-color: #f5f5f5;
+        font-weight: bold;
+        color: #333;
+      }
+
+      tbody tr:hover {
+        background-color: #f0f0f0;
+      }
+
+      .ant-btn {
+        padding: 5px 10px;
+        font-size: 14px;
+        border-radius: 4px;
+        text-transform: none;
+      }
+    }
+
+    // Style cho phân trang
+    .pagination {
+      margin-top: 10px;
+      display: flex;
+      justify-content: flex-end;
+
+      .page-item {
+        .page-link {
+          padding: 4px 8px;
+          font-size: 14px;
+          border-radius: 4px;
+          color: #333;
+
+          &:hover {
+            background-color: #e9ecef;
+          }
+        }
+
+        &.active .page-link {
+          background-color: #007bff;
+          border-color: #007bff;
+          color: #fff;
+        }
+
+        &.disabled .page-link {
+          color: #6c757d;
+        }
+      }
+    }
+
+    // Style cho image preview (giả định từ code cũ)
+    .image-management {
+      margin-top: 16px;
+
+      h4 {
+        margin-bottom: 16px;
+        color: #333;
+        font-size: 18px;
+        font-weight: 600;
+      }
+
+      .image-preview {
+        .image-preview-item {
+          background-color: #f5f5f5;
+          padding: 8px;
+          border-radius: 4px;
+          margin-bottom: 8px;
+        }
       }
     }
   }
 
-  // Style cho phân trang
-  .pagination {
-    .page-item.active .page-link {
-      background-color: #007bff;
-      border-color: #007bff;
-      color: #fff; // Màu chữ khi active
+  // Style cho modal (giả định CharacterForm dùng modal)
+  .character-modal {
+    .modal-content {
+      border-radius: 8px;
     }
-    .page-link {
-      color: #000; // Màu chữ mặc định là đen
+
+    .modal-header {
+      background-color: #f8f9fa;
+      border-bottom: 1px solid #dee2e6;
+      padding: 10px 15px;
     }
-    .page-item.disabled .page-link {
-      color: #6c757d; // Màu chữ khi disabled
+
+    .modal-title {
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .modal-body {
+      padding: 15px;
+      text-align: center;
+
+      .form-group {
+        label {
+          font-weight: 500;
+          color: #333;
+          margin-bottom: 4px;
+        }
+
+        .form-control {
+          border-radius: 5px;
+          border: 1px solid #ced4da;
+          padding: 6px 10px;
+
+          &:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+          }
+        }
+      }
+    }
+
+    .modal-footer {
+      border-top: 1px solid #dee2e6;
+      padding: 10px 15px;
+
+      .btn {
+        padding: 6px 12px;
+        border-radius: 5px;
+        text-transform: none;
+      }
     }
   }
 }

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
   Table,
-  Button,
   Modal,
   Form,
   Card,
@@ -14,7 +13,7 @@ import {
 } from "react-bootstrap";
 import SourvenirService from "../../../services/ManageServicePages/ManageSouvenirService/SouvenirService.js";
 import "../../../styles/Manager/ManageSouvenir.scss";
-import { Image, Popconfirm, message } from "antd"; // Import Popconfirm và message từ antd
+import { Image, Popconfirm, message, Button, Input } from "antd"; // Thêm Button, Input từ antd
 import { toast } from "react-toastify";
 import { ArrowDownUp, ArrowDownAZ } from "lucide-react";
 import Box from "@mui/material/Box";
@@ -71,8 +70,8 @@ const ManageSouvenir = () => {
       console.error("Error fetching products:", error);
       setError(
         error.response?.data?.message ||
-          error.message ||
-          "Failed to fetch products."
+        error.message ||
+        "Failed to fetch products."
       );
     } finally {
       setIsLoading(false);
@@ -205,9 +204,9 @@ const ManageSouvenir = () => {
       console.error("Error submitting form:", error.response || error);
       setError(
         error.response?.data?.title ||
-          error.response?.data?.message ||
-          error.message ||
-          "Failed to save souvenir."
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to save souvenir."
       );
       toast.error("Failed to save souvenir.");
     } finally {
@@ -227,8 +226,8 @@ const ManageSouvenir = () => {
       console.error("Error deleting product:", error.response || error);
       setError(
         error.response?.data?.message ||
-          error.message ||
-          "Failed to delete souvenir."
+        error.message ||
+        "Failed to delete souvenir."
       );
       message.error("Failed to delete souvenir."); // Thông báo lỗi
     } finally {
@@ -250,209 +249,217 @@ const ManageSouvenir = () => {
 
   // Render giao diện
   return (
-    <div className="manage-souvenirs container mt-4">
-      <h2 className="manage-souvenirs-title text-center mb-4">
-        Manage Souvenirs
-      </h2>
-
-      <Row className="mb-3 g-2 align-items-center">
-        <Col xs="auto">
-          <span className="me-2">Rows per page:</span>
-          <Dropdown
-            onSelect={handleRowsPerPageChange}
-            className="d-inline-block"
-          >
-            <Dropdown.Toggle
-              variant="outline-secondary"
-              id="dropdown-rows-per-page"
-              size="sm"
-            >
-              {rowsPerPage}
-            </Dropdown.Toggle>
-            <Dropdown.Menu>
-              {rowsPerPageOptions.map((option) => (
-                <Dropdown.Item key={option} eventKey={option}>
-                  {option}
-                </Dropdown.Item>
-              ))}
-            </Dropdown.Menu>
-          </Dropdown>
-        </Col>
-        <Col></Col>
-        <Col xs={12} md={5} lg={4}>
-          <InputGroup size="sm">
-            <Form.Control
-              placeholder="Search by name or description"
-              value={searchTerm}
-              onChange={handleSearch}
-            />
-            <InputGroup.Text>🔍</InputGroup.Text>
-          </InputGroup>
-        </Col>
-        <Col></Col>
-        <Col xs="auto">
-          <Button
-            variant="primary"
-            onClick={() => handleShowModal()}
-            size="sm"
-            className="add-souvenir-btn"
-          >
-            + Add New Souvenir
-          </Button>
-        </Col>
-      </Row>
-
-      {isLoading && (
-        <div className="text-center my-3">
-          {" "}
-          <Box sx={{ width: "100%" }}>
-            <LinearProgress />
-          </Box>
-        </div>
-      )}
-      {error && <div className="alert alert-danger">{error}</div>}
-
-      {!isLoading && !error && (
-        <Card className="souvenir-table-card shadow-sm">
+    <div className="manage-souvenirs">
+      <h2 className="manage-souvenirs-title">Manage Souvenirs</h2>
+      <div className="table-container">
+        <Card className="souvenir-table-card">
           <Card.Body>
-            <Table striped bordered hover responsive size="sm">
-              <thead className="table-light">
-                <tr>
-                  <th onClick={() => handleSort("productName")}>
-                    Product Name <ArrowDownAZ />
-                  </th>
-                  <th onClick={() => handleSort("description")}>
-                    Description <ArrowDownAZ />
-                  </th>
-                  <th onClick={() => handleSort("quantity")}>
-                    Quantity <ArrowDownUp size={20} />
-                  </th>
-                  <th onClick={() => handleSort("price")}>
-                    Price ($) <ArrowDownUp size={20} />
-                  </th>
-                  <th onClick={() => handleSort("createDate")}>
-                    Created <ArrowDownUp size={20} />
-                  </th>
-                  <th onClick={() => handleSort("updateDate")}>Updated</th>
-                  <th onClick={() => handleSort("isActive")}>Active</th>
-                  <th>Image</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {paginatedProducts.length === 0 ? (
-                  <tr>
-                    <td colSpan="9" className="text-center text-muted">
-                      No souvenirs found {searchTerm && "matching your search"}.
-                    </td>
-                  </tr>
-                ) : (
-                  paginatedProducts.map((product) => (
-                    <tr key={product.productId}>
-                      <td>{product.productName}</td>
-                      <td title={product.description}>
-                        {product.description?.length > 50
-                          ? `${product.description.substring(0, 50)}...`
-                          : product.description}
-                      </td>
-                      <td className="text-end">{product.quantity}</td>
-                      <td className="text-end">{product.price?.toFixed(2)}</td>
-                      <td>
-                        {product.createDate
-                          ? new Date(product.createDate).toLocaleDateString()
-                          : "N/A"}
-                      </td>
-                      <td>
-                        {product.updateDate
-                          ? new Date(product.updateDate).toLocaleDateString()
-                          : "N/A"}
-                      </td>
-                      <td className="text-center">
-                        <span
-                          className={`badge ${
-                            product.isActive ? "bg-success" : "bg-secondary"
-                          }`}
-                        >
-                          {product.isActive ? "Yes" : "No"}
-                        </span>
-                      </td>
-                      <td className="text-center">
-                        <Image
-                          width={50}
-                          height={50}
-                          src={product.displayImageUrl}
-                          alt={product.productName}
-                          onError={handleImageError}
-                          style={{ objectFit: "cover" }}
-                        />
-                      </td>
-                      <td style={{ whiteSpace: "nowrap" }}>
-                        <Button
-                          variant="outline-primary"
-                          size="sm"
-                          onClick={() => handleShowModal(product)}
-                          className="me-2"
-                          title="Edit"
-                        >
-                          🛠️
-                        </Button>
-                        <Popconfirm
-                          title="Delete the product"
-                          description="Are you sure to delete this product?"
-                          onConfirm={() => handleDelete(product.productId)}
-                          onCancel={() => message.info("Cancelled")}
-                          okText="Yes"
-                          cancelText="No"
-                        >
-                          <Button
-                            variant="outline-danger"
-                            size="sm"
-                            title="Delete"
-                          >
-                            🗑️
-                          </Button>
-                        </Popconfirm>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </Table>
-
-            {totalPages > 1 && (
-              <div className="d-flex justify-content-center mt-3">
-                <Pagination size="sm">
-                  <Pagination.First
-                    onClick={() => handlePageChange(1)}
-                    disabled={currentPage === 1}
-                  />
-                  <Pagination.Prev
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                  />
-                  {[...Array(totalPages).keys()].map((page) => (
-                    <Pagination.Item
-                      key={page + 1}
-                      active={page + 1 === currentPage}
-                      onClick={() => handlePageChange(page + 1)}
-                    >
-                      {page + 1}
-                    </Pagination.Item>
-                  ))}
-                  <Pagination.Next
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                  />
-                  <Pagination.Last
-                    onClick={() => handlePageChange(totalPages)}
-                    disabled={currentPage === totalPages}
-                  />
-                </Pagination>
+            <div className="table-header">
+              <h3>Souvenirs</h3>
+              <div className="table-controls">
+                <Input
+                  placeholder="Search by name or description"
+                  value={searchTerm}
+                  onChange={handleSearch}
+                  style={{ width: 200, marginRight: 10 }}
+                  prefix="🔍"
+                  size="middle"
+                />
+                <Dropdown
+                  onSelect={handleRowsPerPageChange}
+                  className="rows-per-page-dropdown"
+                >
+                  <Dropdown.Toggle
+                    variant="outline-secondary"
+                    id="dropdown-rows-per-page"
+                    size="sm"
+                  >
+                    {rowsPerPage} rows
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu>
+                    {rowsPerPageOptions.map((option) => (
+                      <Dropdown.Item key={option} eventKey={option}>
+                        {option} rows
+                      </Dropdown.Item>
+                    ))}
+                  </Dropdown.Menu>
+                </Dropdown>
+                <Button
+                  type="primary"
+                  onClick={() => handleShowModal()}
+                  size="middle"
+                >
+                  Add New Souvenir
+                </Button>
               </div>
+            </div>
+            {isLoading && (
+              <Box sx={{ width: "100%", marginY: 2 }}>
+                <LinearProgress />
+              </Box>
+            )}
+            {error && <p className="error-message">{error}</p>}
+            {!isLoading && !error && (
+              <>
+                <Table striped bordered hover responsive size="sm">
+                  <thead className="table-light">
+                    <tr>
+                      <th onClick={() => handleSort("productName")}>
+                        Product Name <ArrowDownAZ />
+                      </th>
+                      <th onClick={() => handleSort("description")}>
+                        Description <ArrowDownAZ />
+                      </th>
+                      <th onClick={() => handleSort("quantity")}>
+                        Quantity <ArrowDownUp size={20} />
+                      </th>
+                      <th onClick={() => handleSort("price")}>
+                        Price ($) <ArrowDownUp size={20} />
+                      </th>
+                      <th onClick={() => handleSort("createDate")}>
+                        Created <ArrowDownUp size={20} />
+                      </th>
+                      <th onClick={() => handleSort("updateDate")}>
+                        Updated <ArrowDownUp size={20} />
+                      </th>
+                      <th onClick={() => handleSort("isActive")}>
+                        Active <ArrowDownUp size={20} />
+                      </th>
+                      <th>Image</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paginatedProducts.length === 0 ? (
+                      <tr>
+                        <td colSpan="9" className="text-center text-muted">
+                          No souvenirs found {searchTerm && "matching your search"}.
+                        </td>
+                      </tr>
+                    ) : (
+                      paginatedProducts.map((product) => (
+                        <tr key={product.productId}>
+                          <td>{product.productName}</td>
+                          <td title={product.description}>
+                            {product.description?.length > 50
+                              ? `${product.description.substring(0, 50)}...`
+                              : product.description}
+                          </td>
+                          <td className="text-end">{product.quantity}</td>
+                          <td className="text-end">{product.price?.toFixed(2)}</td>
+                          <td>
+                            {product.createDate
+                              ? new Date(product.createDate).toLocaleDateString()
+                              : "N/A"}
+                          </td>
+                          <td>
+                            {product.updateDate
+                              ? new Date(product.updateDate).toLocaleDateString()
+                              : "N/A"}
+                          </td>
+                          <td className="text-center">
+                            <span
+                              className={`badge ${product.isActive ? "bg-success" : "bg-secondary"
+                                }`}
+                            >
+                              {product.isActive ? "Yes" : "No"}
+                            </span>
+                          </td>
+                          <td className="text-center">
+                            <Image
+                              width={50}
+                              height={50}
+                              src={product.displayImageUrl}
+                              alt={product.productName}
+                              onError={handleImageError}
+                              style={{ objectFit: "cover" }}
+                            />
+                          </td>
+                          <td style={{ whiteSpace: "nowrap" }}>
+                            <Button
+                              type="primary"
+                              size="small"
+                              onClick={() => handleShowModal(product)}
+                              style={{
+                                backgroundColor: "#1890ff",
+                                borderColor: "#1890ff",
+                                color: "#fff",
+                                fontSize: "14px",
+                                padding: "4px 8px",
+                                borderRadius: "4px",
+                                marginRight: "8px",
+                                boxShadow: "none",
+                              }}
+                            >
+                              Edit
+                            </Button>
+                            <Popconfirm
+                              title="Delete the product"
+                              description="Are you sure to delete this product?"
+                              onConfirm={() => handleDelete(product.productId)}
+                              onCancel={() => message.info("Cancelled")}
+                              okText="Yes"
+                              cancelText="No"
+                            >
+                              <Button
+                                type="primary"
+                                danger
+                                size="small"
+                                style={{
+                                  backgroundColor: "#ff4d4f",
+                                  borderColor: "#ff4d4f",
+                                  color: "#fff",
+                                  fontSize: "14px",
+                                  padding: "4px 8px",
+                                  borderRadius: "4px",
+                                  boxShadow: "none",
+                                }}
+                              >
+                                Delete
+                              </Button>
+                            </Popconfirm>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </Table>
+                {totalPages > 1 && (
+                  <div className="pagination-controls">
+                    <Pagination size="sm">
+                      <Pagination.First
+                        onClick={() => handlePageChange(1)}
+                        disabled={currentPage === 1}
+                      />
+                      <Pagination.Prev
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                      />
+                      {[...Array(totalPages).keys()].map((page) => (
+                        <Pagination.Item
+                          key={page + 1}
+                          active={page + 1 === currentPage}
+                          onClick={() => handlePageChange(page + 1)}
+                        >
+                          {page + 1}
+                        </Pagination.Item>
+                      ))}
+                      <Pagination.Next
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                      />
+                      <Pagination.Last
+                        onClick={() => handlePageChange(totalPages)}
+                        disabled={currentPage === totalPages}
+                      />
+                    </Pagination>
+                  </div>
+                )}
+              </>
             )}
           </Card.Body>
         </Card>
-      )}
+      </div>
 
       <Modal
         show={showModal}
@@ -468,7 +475,7 @@ const ManageSouvenir = () => {
         </Modal.Header>
         <Modal.Body>
           {error && !isLoading && (
-            <div className="alert alert-danger">{error}</div>
+            <p className="error-message">{error}</p>
           )}
           <Form onSubmit={handleSubmit}>
             {isEditing && (
@@ -566,13 +573,17 @@ const ManageSouvenir = () => {
         </Modal.Body>
         <Modal.Footer>
           <Button
-            variant="secondary"
+            type="default"
             onClick={handleCloseModal}
             disabled={isLoading}
           >
             Cancel
           </Button>
-          <Button variant="primary" onClick={handleSubmit} disabled={isLoading}>
+          <Button
+            type="primary"
+            onClick={handleSubmit}
+            disabled={isLoading}
+          >
             {isLoading
               ? "Saving..."
               : (isEditing ? "Update" : "Add") + " Souvenir"}

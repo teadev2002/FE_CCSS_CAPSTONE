@@ -321,7 +321,8 @@ import {
   GitPullRequest,
   ReceiptText,
   ListChecks,
-  LogOut, // Added LogOut icon
+  LogOut,
+  CheckCircle, // Thêm icon cho Ticket Check
 } from "lucide-react";
 import { jwtDecode } from "jwt-decode";
 import { toast } from "react-toastify";
@@ -338,7 +339,7 @@ const SidebarManagement = () => {
     if (accessToken) {
       try {
         const decoded = jwtDecode(accessToken);
-        setRole(decoded?.role); // Giả sử role nằm trong field "role" của token
+        setRole(decoded?.role);
       } catch (error) {
         console.error("Invalid token", error);
         toast.error("Invalid token. Please log in again.");
@@ -364,45 +365,51 @@ const SidebarManagement = () => {
 
   const handleLogout = () => {
     AuthService.logout();
-    setRole(null); // Clear role state
+    setRole(null);
     navigate("/login");
   };
 
   const routes = [
     {
+      path: "/manage/account",
+      label: "Manage Accounts",
+      icon: <UserSearch size={20} />,
+      allowedRoles: ["Manager"],
+    },
+    {
       path: "/manage/cosplayer",
-      label: "Manage Cosplayer",
+      label: "Manage Cosplayers",
       icon: <Users size={20} />,
       allowedRoles: ["Manager"],
     },
     {
-      path: "/manage/request",
-      label: "Manage Request",
-      icon: <GitPullRequest size={20} />,
-      allowedRoles: ["Manager", "Consultant"],
-    },
-    {
-      path: "/manage/request-customer-character",
-      label: "Manage Request CusChar",
-      icon: <GitPullRequest size={20} />,
-      allowedRoles: ["Manager"],
-    },
-    {
       path: "/manage/assign-task",
-      label: "Manage Assign Task",
+      label: "Manage Task Assignments",
       icon: <ListChecks size={20} />,
       allowedRoles: ["Manager"],
     },
     {
-      path: "/manage/contract",
-      label: "Manage Contract",
-      icon: <ReceiptText size={20} />,
-      allowedRoles: ["Consultant"],
+      path: "/manage/character",
+      label: "Manage Characters",
+      icon: <PersonStanding size={20} />,
+      allowedRoles: ["Manager"],
+    },
+    {
+      path: "/manage/event",
+      label: "Manage Events",
+      icon: <CalendarHeart size={20} />,
+      allowedRoles: ["Manager"],
     },
     {
       path: "/manage/ticket",
-      label: "Manage Event Ticket",
+      label: "Manage Event Tickets",
       icon: <Ticket size={20} />,
+      allowedRoles: ["Manager"],
+    },
+    {
+      path: "/manage/ticket-check",
+      label: "Ticket Check",
+      icon: <CheckCircle size={20} />, // Icon mới cho Ticket Check
       allowedRoles: ["Manager"],
     },
     {
@@ -412,27 +419,27 @@ const SidebarManagement = () => {
       allowedRoles: ["Manager"],
     },
     {
-      path: "/manage/event",
-      label: "Manage Event",
-      icon: <CalendarHeart size={20} />,
-      allowedRoles: ["Manager"],
-    },
-    {
-      path: "/manage/account",
-      label: "Manage Account",
-      icon: <UserSearch size={20} />,
-      allowedRoles: ["Manager"],
-    },
-    {
-      path: "/manage/character",
-      label: "Manage Character",
-      icon: <PersonStanding size={20} />,
-      allowedRoles: ["Manager"],
+      path: "/manage/contract",
+      label: "Manage Contracts",
+      icon: <ReceiptText size={20} />,
+      allowedRoles: ["Consultant"],
     },
     {
       path: "/manage/feedback",
-      label: "Manage Feedback",
+      label: "Manage Feedbacks",
       icon: <MessageCircleMore size={20} />,
+      allowedRoles: ["Manager"],
+    },
+    {
+      path: "/manage/request",
+      label: "Manage Requests",
+      icon: <GitPullRequest size={20} />,
+      allowedRoles: ["Manager", "Consultant"],
+    },
+    {
+      path: "/manage/request-customer-character",
+      label: "Manage CusChar Requests",
+      icon: <GitPullRequest size={20} />,
       allowedRoles: ["Manager"],
     },
   ];
@@ -464,7 +471,6 @@ const SidebarManagement = () => {
             <span>{route.label}</span>
           </NavLink>
         ))}
-        {/* Logout Button */}
         <NavLink
           to="/login"
           className="nav-link logout-link"

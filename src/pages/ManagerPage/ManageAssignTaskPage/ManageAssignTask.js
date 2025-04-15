@@ -199,7 +199,7 @@ const ManageAssignTask = () => {
   return (
     <div className="mat-page-wrapper">
       <Container className="mat-container">
-        <h1 className="mat-title">Cosplay Assignment Manager</h1>
+        <h1 className="mat-title">Manage Task Assignments</h1>
 
         <Form.Group className="mat-search-form">
           <Form.Control

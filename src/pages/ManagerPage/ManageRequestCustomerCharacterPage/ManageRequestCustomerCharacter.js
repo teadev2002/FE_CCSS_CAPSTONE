@@ -200,11 +200,11 @@ const ManageRequestCustomerCharacter = () => {
       const updatedCharacters = characters.map((char) =>
         char.customerCharacterId === currentItem.customerCharacterId
           ? {
-              ...char,
-              status: formData.status,
-              reason: formData.reason,
-              price: formData.price,
-            }
+            ...char,
+            status: formData.status,
+            reason: formData.reason,
+            price: formData.price,
+          }
           : char
       );
       setCharacters(updatedCharacters);
@@ -276,7 +276,7 @@ const ManageRequestCustomerCharacter = () => {
   return (
     <div className="manage-general">
       <h2 className="manage-general-title">
-        Manage Request Customer Character
+        Manage Customer Character Requests
       </h2>
       <div className="table-container">
         <Card className="status-table-card">
@@ -550,7 +550,7 @@ const ManageRequestCustomerCharacter = () => {
               <strong>Images:</strong>
             </p>
             {currentItem.customerCharacterImageResponses &&
-            currentItem.customerCharacterImageResponses.length > 0 ? (
+              currentItem.customerCharacterImageResponses.length > 0 ? (
               <div>
                 {currentItem.customerCharacterImageResponses.map((img) => (
                   <div key={img.customerCharacterImageId}>
