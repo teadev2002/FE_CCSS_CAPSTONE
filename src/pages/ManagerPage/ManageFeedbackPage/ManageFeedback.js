@@ -26,7 +26,7 @@ const initialFeedbacks = [
     cosplayer: "Alice Smith",
     service: "Hire Cosplayer",
     rating: 5,
-    comment: "Alice was fantastic, very professional and friendly!",
+    comment: "Alice was fantastic, very professional and friendly! She made our event memorable with her amazing performance.",
     date: "2025-04-10",
   },
   {
@@ -35,7 +35,7 @@ const initialFeedbacks = [
     cosplayer: "Bob Johnson",
     service: "Hire Cosplayer",
     rating: 3,
-    comment: "Good performance, but arrived a bit late.",
+    comment: "Good performance overall, but arrived a bit late. The costume was great, though!",
     date: "2025-04-08",
   },
   {
@@ -44,7 +44,7 @@ const initialFeedbacks = [
     cosplayer: "Clara Lee",
     service: "Hire Cosplayer",
     rating: 4,
-    comment: "Great costume and interaction with guests!",
+    comment: "Great costume and interaction with guests! Clara was a highlight of the event.",
     date: "2025-04-05",
   },
 ];
@@ -194,7 +194,7 @@ const ManageFeedback = () => {
   // Render giao diện
   return (
     <div className="manage-feedback">
-      <h2 className="manage-feedback-title">Manage Feedback</h2>
+      <h2 className="manage-feedback-title">Manage Feedbacks</h2>
       <div className="table-container">
         <Card className="feedback-table-card">
           <Card.Body>
@@ -280,11 +280,7 @@ const ManageFeedback = () => {
                           <td>{feedback.cosplayer}</td>
                           <td>{feedback.service}</td>
                           <td>{feedback.rating} ⭐</td>
-                          <td title={feedback.comment}>
-                            {feedback.comment.length > 50
-                              ? `${feedback.comment.substring(0, 50)}...`
-                              : feedback.comment}
-                          </td>
+                          <td>{feedback.comment}</td>
                           <td>{feedback.date}</td>
                           <td style={{ whiteSpace: "nowrap" }}>
                             <Button

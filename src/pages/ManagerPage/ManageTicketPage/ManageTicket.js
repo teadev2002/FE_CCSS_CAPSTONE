@@ -11,9 +11,9 @@ import { Button, Popconfirm } from "antd";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { ArrowUp, ArrowDown } from "lucide-react";
-import "../../../styles/Manager/ManageFestival.scss";
+import "../../../styles/Manager/ManageTicket.scss";
 
-const ManageFestival = () => {
+const ManageTicket = () => {
   // Initial ticket data (unchanged)
   const [tickets, setTickets] = useState([
     { ticketId: "T001", quantity: 2, price: 50, eventId: "E001" },
@@ -403,4 +403,4 @@ const ManageFestival = () => {
   );
 };
 
-export default ManageFestival;
+export default ManageTicket;

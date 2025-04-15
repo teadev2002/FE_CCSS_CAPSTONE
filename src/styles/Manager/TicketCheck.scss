@@ -20,6 +20,7 @@
 
   .ticket-check-card {
     width: 90%;
+    max-width: 600px;
     margin: 10px auto;
     box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.2);
     background: #fff;
@@ -48,7 +49,8 @@
         margin-bottom: 4px;
       }
 
-      .ant-input {
+      .ant-input,
+      .ant-select {
         border-radius: 5px;
         border: 1px solid #ced4da;
         padding: 6px 10px;
@@ -59,11 +61,23 @@
           box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
         }
       }
+
+      .ant-select {
+        width: 100%;
+        .ant-select-selector {
+          height: 40px;
+          padding: 4px 11px;
+          font-size: 16px;
+        }
+      }
     }
 
     .form-actions {
       text-align: center;
       margin-top: 20px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
 
       .ant-btn-primary {
         padding: 6px 20px;
@@ -76,6 +90,20 @@
           border-color: #d9d9d9;
           color: #999;
           cursor: not-allowed;
+        }
+      }
+
+      .ant-btn-default {
+        padding: 6px 20px;
+        font-size: 16px;
+        border-radius: 5px;
+        text-transform: none;
+        border-color: #d9d9d9;
+        color: #333;
+
+        &:hover {
+          border-color: #007bff;
+          color: #007bff;
         }
       }
     }

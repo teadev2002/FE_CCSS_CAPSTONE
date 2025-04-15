@@ -1,10 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Form, Card } from "react-bootstrap";
-import { Button, Input } from "antd";
+import { Button, Input, Select } from "antd";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import axios from "axios";
+import FestivalService from "../../../services/FestivalService/FestivalService";
+import TicketCheckService from "../../../services/ManageServicePages/TicketCheckService/TicketCheckService";
 import "../../../styles/Manager/TicketCheck.scss";
+
+const { Option } = Select;
 
 const TicketCheck = () => {
   // State cho form nhập liệu
@@ -13,18 +16,55 @@ const TicketCheck = () => {
     quantity: "",
   });
 
-  // State cho tổng vé ban đầu và còn lại (gán cứng tạm thời vì API chưa trả về)
-  const [totalInitial, setTotalInitial] = useState(15); // Mock: Tổng vé ban đầu
-  const [totalRemaining, setTotalRemaining] = useState(15); // Mock: Tổng vé còn lại
+  // State cho danh sách event và event được chọn
+  const [events, setEvents] = useState([]);
+  const [selectedEvent, setSelectedEvent] = useState(null);
 
-  // State để kiểm tra vé đã hết
+  // State cho số liệu vé
+  const [totalInitial, setTotalInitial] = useState(null);
+  const [totalRemaining, setTotalRemaining] = useState(null);
   const [isOutOfQuantity, setIsOutOfQuantity] = useState(false);
+
+  // State cho loading và lỗi
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Lấy danh sách event khi component mount
+  useEffect(() => {
+    const fetchEvents = async () => {
+      setIsLoading(true);
+      try {
+        const data = await FestivalService.getAllFestivals();
+        setEvents(data);
+      } catch (error) {
+        toast.error(error.message || "Failed to load events.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchEvents();
+  }, []);
+
+  // Xử lý chọn event
+  const handleEventChange = (value) => {
+    setSelectedEvent(value);
+    setFormData({ ticketCode: "", quantity: "" });
+    setIsOutOfQuantity(false);
+    setTotalInitial(null);
+    setTotalRemaining(null);
+  };
 
   // Xử lý khi nhập liệu
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
-    setIsOutOfQuantity(false); // Reset thông báo khi nhập mới
+    setIsOutOfQuantity(false);
+  };
+
+  // Xử lý clear form
+  const handleClear = () => {
+    setFormData({ ticketCode: "", quantity: "" });
+    setIsOutOfQuantity(false);
+    // Không reset selectedEvent
   };
 
   // Xử lý kiểm tra vé qua API
@@ -33,6 +73,10 @@ const TicketCheck = () => {
     const { ticketCode, quantity } = formData;
 
     // Validation cơ bản
+    if (!selectedEvent) {
+      toast.error("Please select an event.");
+      return;
+    }
     if (!ticketCode || !quantity) {
       toast.error("Please enter both ticket code and quantity.");
       return;
@@ -44,49 +88,60 @@ const TicketCheck = () => {
       return;
     }
 
+    setIsLoading(true);
     try {
-      // Gọi API
-      const response = await axios.put(
-        "https://localhost:7071/api/TicketAccount/Ticketcheck",
-        {
-          ticketCode: ticketCode.trim(),
-          quantity: parsedQuantity,
-        }
-      );
+      // Gọi TicketCheckService
+      const response = await TicketCheckService.checkTicket({
+        eventId: selectedEvent,
+        ticketCode: ticketCode.trim(),
+        quantity: parsedQuantity,
+      });
 
-      // Xử lý response
-      if (response.data === "Check Success") {
-        toast.success(`Successfully checked ${parsedQuantity} ticket(s) for code ${ticketCode}.`);
+      const { notification, totalInitialTickets, totalRemainingTickets } = response;
 
-        // Giả lập cập nhật quantity vì API hiện lỗi (quantity về 0)
-        // Giả sử trừ quantity từ totalRemaining (mock)
-        const newRemaining = totalRemaining - parsedQuantity;
-        if (newRemaining < 0) {
+      // Xử lý theo notification
+      switch (notification) {
+        case "Check Success":
+          toast.success(`Successfully checked ${parsedQuantity} ticket(s) for code ${ticketCode}.`);
+          setTotalInitial(totalInitialTickets);
+          setTotalRemaining(totalRemainingTickets);
+          setFormData({ ticketCode: "", quantity: "" });
+          if (totalRemainingTickets === 0) {
+            setIsOutOfQuantity(true);
+          }
+          break;
+        case "Ticket not found":
+          toast.error("Invalid ticket code or event.");
+          break;
+        case "exceed ticket capacity":
           toast.error("Not enough tickets remaining.");
-          return;
-        }
-        setTotalRemaining(newRemaining);
-
-        // Nếu quantity còn 0, vô hiệu hóa nút và hiển thị thông báo
-        if (newRemaining === 0) {
+          break;
+        case "Ticket has expired":
+          toast.error("Ticket quota exhausted.");
           setIsOutOfQuantity(true);
-        }
-
-        // Reset form
-        setFormData({ ticketCode: "", quantity: "" });
-      } else {
-        toast.error("Unexpected response from server.");
+          break;
+        default:
+          toast.error("Unexpected response from server.");
       }
     } catch (error) {
-      // Xử lý lỗi từ API
-      if (error.response) {
-        toast.error(error.response.data?.message || "Failed to check ticket.");
-        if (error.response.data?.includes("out of quantity")) {
+      // Kiểm tra lỗi từ server
+      const errorMessage = error.message;
+      switch (errorMessage) {
+        case "Ticket not found":
+          toast.error("Invalid ticket code or event.");
+          break;
+        case "Ticket has expired":
+          toast.error("Ticket quota exhausted.");
           setIsOutOfQuantity(true);
-        }
-      } else {
-        toast.error("Error connecting to server.");
+          break;
+        case "exceed ticket capacity":
+          toast.error("Not enough tickets remaining.");
+          break;
+        default:
+          toast.error(errorMessage || "Failed to check ticket.");
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -101,52 +156,83 @@ const TicketCheck = () => {
             </div>
             <Form onSubmit={handleCheckTicket}>
               <Form.Group className="mb-3">
-                <Form.Label>Ticket Code</Form.Label>
-                <Input
-                  type="text"
-                  name="ticketCode"
-                  value={formData.ticketCode}
-                  onChange={handleInputChange}
-                  placeholder="Enter ticket code (e.g., nI5VDW)"
+                <Form.Label>Select Event</Form.Label>
+                <Select
+                  placeholder="Choose an event"
+                  value={selectedEvent}
+                  onChange={handleEventChange}
                   size="large"
-                />
-              </Form.Group>
-              <Form.Group className="mb-3">
-                <Form.Label>Quantity</Form.Label>
-                <Input
-                  type="number"
-                  name="quantity"
-                  value={formData.quantity}
-                  onChange={handleInputChange}
-                  placeholder="Enter quantity (e.g., 2)"
-                  size="large"
-                  min="1"
-                />
-              </Form.Group>
-              <div className="form-actions">
-                <Button
-                  type="primary"
-                  htmlType="submit"
-                  size="large"
-                  disabled={isOutOfQuantity}
+                  style={{ width: "100%" }}
+                  loading={isLoading}
+                  disabled={isLoading}
                 >
-                  Check Tickets
-                </Button>
-              </div>
+                  {events.map((event) => (
+                    <Option key={event.eventId} value={event.eventId}>
+                      {event.eventName}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Group>
+              {selectedEvent && (
+                <>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Ticket Code</Form.Label>
+                    <Input
+                      type="text"
+                      name="ticketCode"
+                      value={formData.ticketCode}
+                      onChange={handleInputChange}
+                      placeholder="Enter ticket code (e.g., nI5VDW)"
+                      size="large"
+                      disabled={isLoading}
+                    />
+                  </Form.Group>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Quantity</Form.Label>
+                    <Input
+                      type="number"
+                      name="quantity"
+                      value={formData.quantity}
+                      onChange={handleInputChange}
+                      placeholder="Enter quantity (e.g., 2)"
+                      size="large"
+                      min="1"
+                      disabled={isLoading}
+                    />
+                  </Form.Group>
+                  <div className="form-actions">
+                    <Button
+                      type="primary"
+                      htmlType="submit"
+                      size="large"
+                      disabled={isOutOfQuantity || isLoading}
+                      style={{ marginRight: "10px" }}
+                      loading={isLoading}
+                    >
+                      Check Tickets
+                    </Button>
+                    <Button
+                      type="default"
+                      size="large"
+                      onClick={handleClear}
+                      disabled={isLoading}
+                    >
+                      Clear
+                    </Button>
+                  </div>
+                </>
+              )}
             </Form>
-            {isOutOfQuantity && (
-              <div className="out-of-quantity">
-                Unable to proceed: Ticket quota exhausted.
+            {selectedEvent && totalInitial !== null && totalRemaining !== null && (
+              <div className="ticket-stats">
+                <p>
+                  <strong>Total Initial Tickets:</strong> {totalInitial}
+                </p>
+                <p>
+                  <strong>Total Remaining Tickets:</strong> {totalRemaining}
+                </p>
               </div>
             )}
-            <div className="ticket-stats">
-              <p>
-                <strong>Total Initial Tickets:</strong> {totalInitial}
-              </p>
-              <p>
-                <strong>Total Remaining Tickets:</strong> {totalRemaining}
-              </p>
-            </div>
           </Card.Body>
         </Card>
       </div>
