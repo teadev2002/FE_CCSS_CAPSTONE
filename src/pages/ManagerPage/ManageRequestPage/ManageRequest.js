@@ -1,17 +1,19 @@
+//////////hover thay profile //////////////////////////////////////////////////////////////////
 import React, { useState, useEffect } from "react";
-import { Table, Form, Card } from "react-bootstrap"; // Giữ lại Table, Form, Card
+import { Table, Form, Card } from "react-bootstrap";
 import {
   Button,
-  Popconfirm,
   Modal,
   Dropdown,
   Pagination,
   Image,
   Menu,
-} from "antd"; // Chuyển sang dùng antd cho các component khác
+  Tooltip,
+} from "antd";
 import { toast } from "react-toastify";
+import { Link } from "react-router-dom"; // Thêm Link từ react-router-dom
 import "react-toastify/dist/ReactToastify.css";
-import "antd/dist/reset.css"; // Đảm bảo style của antd được áp dụng
+import "antd/dist/reset.css";
 import { ArrowUp, ArrowDown } from "lucide-react";
 import "../../../styles/Manager/ManageRequest.scss";
 import RequestService from "../../../services/ManageServicePages/ManageRequestService/RequestService.js";
@@ -23,7 +25,10 @@ const ManageRequest = () => {
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentItem, setCurrentItem] = useState(null);
-  const [formData, setFormData] = useState({ status: "" });
+  const [formData, setFormData] = useState({ status: "", reason: "" });
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteItemId, setDeleteItemId] = useState(null);
+  const [deleteReason, setDeleteReason] = useState("");
   const [showViewModal, setShowViewModal] = useState(false);
   const [viewData, setViewData] = useState(null);
   const [searchRequest, setSearchRequest] = useState("");
@@ -37,25 +42,120 @@ const ManageRequest = () => {
   const [selectedService, setSelectedService] = useState("All");
   const [currentCharacterPage, setCurrentCharacterPage] = useState(1);
   const charactersPerPage = 2;
+  const [cosplayerData, setCosplayerData] = useState({}); // Lưu dữ liệu cosplayer theo cosplayerId
+  const [tooltipLoading, setTooltipLoading] = useState({}); // Trạng thái loading cho từng tooltip
+
+  // Hàm tính tổng số ngày
+  const calculateTotalDays = (startDate, endDate) => {
+    if (!startDate || !endDate) return 0;
+    const start = dayjs(startDate, "HH:mm DD/MM/YYYY");
+    const end = dayjs(endDate, "HH:mm DD/MM/YYYY");
+    if (!start.isValid() || !end.isValid()) return 0;
+    return end.diff(start, "day") + 1;
+  };
+
+  // Hàm tính tổng số giờ
+  const calculateTotalHours = (startDate, endDate) => {
+    if (!startDate || !endDate) return 0;
+    const start = dayjs(startDate, "HH:mm DD/MM/YYYY");
+    const end = dayjs(endDate, "HH:mm DD/MM/YYYY");
+    if (!start.isValid() || !end.isValid()) return 0;
+    const hoursPerDay =
+      end.hour() - start.hour() + (end.minute() - start.minute()) / 60;
+    const totalDays = end.diff(start, "day") + 1;
+    return hoursPerDay * totalDays;
+  };
+
+  // Hàm tính giá cho một cosplayer
+  const calculateCosplayerPrice = (
+    salaryIndex,
+    characterPrice,
+    quantity,
+    totalHours,
+    totalDays
+  ) => {
+    if (!salaryIndex || !characterPrice || !totalHours || !totalDays) return 0;
+    return (totalHours * salaryIndex + totalDays * characterPrice) * quantity;
+  };
+
+  // Hàm tính tổng giá
+  const calculateTotalPrice = (characters) => {
+    return characters.reduce(
+      (total, char) =>
+        total +
+        calculateCosplayerPrice(
+          char.salaryIndex,
+          char.characterPrice || 0,
+          char.quantity,
+          char.totalHours,
+          char.totalDays
+        ),
+      0
+    );
+  };
+
+  // Hàm lấy dữ liệu cosplayer khi hover
+  const fetchCosplayerData = async (cosplayerId) => {
+    if (!cosplayerId || cosplayerData[cosplayerId]) return; // Không gọi lại nếu đã có dữ liệu
+    try {
+      setTooltipLoading((prev) => ({ ...prev, [cosplayerId]: true }));
+      const response =
+        await RequestService.getNameCosplayerInRequestByCosplayerId(
+          cosplayerId
+        );
+      setCosplayerData((prev) => ({ ...prev, [cosplayerId]: response }));
+    } catch (error) {
+      console.error(
+        `Failed to fetch cosplayer data for ID ${cosplayerId}:`,
+        error
+      );
+      setCosplayerData((prev) => ({ ...prev, [cosplayerId]: null }));
+    } finally {
+      setTooltipLoading((prev) => ({ ...prev, [cosplayerId]: false }));
+    }
+  };
 
   useEffect(() => {
     const fetchRequests = async () => {
       try {
         const data = await RequestService.getAllRequests();
-        console.log("Raw API data:", data); // Debug dữ liệu từ API
-        const formattedData = data.map((req) => ({
-          id: req.requestId,
-          serviceId: req.serviceId || "Unknown",
-          name: req.name || "N/A",
-          description: req.description || "N/A",
-          location: req.location || "N/A",
-          price: req.price || 0,
-          statusRequest: mapStatus(req.status),
-          startDate: req.startDate
-            ? new Date(req.startDate).toLocaleString()
-            : "N/A",
-          endDate: req.endDate ? new Date(req.endDate).toLocaleString() : "N/A",
-        }));
+        console.log("Raw API data:", data);
+        const formattedData = data.map((req) => {
+          let startDate = req.startDate || "N/A";
+          let endDate = req.endDate || "N/A";
+          if (
+            req.charactersListResponse &&
+            req.charactersListResponse.length > 0 &&
+            req.charactersListResponse[0].requestDateResponses &&
+            req.charactersListResponse[0].requestDateResponses.length > 0
+          ) {
+            const dateResponse =
+              req.charactersListResponse[0].requestDateResponses[0];
+            startDate = dateResponse.startDate
+              ? dayjs(dateResponse.startDate, "HH:mm DD/MM/YYYY").format(
+                  "HH:mm DD/MM/YYYY"
+                )
+              : "N/A";
+            endDate = dateResponse.endDate
+              ? dayjs(dateResponse.endDate, "HH:mm DD/MM/YYYY").format(
+                  "HH:mm DD/MM/YYYY"
+                )
+              : "N/A";
+          }
+
+          return {
+            id: req.requestId,
+            serviceId: req.serviceId || "Unknown",
+            name: req.name || "N/A",
+            description: req.description || "N/A",
+            location: req.location || "N/A",
+            price: req.price || 0,
+            statusRequest: mapStatus(req.status),
+            startDate,
+            endDate,
+            reason: req.reason || "",
+          };
+        });
         setRequests(formattedData);
         setLoading(false);
       } catch (error) {
@@ -93,10 +193,10 @@ const ManageRequest = () => {
     }
   };
 
-  const filterAndSortData = (data, search, sort, serviceFilter) => {
+  const filterAndSortData = (data, search, sort) => {
     let filtered = [...data];
-    if (serviceFilter !== "All") {
-      filtered = filtered.filter((item) => item.serviceId === serviceFilter);
+    if (selectedService !== "All") {
+      filtered = filtered.filter((item) => item.serviceId === selectedService);
     }
     if (search) {
       filtered = filtered.filter((item) =>
@@ -106,8 +206,19 @@ const ManageRequest = () => {
       );
     }
     return filtered.sort((a, b) => {
-      const valueA = a[sort.field]?.toString().toLowerCase() || "";
-      const valueB = b[sort.field]?.toString().toLowerCase() || "";
+      let valueA = a[sort.field];
+      let valueB = b[sort.field];
+
+      // Xử lý cho Price (số)
+      if (sort.field === "price") {
+        valueA = valueA || 0;
+        valueB = valueB || 0;
+        return sort.order === "asc" ? valueA - valueB : valueB - valueA;
+      }
+
+      // Xử lý cho Name và các field chuỗi khác
+      valueA = valueA ? String(valueA).toLowerCase() : "";
+      valueB = valueB ? String(valueB).toLowerCase() : "";
       return sort.order === "asc"
         ? valueA.localeCompare(valueB)
         : valueB.localeCompare(valueA);
@@ -117,8 +228,7 @@ const ManageRequest = () => {
   const filteredRequests = filterAndSortData(
     requests,
     searchRequest,
-    sortRequest,
-    selectedService
+    sortRequest
   );
   const totalPagesRequest = Math.ceil(filteredRequests.length / rowsPerPage);
   const paginatedRequests = paginateData(filteredRequests, currentPageRequest);
@@ -133,7 +243,7 @@ const ManageRequest = () => {
   const handleShowModal = (item) => {
     setIsEditing(true);
     setCurrentItem(item);
-    setFormData({ status: item.statusRequest });
+    setFormData({ status: item.statusRequest, reason: "" });
     setShowModal(true);
   };
 
@@ -141,123 +251,21 @@ const ManageRequest = () => {
     setShowModal(false);
     setIsEditing(false);
     setCurrentItem(null);
+    setFormData({ status: "", reason: "" });
   };
 
-  // const handleShowViewModal = async (id) => {
-  //   try {
-  //     const data = await RequestService.getRequestByRequestId(id);
-  //     if (!data) {
-  //       throw new Error("Request data not found");
-  //     }
+  const handleShowDeleteModal = (id) => {
+    setDeleteItemId(id);
+    setDeleteReason("");
+    setShowDeleteModal(true);
+  };
 
-  //     const request = requests.find((req) => req.id === id);
-  //     const serviceId = request?.serviceId;
+  const handleCloseDeleteModal = () => {
+    setShowDeleteModal(false);
+    setDeleteItemId(null);
+    setDeleteReason("");
+  };
 
-  //     if (serviceId === "S001") {
-  //       const characters = data.charactersListResponse || [];
-  //       const formattedData = {
-  //         name: data.name || "N/A",
-  //         description: data.description || "N/A",
-  //         startDate: data.startDate
-  //           ? dayjs(data.startDate).format("HH:mm DD/MM/YYYY")
-  //           : "N/A",
-  //         endDate: data.endDate
-  //           ? dayjs(data.endDate).format("HH:mm DD/MM/YYYY")
-  //           : "N/A",
-  //         location: data.location || "N/A",
-  //         characters: characters.map((char) => ({
-  //           characterId: char.characterId,
-  //           maxHeight: char.maxHeight || 0,
-  //           maxWeight: char.maxWeight || 0,
-  //           minHeight: char.minHeight || 0,
-  //           minWeight: char.minWeight || 0,
-  //           quantity: char.quantity || 0,
-  //           urlImage: char.characterImages?.[0]?.urlImage || "",
-  //           description: char.description || "",
-  //         })),
-  //       };
-  //       setViewData(formattedData);
-  //     } else {
-  //       const formattedData = {
-  //         id: data.requestId,
-  //         name: data.name || "N/A",
-  //         description: data.description || "N/A",
-  //         price: 0,
-  //         status: mapStatus(data.status),
-  //         startDateTime: data.startDate
-  //           ? new Date(data.startDate).toLocaleString()
-  //           : "N/A",
-  //         endDateTime: data.endDate
-  //           ? new Date(data.endDate).toLocaleString()
-  //           : "N/A",
-  //         location: data.location || "N/A",
-  //         listRequestCharacters: [],
-  //       };
-
-  //       const charactersList = data.charactersListResponse || [];
-  //       if (charactersList.length > 0) {
-  //         const listRequestCharacters = await Promise.all(
-  //           charactersList.map(async (char) => {
-  //             try {
-  //               const characterData = await RequestService.getNameCharacterById(
-  //                 char.characterId
-  //               );
-  //               let cosplayerName = "Not Assigned";
-  //               let salaryIndex = 1;
-
-  //               if (char.cosplayerId) {
-  //                 const cosplayerData =
-  //                   await RequestService.getNameCosplayerInRequestByCosplayerId(
-  //                     char.cosplayerId
-  //                   );
-  //                 cosplayerName = cosplayerData?.name || "Unknown";
-  //                 salaryIndex = cosplayerData?.salaryIndex || 1;
-  //               }
-
-  //               const price = calculateCosplayerPrice(
-  //                 salaryIndex,
-  //                 char.quantity || 0
-  //               );
-
-  //               return {
-  //                 cosplayerId: char.cosplayerId || null,
-  //                 characterId: char.characterId,
-  //                 cosplayerName,
-  //                 characterName: characterData?.characterName || "Unknown",
-  //                 quantity: char.quantity || 0,
-  //                 salaryIndex,
-  //                 price,
-  //               };
-  //             } catch (charError) {
-  //               console.warn(
-  //                 `Failed to fetch character data for ID ${char.characterId}:`,
-  //                 charError
-  //               );
-  //               return {
-  //                 cosplayerId: char.cosplayerId || null,
-  //                 characterId: char.characterId,
-  //                 cosplayerName: "Not Assigned",
-  //                 characterName: "Unknown",
-  //                 quantity: char.quantity || 0,
-  //                 salaryIndex: 1,
-  //                 price: 0,
-  //               };
-  //             }
-  //           })
-  //         );
-
-  //         formattedData.listRequestCharacters = listRequestCharacters;
-  //         formattedData.price = calculateTotalPrice(listRequestCharacters);
-  //       }
-  //       setViewData(formattedData);
-  //     }
-  //     setShowViewModal(true);
-  //     setCurrentCharacterPage(1);
-  //   } catch (error) {
-  //     toast.error("Failed to fetch request details");
-  //     console.error("Error in handleShowViewModal:", error);
-  //   }
-  // };
   const handleShowViewModal = async (id) => {
     try {
       const data = await RequestService.getRequestByRequestId(id);
@@ -274,10 +282,12 @@ const ManageRequest = () => {
           name: data.name || "N/A",
           description: data.description || "N/A",
           startDate: data.startDate
-            ? dayjs(data.startDate).format("HH:mm DD/MM/YYYY")
+            ? dayjs(data.startDate, "HH:mm DD/MM/YYYY").format(
+                "HH:mm DD/MM/YYYY"
+              )
             : "N/A",
           endDate: data.endDate
-            ? dayjs(data.endDate).format("HH:mm DD/MM/YYYY")
+            ? dayjs(data.endDate, "HH:mm DD/MM/YYYY").format("HH:mm DD/MM/YYYY")
             : "N/A",
           location: data.location || "N/A",
           characters: characters.map((char) => ({
@@ -292,6 +302,149 @@ const ManageRequest = () => {
           })),
         };
         setViewData(formattedData);
+      } else if (serviceId === "S002") {
+        const formattedData = {
+          id: data.requestId,
+          name: data.name || "N/A",
+          description: data.description || "N/A",
+          price: 0,
+          status: mapStatus(data.status),
+          deposit: data.deposit ? `${data.deposit}%` : "N/A",
+          startDateTime: "N/A",
+          endDateTime: "N/A",
+          location: data.location || "N/A",
+          listRequestCharacters: [],
+        };
+
+        const charactersList = data.charactersListResponse || [];
+        if (charactersList.length > 0) {
+          const firstCharacter = charactersList[0];
+          if (
+            firstCharacter.requestDateResponses &&
+            firstCharacter.requestDateResponses.length > 0
+          ) {
+            const dateResponse = firstCharacter.requestDateResponses[0];
+            formattedData.startDateTime = dateResponse.startDate
+              ? dayjs(dateResponse.startDate, "HH:mm DD/MM/YYYY").format(
+                  "HH:mm DD/MM/YYYY"
+                )
+              : "N/A";
+            formattedData.endDateTime = dateResponse.endDate
+              ? dayjs(dateResponse.endDate, "HH:mm DD/MM/YYYY").format(
+                  "HH:mm DD/MM/YYYY"
+                )
+              : "N/A";
+          }
+
+          const listRequestCharacters = await Promise.all(
+            charactersList.map(async (char) => {
+              let cosplayerName = "Not Assigned";
+              let salaryIndex = 1;
+              let characterPrice = 0;
+              let characterName = "Unknown";
+              let startDate = "N/A";
+              let startTime = "N/A";
+              let endDate = "N/A";
+              let endTime = "N/A";
+              let totalHours = 0;
+              let totalDays = 0;
+
+              try {
+                const characterData = await RequestService.getCharacterById(
+                  char.characterId
+                );
+                characterName = characterData?.characterName || "Unknown";
+                characterPrice = characterData?.price || 0;
+              } catch (error) {
+                console.warn(
+                  `Failed to fetch character for ID ${char.characterId}:`,
+                  error
+                );
+              }
+
+              if (char.cosplayerId) {
+                try {
+                  const cosplayerData =
+                    await RequestService.getNameCosplayerInRequestByCosplayerId(
+                      char.cosplayerId
+                    );
+                  cosplayerName = cosplayerData?.name || "Not Assigned";
+                  salaryIndex = cosplayerData?.salaryIndex || 1;
+                } catch (error) {
+                  console.warn(
+                    `Failed to fetch cosplayer for ID ${char.cosplayerId}:`,
+                    error
+                  );
+                }
+              }
+
+              if (
+                char.requestDateResponses &&
+                char.requestDateResponses.length > 0
+              ) {
+                const dateResponse = char.requestDateResponses[0];
+                startDate = dateResponse.startDate
+                  ? dayjs(dateResponse.startDate, "HH:mm DD/MM/YYYY").format(
+                      "DD/MM/YYYY"
+                    )
+                  : "N/A";
+                startTime = dateResponse.startDate
+                  ? dayjs(dateResponse.startDate, "HH:mm DD/MM/YYYY").format(
+                      "HH:mm"
+                    )
+                  : "N/A";
+                endDate = dateResponse.endDate
+                  ? dayjs(dateResponse.endDate, "HH:mm DD/MM/YYYY").format(
+                      "DD/MM/YYYY"
+                    )
+                  : "N/A";
+                endTime = dateResponse.endDate
+                  ? dayjs(dateResponse.endDate, "HH:mm DD/MM/YYYY").format(
+                      "HH:mm"
+                    )
+                  : "N/A";
+                totalDays = calculateTotalDays(
+                  dateResponse.startDate,
+                  dateResponse.endDate
+                );
+                totalHours = calculateTotalHours(
+                  dateResponse.startDate,
+                  dateResponse.endDate
+                );
+              }
+
+              const price = calculateCosplayerPrice(
+                salaryIndex,
+                characterPrice,
+                char.quantity || 1,
+                totalHours,
+                totalDays
+              );
+
+              return {
+                cosplayerId: char.cosplayerId || null,
+                characterId: char.characterId,
+                cosplayerName,
+                characterName,
+                characterPrice,
+                quantity: char.quantity || 1,
+                salaryIndex,
+                price,
+                totalHours,
+                totalDays,
+                startDate,
+                startTime,
+                endDate,
+                endTime,
+              };
+            })
+          );
+
+          formattedData.listRequestCharacters = listRequestCharacters;
+          formattedData.price = calculateTotalPrice(listRequestCharacters);
+        }
+
+        setViewData(formattedData);
       } else {
         const formattedData = {
           id: data.requestId,
@@ -300,16 +453,17 @@ const ManageRequest = () => {
           price: 0,
           status: mapStatus(data.status),
           startDateTime: data.startDate
-            ? dayjs(data.startDate).format("HH:mm DD/MM/YYYY")
+            ? dayjs(data.startDate, "HH:mm DD/MM/YYYY").format(
+                "HH:mm DD/MM/YYYY"
+              )
             : "N/A",
           endDateTime: data.endDate
-            ? dayjs(data.endDate).format("HH:mm DD/MM/YYYY")
+            ? dayjs(data.endDate, "HH:mm DD/MM/YYYY").format("HH:mm DD/MM/YYYY")
             : "N/A",
           location: data.location || "N/A",
           listRequestCharacters: [],
         };
 
-        // Lấy giá package cho S003
         let packagePrice = 0;
         if (serviceId === "S003" && data.packageId) {
           try {
@@ -336,7 +490,6 @@ const ManageRequest = () => {
               let characterPrice = 0;
               let characterName = "Unknown";
 
-              // Lấy thông tin character
               try {
                 const characterData = await RequestService.getCharacterById(
                   char.characterId
@@ -350,7 +503,6 @@ const ManageRequest = () => {
                 );
               }
 
-              // Lấy thông tin cosplayer nếu có
               if (char.cosplayerId) {
                 try {
                   const cosplayerData =
@@ -385,7 +537,6 @@ const ManageRequest = () => {
           formattedData.listRequestCharacters = listRequestCharacters;
         }
 
-        // Tổng giá = packagePrice + totalCharactersPrice
         formattedData.price = packagePrice + totalCharactersPrice;
         setViewData(formattedData);
       }
@@ -396,9 +547,11 @@ const ManageRequest = () => {
       console.error("Error in handleShowViewModal:", error);
     }
   };
+
   const handleCloseViewModal = () => {
     setShowViewModal(false);
     setViewData(null);
+    setCosplayerData({}); // Reset dữ liệu cosplayer khi đóng modal
   };
 
   const handleInputChange = (e) => {
@@ -409,10 +562,15 @@ const ManageRequest = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const requestStatus = mapStatusToNumber(formData.status);
+    if (requestStatus === 2 && !formData.reason.trim()) {
+      toast.error("Reason is required when canceling a request");
+      return;
+    }
     try {
       await RequestService.UpdateRequestStatusById(
         currentItem.id,
-        requestStatus
+        requestStatus,
+        formData.reason
       );
       const updatedRequests = requests.map((req) =>
         req.id === currentItem.id
@@ -428,11 +586,16 @@ const ManageRequest = () => {
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async () => {
+    if (!deleteReason.trim()) {
+      toast.error("Reason is required when deleting a request");
+      return;
+    }
     try {
-      await RequestService.DeleteRequestByRequestId(id);
-      setRequests(requests.filter((req) => req.id !== id));
+      await RequestService.DeleteRequestByRequestId(deleteItemId, deleteReason);
+      setRequests(requests.filter((req) => req.id !== deleteItemId));
       toast.success("Request deleted successfully!");
+      handleCloseDeleteModal();
     } catch (error) {
       toast.error("Failed to delete request");
       console.error("Delete error:", error);
@@ -458,19 +621,6 @@ const ManageRequest = () => {
     setCurrentPageRequest(1);
   };
 
-  const calculateCosplayerPrice = (salaryIndex, quantity) => {
-    return 100000 * salaryIndex * quantity;
-  };
-
-  const calculateTotalPrice = (characters) => {
-    return characters.reduce(
-      (total, char) =>
-        total + calculateCosplayerPrice(char.salaryIndex, char.quantity),
-      0
-    );
-  };
-
-  // Menu cho Dropdown của antd
   const serviceMenu = (
     <Menu onClick={({ key }) => handleServiceFilterChange(key)}>
       <Menu.Item key="All">All Services</Menu.Item>
@@ -503,10 +653,10 @@ const ManageRequest = () => {
                     {selectedService === "All"
                       ? "All Services"
                       : selectedService === "S001"
-                        ? "Hire Costume"
-                        : selectedService === "S002"
-                          ? "Hire Cosplayer"
-                          : "Event Organization"}{" "}
+                      ? "Hire Costume"
+                      : selectedService === "S002"
+                      ? "Hire Cosplayer"
+                      : "Event Organization"}{" "}
                     ▼
                   </Button>
                 </Dropdown>
@@ -534,7 +684,15 @@ const ManageRequest = () => {
                       ))}
                   </th>
                   <th>Location</th>
-                  <th>Price</th>
+                  <th onClick={() => handleSort("price")}>
+                    Price{" "}
+                    {sortRequest.field === "price" &&
+                      (sortRequest.order === "asc" ? (
+                        <ArrowUp size={16} />
+                      ) : (
+                        <ArrowDown size={16} />
+                      ))}
+                  </th>
                   <th onClick={() => handleSort("statusRequest")}>
                     Status{" "}
                     {sortRequest.field === "statusRequest" &&
@@ -562,6 +720,15 @@ const ManageRequest = () => {
                         <ArrowDown size={16} />
                       ))}
                   </th>
+                  <th onClick={() => handleSort("reason")}>
+                    Reason{" "}
+                    {sortRequest.field === "reason" &&
+                      (sortRequest.order === "asc" ? (
+                        <ArrowUp size={16} />
+                      ) : (
+                        <ArrowDown size={16} />
+                      ))}
+                  </th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -572,19 +739,31 @@ const ManageRequest = () => {
                       <td>{req.name}</td>
                       <td>{req.description}</td>
                       <td>{req.location}</td>
-                      <td>{req.price}</td>
+                      <td>{req.price.toLocaleString()}</td>
                       <td>{req.statusRequest}</td>
                       <td>{req.startDate}</td>
                       <td>{req.endDate}</td>
+                      <td>{req.reason}</td>
                       <td>
-                        <Button
-                          type="primary"
-                          size="small"
-                          onClick={() => handleShowModal(req)}
-                          style={{ marginRight: "8px" }}
-                        >
-                          Edit
-                        </Button>
+                        {req.statusRequest !== "Cancel" ? (
+                          <Button
+                            type="primary"
+                            size="small"
+                            onClick={() => handleShowModal(req)}
+                            style={{ marginRight: "8px" }}
+                          >
+                            Edit
+                          </Button>
+                        ) : (
+                          <Button
+                            type="primary"
+                            size="small"
+                            disabled
+                            style={{ marginRight: "8px" }}
+                          >
+                            Edit
+                          </Button>
+                        )}
                         <Button
                           size="small"
                           onClick={() => handleShowViewModal(req.id)}
@@ -592,22 +771,20 @@ const ManageRequest = () => {
                         >
                           View
                         </Button>
-                        <Popconfirm
-                          title="Are you sure to delete this request?"
-                          onConfirm={() => handleDelete(req.id)}
-                          okText="Yes"
-                          cancelText="No"
+                        <Button
+                          type="primary"
+                          danger
+                          size="small"
+                          onClick={() => handleShowDeleteModal(req.id)}
                         >
-                          <Button type="primary" danger size="small">
-                            Delete
-                          </Button>
-                        </Popconfirm>
+                          Delete
+                        </Button>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="8" className="text-center">
+                    <td colSpan="9" className="text-center">
                       No requests found
                     </td>
                   </tr>
@@ -637,7 +814,12 @@ const ManageRequest = () => {
           <Button key="cancel" onClick={handleCloseModal}>
             Cancel
           </Button>,
-          <Button key="submit" type="primary" onClick={handleSubmit}>
+          <Button
+            key="submit"
+            type="primary"
+            onClick={handleSubmit}
+            disabled={formData.status === "Cancel" && !formData.reason.trim()}
+          >
             Update
           </Button>,
         ]}
@@ -656,6 +838,55 @@ const ManageRequest = () => {
               <option value="Browsed">Browsed ✅</option>
               <option value="Cancel">Cancel ❌</option>
             </Form.Select>
+          </Form.Group>
+          {formData.status === "Cancel" && (
+            <Form.Group className="mb-2">
+              <Form.Label>Reason</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={3}
+                name="reason"
+                value={formData.reason}
+                onChange={handleInputChange}
+                placeholder="Enter reason for cancellation"
+                required
+              />
+            </Form.Group>
+          )}
+        </Form>
+      </Modal>
+
+      {/* Modal xác nhận xóa */}
+      <Modal
+        title="Delete Request"
+        open={showDeleteModal}
+        onCancel={handleCloseDeleteModal}
+        footer={[
+          <Button key="cancel" onClick={handleCloseDeleteModal}>
+            Cancel
+          </Button>,
+          <Button
+            key="delete"
+            type="primary"
+            danger
+            onClick={handleDelete}
+            disabled={!deleteReason.trim()}
+          >
+            Delete
+          </Button>,
+        ]}
+      >
+        <Form>
+          <Form.Group className="mb-2">
+            <Form.Label>Reason for Deletion</Form.Label>
+            <Form.Control
+              as="textarea"
+              rows={3}
+              value={deleteReason}
+              onChange={(e) => setDeleteReason(e.target.value)}
+              placeholder="Enter reason for deletion"
+              required
+            />
           </Form.Group>
         </Form>
       </Modal>
@@ -679,7 +910,6 @@ const ManageRequest = () => {
                 <Form.Label>Name</Form.Label>
                 <Form.Control value={viewData.name} readOnly />
               </Form.Group>
-
               <Form.Group className="mb-3">
                 <Form.Label>Start Date</Form.Label>
                 <Form.Control value={viewData.startDate} readOnly />
@@ -792,36 +1022,155 @@ const ManageRequest = () => {
             </div>
           ) : (
             <div>
-              <p>
-                <strong>Name:</strong> {viewData.name}
-              </p>
-              <p>
-                <strong>Description:</strong> {viewData.description}
-              </p>
-              <p>
-                <strong>Start DateTime:</strong> {viewData.startDateTime}
-              </p>
-              <p>
-                <strong>End DateTime:</strong> {viewData.endDateTime}
-              </p>
-              <p>
-                <strong>Location:</strong> {viewData.location}
-              </p>
-              <h4>List of Requested Characters:</h4>
-              {viewData.listRequestCharacters.length > 0 ? (
-                <ul>
-                  {viewData.listRequestCharacters.map((item, index) => (
-                    <li key={index}>
-                      {item.cosplayerName} - {item.characterName} - Quantity:{" "}
-                      {item.quantity} - Price: {item.price} VND
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p>No characters requested.</p>
+              <Form.Group className="mb-3">
+                <Form.Label>
+                  <strong>Name:</strong>
+                </Form.Label>
+                <Form.Control value={viewData.name} readOnly />
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>
+                  <strong>Description:</strong>
+                </Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={3}
+                  value={viewData.description}
+                  readOnly
+                />
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>
+                  <strong>Location:</strong>
+                </Form.Label>
+                <Form.Control value={viewData.location} readOnly />
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>
+                  <strong>Deposit:</strong>
+                </Form.Label>
+                <Form.Control value={viewData.deposit} readOnly />
+              </Form.Group>
+              <div className="d-flex">
+                <Form.Group className="mb-3 me-3">
+                  <Form.Label>
+                    <strong>Start Date:</strong>
+                  </Form.Label>
+                  <Form.Control value={viewData.startDateTime} readOnly />
+                </Form.Group>
+                <Form.Group className="mb-3">
+                  <Form.Label>
+                    <strong>End Date:</strong>
+                  </Form.Label>
+                  <Form.Control value={viewData.endDateTime} readOnly />
+                </Form.Group>
+              </div>
+              {viewData.listRequestCharacters.length > 0 && (
+                <>
+                  <h5>List of Requested Characters:</h5>
+                  <ul>
+                    {viewData.listRequestCharacters.map((item, index) => (
+                      <li key={index}>
+                        <p>
+                          <Tooltip
+                            title={
+                              item.cosplayerId ? (
+                                tooltipLoading[item.cosplayerId] ? (
+                                  "Loading..."
+                                ) : cosplayerData[item.cosplayerId] ? (
+                                  <div>
+                                    <p>
+                                      <strong>Name:</strong>{" "}
+                                      {cosplayerData[item.cosplayerId].name}
+                                    </p>
+                                    <p>
+                                      <strong>Email:</strong>{" "}
+                                      {cosplayerData[item.cosplayerId].email}
+                                    </p>
+                                    <p>
+                                      <strong>Description:</strong>{" "}
+                                      {cosplayerData[item.cosplayerId]
+                                        .description || "N/A"}
+                                    </p>
+                                    <p>
+                                      <strong>Height:</strong>{" "}
+                                      {cosplayerData[item.cosplayerId].height ||
+                                        "N/A"}{" "}
+                                      cm
+                                    </p>
+                                    <p>
+                                      <strong>Weight:</strong>{" "}
+                                      {cosplayerData[item.cosplayerId].weight ||
+                                        "N/A"}{" "}
+                                      kg
+                                    </p>
+                                    <p>
+                                      <strong>Average Star:</strong>{" "}
+                                      {cosplayerData[item.cosplayerId]
+                                        .averageStar || "N/A"}
+                                    </p>
+                                    <p>
+                                      <Link
+                                        target="_blank"
+                                        to={`/user-profile/${item.cosplayerId}`}
+                                        style={{ color: "#1890ff" }}
+                                      >
+                                        View Profile
+                                      </Link>
+                                    </p>
+                                  </div>
+                                ) : (
+                                  "Failed to load cosplayer data"
+                                )
+                              ) : (
+                                "No cosplayer assigned"
+                              )
+                            }
+                            onOpenChange={(open) =>
+                              open &&
+                              item.cosplayerId &&
+                              fetchCosplayerData(item.cosplayerId)
+                            }
+                          >
+                            <strong
+                              style={{
+                                cursor: item.cosplayerId
+                                  ? "pointer"
+                                  : "default",
+                              }}
+                            >
+                              {item.cosplayerName}
+                            </strong>
+                          </Tooltip>{" "}
+                          as <strong>{item.characterName}</strong>
+                        </p>
+                        <p>
+                          Quantity: {item.quantity} | Hourly Rate:{" "}
+                          {item.salaryIndex.toLocaleString()} VND/h | Character
+                          Price: {item.characterPrice.toLocaleString()} VND/day
+                        </p>
+                        <p>
+                          Working Time: {item.startDate} {item.startTime} -{" "}
+                          {item.endDate} {item.endTime} | Total Hours:{" "}
+                          {item.totalHours.toFixed(2)} | Total Days:{" "}
+                          {item.totalDays}
+                        </p>
+                        <p>
+                          Price:{" "}
+                          <strong>{item.price.toLocaleString()} VND</strong>
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                </>
               )}
+              {!viewData.characters &&
+                viewData.listRequestCharacters.length === 0 && (
+                  <p>No characters requested.</p>
+                )}
               <p>
-                <strong>Total Price:</strong> {viewData.price} VND
+                <strong>Total Price:</strong>{" "}
+                <strong>{viewData.price.toLocaleString()} VND</strong>
               </p>
             </div>
           )
