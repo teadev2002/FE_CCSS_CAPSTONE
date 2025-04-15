@@ -70,5 +70,15 @@ const MyHistoryService = {
       throw error;
     }
   },
+  getCharacterById: async (characterId) => {
+    try {
+      const response = await apiClient.get(`/api/Character/${characterId}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(
+        error.response?.data?.message || "Lỗi khi lấy thông tin character"
+      );
+    }
+  },
 };
 export default MyHistoryService;
