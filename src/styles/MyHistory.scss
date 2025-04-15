@@ -5,7 +5,24 @@
   padding: 30px;
   min-height: 100vh;
   background-color: #f8f9fa;
-
+  .reason-text {
+    color: #dc3545; // Màu đỏ của Bootstrap text-danger
+    font-size: 1rem; // Lớn hơn small (~0.875rem) nhưng nhỏ hơn tiêu đề
+    line-height: 1.5;
+  }
+  .filter-section {
+    .ant-select,
+    .ant-checkbox-group {
+      width: 100%;
+    }
+    .ant-checkbox-wrapper {
+      margin-right: 10px;
+    }
+  }
+  // Đảm bảo Input trong modal cũng áp dụng font size
+  .reason-text .ant-input {
+    font-size: 1rem;
+  }
   .title-my-history {
     span {
       font-size: 2.5rem;
