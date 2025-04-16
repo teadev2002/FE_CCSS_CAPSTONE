@@ -180,7 +180,7 @@ import SystemManagementPage from "./pages/AdminPage/SystemManagementPage/SystemM
 import Sidebar from "./components/AdminSidebar/Sidebar";
 import SidebarManagement from "./components/ManagerSidebar/SidebarManagement.js";
 import NotFound from "./pages/404ErrorPage/NotFound";
-import ManageFestival from "./pages/ManagerPage/ManageFestivalPage/ManageFestival.js";
+import ManageTicket from "./pages/ManagerPage/ManageTicketPage/ManageTicket.js";
 import ManageRequest from "./pages/ManagerPage/ManageRequestPage/ManageRequest.js";
 import ManageSouvenir from "./pages/ManagerPage/ManageSouvenirsPage/ManageSouvenir.js";
 import ManageCosplayer from "./pages/ManagerPage/ManageCosplayerPage/ManageCosplayer.js";
@@ -196,8 +196,9 @@ import ManageRequestCustomerCharacter from "./pages/ManagerPage/ManageRequestCus
 import MyEventOrganize from "./pages/MyEventOrganizePage/MyEventOrganize.js";
 import PurchaseHistory from "./pages/PurchaseHistoryPage/PurchaseHistory.js";
 import ManageAssignTask from "./pages/ManagerPage/ManageAssignTaskPage/ManageAssignTask.js";
-import TicketCheck from "./pages/ManagerPage/TicketCheckPage/TicketCheck.js"; 
-import ManageFeedback from "./pages/ManagerPage/ManageFeedbackPage/ManageFeedback.js"
+import TicketCheck from "./pages/ManagerPage/TicketCheckPage/TicketCheck.js";
+import ManageFeedback from "./pages/ManagerPage/ManageFeedbackPage/ManageFeedback.js";
+import ManageAllFestivals from "./pages/ManagerPage/ManageAllFestivalsPage/ManageAllFestivals.js"; // Thêm import
 
 const AppLayout = ({ children }) => {
   const location = useLocation();
@@ -270,9 +271,10 @@ function App() {
             path="/admin/system-management"
             element={<SystemManagementPage />}
           />
-          <Route path="/manage/ticket" element={<ManageFestival />} />
-          <Route path="/manage/ticket-check" element={<TicketCheck />} /> {/* Route mới */}
-          <Route path="/manage/feedback" element={<ManageFeedback />} /> {/* Route mới */}
+          <Route path="/manage/festival" element={<ManageAllFestivals />} /> {/* Thêm route mới */}
+          <Route path="/manage/ticket" element={<ManageTicket />} /> 
+          <Route path="/manage/ticket-check" element={<TicketCheck />} />
+          <Route path="/manage/feedback" element={<ManageFeedback />} />
           <Route path="/manage/request" element={<ManageRequest />} />
           <Route path="/manage/souvenir" element={<ManageSouvenir />} />
           <Route path="/manage/cosplayer" element={<ManageCosplayer />} />

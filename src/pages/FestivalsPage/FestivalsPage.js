@@ -99,7 +99,9 @@ const FestivalsPage = () => {
 
   const handleFestivalShow = (festival) => {
     setSelectedFestival(festival);
-    setSelectedTicketType(festival.ticket[0]); // Mặc định chọn loại vé đầu tiên
+    const availableTicket = festival.ticket.find((t) => t.ticketStatus === 0) || festival.ticket[0];
+    setSelectedTicketType(availableTicket);
+    setTicketQuantity(1);
     setShowFestivalModal(true);
   };
 
@@ -126,12 +128,16 @@ const FestivalsPage = () => {
 
   const handleTicketTypeSelect = (ticket) => {
     setSelectedTicketType(ticket);
-    setTicketQuantity(1); // Reset số lượng khi chọn loại vé mới
+    setTicketQuantity(1);
   };
 
   const handleBuyNow = () => {
     if (!accountId) {
       toast.error("Please log in to proceed with payment!");
+      return;
+    }
+    if (selectedTicketType?.ticketStatus === 1) {
+      toast.error("This event has stopped selling tickets!");
       return;
     }
     setShowPurchaseForm(true);
@@ -443,7 +449,7 @@ const FestivalsPage = () => {
                         const cosplayerData = cosplayerDetails[cosplayer.eventCharacterId];
                         const avatarImage = cosplayerData?.images?.find(
                           (img) => img.isAvatar
-                        );
+                        ) || cosplayerData?.images?.[0];
                         return (
                           <div
                             key={cosplayer.eventCharacterId}
@@ -541,7 +547,7 @@ const FestivalsPage = () => {
                     <div
                       style={{
                         display: "grid",
-                        gridTemplateColumns: "repeat(2, 1fr)", // Chỉ 2 loại vé
+                        gridTemplateColumns: "repeat(2, 1fr)",
                         gap: "1rem",
                         maxWidth: "100%",
                       }}
@@ -552,25 +558,20 @@ const FestivalsPage = () => {
                           style={{
                             background:
                               selectedTicketType?.ticketId === ticket.ticketId
-                                ? "linear-gradient(135deg, #f8e6f2, #e6f0fa)" // Gradient nhạt khi chọn
+                                ? "linear-gradient(135deg, #f8e6f2, #e6f0fa)"
                                 : "white",
                             borderRadius: "0.5rem",
                             padding: "1rem",
                             boxShadow: "0 6px 20px rgba(0, 0, 0, 0.08)",
                             transition: "transform 0.3s ease, background 0.3s ease",
-                            cursor: "pointer",
+                            cursor: ticket.ticketStatus === 0 ? "pointer" : "not-allowed",
                             border:
                               selectedTicketType?.ticketId === ticket.ticketId
-                                ? "2px solid #510545" // Viền gradient khi chọn
+                                ? "2px solid #510545"
                                 : "2px solid transparent",
+                            opacity: ticket.ticketStatus === 1 ? 0.6 : 1,
                           }}
-                          onClick={() => handleTicketTypeSelect(ticket)}
-                          onMouseEnter={(e) =>
-                            (e.currentTarget.style.transform = "translateY(-8px)")
-                          }
-                          onMouseLeave={(e) =>
-                            (e.currentTarget.style.transform = "translateY(0)")
-                          }
+                          onClick={() => ticket.ticketStatus === 0 && handleTicketTypeSelect(ticket)}
                         >
                           <h6
                             style={{
@@ -603,6 +604,18 @@ const FestivalsPage = () => {
                           >
                             Available: {ticket.quantity}
                           </p>
+                          {ticket.ticketStatus === 1 && (
+                            <p
+                              style={{
+                                color: "red",
+                                fontSize: "0.8rem",
+                                marginTop: "0.5rem",
+                                fontWeight: 500,
+                              }}
+                            >
+                              This ticket is not available for purchase
+                            </p>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -617,7 +630,7 @@ const FestivalsPage = () => {
                         <Button
                           variant="outline-secondary"
                           onClick={handleDecrease}
-                          disabled={ticketQuantity === 1}
+                          disabled={ticketQuantity === 1 || selectedTicketType.ticketStatus === 1}
                         >
                           -
                         </Button>
@@ -630,7 +643,8 @@ const FestivalsPage = () => {
                           disabled={
                             !selectedTicketType ||
                             selectedTicketType.quantity === 0 ||
-                            ticketQuantity >= selectedTicketType.quantity
+                            ticketQuantity >= selectedTicketType.quantity ||
+                            selectedTicketType.ticketStatus === 1
                           }
                         >
                           +
@@ -643,11 +657,36 @@ const FestivalsPage = () => {
                     variant="primary"
                     className="fest-buy-ticket-btn"
                     onClick={handleBuyNow}
-                    disabled={!selectedTicketType || selectedTicketType.quantity === 0}
+                    disabled={
+                      !selectedTicketType ||
+                      selectedTicketType.quantity === 0 ||
+                      selectedTicketType.ticketStatus === 1
+                    }
+                    style={{
+                      background:
+                        !selectedTicketType ||
+                        selectedTicketType.quantity === 0 ||
+                        selectedTicketType.ticketStatus === 1
+                          ? "#6c757d"
+                          : "linear-gradient(135deg, #510545, #22668a)",
+                      border: "none",
+                    }}
                   >
                     Buy Now -{" "}
                     {formatPrice(selectedTicketType?.price * ticketQuantity || 0)}
                   </Button>
+                  {selectedTicketType?.ticketStatus === 1 && (
+                    <p
+                      style={{
+                        color: "red",
+                        fontSize: "0.9rem",
+                        marginTop: "0.5rem",
+                        fontWeight: 500,
+                      }}
+                    >
+                      This event has stopped selling tickets
+                    </p>
+                  )}
                 </div>
 
                 {showPurchaseForm && (
@@ -707,6 +746,7 @@ const FestivalsPage = () => {
                     <Button
                       variant="secondary"
                       onClick={handleBackToPayment}
+                      className="me-2"
                       style={{
                         background: "linear-gradient(135deg, #6b7280, #4a4a4a)",
                         border: "none",

@@ -322,7 +322,7 @@ import {
   ReceiptText,
   ListChecks,
   LogOut,
-  CheckCircle, // Thêm icon cho Ticket Check
+  CheckCircle,
 } from "lucide-react";
 import { jwtDecode } from "jwt-decode";
 import { toast } from "react-toastify";
@@ -395,21 +395,21 @@ const SidebarManagement = () => {
       allowedRoles: ["Manager"],
     },
     {
-      path: "/manage/event",
-      label: "Manage Events",
+      path: "/manage/festival", 
+      label: "Manage Festivals",
       icon: <CalendarHeart size={20} />,
       allowedRoles: ["Manager"],
     },
     {
       path: "/manage/ticket",
-      label: "Manage Event Tickets",
+      label: "Manage Festival Tickets",
       icon: <Ticket size={20} />,
       allowedRoles: ["Manager"],
     },
     {
       path: "/manage/ticket-check",
       label: "Ticket Check",
-      icon: <CheckCircle size={20} />, // Icon mới cho Ticket Check
+      icon: <CheckCircle size={20} />,
       allowedRoles: ["Manager"],
     },
     {
