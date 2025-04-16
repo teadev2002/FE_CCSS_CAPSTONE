@@ -1,4 +1,3 @@
-/// ============================ view contract detail ============================ ///
 import React, { useState, useEffect, useMemo } from "react";
 import {
   Table,
@@ -115,6 +114,33 @@ const ManageContract = () => {
   const rowsPerPageOptions = [10, 15, 30];
   const [selectedService, setSelectedService] = useState("All");
 
+  const handleCompleteContract = async (contractId) => {
+    if (!contractId) {
+      console.error("contractId không hợp lệ:", contractId);
+      toast.error("Không thể hoàn thành hợp đồng: ID không hợp lệ.");
+      return;
+    }
+
+    try {
+      await ManageContractService.updateContractStatus(contractId, "Completed");
+      setContracts((prevContracts) =>
+        prevContracts.map((con) =>
+          con.contractId === contractId ? { ...con, status: "Completed" } : con
+        )
+      );
+      toast.success("Hợp đồng đã được hoàn thành thành công!");
+    } catch (error) {
+      console.error("Lỗi khi hoàn thành hợp đồng:", {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+      });
+      toast.error(
+        error.response?.data?.message || "Lỗi khi hoàn thành hợp đồng."
+      );
+    }
+  };
+
   const calculateTotalDays = (startDate, endDate) => {
     if (!startDate || !endDate) return 0;
     const start = dayjs(startDate, "HH:mm DD/MM/YYYY");
@@ -218,8 +244,21 @@ const ManageContract = () => {
         try {
           const contractData = await ManageContractService.getAllContracts();
           console.log("Fetched contracts:", contractData);
+
+          // Kiểm tra và lọc các hợp đồng thiếu contractId
+          const validContracts = contractData.filter((con) => {
+            if (!con.contractId) {
+              console.warn("Hợp đồng thiếu contractId:", con);
+              return false;
+            }
+            return true;
+          });
+
           if (isMounted) {
-            setContracts(contractData);
+            setContracts(validContracts);
+            if (validContracts.length === 0) {
+              toast.warn("Không tìm thấy hợp đồng hợp lệ.");
+            }
           }
         } catch (contractError) {
           console.error("Failed to fetch contracts:", contractError);
@@ -229,10 +268,10 @@ const ManageContract = () => {
           );
         }
 
+        // Phần code còn lại giữ nguyên
         try {
           const requestData = await ManageContractService.getAllRequests();
           console.log("Raw request data:", requestData);
-
           const formattedData = requestData
             .filter((req) =>
               ["browsed", "approved"].includes(req.status?.toLowerCase())
@@ -249,7 +288,6 @@ const ManageContract = () => {
                 startDate = dateResponse.startDate;
                 endDate = dateResponse.endDate;
               }
-
               return {
                 id: req.requestId,
                 serviceId: req.serviceId || "Unknown",
@@ -267,7 +305,6 @@ const ManageContract = () => {
               };
             });
           console.log("Formatted requests:", formattedData);
-
           if (isMounted) {
             setRequests(formattedData);
             if (requestData.length === 0) {
@@ -1185,18 +1222,19 @@ const ManageContract = () => {
                       <th className="text-center">Start Date</th>
                       <th className="text-center">End Date</th>
                       <th className="text-center">Actions</th>
+                      <th className="text-center">Complete Contract</th>
                     </tr>
                   </thead>
                   <tbody>
                     {paginatedContracts.length === 0 ? (
                       <tr>
-                        <td colSpan="6" className="text-center">
+                        <td colSpan="8" className="text-center">
                           No contracts found
                         </td>
                       </tr>
                     ) : (
-                      paginatedContracts.map((con) => (
-                        <tr key={con.contractId}>
+                      paginatedContracts.map((con, index) => (
+                        <tr key={con.contractId || `contract-${index}`}>
                           <td className="text-center">
                             {con.contractName || "N/A"}
                           </td>
@@ -1231,21 +1269,29 @@ const ManageContract = () => {
                               size="small"
                               onClick={() => handleViewContractDetail(con)}
                               style={{ marginRight: "8px" }}
+                              disabled={!con.contractId}
                             >
                               View Detail
                             </Button>
-                            {/* <Popconfirm
-                              title="Are you sure to delete this contract?"
-                              onConfirm={() =>
-                                handleDeleteContract(con.contractId)
-                              }
-                              okText="Yes"
-                              cancelText="No"
-                            >
-                              <Button type="primary" danger size="small">
-                                Delete
-                              </Button>
-                            </Popconfirm> */}
+                          </td>
+                          <td className="text-center">
+                            {con.contractId &&
+                            con.status === "FinalSettlement" ? (
+                              <Popconfirm
+                                title="Bạn có chắc chắn muốn hoàn thành hợp đồng này?"
+                                onConfirm={() =>
+                                  handleCompleteContract(con.contractId)
+                                }
+                                okText="Có"
+                                cancelText="Không"
+                              >
+                                <Button type="primary" size="small">
+                                  Completed
+                                </Button>
+                              </Popconfirm>
+                            ) : (
+                              "-"
+                            )}
                           </td>
                         </tr>
                       ))

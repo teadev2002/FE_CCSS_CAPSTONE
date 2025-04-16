@@ -93,6 +93,22 @@ const ManageContractService = {
       throw error;
     }
   },
+  // Cập nhật trạng thái hợp đồng
+  updateContractStatus: async (contractId, status) => {
+    try {
+      const response = await apiClient.put(
+        `/api/Contract?contracId=${contractId}&status=Completed`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error updating contract status:", {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+      });
+      throw error;
+    }
+  },
 };
 
 export default ManageContractService;
