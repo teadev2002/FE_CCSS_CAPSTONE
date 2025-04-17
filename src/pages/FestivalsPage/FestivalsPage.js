@@ -336,18 +336,18 @@ const FestivalsPage = () => {
           {selectedFestival && (
             <div className="costume-gallery">
               <Carousel className="gallery-carousel">
-                {selectedFestival.eventImageResponses.map((image) => (
+                {selectedFestival.eventImageResponses.map((image, index) => (
                   <Carousel.Item key={image.imageId}>
                     <div className="carousel-image-container">
                       <img
                         className="d-block w-100"
                         src={image.imageUrl}
-                        alt={`${selectedFestival.eventName} - Image ${image.imageId}`}
+                        alt={`${selectedFestival.eventName} - Image ${index + 1}`}
                       />
                     </div>
                     <Carousel.Caption>
                       <h3>{selectedFestival.eventName}</h3>
-                      <p>Image {image.imageId}</p>
+                      <p>Image {index + 1} of {selectedFestival.eventImageResponses.length}</p>
                     </Carousel.Caption>
                   </Carousel.Item>
                 ))}

@@ -6,53 +6,48 @@ import {
   Card,
   Pagination,
   Dropdown,
-  Row,
-  Col,
 } from "react-bootstrap";
-import { Button, Popconfirm, message, Input, Select } from "antd";
+import { Button, Popconfirm, message, Select } from "antd";
 import { toast } from "react-toastify";
-import { ArrowDownUp, ArrowDownAZ } from "lucide-react";
+import { ArrowUp, ArrowDown } from "lucide-react";
 import "../../../styles/Manager/ManageFeedback.scss";
 import Box from "@mui/material/Box";
 import LinearProgress from "@mui/material/LinearProgress";
 
 const { Option } = Select;
 
-// Dữ liệu tĩnh giả lập (thay bằng API sau này)
 const initialFeedbacks = [
   {
     id: "FB001",
     customer: "John Doe",
-    cosplayer: "Alice Smith",
+    cosplayerName: "Alice Smith",
     service: "Hire Cosplayer",
     rating: 5,
-    comment: "Alice was fantastic, very professional and friendly! She made our event memorable with her amazing performance.",
+    comment: "Alice was fantastic, very professional and friendly!",
     date: "2025-04-10",
   },
   {
     id: "FB002",
     customer: "Jane Roe",
-    cosplayer: "Bob Johnson",
+    cosplayerName: "Bob Johnson",
     service: "Hire Cosplayer",
     rating: 3,
-    comment: "Good performance overall, but arrived a bit late. The costume was great, though!",
+    comment: "Good performance overall, but arrived a bit late.",
     date: "2025-04-08",
   },
   {
     id: "FB003",
     customer: "Emily Brown",
-    cosplayer: "Clara Lee",
+    cosplayerName: "Clara Lee",
     service: "Hire Cosplayer",
     rating: 4,
-    comment: "Great costume and interaction with guests! Clara was a highlight of the event.",
+    comment: "Great costume and interaction with guests!",
     date: "2025-04-05",
   },
 ];
 
 const ManageFeedback = () => {
-  // State quản lý dữ liệu và giao diện
   const [feedbacks, setFeedbacks] = useState(initialFeedbacks);
-  const [filteredFeedbacks, setFilteredFeedbacks] = useState(initialFeedbacks);
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentFeedback, setCurrentFeedback] = useState(null);
@@ -63,52 +58,48 @@ const ManageFeedback = () => {
     comment: "",
   });
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortField, setSortField] = useState(null);
-  const [sortOrder, setSortOrder] = useState("asc");
+  const [sortFeedback, setSortFeedback] = useState({
+    field: "cosplayerName",
+    order: "asc",
+  });
   const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-  const rowsPerPageOptions = [5, 10, 20];
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const rowsPerPageOptions = [10, 20, 30];
 
-  // Xử lý tìm kiếm
-  const handleSearch = (e) => {
-    const term = e.target.value.toLowerCase();
-    setSearchTerm(term);
-    const filtered = feedbacks.filter(
-      (fb) =>
-        fb.customer.toLowerCase().includes(term) ||
-        fb.cosplayer.toLowerCase().includes(term) ||
-        fb.comment.toLowerCase().includes(term)
-    );
-    setFilteredFeedbacks(filtered);
-    setCurrentPage(1);
-  };
-
-  // Xử lý sắp xếp
-  const handleSort = (field) => {
-    const order = sortField === field && sortOrder === "asc" ? "desc" : "asc";
-    setSortField(field);
-    setSortOrder(order);
-    const sorted = [...filteredFeedbacks].sort((a, b) => {
-      const valA = a[field];
-      const valB = b[field];
-      if (valA == null && valB == null) return 0;
-      if (valA == null) return order === "asc" ? -1 : 1;
-      if (valB == null) return order === "asc" ? 1 : -1;
-      if (typeof valA === "string") {
-        return valA.localeCompare(valB) * (order === "asc" ? 1 : -1);
-      }
-      return (valA < valB ? -1 : 1) * (order === "asc" ? 1 : -1);
+  const filterAndSortData = (data, search, sort) => {
+    let filtered = [...data];
+    if (search) {
+      filtered = filtered.filter(
+        (item) =>
+          item.customer.toLowerCase().includes(search.toLowerCase()) ||
+          item.cosplayerName.toLowerCase().includes(search.toLowerCase()) ||
+          item.comment.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+    return filtered.sort((a, b) => {
+      const valueA = String(a[sort.field]).toLowerCase();
+      const valueB = String(b[sort.field]).toLowerCase();
+      return sort.order === "asc"
+        ? valueA.localeCompare(valueB)
+        : valueB.localeCompare(valueA);
     });
-    setFilteredFeedbacks(sorted);
   };
 
-  // Phân trang
-  const totalPages = Math.ceil(filteredFeedbacks.length / rowsPerPage);
-  const startIndex = (currentPage - 1) * rowsPerPage;
-  const endIndex = startIndex + rowsPerPage;
-  const paginatedFeedbacks = filteredFeedbacks.slice(startIndex, endIndex);
+  const filteredFeedbacks = filterAndSortData(feedbacks, searchTerm, sortFeedback);
+  const totalEntries = filteredFeedbacks.length;
+  const totalPages = Math.ceil(totalEntries / rowsPerPage);
+  const paginatedFeedbacks = paginateData(filteredFeedbacks, currentPage);
 
-  // Xử lý modal
+  function paginateData(data, page) {
+    const startIndex = (page - 1) * rowsPerPage;
+    const endIndex = startIndex + rowsPerPage;
+    return data.slice(startIndex, endIndex);
+  }
+
+  const startEntry = (currentPage - 1) * rowsPerPage + 1;
+  const endEntry = Math.min(currentPage * rowsPerPage, totalEntries);
+  const showingText = `Showing ${startEntry} to ${endEntry} of ${totalEntries} entries`;
+
   const handleShowModal = (feedback = null) => {
     if (feedback) {
       setIsEditing(true);
@@ -128,12 +119,10 @@ const ManageFeedback = () => {
     setFormData({ rating: 5, comment: "" });
   };
 
-  // Xử lý thay đổi input
   const handleInputChange = (name, value) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Xử lý submit form (mô phỏng API)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -141,20 +130,12 @@ const ManageFeedback = () => {
 
     try {
       if (isEditing && currentFeedback?.id) {
-        // Mô phỏng cập nhật feedback
         const updatedFeedbacks = feedbacks.map((fb) =>
           fb.id === currentFeedback.id
             ? { ...fb, rating: formData.rating, comment: formData.comment }
             : fb
         );
         setFeedbacks(updatedFeedbacks);
-        setFilteredFeedbacks(
-          filteredFeedbacks.map((fb) =>
-            fb.id === currentFeedback.id
-              ? { ...fb, rating: formData.rating, comment: formData.comment }
-              : fb
-          )
-        );
         toast.success("Feedback updated successfully!");
       }
       handleCloseModal();
@@ -166,15 +147,12 @@ const ManageFeedback = () => {
     }
   };
 
-  // Xử lý xóa với Popconfirm
   const handleDelete = async (id) => {
     setIsLoading(true);
     setError(null);
     try {
-      // Mô phỏng xóa feedback
       const updatedFeedbacks = feedbacks.filter((fb) => fb.id !== id);
       setFeedbacks(updatedFeedbacks);
-      setFilteredFeedbacks(filteredFeedbacks.filter((fb) => fb.id !== id));
       message.success("Feedback deleted successfully!");
     } catch (error) {
       setError("Failed to delete feedback.");
@@ -184,14 +162,26 @@ const ManageFeedback = () => {
     }
   };
 
-  // Xử lý phân trang
-  const handlePageChange = (pageNumber) => setCurrentPage(pageNumber);
-  const handleRowsPerPageChange = (value) => {
-    setRowsPerPage(Number(value));
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
     setCurrentPage(1);
   };
 
-  // Render giao diện
+  const handleSort = (field) => {
+    setSortFeedback((prev) => ({
+      field,
+      order: prev.field === field && prev.order === "asc" ? "desc" : "asc",
+    }));
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (page) => setCurrentPage(page);
+
+  const handleRowsPerPageChange = (value) => {
+    setRowsPerPage(value);
+    setCurrentPage(1);
+  };
+
   return (
     <div className="manage-feedback">
       <h2 className="manage-feedback-title">Manage Feedbacks</h2>
@@ -200,35 +190,14 @@ const ManageFeedback = () => {
           <Card.Body>
             <div className="table-header">
               <h3>Feedbacks</h3>
-              <div className="table-controls">
-                <Input
-                  placeholder="Search by customer, cosplayer, or comment"
-                  value={searchTerm}
-                  onChange={handleSearch}
-                  style={{ width: 200, marginRight: 10 }}
-                  prefix="🔍"
-                  size="middle"
-                />
-                <Dropdown
-                  onSelect={handleRowsPerPageChange}
-                  className="rows-per-page-dropdown"
-                >
-                  <Dropdown.Toggle
-                    variant="outline-secondary"
-                    id="dropdown-rows-per-page"
-                    size="sm"
-                  >
-                    {rowsPerPage} rows
-                  </Dropdown.Toggle>
-                  <Dropdown.Menu>
-                    {rowsPerPageOptions.map((option) => (
-                      <Dropdown.Item key={option} eventKey={option}>
-                        {option} rows
-                      </Dropdown.Item>
-                    ))}
-                  </Dropdown.Menu>
-                </Dropdown>
-              </div>
+              <Form.Control
+                type="text"
+                placeholder="Search by customer, cosplayer, or comment..."
+                value={searchTerm}
+                onChange={handleSearch}
+                className="search-input"
+              />
+              <div></div>
             </div>
             {isLoading && (
               <Box sx={{ width: "100%", marginY: 2 }}>
@@ -238,65 +207,88 @@ const ManageFeedback = () => {
             {error && <p className="error-message">{error}</p>}
             {!isLoading && !error && (
               <>
-                <Table striped bordered hover responsive size="sm">
-                  <thead className="table-light">
+                <Table striped bordered hover responsive>
+                  <thead>
                     <tr>
-                      <th onClick={() => handleSort("id")}>
-                        ID <ArrowDownAZ />
+                      <th className="text-center">Customer</th>
+                      <th className="text-center">
+                        <span
+                          className="sortable"
+                          onClick={() => handleSort("cosplayerName")}
+                        >
+                          Cosplayer
+                          {sortFeedback.field === "cosplayerName" ? (
+                            sortFeedback.order === "asc" ? (
+                              <ArrowUp size={16} />
+                            ) : (
+                              <ArrowDown size={16} />
+                            )
+                          ) : (
+                            <ArrowUp size={16} className="default-sort-icon" />
+                          )}
+                        </span>
                       </th>
-                      <th onClick={() => handleSort("customer")}>
-                        Customer <ArrowDownAZ />
+                      <th className="text-center">Service</th>
+                      <th className="text-center">
+                        <span
+                          className="sortable"
+                          onClick={() => handleSort("rating")}
+                        >
+                          Rating
+                          {sortFeedback.field === "rating" ? (
+                            sortFeedback.order === "asc" ? (
+                              <ArrowUp size={16} />
+                            ) : (
+                              <ArrowDown size={16} />
+                            )
+                          ) : (
+                            <ArrowUp size={16} className="default-sort-icon" />
+                          )}
+                        </span>
                       </th>
-                      <th onClick={() => handleSort("cosplayer")}>
-                        Cosplayer <ArrowDownAZ />
+                      <th className="text-center">Comment</th>
+                      <th className="text-center">
+                        <span
+                          className="sortable"
+                          onClick={() => handleSort("date")}
+                        >
+                          Date
+                          {sortFeedback.field === "date" ? (
+                            sortFeedback.order === "asc" ? (
+                              <ArrowUp size={16} />
+                            ) : (
+                              <ArrowDown size={16} />
+                            )
+                          ) : (
+                            <ArrowUp size={16} className="default-sort-icon" />
+                          )}
+                        </span>
                       </th>
-                      <th onClick={() => handleSort("service")}>
-                        Service <ArrowDownAZ />
-                      </th>
-                      <th onClick={() => handleSort("rating")}>
-                        Rating <ArrowDownUp size={20} />
-                      </th>
-                      <th onClick={() => handleSort("comment")}>
-                        Comment <ArrowDownAZ />
-                      </th>
-                      <th onClick={() => handleSort("date")}>
-                        Date <ArrowDownUp size={20} />
-                      </th>
-                      <th>Actions</th>
+                      <th className="text-center">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {paginatedFeedbacks.length === 0 ? (
                       <tr>
-                        <td colSpan="8" className="text-center text-muted">
+                        <td colSpan="7" className="text-center text-muted">
                           No feedback found {searchTerm && "matching your search"}.
                         </td>
                       </tr>
                     ) : (
                       paginatedFeedbacks.map((feedback) => (
                         <tr key={feedback.id}>
-                          <td>{feedback.id}</td>
-                          <td>{feedback.customer}</td>
-                          <td>{feedback.cosplayer}</td>
-                          <td>{feedback.service}</td>
-                          <td>{feedback.rating} ⭐</td>
-                          <td>{feedback.comment}</td>
-                          <td>{feedback.date}</td>
-                          <td style={{ whiteSpace: "nowrap" }}>
+                          <td className="text-center">{feedback.customer}</td>
+                          <td className="text-center">{feedback.cosplayerName}</td>
+                          <td className="text-center">{feedback.service}</td>
+                          <td className="text-center">{feedback.rating} ⭐</td>
+                          <td className="text-center">{feedback.comment}</td>
+                          <td className="text-center">{feedback.date}</td>
+                          <td className="text-center">
                             <Button
                               type="primary"
                               size="small"
                               onClick={() => handleShowModal(feedback)}
-                              style={{
-                                backgroundColor: "#1890ff",
-                                borderColor: "#1890ff",
-                                color: "#fff",
-                                fontSize: "14px",
-                                padding: "4px 8px",
-                                borderRadius: "4px",
-                                marginRight: "8px",
-                                boxShadow: "none",
-                              }}
+                              style={{ marginRight: "8px" }}
                             >
                               Edit
                             </Button>
@@ -308,20 +300,7 @@ const ManageFeedback = () => {
                               okText="Yes"
                               cancelText="No"
                             >
-                              <Button
-                                type="primary"
-                                danger
-                                size="small"
-                                style={{
-                                  backgroundColor: "#ff4d4f",
-                                  borderColor: "#ff4d4f",
-                                  color: "#fff",
-                                  fontSize: "14px",
-                                  padding: "4px 8px",
-                                  borderRadius: "4px",
-                                  boxShadow: "none",
-                                }}
-                              >
+                              <Button type="primary" danger size="small">
                                 Delete
                               </Button>
                             </Popconfirm>
@@ -331,37 +310,59 @@ const ManageFeedback = () => {
                     )}
                   </tbody>
                 </Table>
-                {totalPages > 1 && (
-                  <div className="pagination-controls">
-                    <Pagination size="sm">
-                      <Pagination.First
-                        onClick={() => handlePageChange(1)}
-                        disabled={currentPage === 1}
-                      />
-                      <Pagination.Prev
-                        onClick={() => handlePageChange(currentPage - 1)}
-                        disabled={currentPage === 1}
-                      />
-                      {[...Array(totalPages).keys()].map((page) => (
-                        <Pagination.Item
-                          key={page + 1}
-                          active={page + 1 === currentPage}
-                          onClick={() => handlePageChange(page + 1)}
+                <div className="pagination-controls">
+                  <div className="pagination-info">
+                    <span>{showingText}</span>
+                    <div className="rows-per-page">
+                      <span>Rows per page: </span>
+                      <Dropdown
+                        onSelect={(value) => handleRowsPerPageChange(Number(value))}
+                        className="d-inline-block"
+                      >
+                        <Dropdown.Toggle
+                          variant="secondary"
+                          id="dropdown-rows-per-page"
                         >
-                          {page + 1}
-                        </Pagination.Item>
-                      ))}
-                      <Pagination.Next
-                        onClick={() => handlePageChange(currentPage + 1)}
-                        disabled={currentPage === totalPages}
-                      />
-                      <Pagination.Last
-                        onClick={() => handlePageChange(totalPages)}
-                        disabled={currentPage === totalPages}
-                      />
-                    </Pagination>
+                          {rowsPerPage}
+                        </Dropdown.Toggle>
+                        <Dropdown.Menu>
+                          {rowsPerPageOptions.map((option) => (
+                            <Dropdown.Item key={option} eventKey={option}>
+                              {option}
+                            </Dropdown.Item>
+                          ))}
+                        </Dropdown.Menu>
+                      </Dropdown>
+                    </div>
                   </div>
-                )}
+                  <Pagination>
+                    <Pagination.First
+                      onClick={() => handlePageChange(1)}
+                      disabled={currentPage === 1}
+                    />
+                    <Pagination.Prev
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1}
+                    />
+                    {[...Array(totalPages).keys()].map((page) => (
+                      <Pagination.Item
+                        key={page + 1}
+                        active={page + 1 === currentPage}
+                        onClick={() => handlePageChange(page + 1)}
+                      >
+                        {page + 1}
+                      </Pagination.Item>
+                    ))}
+                    <Pagination.Next
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                    />
+                    <Pagination.Last
+                      onClick={() => handlePageChange(totalPages)}
+                      disabled={currentPage === totalPages}
+                    />
+                  </Pagination>
+                </div>
               </>
             )}
           </Card.Body>
@@ -381,17 +382,6 @@ const ManageFeedback = () => {
         <Modal.Body>
           {error && !isLoading && <p className="error-message">{error}</p>}
           <Form onSubmit={handleSubmit}>
-            {isEditing && (
-              <Form.Group className="mb-3">
-                <Form.Label>Feedback ID</Form.Label>
-                <Form.Control
-                  type="text"
-                  value={currentFeedback?.id}
-                  readOnly
-                  disabled
-                />
-              </Form.Group>
-            )}
             <Form.Group className="mb-3">
               <Form.Label>Rating</Form.Label>
               <Select
