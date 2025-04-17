@@ -191,6 +191,7 @@ import ManageAccount from "./pages/ManagerPage/ManageAccountPage/ManageAccount.j
 import MyHistory from "./pages/MyHistoryPage/MyHistory.js";
 import MyTask from "./pages/TaskPage/MyTask.js";
 import SuccessPayment from "./pages/SuccessPaymentPage/SuccessPayment.js";
+import FailPayment from "./pages/FailPaymentPage/FailPayment.js";
 import MyRentalCostume from "./pages/MyRentalCostumePage/MyRentalCostume.js";
 import ManageRequestCustomerCharacter from "./pages/ManagerPage/ManageRequestCustomerCharacterPage/ManageRequestCustomerCharacter.js";
 import MyEventOrganize from "./pages/MyEventOrganizePage/MyEventOrganize.js";
@@ -199,6 +200,7 @@ import ManageAssignTask from "./pages/ManagerPage/ManageAssignTaskPage/ManageAss
 import TicketCheck from "./pages/ManagerPage/TicketCheckPage/TicketCheck.js";
 import ManageFeedback from "./pages/ManagerPage/ManageFeedbackPage/ManageFeedback.js";
 import ManageAllFestivals from "./pages/ManagerPage/ManageAllFestivalsPage/ManageAllFestivals.js"; // Thêm import
+
 
 const AppLayout = ({ children }) => {
   const location = useLocation();
@@ -254,6 +256,7 @@ function App() {
           <Route path="/my-event-organize/:id" element={<MyEventOrganize />} />
           <Route path="/my-purchase-history/:id" element={<PurchaseHistory />} />
           <Route path="/success-payment" element={<SuccessPayment />} />
+          <Route path="/fail-payment" element={<FailPayment />} />
           <Route path="/admin/dashboard" element={<DashboardPage />} />
           <Route
             path="/admin/user-performance"

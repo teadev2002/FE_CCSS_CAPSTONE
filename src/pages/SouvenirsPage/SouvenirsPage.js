@@ -79,7 +79,6 @@ const SouvenirsPage = () => {
 
     fetchProducts();
 
-    // Lắng nghe sự kiện storage để cập nhật danh sách sản phẩm
     window.addEventListener("storageUpdate", fetchProducts);
     return () => {
       window.removeEventListener("storageUpdate", fetchProducts);
@@ -123,7 +122,7 @@ const SouvenirsPage = () => {
       const productData = [{ productId: selectedSouvenir.id, quantity }];
       await CartService.addProductToCart(cartId, productData);
       toast.success(`${selectedSouvenir.name} has been added to your cart!`);
-      window.dispatchEvent(new Event("storageUpdate")); // Cập nhật giao diện
+      window.dispatchEvent(new Event("storageUpdate"));
       handleSouvenirClose();
     } catch (error) {
       toast.error(error.message);
@@ -158,15 +157,6 @@ const SouvenirsPage = () => {
     }
   };
 
-  const checkOrderStatus = async (orderId) => {
-    try {
-      const response = await apiClient.get(`/api/Order/${orderId}`);
-      return response.data.orderStatus;
-    } catch (error) {
-      throw new Error("Failed to check order status");
-    }
-  };
-
   const handleFinalConfirm = async () => {
     const totalAmount = selectedSouvenir.price * quantity;
 
@@ -196,44 +186,6 @@ const SouvenirsPage = () => {
         toast.success("Redirecting to MoMo payment...");
         localStorage.setItem("paymentSource", "souvenirs");
         window.location.href = paymentUrl;
-
-        const intervalId = setInterval(async () => {
-          try {
-            const status = await checkOrderStatus(orderpaymentId);
-            if (status === 1) { // Complete
-              clearInterval(intervalId);
-              const newQuantity = selectedSouvenir.quantity - quantity;
-              await ProductService.updateProductQuantity(selectedSouvenir.id, newQuantity);
-              toast.success("Payment successful!");
-              setProducts((prevProducts) =>
-                prevProducts.map((product) =>
-                  product.id === selectedSouvenir.id
-                    ? { ...product, quantity: newQuantity }
-                    : product
-                )
-              );
-              window.dispatchEvent(new Event("storageUpdate")); // Thông báo cập nhật
-              handleSouvenirClose();
-              navigate("/success-payment", { state: { source: "souvenirs" } });
-            } else if (status === 2) { // Cancel
-              clearInterval(intervalId);
-              toast.error("Payment was canceled!");
-              handleSouvenirClose();
-            } else if (status === 0) { // Pending
-              // Continue waiting
-            }
-          } catch (error) {
-            clearInterval(intervalId);
-            toast.error("Error checking payment status");
-            handleSouvenirClose();
-          }
-        }, 5000);
-
-        setTimeout(() => {
-          clearInterval(intervalId);
-          toast.error("Payment timeout. Please try again.");
-          handleSouvenirClose();
-        }, 120000); // 2 minutes timeout
       } else if (paymentMethod === "VNPay") {
         const paymentData = {
           fullName: accountName || "Unknown",
@@ -249,44 +201,6 @@ const SouvenirsPage = () => {
         toast.success("Redirecting to VNPay payment...");
         localStorage.setItem("paymentSource", "souvenirs");
         window.location.href = paymentUrl;
-
-        const intervalId = setInterval(async () => {
-          try {
-            const status = await checkOrderStatus(orderpaymentId);
-            if (status === 1) { // Complete
-              clearInterval(intervalId);
-              const newQuantity = selectedSouvenir.quantity - quantity;
-              await ProductService.updateProductQuantity(selectedSouvenir.id, newQuantity);
-              toast.success("Payment successful with VNPay!");
-              setProducts((prevProducts) =>
-                prevProducts.map((product) =>
-                  product.id === selectedSouvenir.id
-                    ? { ...product, quantity: newQuantity }
-                    : product
-                )
-              );
-              window.dispatchEvent(new Event("storageUpdate")); // Thông báo cập nhật
-              handleSouvenirClose();
-              navigate("/success-payment", { state: { source: "souvenirs" } });
-            } else if (status === 2) { // Cancel
-              clearInterval(intervalId);
-              toast.error("Payment with VNPay was canceled!");
-              handleSouvenirClose();
-            } else if (status === 0) { // Pending
-              // Continue waiting
-            }
-          } catch (error) {
-            clearInterval(intervalId);
-            toast.error("Error checking payment status");
-            handleSouvenirClose();
-          }
-        }, 5000);
-
-        setTimeout(() => {
-          clearInterval(intervalId);
-          toast.error("Payment timeout. Please try again.");
-          handleSouvenirClose();
-        }, 120000); // 2 minutes timeout
       }
     } catch (error) {
       toast.error(error.message);
