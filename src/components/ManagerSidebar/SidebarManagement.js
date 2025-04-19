@@ -323,6 +323,7 @@ import {
   ListChecks,
   LogOut,
   CheckCircle,
+  ListTodo,
 } from "lucide-react";
 import { jwtDecode } from "jwt-decode";
 import { toast } from "react-toastify";
@@ -383,6 +384,12 @@ const SidebarManagement = () => {
       allowedRoles: ["Manager"],
     },
     {
+      path: "/manage/task-cosplayer",
+      label: "Manage Task Cosplayers",
+      icon: <ListTodo size={20} />,
+      allowedRoles: ["Manager"],
+    },
+    {
       path: "/manage/assign-task",
       label: "Manage Task Assignments",
       icon: <ListChecks size={20} />,
@@ -395,7 +402,7 @@ const SidebarManagement = () => {
       allowedRoles: ["Manager"],
     },
     {
-      path: "/manage/festival", 
+      path: "/manage/festival",
       label: "Manage Festivals",
       icon: <CalendarHeart size={20} />,
       allowedRoles: ["Manager"],
@@ -447,7 +454,7 @@ const SidebarManagement = () => {
   return (
     <div className={`sidebar ${isCollapsed ? "collapsed" : ""}`}>
       <div className="sidebar-header">
-        <h3 className="brand">{role || "Manager"}</h3>
+        <h3 className="brand">{role || "Manage Page"}</h3>
         <button className="toggle-btn" onClick={toggleSidebar}>
           <Menu size={24} />
         </button>

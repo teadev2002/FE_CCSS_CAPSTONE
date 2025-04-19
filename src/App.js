@@ -200,7 +200,7 @@ import ManageAssignTask from "./pages/ManagerPage/ManageAssignTaskPage/ManageAss
 import TicketCheck from "./pages/ManagerPage/TicketCheckPage/TicketCheck.js";
 import ManageFeedback from "./pages/ManagerPage/ManageFeedbackPage/ManageFeedback.js";
 import ManageAllFestivals from "./pages/ManagerPage/ManageAllFestivalsPage/ManageAllFestivals.js"; // Thêm import
-
+import ManageTasKCosplayer from "./pages/ManagerPage/ManageTasKCosplayer/ManageTasKCosplayer.js"; // Thêm import
 
 const AppLayout = ({ children }) => {
   const location = useLocation();
@@ -254,7 +254,10 @@ function App() {
           <Route path="/my-task/:id" element={<MyTask />} />
           <Route path="/my-rental-costume/:id" element={<MyRentalCostume />} />
           <Route path="/my-event-organize/:id" element={<MyEventOrganize />} />
-          <Route path="/my-purchase-history/:id" element={<PurchaseHistory />} />
+          <Route
+            path="/my-purchase-history/:id"
+            element={<PurchaseHistory />}
+          />
           <Route path="/success-payment" element={<SuccessPayment />} />
           <Route path="/fail-payment" element={<FailPayment />} />
           <Route path="/admin/dashboard" element={<DashboardPage />} />
@@ -274,8 +277,9 @@ function App() {
             path="/admin/system-management"
             element={<SystemManagementPage />}
           />
-          <Route path="/manage/festival" element={<ManageAllFestivals />} /> {/* Thêm route mới */}
-          <Route path="/manage/ticket" element={<ManageTicket />} /> 
+          <Route path="/manage/festival" element={<ManageAllFestivals />} />{" "}
+          {/* Thêm route mới */}
+          <Route path="/manage/ticket" element={<ManageTicket />} />
           <Route path="/manage/ticket-check" element={<TicketCheck />} />
           <Route path="/manage/feedback" element={<ManageFeedback />} />
           <Route path="/manage/request" element={<ManageRequest />} />
@@ -284,6 +288,10 @@ function App() {
           <Route path="/manage/character" element={<ManageCharacter />} />
           <Route path="/manage/contract" element={<ManageContract />} />
           <Route path="/manage/account" element={<ManageAccount />} />
+          <Route
+            path="/manage/task-cosplayer"
+            element={<ManageTasKCosplayer />}
+          />
           <Route
             path="/manage/request-customer-character"
             element={<ManageRequestCustomerCharacter />}
