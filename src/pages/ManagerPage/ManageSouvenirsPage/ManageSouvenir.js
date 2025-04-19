@@ -7,25 +7,22 @@ import {
   Pagination,
   Dropdown,
   FormCheck,
-  InputGroup,
   Row,
   Col,
 } from "react-bootstrap";
 import SourvenirService from "../../../services/ManageServicePages/ManageSouvenirService/SouvenirService.js";
 import "../../../styles/Manager/ManageSouvenir.scss";
-import { Image, Popconfirm, message, Button, Input } from "antd"; // Thêm Button, Input từ antd
+import { Image, Popconfirm, message, Button } from "antd";
 import { toast } from "react-toastify";
-import { ArrowDownUp, ArrowDownAZ } from "lucide-react";
+import { ArrowUp, ArrowDown } from "lucide-react";
 import Box from "@mui/material/Box";
 import LinearProgress from "@mui/material/LinearProgress";
 
 const PLACEHOLDER_IMAGE_URL =
-  "https://www.elegantthemes.com/blog/wp-content/uploads/2020/08/000-http-error-codes.png"; // Placeholder cho hình ảnh lỗi
+  "https://www.elegantthemes.com/blog/wp-content/uploads/2020/08/000-http-error-codes.png";
 
 const ManageSouvenir = () => {
-  // State quản lý dữ liệu và giao diện
   const [products, setProducts] = useState([]);
-  const [filteredProducts, setFilteredProducts] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentProduct, setCurrentProduct] = useState(null);
@@ -40,13 +37,14 @@ const ManageSouvenir = () => {
   });
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortField, setSortField] = useState(null);
-  const [sortOrder, setSortOrder] = useState("asc");
+  const [sortSouvenir, setSortSouvenir] = useState({
+    field: "productName",
+    order: "asc",
+  });
   const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-  const rowsPerPageOptions = [5, 10, 20, 30];
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const rowsPerPageOptions = [10, 20, 30];
 
-  // Fetch danh sách sản phẩm
   const fetchProducts = async () => {
     setIsLoading(true);
     setError(null);
@@ -65,9 +63,7 @@ const ManageSouvenir = () => {
         return { ...product, displayImageUrl };
       });
       setProducts(processedData);
-      setFilteredProducts(processedData);
     } catch (error) {
-      console.error("Error fetching products:", error);
       setError(
         error.response?.data?.message ||
         error.message ||
@@ -82,51 +78,44 @@ const ManageSouvenir = () => {
     fetchProducts();
   }, []);
 
-  // Xử lý tìm kiếm
-  const handleSearch = (e) => {
-    const term = e.target.value.toLowerCase();
-    setSearchTerm(term);
-    const filtered = products.filter(
-      (product) =>
-        (product.productName?.toLowerCase() || "").includes(term) ||
-        (product.description?.toLowerCase() || "").includes(term)
-    );
-    setFilteredProducts(filtered);
-    setCurrentPage(1);
-  };
-
-  // Xử lý sắp xếp
-  const handleSort = (field) => {
-    const order = sortField === field && sortOrder === "asc" ? "desc" : "asc";
-    setSortField(field);
-    setSortOrder(order);
-    const sorted = [...filteredProducts].sort((a, b) => {
-      const valA = a[field];
-      const valB = b[field];
-      if (valA == null && valB == null) return 0;
-      if (valA == null) return order === "asc" ? -1 : 1;
-      if (valB == null) return order === "asc" ? 1 : -1;
-      if (typeof valA === "string" && typeof valB === "string") {
-        return valA.localeCompare(valB) * (order === "asc" ? 1 : -1);
-      }
-      return (valA < valB ? -1 : 1) * (order === "asc" ? 1 : -1);
+  const filterAndSortData = (data, search, sort) => {
+    let filtered = [...data];
+    if (search) {
+      filtered = filtered.filter(
+        (item) =>
+          (item.productName?.toLowerCase() || "").includes(search.toLowerCase()) ||
+          (item.description?.toLowerCase() || "").includes(search.toLowerCase())
+      );
+    }
+    return filtered.sort((a, b) => {
+      const valueA = String(a[sort.field]).toLowerCase();
+      const valueB = String(b[sort.field]).toLowerCase();
+      return sort.order === "asc"
+        ? valueA.localeCompare(valueB)
+        : valueB.localeCompare(valueA);
     });
-    setFilteredProducts(sorted);
   };
 
-  // Phân trang
-  const totalPages = Math.ceil(filteredProducts.length / rowsPerPage);
-  const startIndex = (currentPage - 1) * rowsPerPage;
-  const endIndex = startIndex + rowsPerPage;
-  const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
+  const filteredProducts = filterAndSortData(products, searchTerm, sortSouvenir);
+  const totalEntries = filteredProducts.length;
+  const totalPages = Math.ceil(totalEntries / rowsPerPage);
+  const paginatedProducts = paginateData(filteredProducts, currentPage);
 
-  // Xử lý modal
+  function paginateData(data, page) {
+    const startIndex = (page - 1) * rowsPerPage;
+    const endIndex = startIndex + rowsPerPage;
+    return data.slice(startIndex, endIndex);
+  }
+
+  const startEntry = (currentPage - 1) * rowsPerPage + 1;
+  const endEntry = Math.min(currentPage * rowsPerPage, totalEntries);
+  const showingText = `Showing ${startEntry} to ${endEntry} of ${totalEntries} entries`;
+
   const handleShowModal = (product = null) => {
     if (product) {
       setIsEditing(true);
       setCurrentProduct(product);
       setFormData({
-        productId: product.productId,
         productName: product.productName ?? "",
         description: product.description ?? "",
         quantity: product.quantity ?? "",
@@ -156,7 +145,6 @@ const ManageSouvenir = () => {
     setSelectedFiles([]);
   };
 
-  // Xử lý thay đổi input
   const handleInputChange = (e) => {
     const { name, value, type } = e.target;
     const val = type === "number" ? (value === "" ? "" : Number(value)) : value;
@@ -171,7 +159,6 @@ const ManageSouvenir = () => {
     setFormData((prev) => ({ ...prev, isActive: e.target.checked }));
   };
 
-  // Xử lý submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -201,7 +188,6 @@ const ManageSouvenir = () => {
       await fetchProducts();
       toast.success("Product saved successfully!");
     } catch (error) {
-      console.error("Error submitting form:", error.response || error);
       setError(
         error.response?.data?.title ||
         error.response?.data?.message ||
@@ -214,31 +200,42 @@ const ManageSouvenir = () => {
     }
   };
 
-  // Xử lý xóa với Popconfirm
   const handleDelete = async (productId) => {
     setIsLoading(true);
     setError(null);
     try {
       await SourvenirService.deleteProduct(productId);
       await fetchProducts();
-      message.success("Product deleted successfully!"); // Thông báo thành công
+      message.success("Product deleted successfully!");
     } catch (error) {
-      console.error("Error deleting product:", error.response || error);
       setError(
         error.response?.data?.message ||
         error.message ||
         "Failed to delete souvenir."
       );
-      message.error("Failed to delete souvenir."); // Thông báo lỗi
+      message.error("Failed to delete souvenir.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Xử lý phân trang
-  const handlePageChange = (pageNumber) => setCurrentPage(pageNumber);
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const handleSort = (field) => {
+    setSortSouvenir((prev) => ({
+      field,
+      order: prev.field === field && prev.order === "asc" ? "desc" : "asc",
+    }));
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (page) => setCurrentPage(page);
+
   const handleRowsPerPageChange = (value) => {
-    setRowsPerPage(Number(value));
+    setRowsPerPage(value);
     setCurrentPage(1);
   };
 
@@ -247,7 +244,6 @@ const ManageSouvenir = () => {
     event.target.src = PLACEHOLDER_IMAGE_URL;
   };
 
-  // Render giao diện
   return (
     <div className="manage-souvenirs">
       <h2 className="manage-souvenirs-title">Manage Souvenirs</h2>
@@ -256,42 +252,19 @@ const ManageSouvenir = () => {
           <Card.Body>
             <div className="table-header">
               <h3>Souvenirs</h3>
-              <div className="table-controls">
-                <Input
-                  placeholder="Search by name or description"
-                  value={searchTerm}
-                  onChange={handleSearch}
-                  style={{ width: 200, marginRight: 10 }}
-                  prefix="🔍"
-                  size="middle"
-                />
-                <Dropdown
-                  onSelect={handleRowsPerPageChange}
-                  className="rows-per-page-dropdown"
-                >
-                  <Dropdown.Toggle
-                    variant="outline-secondary"
-                    id="dropdown-rows-per-page"
-                    size="sm"
-                  >
-                    {rowsPerPage} rows
-                  </Dropdown.Toggle>
-                  <Dropdown.Menu>
-                    {rowsPerPageOptions.map((option) => (
-                      <Dropdown.Item key={option} eventKey={option}>
-                        {option} rows
-                      </Dropdown.Item>
-                    ))}
-                  </Dropdown.Menu>
-                </Dropdown>
-                <Button
-                  type="primary"
-                  onClick={() => handleShowModal()}
-                  size="middle"
-                >
-                  Add New Souvenir
-                </Button>
-              </div>
+              <Form.Control
+                type="text"
+                placeholder="Search by name or description..."
+                value={searchTerm}
+                onChange={handleSearch}
+                className="search-input"
+              />
+              <Button
+                type="primary"
+                onClick={() => handleShowModal()}
+              >
+                Add New Souvenir
+              </Button>
             </div>
             {isLoading && (
               <Box sx={{ width: "100%", marginY: 2 }}>
@@ -301,32 +274,114 @@ const ManageSouvenir = () => {
             {error && <p className="error-message">{error}</p>}
             {!isLoading && !error && (
               <>
-                <Table striped bordered hover responsive size="sm">
-                  <thead className="table-light">
+                <Table striped bordered hover responsive>
+                  <thead>
                     <tr>
-                      <th onClick={() => handleSort("productName")}>
-                        Product Name <ArrowDownAZ />
+                      <th className="text-center">
+                        <span
+                          className="sortable"
+                          onClick={() => handleSort("productName")}
+                        >
+                          Product Name
+                          {sortSouvenir.field === "productName" ? (
+                            sortSouvenir.order === "asc" ? (
+                              <ArrowUp size={16} />
+                            ) : (
+                              <ArrowDown size={16} />
+                            )
+                          ) : (
+                            <ArrowUp size={16} className="default-sort-icon" />
+                          )}
+                        </span>
                       </th>
-                      <th onClick={() => handleSort("description")}>
-                        Description <ArrowDownAZ />
+                      <th className="text-center">Description</th>
+                      <th className="text-center">
+                        <span
+                          className="sortable"
+                          onClick={() => handleSort("quantity")}
+                        >
+                          Quantity
+                          {sortSouvenir.field === "quantity" ? (
+                            sortSouvenir.order === "asc" ? (
+                              <ArrowUp size={16} />
+                            ) : (
+                              <ArrowDown size={16} />
+                            )
+                          ) : (
+                            <ArrowUp size={16} className="default-sort-icon" />
+                          )}
+                        </span>
                       </th>
-                      <th onClick={() => handleSort("quantity")}>
-                        Quantity <ArrowDownUp size={20} />
+                      <th className="text-center">
+                        <span
+                          className="sortable"
+                          onClick={() => handleSort("price")}
+                        >
+                          Price ($)
+                          {sortSouvenir.field === "price" ? (
+                            sortSouvenir.order === "asc" ? (
+                              <ArrowUp size={16} />
+                            ) : (
+                              <ArrowDown size={16} />
+                            )
+                          ) : (
+                            <ArrowUp size={16} className="default-sort-icon" />
+                          )}
+                        </span>
                       </th>
-                      <th onClick={() => handleSort("price")}>
-                        Price ($) <ArrowDownUp size={20} />
+                      <th className="text-center">
+                        <span
+                          className="sortable"
+                          onClick={() => handleSort("createDate")}
+                        >
+                          Created Date
+                          {sortSouvenir.field === "createDate" ? (
+                            sortSouvenir.order === "asc" ? (
+                              <ArrowUp size={16} />
+                            ) : (
+                              <ArrowDown size={16} />
+                            )
+                          ) : (
+                            <ArrowUp size={16} className="default-sort-icon" />
+                          )}
+                        </span>
                       </th>
-                      <th onClick={() => handleSort("createDate")}>
-                        Created <ArrowDownUp size={20} />
+                      <th className="text-center">
+                        <span
+                          className="sortable"
+                          onClick={() => handleSort("updateDate")}
+                        >
+                          Updated Date
+                          {sortSouvenir.field === "updateDate" ? (
+                            sortSouvenir.order === "asc" ? (
+                              <ArrowUp size={16} />
+                            ) : (
+                              <ArrowDown size={16} />
+                            )
+                          ) : (
+                            <ArrowUp size={16} className="default-sort-icon" />
+                          )}
+                        </span>
                       </th>
-                      <th onClick={() => handleSort("updateDate")}>
-                        Updated <ArrowDownUp size={20} />
+                      <th className="text-center">
+                        <span
+                          className="sortable"
+                          onClick={() => handleSort("isActive")}
+                        >
+                          Active
+                          {sortSouvenir.field === "isActive" ? (
+                            sortSouvenir.order === "asc" ? (
+                              <ArrowUp size={16} />
+                            ) : (
+                              <ArrowDown size={16} />
+                            )
+                          ) : (
+                            <ArrowUp size={16} className="default-sort-icon" />
+                          )}
+                        </span>
                       </th>
-                      <th onClick={() => handleSort("isActive")}>
-                        Active <ArrowDownUp size={20} />
-                      </th>
-                      <th>Image</th>
-                      <th>Actions</th>
+                      <th className="text-center">Image</th>
+                      <th className="text-center">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -339,32 +394,13 @@ const ManageSouvenir = () => {
                     ) : (
                       paginatedProducts.map((product) => (
                         <tr key={product.productId}>
-                          <td>{product.productName}</td>
-                          <td title={product.description}>
-                            {product.description?.length > 50
-                              ? `${product.description.substring(0, 50)}...`
-                              : product.description}
-                          </td>
-                          <td className="text-end">{product.quantity}</td>
-                          <td className="text-end">{product.price?.toFixed(2)}</td>
-                          <td>
-                            {product.createDate
-                              ? new Date(product.createDate).toLocaleDateString()
-                              : "N/A"}
-                          </td>
-                          <td>
-                            {product.updateDate
-                              ? new Date(product.updateDate).toLocaleDateString()
-                              : "N/A"}
-                          </td>
-                          <td className="text-center">
-                            <span
-                              className={`badge ${product.isActive ? "bg-success" : "bg-secondary"
-                                }`}
-                            >
-                              {product.isActive ? "Yes" : "No"}
-                            </span>
-                          </td>
+                          <td className="text-center">{product.productName}</td>
+                          <td className="text-center">{product.description?.length > 50 ? `${product.description.substring(0, 50)}...` : product.description}</td>
+                          <td className="text-center">{product.quantity}</td>
+                          <td className="text-center">{product.price?.toFixed(2)}</td>
+                          <td className="text-center">{product.createDate ? new Date(product.createDate).toLocaleDateString() : "N/A"}</td>
+                          <td className="text-center">{product.updateDate ? new Date(product.updateDate).toLocaleDateString() : "N/A"}</td>
+                          <td className="text-center">{product.isActive ? "Yes" : "No"}</td>
                           <td className="text-center">
                             <Image
                               width={50}
@@ -375,21 +411,12 @@ const ManageSouvenir = () => {
                               style={{ objectFit: "cover" }}
                             />
                           </td>
-                          <td style={{ whiteSpace: "nowrap" }}>
+                          <td className="text-center">
                             <Button
                               type="primary"
                               size="small"
                               onClick={() => handleShowModal(product)}
-                              style={{
-                                backgroundColor: "#1890ff",
-                                borderColor: "#1890ff",
-                                color: "#fff",
-                                fontSize: "14px",
-                                padding: "4px 8px",
-                                borderRadius: "4px",
-                                marginRight: "8px",
-                                boxShadow: "none",
-                              }}
+                              style={{ marginRight: "8px" }}
                             >
                               Edit
                             </Button>
@@ -401,20 +428,7 @@ const ManageSouvenir = () => {
                               okText="Yes"
                               cancelText="No"
                             >
-                              <Button
-                                type="primary"
-                                danger
-                                size="small"
-                                style={{
-                                  backgroundColor: "#ff4d4f",
-                                  borderColor: "#ff4d4f",
-                                  color: "#fff",
-                                  fontSize: "14px",
-                                  padding: "4px 8px",
-                                  borderRadius: "4px",
-                                  boxShadow: "none",
-                                }}
-                              >
+                              <Button type="primary" danger size="small">
                                 Delete
                               </Button>
                             </Popconfirm>
@@ -424,37 +438,59 @@ const ManageSouvenir = () => {
                     )}
                   </tbody>
                 </Table>
-                {totalPages > 1 && (
-                  <div className="pagination-controls">
-                    <Pagination size="sm">
-                      <Pagination.First
-                        onClick={() => handlePageChange(1)}
-                        disabled={currentPage === 1}
-                      />
-                      <Pagination.Prev
-                        onClick={() => handlePageChange(currentPage - 1)}
-                        disabled={currentPage === 1}
-                      />
-                      {[...Array(totalPages).keys()].map((page) => (
-                        <Pagination.Item
-                          key={page + 1}
-                          active={page + 1 === currentPage}
-                          onClick={() => handlePageChange(page + 1)}
+                <div className="pagination-controls">
+                  <div className="pagination-info">
+                    <span>{showingText}</span>
+                    <div className="rows-per-page">
+                      <span>Rows per page: </span>
+                      <Dropdown
+                        onSelect={(value) => handleRowsPerPageChange(Number(value))}
+                        className="d-inline-block"
+                      >
+                        <Dropdown.Toggle
+                          variant="secondary"
+                          id="dropdown-rows-per-page"
                         >
-                          {page + 1}
-                        </Pagination.Item>
-                      ))}
-                      <Pagination.Next
-                        onClick={() => handlePageChange(currentPage + 1)}
-                        disabled={currentPage === totalPages}
-                      />
-                      <Pagination.Last
-                        onClick={() => handlePageChange(totalPages)}
-                        disabled={currentPage === totalPages}
-                      />
-                    </Pagination>
+                          {rowsPerPage}
+                        </Dropdown.Toggle>
+                        <Dropdown.Menu>
+                          {rowsPerPageOptions.map((option) => (
+                            <Dropdown.Item key={option} eventKey={option}>
+                              {option}
+                            </Dropdown.Item>
+                          ))}
+                        </Dropdown.Menu>
+                      </Dropdown>
+                    </div>
                   </div>
-                )}
+                  <Pagination>
+                    <Pagination.First
+                      onClick={() => handlePageChange(1)}
+                      disabled={currentPage === 1}
+                    />
+                    <Pagination.Prev
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1}
+                    />
+                    {[...Array(totalPages).keys()].map((page) => (
+                      <Pagination.Item
+                        key={page + 1}
+                        active={page + 1 === currentPage}
+                        onClick={() => handlePageChange(page + 1)}
+                      >
+                        {page + 1}
+                      </Pagination.Item>
+                    ))}
+                    <Pagination.Next
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                    />
+                    <Pagination.Last
+                      onClick={() => handlePageChange(totalPages)}
+                      disabled={currentPage === totalPages}
+                    />
+                  </Pagination>
+                </div>
               </>
             )}
           </Card.Body>
@@ -478,17 +514,6 @@ const ManageSouvenir = () => {
             <p className="error-message">{error}</p>
           )}
           <Form onSubmit={handleSubmit}>
-            {isEditing && (
-              <Form.Group className="mb-3">
-                <Form.Label>Product ID</Form.Label>
-                <Form.Control
-                  type="text"
-                  value={formData.productId}
-                  readOnly
-                  disabled
-                />
-              </Form.Group>
-            )}
             <Form.Group className="mb-3">
               <Form.Label>Product Name</Form.Label>
               <Form.Control

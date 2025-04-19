@@ -55,6 +55,51 @@ const ManageAllFestivalsService = {
       throw new Error(errorMessage);
     }
   },
+
+  addEvent: async (eventData, imageFiles) => {
+    try {
+      console.log("Adding new event with data:", eventData);
+      console.log("Image files:", imageFiles);
+
+      // Tạo FormData để gửi dữ liệu dạng multipart/form-data
+      const formData = new FormData();
+
+      // Thêm các trường JSON vào FormData (trừ ImageUrl)
+      formData.append("EventName", eventData.EventName);
+      formData.append("Description", eventData.Description);
+      formData.append("Location", eventData.Location);
+      formData.append("StartDate", eventData.StartDate);
+      formData.append("EndDate", eventData.EndDate);
+      if (eventData.CreateBy) {
+        formData.append("CreateBy", eventData.CreateBy);
+      }
+      formData.append("Ticket", JSON.stringify(eventData.Ticket));
+      formData.append("EventCharacterRequest", JSON.stringify(eventData.EventCharacterRequest));
+      formData.append("EventActivityRequests", JSON.stringify(eventData.EventActivityRequests));
+
+      // Thêm các file hình ảnh vào FormData với key là "ImageUrl"
+      imageFiles.forEach((file, index) => {
+        if (file) {
+          formData.append("ImageUrl", file); // API sẽ nhận file trực tiếp
+        }
+      });
+
+      const response = await apiClient.post("/api/Event/AddEvent", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      console.log("AddEvent response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Error adding event:", error.response?.data || error);
+      const errorMessage =
+        error.response?.data?.notification ||
+        error.response?.data?.message ||
+        "Failed to add event";
+      throw new Error(errorMessage);
+    }
+  },
 };
 
 export default ManageAllFestivalsService;

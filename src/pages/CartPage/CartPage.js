@@ -94,7 +94,6 @@ const CartPage = () => {
 
   useEffect(() => {
     fetchCart();
-    // Lắng nghe sự kiện storageUpdate để cập nhật giỏ hàng
     window.addEventListener("storageUpdate", fetchCart);
     return () => {
       window.removeEventListener("storageUpdate", fetchCart);
@@ -196,16 +195,6 @@ const CartPage = () => {
     }
   };
 
-  const checkOrderStatus = async (orderId) => {
-    try {
-      const response = await apiClient.get(`/api/Order/${orderId}`);
-      return response.data.orderStatus;
-    } catch (error) {
-      console.error("Error checking order status:", error);
-      throw new Error("Failed to check order status");
-    }
-  };
-
   const handleFinalConfirm = async () => {
     const selectedCart = cartItems.filter((item) => selectedItems[item.cartProductId]);
     const totalAmount = calculateTotal();
@@ -236,47 +225,6 @@ const CartPage = () => {
         toast.success("Redirecting to MoMo payment...");
         localStorage.setItem("paymentSource", "cart");
         window.location.href = paymentUrl;
-
-        const intervalId = setInterval(async () => {
-          try {
-            const status = await checkOrderStatus(orderpaymentId);
-            if (status === 1) { // Complete
-              clearInterval(intervalId);
-              await Promise.all(
-                selectedCart.map(async (item) => {
-                  const newQuantity = item.initialQuantity - item.quantitySelected;
-                  await ProductService.updateProductQuantity(item.id, newQuantity);
-                })
-              );
-              const cartProductIdsToRemove = selectedCart.map((item) => ({
-                cartProductId: item.cartProductId,
-              }));
-              await CartService.removeProductFromCart(cartId, cartProductIdsToRemove);
-              toast.success("Payment successful!");
-              await fetchCart();
-              setSelectedItems({});
-              setShowConfirmModal(false);
-              window.dispatchEvent(new Event("storageUpdate")); // Thông báo cập nhật
-              navigate("/success-payment", { state: { source: "cart" } });
-            } else if (status === 2) { // Cancel
-              clearInterval(intervalId);
-              toast.error("Payment was canceled!");
-              setShowConfirmModal(false);
-            } else if (status === 0) { // Pending
-              // Continue waiting
-            }
-          } catch (error) {
-            clearInterval(intervalId);
-            toast.error("Error checking payment status");
-            setShowConfirmModal(false);
-          }
-        }, 5000);
-
-        setTimeout(() => {
-          clearInterval(intervalId);
-          toast.error("Payment timeout. Please try again.");
-          setShowConfirmModal(false);
-        }, 120000); // 2 minutes timeout
       } else if (paymentMethod === "VNPay") {
         const paymentData = {
           fullName: accountName || "Unknown",
@@ -292,47 +240,6 @@ const CartPage = () => {
         toast.success("Redirecting to VNPay payment...");
         localStorage.setItem("paymentSource", "cart");
         window.location.href = paymentUrl;
-
-        const intervalId = setInterval(async () => {
-          try {
-            const status = await checkOrderStatus(orderpaymentId);
-            if (status === 1) { // Complete
-              clearInterval(intervalId);
-              await Promise.all(
-                selectedCart.map(async (item) => {
-                  const newQuantity = item.initialQuantity - item.quantitySelected;
-                  await ProductService.updateProductQuantity(item.id, newQuantity);
-                })
-              );
-              const cartProductIdsToRemove = selectedCart.map((item) => ({
-                cartProductId: item.cartProductId,
-              }));
-              await CartService.removeProductFromCart(cartId, cartProductIdsToRemove);
-              toast.success("Payment successful with VNPay!");
-              await fetchCart();
-              setSelectedItems({});
-              setShowConfirmModal(false);
-              window.dispatchEvent(new Event("storageUpdate")); // Thông báo cập nhật
-              navigate("/success-payment", { state: { source: "cart" } });
-            } else if (status === 2) { // Cancel
-              clearInterval(intervalId);
-              toast.error("Payment with VNPay was canceled!");
-              setShowConfirmModal(false);
-            } else if (status === 0) { // Pending
-              // Continue waiting
-            }
-          } catch (error) {
-            clearInterval(intervalId);
-            toast.error("Error checking payment status");
-            setShowConfirmModal(false);
-          }
-        }, 5000);
-
-        setTimeout(() => {
-          clearInterval(intervalId);
-          toast.error("Payment timeout. Please try again.");
-          setShowConfirmModal(false);
-        }, 120000); // 2 minutes timeout
       }
     } catch (error) {
       toast.error(error.message);
