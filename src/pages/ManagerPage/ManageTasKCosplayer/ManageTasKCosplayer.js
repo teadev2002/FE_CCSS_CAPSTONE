@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Table, Form, Card } from "react-bootstrap";
 import {
   Button,
@@ -10,20 +10,22 @@ import {
   Input,
   DatePicker,
   Popconfirm,
+  Spin,
+  message,
 } from "antd";
 import { ArrowUp, ArrowDown } from "lucide-react";
 import moment from "moment";
 import ViewTaskCosplayer from "./ViewTaskCosplayer";
+import TaskCosplayerService from "../../../services/ManageServicePages/ManageTaskCosplayerService/TaskCosplayerService";
 import "../../../styles/Manager/ManageTaskCosplayer.scss";
 
 const { RangePicker } = DatePicker;
 
-const ManageTaskCosplayer = ({
-  tasks = [],
-  onEdit = () => {},
-  onDelete = () => {},
-  onFetchTasks = () => {},
-}) => {
+const ManageTaskCosplayer = () => {
+  const [tasks, setTasks] = useState([]);
+  const [cosplayerNames, setCosplayerNames] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -44,6 +46,7 @@ const ManageTaskCosplayer = ({
     contractId: "",
   });
   const [searchQuery, setSearchQuery] = useState("");
+  const [nameSearchQuery, setNameSearchQuery] = useState("");
   const [sortConfig, setSortConfig] = useState({
     field: "taskId",
     order: "asc",
@@ -53,27 +56,96 @@ const ManageTaskCosplayer = ({
   const [dateFilter, setDateFilter] = useState(null);
   const rowsPerPageOptions = [5, 10, 20];
 
-  const filterAndSortData = (data, search, sort, dateRange) => {
+  // Fetch tasks and cosplayer names
+  const fetchTasks = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const tasksData = await TaskCosplayerService.getAllTask();
+      setTasks(tasksData);
+
+      const uniqueAccountIds = [
+        ...new Set(tasksData.map((task) => task.accountId)),
+      ];
+      const namePromises = uniqueAccountIds.map((accountId) =>
+        TaskCosplayerService.getInfoCosplayerByAccountId(accountId)
+          .then((data) => ({ accountId, name: data.name || "Unknown" }))
+          .catch(() => ({ accountId, name: "Unknown" }))
+      );
+      const nameResults = await Promise.all(namePromises);
+      const namesMap = nameResults.reduce((acc, { accountId, name }) => {
+        acc[accountId] = name;
+        return acc;
+      }, {});
+      setCosplayerNames(namesMap);
+    } catch (err) {
+      setError("Failed to load tasks or cosplayer info. Please try again.");
+      message.error("Failed to load tasks or cosplayer info.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle edit
+  const handleEdit = async (taskData) => {
+    try {
+      console.log("Editing task:", taskData);
+      setTasks(
+        tasks.map((task) => (task.taskId === taskData.taskId ? taskData : task))
+      );
+      message.success("Task updated successfully (simulated).");
+    } catch (err) {
+      message.error("Failed to update task.");
+    }
+  };
+
+  // Handle delete
+  const handleDelete = async (taskId) => {
+    try {
+      console.log("Deleting task:", taskId);
+      setTasks(tasks.filter((task) => task.taskId !== taskId));
+      message.success("Task deleted successfully (simulated).");
+    } catch (err) {
+      message.error("Failed to delete task.");
+    }
+  };
+
+  // Fetch tasks on mount
+  useEffect(() => {
+    fetchTasks();
+  }, []);
+
+  const filterAndSortData = (data, search, nameSearch, sort, dateRange) => {
     let filtered = [...data];
     if (search) {
       filtered = filtered.filter(
         (item) =>
           item.taskId.toLowerCase().includes(search.toLowerCase()) ||
-          item.accountId.toLowerCase().includes(search.toLowerCase()) ||
           item.taskName.toLowerCase().includes(search.toLowerCase()) ||
           item.location.toLowerCase().includes(search.toLowerCase()) ||
           item.status.toLowerCase().includes(search.toLowerCase())
       );
     }
+    if (nameSearch) {
+      filtered = filtered.filter((item) =>
+        (cosplayerNames[item.accountId] || "")
+          .toLowerCase()
+          .includes(nameSearch.toLowerCase())
+      );
+    }
     if (dateRange) {
       filtered = filtered.filter((item) => {
-        const taskDate = moment(item.createDate, "DD/MM/YYYY");
+        const taskDate = moment(item.startDate, "HH:mm DD/MM/YYYY");
         return taskDate.isBetween(dateRange[0], dateRange[1], null, "[]");
       });
     }
     return filtered.sort((a, b) => {
-      const valueA = String(a[sort.field] || "").toLowerCase();
-      const valueB = String(b[sort.field] || "").toLowerCase();
+      let valueA = String(a[sort.field] || "").toLowerCase();
+      let valueB = String(b[sort.field] || "").toLowerCase();
+      if (sort.field === "accountId") {
+        valueA = (cosplayerNames[a.accountId] || "").toLowerCase();
+        valueB = (cosplayerNames[b.accountId] || "").toLowerCase();
+      }
       return sort.order === "asc"
         ? valueA.localeCompare(valueB)
         : valueB.localeCompare(valueA);
@@ -99,9 +171,17 @@ const ManageTaskCosplayer = ({
     setCurrentPage(1);
   };
 
+  const handleClearFilters = () => {
+    setSearchQuery("");
+    setNameSearchQuery("");
+    setDateFilter(null);
+    setCurrentPage(1);
+  };
+
   const filteredTasks = filterAndSortData(
     tasks,
     searchQuery,
+    nameSearchQuery,
     sortConfig,
     dateFilter
   );
@@ -149,13 +229,9 @@ const ManageTaskCosplayer = ({
   const handleSubmit = (e) => {
     e.preventDefault();
     if (isEditing) {
-      onEdit(formData);
+      handleEdit(formData);
     }
     handleCloseEditModal();
-  };
-
-  const handleDelete = (taskId) => {
-    onDelete(taskId);
   };
 
   const handleSort = (field) => {
@@ -168,6 +244,22 @@ const ManageTaskCosplayer = ({
 
   const handlePageChange = (page) => setCurrentPage(page);
 
+  if (loading) {
+    return (
+      <div style={{ textAlign: "center", padding: "50px" }}>
+        <Spin size="large" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ textAlign: "center", padding: "50px", color: "red" }}>
+        {error}
+      </div>
+    );
+  }
+
   return (
     <div className="manage-task-cosplayer">
       <h2 className="manage-task-title">Cosplayer Task Management</h2>
@@ -178,10 +270,18 @@ const ManageTaskCosplayer = ({
               <h3>Tasks</h3>
               <div className="filter-controls">
                 <Input
-                  placeholder="Search by ID, Account, Task Name, Location, Status..."
+                  placeholder="Search by ID, Task Name, Location, Status..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="search-input"
+                  style={{ width: 250 }}
+                />
+                <Input
+                  placeholder="Search by Cosplayer Name..."
+                  value={nameSearchQuery}
+                  onChange={(e) => setNameSearchQuery(e.target.value)}
+                  className="search-input"
+                  style={{ width: 200 }}
                 />
                 <Button type="default" onClick={handleWeekFilter}>
                   This Week
@@ -189,11 +289,10 @@ const ManageTaskCosplayer = ({
                 <Button type="default" onClick={handleMonthFilter}>
                   This Month
                 </Button>
-                <RangePicker
-                  format="DD/MM/YYYY"
-                  onChange={handleCustomDateFilter}
-                  className="date-picker"
-                />
+
+                <Button type="default" danger onClick={handleClearFilters}>
+                  Clear Filters
+                </Button>
               </div>
             </div>
             <Table striped bordered hover responsive>
@@ -202,23 +301,9 @@ const ManageTaskCosplayer = ({
                   <th className="text-center">
                     <span
                       className="sortable"
-                      onClick={() => handleSort("taskId")}
-                    >
-                      Task ID
-                      {sortConfig.field === "taskId" &&
-                        (sortConfig.order === "asc" ? (
-                          <ArrowUp size={16} />
-                        ) : (
-                          <ArrowDown size={16} />
-                        ))}
-                    </span>
-                  </th>
-                  <th className="text-center">
-                    <span
-                      className="sortable"
                       onClick={() => handleSort("accountId")}
                     >
-                      Account ID
+                      Cosplayer Name
                       {sortConfig.field === "accountId" &&
                         (sortConfig.order === "asc" ? (
                           <ArrowUp size={16} />
@@ -332,8 +417,9 @@ const ManageTaskCosplayer = ({
               <tbody>
                 {paginatedTasks.map((task) => (
                   <tr key={task.taskId}>
-                    <td className="text-center">{task.taskId}</td>
-                    <td className="text-center">{task.accountId}</td>
+                    <td className="text-center">
+                      {cosplayerNames[task.accountId] || "Loading..."}
+                    </td>
                     <td className="text-center">{task.taskName}</td>
                     <td className="text-center">{task.location}</td>
                     <td className="text-center">{task.description}</td>
@@ -355,7 +441,7 @@ const ManageTaskCosplayer = ({
                           View
                         </Button>
                       </Tooltip>
-                      <Tooltip title="Edit Task">
+                      {/* <Tooltip title="Edit Task">
                         <Button
                           type="primary"
                           size="small"
@@ -376,7 +462,7 @@ const ManageTaskCosplayer = ({
                             Delete
                           </Button>
                         </Popconfirm>
-                      </Tooltip>
+                      </Tooltip> */}
                     </td>
                   </tr>
                 ))}
@@ -529,13 +615,20 @@ const ManageTaskCosplayer = ({
           </Form.Group>
           <Form.Group className="mb-3">
             <Form.Label>Status</Form.Label>
-            <Form.Control
-              type="text"
+            <Form.Select
               name="status"
               value={formData.status}
-              onChange={handleInputChange}
+              onChange={(e) =>
+                setFormData({ ...formData, status: e.target.value })
+              }
               required
-            />
+            >
+              <option value="Pending">Pending</option>
+              <option value="Assignment">Assignment</option>
+              <option value="Progressing">Progressing</option>
+              <option value="Completed">Completed</option>
+              <option value="Cancel">Cancel</option>
+            </Form.Select>
           </Form.Group>
         </Form>
       </Modal>

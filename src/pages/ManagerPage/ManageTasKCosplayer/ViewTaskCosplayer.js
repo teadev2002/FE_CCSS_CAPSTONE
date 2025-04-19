@@ -1,6 +1,8 @@
-import React from "react";
-import { Popover, Steps } from "antd";
+import React, { useState, useEffect } from "react";
+import { Popover, Steps, Collapse } from "antd";
 import PropTypes from "prop-types";
+import moment from "moment";
+import TaskCosplayerService from "../../../services/ManageServicePages/ManageTaskCosplayerService/TaskCosplayerService";
 
 const TaskStatus = {
   Pending: "Pending",
@@ -23,6 +25,40 @@ const customDot = (dot, { status, index }) => (
 );
 
 const ViewTaskCosplayer = ({ task }) => {
+  const [cosplayerName, setCosplayerName] = useState("Loading...");
+  const [contractInfo, setContractInfo] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  // Fetch cosplayer name and contract info
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        // Fetch cosplayer name
+        const cosplayerData =
+          await TaskCosplayerService.getInfoCosplayerByAccountId(
+            task.accountId
+          );
+        setCosplayerName(cosplayerData.name || "Unknown");
+
+        // Fetch contract info if contractId exists
+        if (task.contractId) {
+          const contractData =
+            await TaskCosplayerService.getContractByContractId(task.contractId);
+          setContractInfo(contractData);
+        } else {
+          setContractInfo({ contractName: "Contract not Created yet" });
+        }
+      } catch (error) {
+        setCosplayerName("Unknown");
+        setContractInfo({ contractName: "Contract not Created yet" });
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [task.accountId, task.contractId]);
+
   const statusOrder = [
     TaskStatus.Pending,
     TaskStatus.Assignment,
@@ -36,7 +72,7 @@ const ViewTaskCosplayer = ({ task }) => {
 
   const stepsItems = statusOrder.map((status, index) => ({
     title: status,
-    description: "Click dot to see status",
+    description: " ",
     status:
       isCancelled && index === statusOrder.length - 1
         ? "error"
@@ -47,21 +83,107 @@ const ViewTaskCosplayer = ({ task }) => {
         : "wait",
   }));
 
-  // Remove Cancel step if the task is not cancelled
   const filteredStepsItems = isCancelled
     ? stepsItems
     : stepsItems.filter((item) => item.title !== TaskStatus.Cancel);
 
+  // Format contract dates
+  const formatContractDate = (date) => {
+    if (!date) return "N/A";
+    return moment(date, "HH:mm DD/MM/YYYY").format("DD/MM/YYYY");
+  };
+
+  const formatCreateDate = (date) => {
+    if (!date) return "N/A";
+    return moment(date).format("HH:mm DD/MM/YYYY");
+  };
+
+  // Collapse items for "See More"
+  const collapseItems = [
+    {
+      key: "1",
+      label: "See More Contract Details",
+      children: (
+        <div>
+          {contractInfo?.contractName === "Contract not Created yet" ? (
+            <p>{contractInfo.contractName}</p>
+          ) : (
+            <>
+              <p>
+                <strong>Contract Name:</strong>{" "}
+                {contractInfo?.contractName || "N/A"}
+              </p>
+              <p>
+                <strong>Price:</strong>{" "}
+                {contractInfo?.price?.toLocaleString() || "N/A"} VND
+              </p>
+
+              <p>
+                <strong>Start Date:</strong>{" "}
+                {formatContractDate(contractInfo?.startDate)}
+              </p>
+              <p>
+                <strong>End Date:</strong>{" "}
+                {formatContractDate(contractInfo?.endDate)}
+              </p>
+              <p>
+                <strong>Created By:</strong> {contractInfo?.createBy || "N/A"}
+              </p>
+              <p>
+                <strong>Create Date:</strong>{" "}
+                {formatCreateDate(contractInfo?.createDate)}
+              </p>
+              <p>
+                <strong>Characters:</strong>
+                {contractInfo?.contractCharacters?.length > 0 ? (
+                  <ul>
+                    {contractInfo.contractCharacters.map((char, index) => (
+                      <li key={index}>
+                        {char.cosplayerName} as {char.characterName} (Quantity:{" "}
+                        {char.quantity})
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  " None"
+                )}
+              </p>
+              {contractInfo?.urlPdf && (
+                <p>
+                  <strong>Contract PDF:</strong>{" "}
+                  <a
+                    href={contractInfo.urlPdf}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    View PDF
+                  </a>
+                </p>
+              )}
+            </>
+          )}
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="view-task-cosplayer">
       <h4>Task: {task.taskName}</h4>
-      <p>
-        <strong>Task ID:</strong> {task.taskId}
-      </p>
-      <p>
-        <strong>Account ID:</strong> {task.accountId}
-      </p>
-      <p>
+
+      <h6>
+        <strong>Cosplayer Name:</strong>{" "}
+        {loading ? "Loading..." : cosplayerName}
+      </h6>
+      <h5>Status Progression</h5>
+      <Steps
+        current={
+          isCancelled ? filteredStepsItems.length - 1 : currentStatusIndex
+        }
+        progressDot={customDot}
+        items={filteredStepsItems}
+      />
+      <p style={{ marginTop: "20px" }}>
         <strong>Location:</strong> {task.location}
       </p>
       <p>
@@ -82,20 +204,7 @@ const ViewTaskCosplayer = ({ task }) => {
       <p>
         <strong>Update Date:</strong> {task.updateDate || "N/A"}
       </p>
-      <p>
-        <strong>Event ID:</strong> {task.eventId || "N/A"}
-      </p>
-      <p>
-        <strong>Contract ID:</strong> {task.contractId || "N/A"}
-      </p>
-      <h5>Status Progression</h5>
-      <Steps
-        current={
-          isCancelled ? filteredStepsItems.length - 1 : currentStatusIndex
-        }
-        progressDot={customDot}
-        items={filteredStepsItems}
-      />
+      <Collapse items={collapseItems} style={{ marginTop: "20px" }} />
     </div>
   );
 };
