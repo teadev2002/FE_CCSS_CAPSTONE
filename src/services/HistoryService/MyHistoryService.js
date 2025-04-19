@@ -80,5 +80,116 @@ const MyHistoryService = {
       );
     }
   },
+  editRequest: async (requestId, data) => {
+    try {
+      const response = await apiClient.put(
+        `/api/Request?RequestId=${requestId}`,
+        data
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error updating request:", error);
+      throw error;
+    }
+  },
+
+  ChangeCosplayer: async (data) => {
+    try {
+      const response = await apiClient.post(`/api/Account/characterId`, data);
+      return response.data;
+    } catch (error) {
+      console.error("Error changing cosplayer:", error);
+      throw error;
+    }
+  },
+
+  // Hàm mới để lấy danh sách cosplayer dựa trên characterId và khoảng thời gian
+  getAvailableCosplayersByCharacterId: async (
+    characterId,
+    startDate,
+    endDate
+  ) => {
+    try {
+      const response = await apiClient.get(
+        `/api/Account/characterId?characterId=${characterId}&startDate=${encodeURIComponent(
+          startDate
+        )}&endDate=${encodeURIComponent(endDate)}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching available cosplayers:", error);
+      throw error;
+    }
+  },
+
+  // Hàm mới để lấy danh sách cosplayer dựa trên tên nhân vật và khoảng thời gian
+  getCosplayersByCharacterNameAndDate: async (
+    characterName,
+    startDate,
+    endDate
+  ) => {
+    try {
+      const response = await apiClient.get(
+        `/api/Account/characterName/${characterName}?start=${encodeURIComponent(
+          startDate
+        )}&end=${encodeURIComponent(endDate)}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error(
+        "Error fetching cosplayers by character name and date:",
+        error
+      );
+      throw error;
+    }
+  },
+
+  // Hàm mới để lấy tất cả cosplayer (dùng để lọc ban đầu nếu cần)
+  getAllCosplayers: async () => {
+    try {
+      const response = await apiClient.get("/api/Account/roleId/R004");
+      return response.data.map((cosplayer) => ({
+        ...cosplayer,
+        images: cosplayer.images || [],
+      }));
+    } catch (error) {
+      console.error("Error fetching all cosplayers:", error);
+      throw error;
+    }
+  },
+  getContractCharacters: async (contractId) => {
+    try {
+      const response = await apiClient.get(
+        `/api/ContractCharacter?contractId=${contractId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching contract characters:", error);
+      throw error;
+    }
+  },
+  createFeedback: async (accountId, contractId, data) => {
+    try {
+      const response = await apiClient.post(
+        `/api/Feedback?accountId=${accountId}&contractId=${contractId}`,
+        data.feedbacks
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error creating feedback:", error);
+      throw error;
+    }
+  },
+  getContractCharacterByContractId: async (contractId) => {
+    try {
+      const response = await apiClient.get(
+        `/api/ContractCharacter?contractId=${contractId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching contract characters:", error);
+      throw error;
+    }
+  },
 };
 export default MyHistoryService;

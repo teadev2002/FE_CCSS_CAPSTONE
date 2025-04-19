@@ -1,3 +1,5 @@
+//============================================sua cai view======================
+
 import React, { useState, useEffect, useMemo } from "react";
 import {
   Table,
@@ -141,32 +143,28 @@ const ManageContract = () => {
     }
   };
 
-  const calculateTotalDays = (startDate, endDate) => {
-    if (!startDate || !endDate) return 0;
-    const start = dayjs(startDate, "HH:mm DD/MM/YYYY");
-    const end = dayjs(endDate, "HH:mm DD/MM/YYYY");
-    if (!start.isValid() || !end.isValid()) {
-      console.warn("Invalid date format:", { startDate, endDate });
-      return 0;
-    }
-    return end.diff(start, "day") + 1;
-  };
+  const calculateCharacterDuration = (requestDateResponses) => {
+    let totalHours = 0;
+    const uniqueDays = new Set();
 
-  const calculateTotalHours = (startDate, endDate) => {
-    if (!startDate || !endDate) return 0;
-    const start = dayjs(startDate, "HH:mm DD/MM/YYYY");
-    const end = dayjs(endDate, "HH:mm DD/MM/YYYY");
-    if (!start.isValid() || !end.isValid()) {
-      console.warn("Invalid date format:", { startDate, endDate });
-      return 0;
-    }
-    let hoursPerDay =
-      end.hour() - start.hour() + (end.minute() - start.minute()) / 60;
-    if (hoursPerDay < 0) {
-      hoursPerDay += 24;
-    }
-    const totalDays = calculateTotalDays(startDate, endDate);
-    return hoursPerDay * totalDays;
+    (requestDateResponses || []).forEach((dateResponse) => {
+      const start = dayjs(dateResponse.startDate, "HH:mm DD/MM/YYYY");
+      const end = dayjs(dateResponse.endDate, "HH:mm DD/MM/YYYY");
+
+      if (start.isValid() && end.isValid() && start < end) {
+        const durationHours = end.diff(start, "hour", true);
+        totalHours += durationHours;
+
+        let current = start.startOf("day");
+        const endDay = end.startOf("day");
+        while (current <= endDay) {
+          uniqueDays.add(current.format("DD/MM/YYYY"));
+          current = current.add(1, "day");
+        }
+      }
+    });
+
+    return { totalHours, totalDays: uniqueDays.size };
   };
 
   const calculateCosplayerPrice = (
@@ -268,7 +266,6 @@ const ManageContract = () => {
           );
         }
 
-        // Phần code còn lại giữ nguyên
         try {
           const requestData = await ManageContractService.getAllRequests();
           console.log("Raw request data:", requestData);
@@ -593,49 +590,34 @@ const ManageContract = () => {
 
       if (serviceId === "S002") {
         const formattedData = {
-          id: requestData.requestId,
           name: requestData.name || "N/A",
           description: requestData.description || "N/A",
+          location: requestData.location || "N/A",
+          deposit: requestData.deposit || "N/A",
+          listRequestCharacters: [],
           price: 0,
           status: mapStatus(requestData.status),
-          deposit: requestData.deposit ? `${requestData.deposit}%` : "N/A",
-          startDateTime: "N/A",
-          endDateTime: "N/A",
-          location: requestData.location || "N/A",
-          listRequestCharacters: [],
+          reason: requestData.reason || null,
         };
 
         const charactersList = requestData.charactersListResponse || [];
         if (charactersList.length > 0) {
-          const firstCharacter = charactersList[0];
-          if (
-            firstCharacter.requestDateResponses &&
-            firstCharacter.requestDateResponses.length > 0
-          ) {
-            const dateResponse = firstCharacter.requestDateResponses[0];
-            formattedData.startDateTime = dateResponse.startDate || "N/A";
-            formattedData.endDateTime = dateResponse.endDate || "N/A";
-          }
-
           const listRequestCharacters = await Promise.all(
             charactersList.map(async (char) => {
+              const { totalHours, totalDays } = calculateCharacterDuration(
+                char.requestDateResponses || []
+              );
+
               let cosplayerName = "Not Assigned";
               let salaryIndex = 1;
               let characterPrice = 0;
               let characterName = "Unknown";
-              let startDate = "N/A";
-              let startTime = "N/A";
-              let endDate = "N/A";
-              let endTime = "N/A";
-              let totalHours = 0;
-              let totalDays = 0;
 
               try {
                 const characterData =
                   await ManageContractService.getCharacterById(
                     char.characterId
                   );
-                console.log("Character data:", characterData);
                 characterName = characterData?.characterName || "Unknown";
                 characterPrice = Number(characterData?.price) || 0;
               } catch (error) {
@@ -651,7 +633,6 @@ const ManageContract = () => {
                     await ManageContractService.getNameCosplayerInRequestByCosplayerId(
                       char.cosplayerId
                     );
-                  console.log("Cosplayer data:", cosplayerData);
                   cosplayerName = cosplayerData?.name || "Not Assigned";
                   salaryIndex = Number(cosplayerData?.salaryIndex) || 1;
                 } catch (error) {
@@ -660,41 +641,6 @@ const ManageContract = () => {
                     error
                   );
                 }
-              }
-
-              if (
-                char.requestDateResponses &&
-                char.requestDateResponses.length > 0
-              ) {
-                const dateResponse = char.requestDateResponses[0];
-                startDate = dateResponse.startDate
-                  ? dayjs(dateResponse.startDate, "HH:mm DD/MM/YYYY").format(
-                      "DD/MM/YYYY"
-                    )
-                  : "N/A";
-                startTime = dateResponse.startDate
-                  ? dayjs(dateResponse.startDate, "HH:mm DD/MM/YYYY").format(
-                      "HH:mm"
-                    )
-                  : "N/A";
-                endDate = dateResponse.endDate
-                  ? dayjs(dateResponse.endDate, "HH:mm DD/MM/YYYY").format(
-                      "DD/MM/YYYY"
-                    )
-                  : "N/A";
-                endTime = dateResponse.endDate
-                  ? dayjs(dateResponse.endDate, "HH:mm DD/MM/YYYY").format(
-                      "HH:mm"
-                    )
-                  : "N/A";
-                totalDays = calculateTotalDays(
-                  dateResponse.startDate,
-                  dateResponse.endDate
-                );
-                totalHours = calculateTotalHours(
-                  dateResponse.startDate,
-                  dateResponse.endDate
-                );
               }
 
               const price = calculateCosplayerPrice(
@@ -713,19 +659,22 @@ const ManageContract = () => {
                 characterPrice,
                 quantity: Number(char.quantity) || 1,
                 salaryIndex,
-                price,
                 totalHours,
                 totalDays,
-                startDate,
-                startTime,
-                endDate,
-                endTime,
+                price,
+                requestDates: (char.requestDateResponses || []).map((date) => ({
+                  startDate: date.startDate,
+                  endDate: date.endDate,
+                })),
               };
             })
           );
 
           formattedData.listRequestCharacters = listRequestCharacters;
-          formattedData.price = calculateTotalPrice(listRequestCharacters);
+          formattedData.price = listRequestCharacters.reduce(
+            (total, char) => total + char.price,
+            0
+          );
         }
 
         setViewData(formattedData);
@@ -763,49 +712,34 @@ const ManageContract = () => {
 
       if (serviceId === "S002") {
         const formattedData = {
-          id: data.requestId,
           name: data.name || "N/A",
           description: data.description || "N/A",
+          location: data.location || "N/A",
+          deposit: data.deposit || "N/A",
+          listRequestCharacters: [],
           price: 0,
           status: mapStatus(data.status),
-          deposit: data.deposit ? `${data.deposit}%` : "N/A",
-          startDateTime: "N/A",
-          endDateTime: "N/A",
-          location: data.location || "N/A",
-          listRequestCharacters: [],
+          reason: data.reason || null,
         };
 
         const charactersList = data.charactersListResponse || [];
         if (charactersList.length > 0) {
-          const firstCharacter = charactersList[0];
-          if (
-            firstCharacter.requestDateResponses &&
-            firstCharacter.requestDateResponses.length > 0
-          ) {
-            const dateResponse = firstCharacter.requestDateResponses[0];
-            formattedData.startDateTime = dateResponse.startDate || "N/A";
-            formattedData.endDateTime = dateResponse.endDate || "N/A";
-          }
-
           const listRequestCharacters = await Promise.all(
             charactersList.map(async (char) => {
+              const { totalHours, totalDays } = calculateCharacterDuration(
+                char.requestDateResponses || []
+              );
+
               let cosplayerName = "Not Assigned";
               let salaryIndex = 1;
               let characterPrice = 0;
               let characterName = "Unknown";
-              let startDate = "N/A";
-              let startTime = "N/A";
-              let endDate = "N/A";
-              let endTime = "N/A";
-              let totalHours = 0;
-              let totalDays = 0;
 
               try {
                 const characterData =
                   await ManageContractService.getCharacterById(
                     char.characterId
                   );
-                console.log("Character data:", characterData);
                 characterName = characterData?.characterName || "Unknown";
                 characterPrice = Number(characterData?.price) || 0;
               } catch (error) {
@@ -821,7 +755,6 @@ const ManageContract = () => {
                     await ManageContractService.getNameCosplayerInRequestByCosplayerId(
                       char.cosplayerId
                     );
-                  console.log("Cosplayer data:", cosplayerData);
                   cosplayerName = cosplayerData?.name || "Not Assigned";
                   salaryIndex = Number(cosplayerData?.salaryIndex) || 1;
                 } catch (error) {
@@ -830,41 +763,6 @@ const ManageContract = () => {
                     error
                   );
                 }
-              }
-
-              if (
-                char.requestDateResponses &&
-                char.requestDateResponses.length > 0
-              ) {
-                const dateResponse = char.requestDateResponses[0];
-                startDate = dateResponse.startDate
-                  ? dayjs(dateResponse.startDate, "HH:mm DD/MM/YYYY").format(
-                      "DD/MM/YYYY"
-                    )
-                  : "N/A";
-                startTime = dateResponse.startDate
-                  ? dayjs(dateResponse.startDate, "HH:mm DD/MM/YYYY").format(
-                      "HH:mm"
-                    )
-                  : "N/A";
-                endDate = dateResponse.endDate
-                  ? dayjs(dateResponse.endDate, "HH:mm DD/MM/YYYY").format(
-                      "DD/MM/YYYY"
-                    )
-                  : "N/A";
-                endTime = dateResponse.endDate
-                  ? dayjs(dateResponse.endDate, "HH:mm DD/MM/YYYY").format(
-                      "HH:mm"
-                    )
-                  : "N/A";
-                totalDays = calculateTotalDays(
-                  dateResponse.startDate,
-                  dateResponse.endDate
-                );
-                totalHours = calculateTotalHours(
-                  dateResponse.startDate,
-                  dateResponse.endDate
-                );
               }
 
               const price = calculateCosplayerPrice(
@@ -883,19 +781,22 @@ const ManageContract = () => {
                 characterPrice,
                 quantity: Number(char.quantity) || 1,
                 salaryIndex,
-                price,
                 totalHours,
                 totalDays,
-                startDate,
-                startTime,
-                endDate,
-                endTime,
+                price,
+                requestDates: (char.requestDateResponses || []).map((date) => ({
+                  startDate: date.startDate,
+                  endDate: date.endDate,
+                })),
               };
             })
           );
 
           formattedData.listRequestCharacters = listRequestCharacters;
-          formattedData.price = calculateTotalPrice(listRequestCharacters);
+          formattedData.price = listRequestCharacters.reduce(
+            (total, char) => total + char.price,
+            0
+          );
         }
 
         setViewData(formattedData);
@@ -1562,177 +1463,152 @@ const ManageContract = () => {
                 <Form.Label>
                   <strong>Name:</strong>
                 </Form.Label>
-                <Form.Control value={viewData.name} readOnly />
+                <Input value={viewData.name} readOnly />
               </Form.Group>
               <Form.Group className="mb-3">
                 <Form.Label>
                   <strong>Description:</strong>
                 </Form.Label>
-                <Form.Control
-                  as="textarea"
-                  rows={3}
-                  value={viewData.description}
-                  readOnly
-                />
+                <TextArea value={viewData.description} readOnly rows={4} />
               </Form.Group>
               <Form.Group className="mb-3">
                 <Form.Label>
                   <strong>Location:</strong>
                 </Form.Label>
-                <Form.Control value={viewData.location} readOnly />
+                <Input value={viewData.location} readOnly />
               </Form.Group>
-              <Form.Group className="mb-3">
-                <Form.Label>
-                  <strong>Deposit:</strong>
-                </Form.Label>
-                <Form.Control value={viewData.deposit} readOnly />
-              </Form.Group>
-              <div className="d-flex mb-3">
-                <Form.Group className="me-3" style={{ flex: 1 }}>
+              {viewData.deposit && (
+                <Form.Group className="mb-3">
                   <Form.Label>
-                    <strong>Start Date:</strong>
+                    <strong>Deposit:</strong>
                   </Form.Label>
-                  <div style={{ display: "flex", gap: "10px" }}>
-                    <Form.Control
-                      value={splitDateTime(viewData.startDateTime).date}
-                      readOnly
-                      placeholder="Date"
-                    />
-                  </div>
+                  <Input value={viewData.deposit} readOnly suffix="%" />
                 </Form.Group>
-                <Form.Group style={{ flex: 1 }}>
-                  <Form.Label>
-                    <strong>End Date:</strong>
-                  </Form.Label>
-                  <div style={{ display: "flex", gap: "10px" }}>
-                    <Form.Control
-                      value={splitDateTime(viewData.endDateTime).date}
-                      readOnly
-                      placeholder="Date"
-                    />
-                  </div>
-                </Form.Group>
-              </div>
-              <div className="d-flex mb-3">
-                <Form.Group className="me-3" style={{ flex: 1 }}>
-                  <Form.Label>
-                    <strong>Start Time:</strong>
-                  </Form.Label>
-                  <div style={{ display: "flex", gap: "10px" }}>
-                    <Form.Control
-                      value={splitDateTime(viewData.startDateTime).time}
-                      readOnly
-                      placeholder="Time"
-                    />
-                  </div>
-                </Form.Group>
-                <Form.Group style={{ flex: 1 }}>
-                  <Form.Label>
-                    <strong>End Time:</strong>
-                  </Form.Label>
-                  <div style={{ display: "flex", gap: "10px" }}>
-                    <Form.Control
-                      value={splitDateTime(viewData.endDateTime).time}
-                      readOnly
-                      placeholder="Time"
-                    />
-                  </div>
-                </Form.Group>
-              </div>
+              )}
               {viewData.listRequestCharacters.length > 0 && (
                 <>
-                  <h5>List of Requested Characters:</h5>
+                  <h4>List of Requested Characters:</h4>
                   <ul>
                     {viewData.listRequestCharacters.map((item, index) => (
                       <li key={index}>
-                        <p>
-                          <Tooltip
-                            title={
-                              item.cosplayerId ? (
-                                tooltipLoading[item.cosplayerId] ? (
-                                  "Loading..."
-                                ) : cosplayerData[item.cosplayerId] ? (
-                                  <div>
-                                    <p>
-                                      <strong>Name:</strong>{" "}
-                                      {cosplayerData[item.cosplayerId].name}
-                                    </p>
-                                    <p>
-                                      <strong>Email:</strong>{" "}
-                                      {cosplayerData[item.cosplayerId].email}
-                                    </p>
-                                    <p>
-                                      <strong>Description:</strong>{" "}
-                                      {cosplayerData[item.cosplayerId]
-                                        .description || "N/A"}
-                                    </p>
-                                    <p>
-                                      <strong>Height:</strong>{" "}
-                                      {cosplayerData[item.cosplayerId].height ||
-                                        "N/A"}{" "}
-                                      cm
-                                    </p>
-                                    <p>
-                                      <strong>Weight:</strong>{" "}
-                                      {cosplayerData[item.cosplayerId].weight ||
-                                        "N/A"}{" "}
-                                      kg
-                                    </p>
-                                    <p>
-                                      <strong>Average Star:</strong>{" "}
-                                      {cosplayerData[item.cosplayerId]
-                                        .averageStar || "N/A"}
-                                    </p>
-                                    <p>
-                                      <Link
-                                        target="_blank"
-                                        to={`/user-profile/${item.cosplayerId}`}
-                                        style={{ color: "#1890ff" }}
-                                      >
-                                        View Profile
-                                      </Link>
-                                    </p>
-                                  </div>
-                                ) : (
-                                  "Failed to load cosplayer data"
-                                )
-                              ) : (
-                                "No cosplayer assigned"
-                              )
-                            }
-                            onOpenChange={(open) =>
-                              open &&
-                              item.cosplayerId &&
-                              fetchCosplayerData(item.cosplayerId)
-                            }
-                          >
-                            <strong
-                              style={{
-                                cursor: item.cosplayerId
-                                  ? "pointer"
-                                  : "default",
-                              }}
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            width: "100%",
+                          }}
+                        >
+                          <div style={{ flex: 1 }}>
+                            <p>
+                              <Tooltip
+                                title={
+                                  item.cosplayerId ? (
+                                    tooltipLoading[item.cosplayerId] ? (
+                                      "Loading..."
+                                    ) : cosplayerData[item.cosplayerId] ? (
+                                      <div>
+                                        <p>
+                                          <strong>Name:</strong>{" "}
+                                          {cosplayerData[item.cosplayerId].name}
+                                        </p>
+                                        <p>
+                                          <strong>Email:</strong>{" "}
+                                          {
+                                            cosplayerData[item.cosplayerId]
+                                              .email
+                                          }
+                                        </p>
+                                        <p>
+                                          <strong>Description:</strong>{" "}
+                                          {cosplayerData[item.cosplayerId]
+                                            .description || "N/A"}
+                                        </p>
+                                        <p>
+                                          <strong>Height:</strong>{" "}
+                                          {cosplayerData[item.cosplayerId]
+                                            .height || "N/A"}{" "}
+                                          cm
+                                        </p>
+                                        <p>
+                                          <strong>Weight:</strong>{" "}
+                                          {cosplayerData[item.cosplayerId]
+                                            .weight || "N/A"}{" "}
+                                          kg
+                                        </p>
+                                        <p>
+                                          <strong>Average Star:</strong>{" "}
+                                          {cosplayerData[item.cosplayerId]
+                                            .averageStar || "N/A"}
+                                        </p>
+                                        <p>
+                                          <Link
+                                            target="_blank"
+                                            to={`/user-profile/${item.cosplayerId}`}
+                                            style={{ color: "#1890ff" }}
+                                          >
+                                            View Profile
+                                          </Link>
+                                        </p>
+                                      </div>
+                                    ) : (
+                                      "Failed to load cosplayer data"
+                                    )
+                                  ) : (
+                                    "No cosplayer assigned"
+                                  )
+                                }
+                                onOpenChange={(open) =>
+                                  open &&
+                                  item.cosplayerId &&
+                                  fetchCosplayerData(item.cosplayerId)
+                                }
+                              >
+                                <strong
+                                  style={{
+                                    cursor: item.cosplayerId
+                                      ? "pointer"
+                                      : "default",
+                                  }}
+                                >
+                                  {item.cosplayerName}
+                                </strong>
+                              </Tooltip>{" "}
+                              as <strong>{item.characterName}</strong>
+                            </p>
+                            <p>
+                              Quantity: {item.quantity} | Hourly Rate:{" "}
+                              {item.salaryIndex.toLocaleString()} VND/h |
+                              Character Price:{" "}
+                              {item.characterPrice.toLocaleString()} VND/day
+                            </p>
+                            <p>
+                              <strong>Request Dates:</strong>
+                            </p>
+                            <ul>
+                              {item.requestDates.map((date, idx) => (
+                                <li key={idx}>
+                                  {date.startDate} - {date.endDate}
+                                </li>
+                              ))}
+                            </ul>
+                            <Tooltip
+                              title={`Price = [(${item.totalHours.toFixed(
+                                2
+                              )} hours × ${item.salaryIndex} VND/h) + ($ {
+                                item.totalDays
+                              } days × ${item.characterPrice} VND/day)] × ${
+                                item.quantity
+                              }`}
                             >
-                              {item.cosplayerName}
-                            </strong>
-                          </Tooltip>{" "}
-                          as <strong>{item.characterName}</strong>
-                        </p>
-                        <p>
-                          Quantity: {item.quantity} | Hourly Rate:{" "}
-                          {item.salaryIndex.toLocaleString()} VND/h | Character
-                          Price: {item.characterPrice.toLocaleString()} VND/day
-                        </p>
-                        <p>
-                          Working Time: {item.startDate} {item.startTime} -{" "}
-                          {item.endDate} {item.endTime} | Total Hours:{" "}
-                          {item.totalHours.toFixed(2)} | Total Days:{" "}
-                          {item.totalDays}
-                        </p>
-                        <p>
-                          Price:{" "}
-                          <strong>{item.price.toLocaleString()} VND</strong>
-                        </p>
+                              <p>
+                                Price:{" "}
+                                <strong>
+                                  {item.price.toLocaleString()} VND
+                                </strong>
+                              </p>
+                            </Tooltip>
+                          </div>
+                        </div>
                       </li>
                     ))}
                   </ul>
@@ -1751,6 +1627,12 @@ const ManageContract = () => {
                   VND
                 </strong>
               </p>
+              {viewData.status === "Cancel" && viewData.reason && (
+                <h4 className="reason-text">
+                  <strong>Reason:</strong>{" "}
+                  <span style={{ color: "red" }}>{viewData.reason}</span>
+                </h4>
+              )}
             </div>
           )
         ) : (

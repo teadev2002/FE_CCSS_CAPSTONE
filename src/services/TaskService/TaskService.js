@@ -74,6 +74,29 @@ const TaskService = {
       throw new CustomError(errorMessage, errorDetails);
     }
   },
+  updateTaskStatus: async (taskId, status, accountId) => {
+    try {
+      const response = await apiClient.put(
+        `/api/Task?taskId=${taskId}&taskStatus=${status}&accountId=${accountId}`,
+        status
+      );
+      return response.data; // Trả về dữ liệu từ API
+    } catch (error) {
+      // Log lỗi để debug
+      console.error(
+        "Error updating task status:",
+        error.response ? error.response.data : error.message
+      );
+
+      // Trích xuất thông báo lỗi từ backend
+      const errorMessage =
+        error.response?.data?.message || "Failed to update task status";
+      const errorDetails = error.response?.data?.details || null;
+
+      // Ném lỗi tùy chỉnh với thông báo từ backend
+      throw new CustomError(errorMessage, errorDetails);
+    }
+  },
 };
 
 export default TaskService;

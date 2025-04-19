@@ -1,3 +1,4 @@
+//============================================= fix start
 import React, { useState, useEffect } from "react";
 import {
   Button,
@@ -15,7 +16,7 @@ import {
   Alert,
   Select,
   Rate,
-  Radio, // Added Radio for deposit selection
+  Radio,
 } from "antd";
 import { SearchOutlined, CloseOutlined } from "@ant-design/icons";
 import { jwtDecode } from "jwt-decode";
@@ -38,7 +39,7 @@ const CosplayersPage = () => {
   const [error, setError] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [dateRange, setDateRange] = useState(null);
-  const [timeRange, setTimeRange] = useState(null);
+  const [timeRanges, setTimeRanges] = useState({});
   const [location, setLocation] = useState("");
   const [searchCharacter, setSearchCharacter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -59,7 +60,7 @@ const CosplayersPage = () => {
   const [cosplayerPrices, setCosplayerPrices] = useState({});
   const [sortBy, setSortBy] = useState("");
   const [sortOrder, setSortOrder] = useState("asc");
-  const [deposit, setDeposit] = useState("50"); // Default deposit value
+  const [deposit, setDeposit] = useState("50");
 
   const serviceId = "S002";
   const packageId = "";
@@ -119,19 +120,19 @@ const CosplayersPage = () => {
   }, []);
 
   const fetchCosplayersByCharacterAndTime = async (characterName) => {
-    if (!dateRange || !timeRange || !characterName) {
+    if (!dateRange || Object.keys(timeRanges).length === 0 || !characterName) {
       setFilteredCosplayers([]);
       return;
     }
 
     setLoading(true);
     try {
-      const startDateTime = `${timeRange[0].format(
-        timeFormat
-      )} ${dateRange[0].format(dateFormat)}`;
-      const endDateTime = `${timeRange[1].format(
-        timeFormat
-      )} ${dateRange[1].format(dateFormat)}`;
+      const startDateTime = `${timeRanges[
+        dateRange[0].format(dateFormat)
+      ][0].format(timeFormat)} ${dateRange[0].format(dateFormat)}`;
+      const endDateTime = `${timeRanges[
+        dateRange[1].format(dateFormat)
+      ][1].format(timeFormat)} ${dateRange[1].format(dateFormat)}`;
 
       const cosplayersData =
         await HireCosplayerService.getAccountByCharacterNameNDate(
@@ -176,16 +177,21 @@ const CosplayersPage = () => {
   };
 
   const calculateTotalHours = () => {
-    if (!dateRange || !timeRange) return 0;
+    if (!dateRange || !timeRanges) return 0;
 
-    const startTime = timeRange[0];
-    const endTime = timeRange[1];
+    let totalHours = 0;
     const startDate = dateRange[0];
     const endDate = dateRange[1];
+    const days = endDate.diff(startDate, "day") + 1;
 
-    const hoursPerDay = endTime.diff(startTime, "hour", true);
-    const totalDays = endDate.diff(startDate, "day") + 1;
-    return hoursPerDay * totalDays;
+    for (let i = 0; i < days; i++) {
+      const day = startDate.add(i, "day").format(dateFormat);
+      const [startTime, endTime] = timeRanges[day] || [];
+      if (startTime && endTime) {
+        totalHours += endTime.diff(startTime, "hour", true);
+      }
+    }
+    return totalHours;
   };
 
   const calculateTotalDays = () => {
@@ -328,6 +334,7 @@ const CosplayersPage = () => {
   const handleDateRangeChange = (dates) => {
     if (!dates) {
       setDateRange(null);
+      setTimeRanges({});
       return;
     }
 
@@ -349,24 +356,8 @@ const CosplayersPage = () => {
     }
 
     setDateRange(dates);
+    setTimeRanges({});
     setStep(2);
-  };
-
-  const handleTimeRangeChange = (times) => {
-    if (!times) {
-      setTimeRange(null);
-      return;
-    }
-
-    const [start, end] = times;
-
-    if (end.isBefore(start)) {
-      toast.error("End time must be after start time!");
-      return;
-    }
-
-    setTimeRange(times);
-    setStep(3);
   };
 
   const handleLocationChange = (e) => {
@@ -447,9 +438,9 @@ const CosplayersPage = () => {
   };
 
   const handleSendRequest = () => {
-    if (!dateRange || !timeRange || !location) {
+    if (!dateRange || Object.keys(timeRanges).length === 0 || !location) {
       toast.error(
-        "Please complete all required fields (date, time, location)!"
+        "Please complete all required fields (date, time for each day, location)!"
       );
       return;
     }
@@ -467,18 +458,8 @@ const CosplayersPage = () => {
           quantity: 1,
         }))
       ),
-      startDateTime:
-        timeRange && dateRange
-          ? `${timeRange[0].format(timeFormat)} ${dateRange[0].format(
-              dateFormat
-            )}`
-          : "N/A",
-      endDateTime:
-        timeRange && dateRange
-          ? `${timeRange[1].format(timeFormat)} ${dateRange[1].format(
-              dateFormat
-            )}`
-          : "N/A",
+      startDate: dateRange[0].format(dateFormat),
+      endDate: dateRange[1].format(dateFormat),
     }));
     setIsModalVisible(true);
   };
@@ -543,18 +524,31 @@ const CosplayersPage = () => {
       startDate: dateRange[0].format(dateFormat),
       endDate: dateRange[1].format(dateFormat),
       location: location,
-      deposit: deposit, // Use the selected deposit value
-      charactersRentCosplayers: modalData.listRequestCharacters.map((item) => ({
-        characterId: item.characterId,
-        cosplayerId: item.cosplayerId,
-        description: item.description || "No description",
-        listRequestDates: [
-          {
-            startDate: timeRange[0].format(timeFormat),
-            endDate: timeRange[1].format(timeFormat),
-          },
-        ],
-      })),
+      deposit: deposit,
+      charactersRentCosplayers: modalData.listRequestCharacters.map((item) => {
+        const listRequestDates = [];
+        const startDate = dateRange[0];
+        const endDate = dateRange[1];
+        const days = endDate.diff(startDate, "day") + 1;
+
+        for (let i = 0; i < days; i++) {
+          const day = startDate.add(i, "day").format(dateFormat);
+          const [startTime, endTime] = timeRanges[day] || [];
+          if (startTime && endTime) {
+            listRequestDates.push({
+              startDate: `${startTime.format(timeFormat)} ${day}`,
+              endDate: `${endTime.format(timeFormat)} ${day}`,
+            });
+          }
+        }
+
+        return {
+          characterId: item.characterId,
+          cosplayerId: item.cosplayerId,
+          description: item.description || "No description",
+          listRequestDates: listRequestDates,
+        };
+      }),
     };
 
     console.log("Request data before sending POST:", requestData);
@@ -567,7 +561,7 @@ const CosplayersPage = () => {
       setIsModalVisible(false);
       setStep(1);
       setDateRange(null);
-      setTimeRange(null);
+      setTimeRanges({});
       setLocation("");
       setRequests([]);
       setSelectedCosplayers([]);
@@ -577,7 +571,7 @@ const CosplayersPage = () => {
       setCosplayerPrices({});
       setSortBy("");
       setSortOrder("asc");
-      setDeposit("50"); // Reset deposit to default after sending request
+      setDeposit("50");
       toast.success("Request sent successfully!");
     } catch (error) {
       console.error("Failed to send request:", error.message);
@@ -648,20 +642,80 @@ const CosplayersPage = () => {
               />
             </div>
           )}
-          {step >= 2 && (
+          {step >= 2 && dateRange && (
             <div className="filter-card">
-              <h3 className="section-title">Select Time Range:</h3>
-              <TimeRangePicker
-                value={timeRange}
-                onChange={handleTimeRangeChange}
-                format={timeFormat}
-                disabledTime={disabledTime}
-                className="custom-time-picker"
-                defaultValue={[
-                  dayjs("08:00", timeFormat),
-                  dayjs("22:00", timeFormat),
-                ]}
-              />
+              <h3 className="section-title">Select Time Range for Each Day:</h3>
+              {Array.from(
+                { length: dateRange[1].diff(dateRange[0], "day") + 1 },
+                (_, i) => {
+                  const day = dateRange[0].add(i, "day").format(dateFormat);
+                  return (
+                    <div
+                      key={day}
+                      style={{
+                        marginBottom: "16px",
+                        textAlign: "center",
+                        flexDirection: "row",
+                        margin: "0 15px",
+                        alignItems: "center",
+                      }}
+                    >
+                      <h5>{day}</h5>
+                      <TimeRangePicker
+                        style={{ width: "103%" }}
+                        value={timeRanges[day] || null}
+                        onChange={(times) => {
+                          if (times && times[0] && times[1]) {
+                            if (times[1].isBefore(times[0])) {
+                              toast.error("End time must be after start time!");
+                              return;
+                            }
+                            const newTimeRanges = {
+                              ...timeRanges,
+                              [day]: times,
+                            };
+                            setTimeRanges(newTimeRanges);
+
+                            const totalDays =
+                              dateRange[1].diff(dateRange[0], "day") + 1;
+                            const allDays = Array.from(
+                              { length: totalDays },
+                              (_, j) =>
+                                dateRange[0].add(j, "day").format(dateFormat)
+                            );
+                            const allDaysFilled = allDays.every((d) => {
+                              const range = newTimeRanges[d];
+                              return (
+                                range &&
+                                Array.isArray(range) &&
+                                range.length === 2 &&
+                                range[0] &&
+                                range[1]
+                              );
+                            });
+
+                            if (allDaysFilled) {
+                              setStep(3);
+                            }
+                          } else {
+                            setTimeRanges((prev) => ({
+                              ...prev,
+                              [day]: times,
+                            }));
+                          }
+                        }}
+                        format={timeFormat}
+                        disabledTime={disabledTime}
+                        className="custom-time-picker"
+                        defaultValue={[
+                          dayjs("08:00", timeFormat),
+                          dayjs("22:00", timeFormat),
+                        ]}
+                      />
+                    </div>
+                  );
+                }
+              )}
             </div>
           )}
           {step >= 3 && (
@@ -1017,7 +1071,7 @@ const CosplayersPage = () => {
                   color: "#510545",
                 }}
               >
-                Start DateTime:
+                Start Date:
               </label>
               <span
                 style={{
@@ -1025,7 +1079,7 @@ const CosplayersPage = () => {
                   color: "#1a1a2e",
                 }}
               >
-                {modalData.startDateTime}
+                {modalData.startDate}
               </span>
             </div>
             <div
@@ -1042,7 +1096,7 @@ const CosplayersPage = () => {
                   color: "#510545",
                 }}
               >
-                End DateTime:
+                End Date:
               </label>
               <span
                 style={{
@@ -1050,8 +1104,68 @@ const CosplayersPage = () => {
                   color: "#1a1a2e",
                 }}
               >
-                {modalData.endDateTime}
+                {modalData.endDate}
               </span>
+            </div>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.5rem",
+              }}
+            >
+              <label
+                style={{
+                  fontSize: "1.1rem",
+                  fontWeight: 600,
+                  color: "#510545",
+                }}
+              >
+                Time Range for Each Day:
+              </label>
+              <div
+                style={{
+                  border: "1px solid #e6e9ee",
+                  borderRadius: "10px",
+                  padding: "0.5rem",
+                  background: "#f8f9fa",
+                }}
+              >
+                {dateRange &&
+                  Array.from(
+                    { length: dateRange[1].diff(dateRange[0], "day") + 1 },
+                    (_, i) => {
+                      const day = dateRange[0].add(i, "day").format(dateFormat);
+                      const [startTime, endTime] = timeRanges[day] || [];
+                      return (
+                        <div
+                          key={day}
+                          style={{
+                            padding: "0.5rem",
+                            borderBottom:
+                              i < dateRange[1].diff(dateRange[0], "day")
+                                ? "1px solid #e6e9ee"
+                                : "none",
+                          }}
+                        >
+                          <span
+                            style={{
+                              fontSize: "0.95rem",
+                              color: "#1a1a2e",
+                            }}
+                          >
+                            <strong>{day}</strong>:{" "}
+                            {startTime && endTime
+                              ? `${startTime.format(
+                                  timeFormat
+                                )} - ${endTime.format(timeFormat)}`
+                              : "Not specified"}
+                          </span>
+                        </div>
+                      );
+                    }
+                  )}
+              </div>
             </div>
             <div
               style={{
@@ -1189,7 +1303,6 @@ const CosplayersPage = () => {
                 VND
               </span>
             </div>
-            {/* New Deposit Selection Section */}
             <div
               style={{
                 display: "flex",
