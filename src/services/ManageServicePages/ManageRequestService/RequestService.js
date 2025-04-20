@@ -139,6 +139,75 @@ const RequestService = {
       throw error;
     }
   },
+  checkAndUpdateRequestStatus: async (
+    requestId,
+    requestStatus,
+    reason = ""
+  ) => {
+    try {
+      // Kiểm tra đầu vào
+      if (!requestId) {
+        throw new Error("Request ID is required");
+      }
+      if (requestStatus === 2 && !reason.trim()) {
+        throw new Error("Reason is required when canceling a request");
+      }
+
+      // Gọi API CheckRequestCharacter
+      const checkResponse = await apiClient.get(
+        `/api/RequestCharacter/CheckRequestCharacter?requestId=${requestId}`
+      );
+
+      // Xử lý phản hồi từ API
+      const responseMessage = checkResponse.data;
+      if (responseMessage === "This request can change status") {
+        // Nếu hợp lệ, gọi API UpdateRequestStatusById cho mọi trạng thái
+        const updateResponse = await RequestService.UpdateRequestStatusById(
+          requestId,
+          requestStatus,
+          reason
+        );
+        return {
+          success: true,
+          message: "Request status updated successfully",
+          data: updateResponse,
+        };
+      } else if (
+        responseMessage ===
+        "This request has a requestCharacter busy, need to wait customer change requestCharacter"
+      ) {
+        // Nếu requestCharacter bận, chỉ cho phép Cancel (requestStatus = 2)
+        if (requestStatus === 2) {
+          const updateResponse = await RequestService.UpdateRequestStatusById(
+            requestId,
+            requestStatus,
+            reason
+          );
+          return {
+            success: true,
+            message: "Request canceled successfully",
+            data: updateResponse,
+          };
+        } else {
+          // Trả về thông báo lỗi nếu cố gắng cập nhật trạng thái khác Cancel
+          return {
+            success: false,
+            message:
+              "This request has a busy requestCharacter. Only cancellation is allowed.",
+          };
+        }
+      } else {
+        // Xử lý trường hợp phản hồi không mong đợi
+        throw new Error("Unexpected response from CheckRequestCharacter API");
+      }
+    } catch (error) {
+      console.error("Error checking or updating request status:", error);
+      throw new Error(
+        error.response?.data?.message ||
+          "Failed to check or update request status"
+      );
+    }
+  },
 };
 
 export default RequestService;

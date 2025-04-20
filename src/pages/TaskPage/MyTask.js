@@ -18,6 +18,7 @@ import "antd/dist/reset.css";
 import "../../styles/MyTask.scss";
 import { useParams, useNavigate } from "react-router-dom";
 import TaskService from "../../services/TaskService/TaskService";
+import RequestCharacter from "./RequestCharacter";
 import {
   FileText,
   Code,
@@ -736,6 +737,7 @@ const MyTask = () => {
           </Modal.Footer>
         </Modal>
       </Container>
+      <RequestCharacter />
     </div>
   );
 };

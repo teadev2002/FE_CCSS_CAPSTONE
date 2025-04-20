@@ -126,6 +126,7 @@ const FeedbackHireCosplayer = ({
       form.resetFields();
       setFeedbacks({});
       onCancel(); // Đóng modal
+      window.location.reload();
     } catch (error) {
       console.error(
         "Error submitting Feedback:",

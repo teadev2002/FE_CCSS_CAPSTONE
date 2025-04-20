@@ -191,5 +191,45 @@ const MyHistoryService = {
       throw error;
     }
   },
+  getFeedbackByContractId: async (accountId) => {
+    try {
+      // Kiểm tra đầu vào
+      if (!accountId) {
+        throw new Error("Account ID is required");
+      }
+
+      // Gọi API để lấy danh sách hợp đồng của accountId
+      const contractResponse = await apiClient.get(
+        `/api/Contract/accountId/${accountId}`
+      );
+      const contracts = Array.isArray(contractResponse.data)
+        ? contractResponse.data
+        : [contractResponse.data];
+
+      // Lọc hợp đồng có trạng thái Feedbacked
+      const feedbackedContract = contracts.find(
+        (contract) => contract.status === "Feedbacked"
+      );
+      if (!feedbackedContract) {
+        throw new Error("No Feedbacked contract found for this account");
+      }
+
+      const contractId = feedbackedContract.contractId;
+
+      // Gọi API để lấy danh sách feedback của contractId
+      const feedbackResponse = await apiClient.get(
+        `/api/Feedback/contractId/${contractId}`
+      );
+      return {
+        contractId,
+        feedbacks: feedbackResponse.data,
+      };
+    } catch (error) {
+      console.error("Error fetching feedback by account ID:", error);
+      throw new Error(
+        error.response?.data?.message || "Failed to fetch feedback for contract"
+      );
+    }
+  },
 };
 export default MyHistoryService;

@@ -666,6 +666,7 @@ const ManageContract = () => {
                   startDate: date.startDate,
                   endDate: date.endDate,
                 })),
+                status: char.status || "Unknown",
               };
             })
           );
@@ -1574,6 +1575,12 @@ const ManageContract = () => {
                                 </strong>
                               </Tooltip>{" "}
                               as <strong>{item.characterName}</strong>
+                            </p>
+                            <p className="d-flex">
+                              <strong>Status: </strong> &nbsp;
+                              <i>
+                                <u>{item.status}</u>
+                              </i>
                             </p>
                             <p>
                               Quantity: {item.quantity} | Hourly Rate:{" "}
