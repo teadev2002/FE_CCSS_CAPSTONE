@@ -24,7 +24,10 @@ const CostumeService = {
   },
   sendRequestHireCostume: async (requestData) => {
     try {
-      const response = await apiClient.post("/api/Request", requestData);
+      const response = await apiClient.post(
+        "/api/Request/CreateRentCostume",
+        requestData
+      );
       return response.data;
     } catch (error) {
       console.error("Error sending hire cosplayer request:", error);

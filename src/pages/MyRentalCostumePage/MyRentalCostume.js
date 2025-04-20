@@ -1,6 +1,16 @@
+//============== sua ngay oke
 // import React, { useState, useEffect } from "react";
 // import { Container, Row, Col, Form, Card, Badge } from "react-bootstrap";
-// import { Pagination, Modal, Input, Button, Tabs, Spin, Image } from "antd";
+// import {
+//   Pagination,
+//   Modal,
+//   Input,
+//   Button,
+//   Tabs,
+//   Spin,
+//   Image,
+//   DatePicker,
+// } from "antd";
 // import { toast } from "react-toastify";
 // import "react-toastify/dist/ReactToastify.css";
 // import "antd/dist/reset.css";
@@ -11,6 +21,8 @@
 // import { FileText, DollarSign, Calendar, CreditCard, Eye } from "lucide-react";
 // import dayjs from "dayjs";
 // import { useDebounce } from "use-debounce";
+// import MyCustomerCharacter from "../MyCustomerCharacterPage/MyCustomerCharacter.js";
+// import ViewMyRentalCostume from "./ViewMyRentalCostume"; // Import component mới
 
 // const { TabPane } = Tabs;
 // const { TextArea } = Input;
@@ -33,9 +45,14 @@
 //   const [isRefundModalVisible, setIsRefundModalVisible] = useState(false);
 //   const [isConfirmDepositModalVisible, setIsConfirmDepositModalVisible] =
 //     useState(false);
+//   const [isDetailModalVisible, setIsDetailModalVisible] = useState(false); // State cho modal ViewMyRentalCostume
+//   const [selectedRequestId, setSelectedRequestId] = useState(null);
+//   const [selectedContractId, setSelectedContractId] = useState(null);
 //   const [modalData, setModalData] = useState({
 //     name: "",
 //     description: "",
+//     startDate: null,
+//     endDate: null,
 //     characters: [],
 //     fullRequestData: null,
 //   });
@@ -43,8 +60,6 @@
 //     bankAccount: "",
 //     bankName: "",
 //   });
-//   const [selectedRequestId, setSelectedRequestId] = useState(null);
-//   const [selectedContractId, setSelectedContractId] = useState(null);
 //   const [paymentAmount, setPaymentAmount] = useState(0);
 //   const [currentCharacterPage, setCurrentCharacterPage] = useState(1);
 
@@ -54,7 +69,53 @@
 //   const decoded = jwtDecode(accessToken);
 //   const accountId = decoded?.Id;
 
-//   // Lấy danh sách requests
+//   // Hàm định dạng ngày
+//   const formatDate = (date) => {
+//     if (!date || date === "null" || date === "undefined" || date === "") {
+//       console.log(`formatDate: Empty or invalid input - ${date}`);
+//       return "N/A";
+//     }
+
+//     if (dayjs.isDayjs(date)) {
+//       return date.format("DD/MM/YYYY");
+//     }
+
+//     const formats = [
+//       "DD/MM/YYYY",
+//       "HH:mm DD/MM/YYYY",
+//       "YYYY-MM-DD",
+//       "YYYY/MM/DD",
+//       "MM/DD/YYYY",
+//       "HH:mm DD-MM-YYYY",
+//       "D/M/YYYY",
+//       "DD/M/YYYY",
+//       "D/MM/YYYY",
+//     ];
+
+//     const parsedDate = dayjs(date, formats, true);
+//     console.log(
+//       `formatDate: Input=${date}, Parsed=${
+//         parsedDate.isValid() ? parsedDate.format() : "invalid"
+//       }`
+//     );
+
+//     return parsedDate.isValid()
+//       ? parsedDate.format("DD/MM/YYYY")
+//       : "Invalid Date";
+//   };
+
+//   // API getRequestByRequestId
+//   const getRequestByRequestId = async (id) => {
+//     try {
+//       const response = await MyRentalCostumeService.getRequestByRequestId(id); // Giả sử service đã được cập nhật
+//       return response;
+//     } catch (error) {
+//       console.error("Error fetching request details:", error);
+//       throw error;
+//     }
+//   };
+
+//   // Lấy danh sách requests và tính deposit
 //   useEffect(() => {
 //     const fetchRequests = async () => {
 //       setLoading(true);
@@ -62,11 +123,44 @@
 //         const data = await MyRentalCostumeService.GetAllRequestByAccountId(
 //           accountId
 //         );
+//         console.log("Requests API Response:", data);
 //         const requestsArray = Array.isArray(data) ? data : [];
-//         const filteredRequests = requestsArray.filter(
-//           (request) => request?.serviceId === "S001"
+
+//         const enrichedRequests = await Promise.all(
+//           requestsArray
+//             .filter((request) => request?.serviceId === "S001")
+//             .map(async (request) => {
+//               const characters = request.charactersListResponse || [];
+//               let totalDeposit = 0;
+
+//               const characterDetails = await Promise.all(
+//                 characters.map(async (char) => {
+//                   const characterData =
+//                     await MyRentalCostumeService.getCharacterById(
+//                       char.characterId
+//                     );
+//                   const deposit =
+//                     (characterData.price || 0) * (char.quantity || 0) * 5;
+//                   return { ...char, price: characterData.price || 0, deposit };
+//                 })
+//               );
+
+//               totalDeposit = characterDetails.reduce(
+//                 (sum, char) => sum + char.deposit,
+//                 0
+//               );
+
+//               return {
+//                 ...request,
+//                 startDate: formatDate(request.startDate),
+//                 endDate: formatDate(request.endDate),
+//                 deposit: totalDeposit,
+//                 charactersListResponse: characterDetails,
+//               };
+//             })
 //         );
-//         setRequests(filteredRequests);
+
+//         setRequests(enrichedRequests);
 //       } catch (error) {
 //         console.error("Failed to fetch requests:", error);
 //         toast.error(
@@ -87,8 +181,14 @@
 //         const data = await MyRentalCostumeService.getAllContractByAccountId(
 //           accountId
 //         );
+//         console.log("Contracts API Response:", data);
 //         const contractsArray = Array.isArray(data) ? data : [];
-//         setContracts(contractsArray);
+//         const formattedContracts = contractsArray.map((contract) => ({
+//           ...contract,
+//           startDate: formatDate(contract.startDate),
+//           endDate: formatDate(contract.endDate),
+//         }));
+//         setContracts(formattedContracts);
 //       } catch (error) {
 //         console.error("Failed to fetch contracts:", error);
 //         toast.error(
@@ -110,10 +210,7 @@
 //         (request) =>
 //           (request?.name?.toLowerCase?.() || "").includes(
 //             debouncedSearchTerm.toLowerCase()
-//           ) ||
-//           dayjs(request?.startDate || "")
-//             .format("HH:mm DD/MM/YYYY")
-//             .includes(debouncedSearchTerm)
+//           ) || (request?.startDate || "").includes(debouncedSearchTerm)
 //       );
 //     setFilteredPendingRequests(filtered);
 //     setCurrentPendingPage(1);
@@ -127,10 +224,7 @@
 //         (contract) =>
 //           (contract?.contractName?.toLowerCase?.() || "").includes(
 //             debouncedSearchTerm.toLowerCase()
-//           ) ||
-//           dayjs(contract?.startDate || "")
-//             .format("HH:mm DD/MM/YYYY")
-//             .includes(debouncedSearchTerm)
+//           ) || (contract?.startDate || "").includes(debouncedSearchTerm)
 //       );
 //     setFilteredDepositContracts(filtered);
 //     setCurrentDepositPage(1);
@@ -150,10 +244,7 @@
 //         (contract) =>
 //           (contract?.contractName?.toLowerCase?.() || "").includes(
 //             debouncedSearchTerm.toLowerCase()
-//           ) ||
-//           dayjs(contract?.startDate || "")
-//             .format("HH:mm DD/MM/YYYY")
-//             .includes(debouncedSearchTerm)
+//           ) || (contract?.startDate || "").includes(debouncedSearchTerm)
 //       );
 //     setFilteredRefundContracts(filtered);
 //     setCurrentRefundPage(1);
@@ -164,13 +255,12 @@
 //     return data.slice(start, start + perPage);
 //   };
 
-//   const handleViewRequest = async (request) => {
+//   const handleViewRequest = async (requestId) => {
 //     setLoading(true);
-//     setSelectedRequestId(request.requestId);
+//     setSelectedRequestId(requestId);
 //     try {
-//       const requestDetails = await MyRentalCostumeService.getRequestByRequestId(
-//         request.requestId
-//       );
+//       const requestDetails = await getRequestByRequestId(requestId);
+//       console.log("Request Details:", requestDetails);
 //       const characters = requestDetails.charactersListResponse || [];
 
 //       const characterDetailsPromises = characters.map(async (char) => {
@@ -179,6 +269,7 @@
 //         );
 //         return {
 //           characterId: char.characterId,
+//           characterName: characterData.characterName,
 //           maxHeight: characterData.maxHeight || 0,
 //           maxWeight: characterData.maxWeight || 0,
 //           minHeight: characterData.minHeight || 0,
@@ -192,14 +283,44 @@
 
 //       const detailedCharacters = await Promise.all(characterDetailsPromises);
 
+//       const dateFormats = [
+//         "DD/MM/YYYY",
+//         "HH:mm DD/MM/YYYY",
+//         "YYYY-MM-DD",
+//         "YYYY/MM/DD",
+//         "MM/DD/YYYY",
+//         "HH:mm DD-MM-YYYY",
+//         "D/M/YYYY",
+//         "DD/M/YYYY",
+//         "D/MM/YYYY",
+//       ];
+//       const parsedStartDate = requestDetails.startDate
+//         ? dayjs(requestDetails.startDate, dateFormats, true)
+//         : null;
+//       const parsedEndDate = requestDetails.endDate
+//         ? dayjs(requestDetails.endDate, dateFormats, true)
+//         : null;
+
+//       console.log(
+//         `Parsed Dates: startDate=${
+//           parsedStartDate?.format("DD/MM/YYYY") || "null"
+//         }, endDate=${parsedEndDate?.format("DD/MM/YYYY") || "null"}`
+//       );
+
 //       setModalData({
 //         name: requestDetails.name || "",
 //         description: requestDetails.description || "",
+//         startDate: parsedStartDate?.isValid() ? parsedStartDate : null,
+//         endDate: parsedEndDate?.isValid() ? parsedEndDate : null,
 //         characters: detailedCharacters,
-//         fullRequestData: requestDetails,
+//         fullRequestData: {
+//           ...requestDetails,
+//           startDate: formatDate(requestDetails.startDate),
+//           endDate: formatDate(requestDetails.endDate),
+//         },
 //       });
 
-//       if (request.status === "Pending") {
+//       if (requestDetails.status === "Pending") {
 //         setIsEditModalVisible(true);
 //       } else {
 //         setIsViewModalVisible(true);
@@ -213,37 +334,67 @@
 //     }
 //   };
 
+//   const handleViewDetail = (requestId) => {
+//     setSelectedRequestId(requestId);
+//     setIsDetailModalVisible(true);
+//   };
+
 //   const handleSubmitEdit = async () => {
-//     const { characters, fullRequestData } = modalData;
+//     const { characters, startDate, endDate, description } = modalData;
 //     if (characters.some((char) => char.quantity <= 0)) {
 //       toast.error("All quantities must be positive numbers!");
 //       return;
 //     }
-//     if (!fullRequestData) {
+//     if (!modalData.fullRequestData) {
 //       toast.error("Request data is missing!");
+//       return;
+//     }
+//     if (!startDate || !endDate) {
+//       toast.error("Start Date and End Date are required!");
+//       return;
+//     }
+//     if (endDate.isBefore(startDate)) {
+//       toast.error("End Date must be after Start Date!");
 //       return;
 //     }
 
 //     try {
-//       const newStartDate = dayjs().add(1, "minute").format("HH:mm DD/MM/YYYY");
-//       const formattedEndDate = dayjs(fullRequestData.endDate).format(
-//         "HH:mm DD/MM/YYYY"
-//       );
+//       const formattedStartDate = formatDate(startDate);
+//       const formattedEndDate = formatDate(endDate);
+
+//       if (
+//         formattedStartDate === "Invalid Date" ||
+//         formattedEndDate === "Invalid Date"
+//       ) {
+//         toast.error("Invalid date format!");
+//         return;
+//       }
 
 //       const updatedData = {
-//         name: fullRequestData.name,
-//         description: modalData.description,
-//         startDate: newStartDate,
+//         name: modalData.fullRequestData.name || "Unnamed Request",
+//         description: description || "",
+//         price: modalData.fullRequestData.price || 100000,
+//         startDate: formattedStartDate,
 //         endDate: formattedEndDate,
-//         location: fullRequestData.location,
-//         serviceId: fullRequestData.serviceId,
+//         location: modalData.fullRequestData.location || "q tan binh",
+//         serviceId: modalData.fullRequestData.serviceId || "S001",
+//         packageId: "",
 //         listUpdateRequestCharacters: characters.map((char) => ({
 //           characterId: char.characterId,
 //           cosplayerId: null,
-//           description: char.description,
+//           description: char.description || "",
 //           quantity: char.quantity,
+//           listUpdateRequestDates: [
+//             {
+//               requestDateId: "",
+//               startDate: formattedStartDate,
+//               endDate: formattedEndDate,
+//             },
+//           ],
 //         })),
 //       };
+
+//       console.log("UpdateRequest Payload:", updatedData);
 
 //       const response = await MyRentalCostumeService.UpdateRequest(
 //         selectedRequestId,
@@ -254,8 +405,11 @@
 //           req.requestId === selectedRequestId
 //             ? {
 //                 ...req,
-//                 charactersListResponse: response.charactersListResponse,
-//                 startDate: newStartDate,
+//                 charactersListResponse:
+//                   response.charactersListResponse || req.charactersListResponse,
+//                 startDate: formattedStartDate,
+//                 endDate: formattedEndDate,
+//                 deposit: req.deposit,
 //               }
 //             : req
 //         )
@@ -264,7 +418,10 @@
 //       setIsEditModalVisible(false);
 //     } catch (error) {
 //       console.error("Error updating request:", error);
-//       toast.error("Failed to update costumes. Please try again.");
+//       toast.error(
+//         error.response?.data?.message ||
+//           "Failed to update costumes. Please try again."
+//       );
 //     }
 //   };
 
@@ -279,12 +436,17 @@
 //     }));
 //   };
 
+//   const handleDateChange = (field, date) => {
+//     setModalData((prev) => ({
+//       ...prev,
+//       [field]: date,
+//     }));
+//   };
+
 //   const handleConfirmDeposit = async (request) => {
 //     setSelectedRequestId(request.requestId);
 //     try {
-//       const requestDetails = await MyRentalCostumeService.getRequestByRequestId(
-//         request.requestId
-//       );
+//       const requestDetails = await getRequestByRequestId(request.requestId);
 //       const characters = requestDetails.charactersListResponse || [];
 
 //       const characterDetailsPromises = characters.map(async (char) => {
@@ -323,15 +485,51 @@
 //       const requestData = await MyRentalCostumeService.GetAllRequestByAccountId(
 //         accountId
 //       );
-//       const filteredRequests = (
-//         Array.isArray(requestData) ? requestData : []
-//       ).filter((req) => req?.serviceId === "S001");
-//       setRequests(filteredRequests);
+//       const enrichedRequests = await Promise.all(
+//         (Array.isArray(requestData) ? requestData : [])
+//           .filter((req) => req?.serviceId === "S001")
+//           .map(async (request) => {
+//             const characters = request.charactersListResponse || [];
+//             let totalDeposit = 0;
+
+//             const characterDetails = await Promise.all(
+//               characters.map(async (char) => {
+//                 const characterData =
+//                   await MyRentalCostumeService.getCharacterById(
+//                     char.characterId
+//                   );
+//                 const deposit =
+//                   (characterData.price || 0) * (char.quantity || 0) * 5;
+//                 return { ...char, price: characterData.price || 0, deposit };
+//               })
+//             );
+
+//             totalDeposit = characterDetails.reduce(
+//               (sum, char) => sum + char.deposit,
+//               0
+//             );
+
+//             return {
+//               ...request,
+//               startDate: formatDate(request.startDate),
+//               endDate: formatDate(request.endDate),
+//               deposit: totalDeposit,
+//               charactersListResponse: characterDetails,
+//             };
+//           })
+//       );
+//       setRequests(enrichedRequests);
 
 //       const contractDataUpdated =
 //         await MyRentalCostumeService.getAllContractByAccountId(accountId);
 //       setContracts(
-//         Array.isArray(contractDataUpdated) ? contractDataUpdated : []
+//         Array.isArray(contractDataUpdated)
+//           ? contractDataUpdated.map((contract) => ({
+//               ...contract,
+//               startDate: formatDate(contract.startDate),
+//               endDate: formatDate(contract.endDate),
+//             }))
+//           : []
 //       );
 
 //       toast.success(
@@ -350,9 +548,7 @@
 //   const handlePayment = async (contract) => {
 //     setSelectedContractId(contract.contractId);
 //     try {
-//       const requestDetails = await MyRentalCostumeService.getRequestByRequestId(
-//         contract.requestId
-//       );
+//       const requestDetails = await getRequestByRequestId(contract.requestId);
 //       const characters = requestDetails.charactersListResponse || [];
 
 //       const characterDetailsPromises = characters.map(async (char) => {
@@ -400,7 +596,13 @@
 //       const contractDataUpdated =
 //         await MyRentalCostumeService.getAllContractByAccountId(accountId);
 //       setContracts(
-//         Array.isArray(contractDataUpdated) ? contractDataUpdated : []
+//         Array.isArray(contractDataUpdated)
+//           ? contractDataUpdated.map((contract) => ({
+//               ...contract,
+//               startDate: formatDate(contract.startDate),
+//               endDate: formatDate(contract.endDate),
+//             }))
+//           : []
 //       );
 
 //       toast.success("Payment successful! Redirecting to payment gateway...");
@@ -437,7 +639,7 @@
 //       Browsed: "success",
 //       Cancel: "secondary",
 //       Active: "warning",
-//       Progressing: "info", // Thêm màu cho trạng thái Progressing
+//       Progressing: "info",
 //       Completed: "success",
 //     };
 //     return <Badge bg={statusColors[status] || "secondary"}>{status}</Badge>;
@@ -502,14 +704,20 @@
 //                                 <div>
 //                                   <h3 className="rental-title">{req.name}</h3>
 //                                   <div className="text-muted small">
-//                                     <DollarSign size={16} /> Total Price:{" "}
+//                                     <DollarSign size={16} /> Unit Price / day:{" "}
 //                                     {(req.price || 0).toLocaleString()} VND
 //                                   </div>
 //                                   <div className="text-muted small">
+//                                     <DollarSign size={16} /> Deposit:{" "}
+//                                     {(req.deposit || 0).toLocaleString()} VND
+//                                   </div>
+//                                   <div className="text-muted small">
 //                                     <Calendar size={16} /> Start Date:{" "}
-//                                     {dayjs(req.startDate).format(
-//                                       "HH:mm DD/MM/YYYY"
-//                                     )}
+//                                     {req.startDate}
+//                                   </div>
+//                                   <div className="text-muted small">
+//                                     <Calendar size={16} /> Return Date:{" "}
+//                                     {req.endDate}
 //                                   </div>
 //                                   {getStatusBadge(req.status)}
 //                                 </div>
@@ -520,10 +728,17 @@
 //                                 type="primary"
 //                                 size="small"
 //                                 className="btn-view"
-//                                 onClick={() => handleViewRequest(req)}
+//                                 onClick={() => handleViewRequest(req.requestId)}
 //                               >
 //                                 <Eye size={16} />{" "}
 //                                 {req.status === "Pending" ? "Edit" : "View"}
+//                               </Button>
+//                               <Button
+//                                 size="small"
+//                                 className="btn-detail"
+//                                 onClick={() => handleViewDetail(req.requestId)}
+//                               >
+//                                 <Eye size={16} /> View Detail
 //                               </Button>
 //                               {req.status === "Browsed" && (
 //                                 <Button
@@ -583,15 +798,27 @@
 //                                   </div>
 //                                   <div className="text-muted small">
 //                                     <Calendar size={16} /> Start Date:{" "}
-//                                     {dayjs(contract.startDate).format(
-//                                       "HH:mm DD/MM/YYYY"
-//                                     )}
+//                                     {contract.startDate}
+//                                   </div>
+//                                   <div className="text-muted small">
+//                                     <Calendar size={16} /> Return Date:{" "}
+//                                     {contract.endDate}
 //                                   </div>
 //                                   {getStatusBadge(contract.status)}
 //                                 </div>
 //                               </div>
 //                             </div>
 //                             <div className="d-flex gap-2 align-items-center">
+//                               <Button
+//                                 type="primary"
+//                                 size="small"
+//                                 className="btn-view"
+//                                 onClick={() =>
+//                                   handleViewRequest(contract.requestId)
+//                                 }
+//                               >
+//                                 <Eye size={16} /> View
+//                               </Button>
 //                               <Button
 //                                 size="small"
 //                                 className="btn-deposit"
@@ -646,15 +873,27 @@
 //                                   </div>
 //                                   <div className="text-muted small">
 //                                     <Calendar size={16} /> Start Date:{" "}
-//                                     {dayjs(contract.startDate).format(
-//                                       "HH:mm DD/MM/YYYY"
-//                                     )}
+//                                     {contract.startDate}
+//                                   </div>
+//                                   <div className="text-muted small">
+//                                     <Calendar size={16} /> Return Date:{" "}
+//                                     {contract.endDate}
 //                                   </div>
 //                                   {getStatusBadge(contract.status)}
 //                                 </div>
 //                               </div>
 //                             </div>
 //                             <div className="d-flex gap-2 align-items-center">
+//                               <Button
+//                                 type="primary"
+//                                 size="small"
+//                                 className="btn-view"
+//                                 onClick={() =>
+//                                   handleViewRequest(contract.requestId)
+//                                 }
+//                               >
+//                                 <Eye size={16} /> View
+//                               </Button>
 //                               <Button
 //                                 size="small"
 //                                 className="btn-refund"
@@ -705,6 +944,26 @@
 //                 rows={3}
 //               />
 //             </Form.Group>
+//             <Form.Group className="mb-3">
+//               <Form.Label>Start Date</Form.Label>
+//               <DatePicker
+//                 value={modalData.startDate}
+//                 format="DD/MM/YYYY"
+//                 onChange={(date) => handleDateChange("startDate", date)}
+//                 style={{ width: "100%" }}
+//                 placeholder="Select start date"
+//               />
+//             </Form.Group>
+//             <Form.Group className="mb-3">
+//               <Form.Label>End Date</Form.Label>
+//               <DatePicker
+//                 value={modalData.endDate}
+//                 format="DD/MM/YYYY"
+//                 onChange={(date) => handleDateChange("endDate", date)}
+//                 style={{ width: "100%" }}
+//                 placeholder="Select end date"
+//               />
+//             </Form.Group>
 //             <h5>Costumes</h5>
 //             {modalData.characters.length === 0 ? (
 //               <p>No costumes found.</p>
@@ -720,8 +979,8 @@
 //                       <Row>
 //                         <Col md={6}>
 //                           <Form.Group className="mb-3">
-//                             <Form.Label>Character ID</Form.Label>
-//                             <Input value={char.characterId} readOnly />
+//                             <Form.Label>Costume Name</Form.Label>
+//                             <Input value={char.characterName} readOnly />
 //                           </Form.Group>
 //                           <Form.Group className="mb-3">
 //                             <Form.Label>Description</Form.Label>
@@ -832,6 +1091,20 @@
 //             <Form.Group className="mb-3">
 //               <Form.Label>Description</Form.Label>
 //               <TextArea value={modalData.description} disabled rows={3} />
+//             </Form.Group>
+//             <Form.Group className="mb-3">
+//               <Form.Label>Start Date</Form.Label>
+//               <Input
+//                 value={modalData.fullRequestData?.startDate || "N/A"}
+//                 disabled
+//               />
+//             </Form.Group>
+//             <Form.Group className="mb-3">
+//               <Form.Label>End Date</Form.Label>
+//               <Input
+//                 value={modalData.fullRequestData?.endDate || "N/A"}
+//                 disabled
+//               />
 //             </Form.Group>
 //             <h5>Costumes</h5>
 //             {modalData.characters.length === 0 ? (
@@ -992,14 +1265,34 @@
 //             </Form.Group>
 //           </Form>
 //         </Modal>
+
+//         <ViewMyRentalCostume
+//           visible={isDetailModalVisible}
+//           onCancel={() => setIsDetailModalVisible(false)}
+//           requestId={selectedRequestId}
+//           getRequestByRequestId={getRequestByRequestId}
+//         />
 //       </Container>
+//       <MyCustomerCharacter />
 //     </div>
 //   );
 // };
+
 // export default MyRentalCostume;
+
+/////////////////////////////////////////// tu sua edit
 import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Form, Card, Badge } from "react-bootstrap";
-import { Pagination, Modal, Input, Button, Tabs, Spin, Image } from "antd";
+import {
+  Pagination,
+  Modal,
+  Input,
+  Button,
+  Tabs,
+  Spin,
+  Image,
+  DatePicker,
+} from "antd";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "antd/dist/reset.css";
@@ -1011,6 +1304,8 @@ import { FileText, DollarSign, Calendar, CreditCard, Eye } from "lucide-react";
 import dayjs from "dayjs";
 import { useDebounce } from "use-debounce";
 import MyCustomerCharacter from "../MyCustomerCharacterPage/MyCustomerCharacter.js";
+import ViewMyRentalCostume from "./ViewMyRentalCostume";
+
 const { TabPane } = Tabs;
 const { TextArea } = Input;
 
@@ -1032,9 +1327,14 @@ const MyRentalCostume = () => {
   const [isRefundModalVisible, setIsRefundModalVisible] = useState(false);
   const [isConfirmDepositModalVisible, setIsConfirmDepositModalVisible] =
     useState(false);
+  const [isDetailModalVisible, setIsDetailModalVisible] = useState(false);
+  const [selectedRequestId, setSelectedRequestId] = useState(null);
+  const [selectedContractId, setSelectedContractId] = useState(null);
   const [modalData, setModalData] = useState({
     name: "",
     description: "",
+    startDate: null,
+    endDate: null,
     characters: [],
     fullRequestData: null,
   });
@@ -1042,8 +1342,6 @@ const MyRentalCostume = () => {
     bankAccount: "",
     bankName: "",
   });
-  const [selectedRequestId, setSelectedRequestId] = useState(null);
-  const [selectedContractId, setSelectedContractId] = useState(null);
   const [paymentAmount, setPaymentAmount] = useState(0);
   const [currentCharacterPage, setCurrentCharacterPage] = useState(1);
 
@@ -1053,7 +1351,53 @@ const MyRentalCostume = () => {
   const decoded = jwtDecode(accessToken);
   const accountId = decoded?.Id;
 
-  // Lấy danh sách requests
+  // Date formatting function
+  const formatDate = (date) => {
+    if (!date || date === "null" || date === "undefined" || date === "") {
+      console.log(`formatDate: Empty or invalid input - ${date}`);
+      return "N/A";
+    }
+
+    if (dayjs.isDayjs(date)) {
+      return date.format("DD/MM/YYYY");
+    }
+
+    const formats = [
+      "DD/MM/YYYY",
+      "HH:mm DD/MM/YYYY",
+      "YYYY-MM-DD",
+      "YYYY/MM/DD",
+      "MM/DD/YYYY",
+      "HH:mm DD-MM-YYYY",
+      "D/M/YYYY",
+      "DD/M/YYYY",
+      "D/MM/YYYY",
+    ];
+
+    const parsedDate = dayjs(date, formats, true);
+    console.log(
+      `formatDate: Input=${date}, Parsed=${
+        parsedDate.isValid() ? parsedDate.format() : "invalid"
+      }`
+    );
+
+    return parsedDate.isValid()
+      ? parsedDate.format("DD/MM/YYYY")
+      : "Invalid Date";
+  };
+
+  // API to fetch request by requestId
+  const getRequestByRequestId = async (id) => {
+    try {
+      const response = await MyRentalCostumeService.getRequestByRequestId(id);
+      return response;
+    } catch (error) {
+      console.error("Error fetching request details:", error);
+      throw error;
+    }
+  };
+
+  // Fetch requests and calculate deposit
   useEffect(() => {
     const fetchRequests = async () => {
       setLoading(true);
@@ -1061,11 +1405,44 @@ const MyRentalCostume = () => {
         const data = await MyRentalCostumeService.GetAllRequestByAccountId(
           accountId
         );
+        console.log("Requests API Response:", data);
         const requestsArray = Array.isArray(data) ? data : [];
-        const filteredRequests = requestsArray.filter(
-          (request) => request?.serviceId === "S001"
+
+        const enrichedRequests = await Promise.all(
+          requestsArray
+            .filter((request) => request?.serviceId === "S001")
+            .map(async (request) => {
+              const characters = request.charactersListResponse || [];
+              let totalDeposit = 0;
+
+              const characterDetails = await Promise.all(
+                characters.map(async (char) => {
+                  const characterData =
+                    await MyRentalCostumeService.getCharacterById(
+                      char.characterId
+                    );
+                  const deposit =
+                    (characterData.price || 0) * (char.quantity || 0) * 5;
+                  return { ...char, price: characterData.price || 0, deposit };
+                })
+              );
+
+              totalDeposit = characterDetails.reduce(
+                (sum, char) => sum + char.deposit,
+                0
+              );
+
+              return {
+                ...request,
+                startDate: formatDate(request.startDate),
+                endDate: formatDate(request.endDate),
+                deposit: totalDeposit,
+                charactersListResponse: characterDetails,
+              };
+            })
         );
-        setRequests(filteredRequests);
+
+        setRequests(enrichedRequests);
       } catch (error) {
         console.error("Failed to fetch requests:", error);
         toast.error(
@@ -1078,7 +1455,7 @@ const MyRentalCostume = () => {
     fetchRequests();
   }, [accountId]);
 
-  // Lấy danh sách contracts
+  // Fetch contracts
   useEffect(() => {
     const fetchContracts = async () => {
       setLoading(true);
@@ -1086,8 +1463,14 @@ const MyRentalCostume = () => {
         const data = await MyRentalCostumeService.getAllContractByAccountId(
           accountId
         );
+        console.log("Contracts API Response:", data);
         const contractsArray = Array.isArray(data) ? data : [];
-        setContracts(contractsArray);
+        const formattedContracts = contractsArray.map((contract) => ({
+          ...contract,
+          startDate: formatDate(contract.startDate),
+          endDate: formatDate(contract.endDate),
+        }));
+        setContracts(formattedContracts);
       } catch (error) {
         console.error("Failed to fetch contracts:", error);
         toast.error(
@@ -1100,7 +1483,7 @@ const MyRentalCostume = () => {
     fetchContracts();
   }, [accountId]);
 
-  // Lọc requests chưa có contract (Pending hoặc Browsed)
+  // Filter requests without contracts (Pending or Browsed)
   useEffect(() => {
     const contractRequestIds = contracts.map((contract) => contract.requestId);
     const filtered = requests
@@ -1109,16 +1492,13 @@ const MyRentalCostume = () => {
         (request) =>
           (request?.name?.toLowerCase?.() || "").includes(
             debouncedSearchTerm.toLowerCase()
-          ) ||
-          dayjs(request?.startDate || "")
-            .format("HH:mm DD/MM/YYYY")
-            .includes(debouncedSearchTerm)
+          ) || (request?.startDate || "").includes(debouncedSearchTerm)
       );
     setFilteredPendingRequests(filtered);
     setCurrentPendingPage(1);
   }, [debouncedSearchTerm, requests, contracts]);
 
-  // Lọc contracts chưa thanh toán cọc (Active)
+  // Filter contracts awaiting deposit payment (Active)
   useEffect(() => {
     const filtered = contracts
       .filter((contract) => contract.status === "Active")
@@ -1126,16 +1506,13 @@ const MyRentalCostume = () => {
         (contract) =>
           (contract?.contractName?.toLowerCase?.() || "").includes(
             debouncedSearchTerm.toLowerCase()
-          ) ||
-          dayjs(contract?.startDate || "")
-            .format("HH:mm DD/MM/YYYY")
-            .includes(debouncedSearchTerm)
+          ) || (contract?.startDate || "").includes(debouncedSearchTerm)
       );
     setFilteredDepositContracts(filtered);
     setCurrentDepositPage(1);
   }, [debouncedSearchTerm, contracts]);
 
-  // Lọc contracts có trạng thái Progressing và liên quan đến serviceId S001
+  // Filter contracts in Progressing status related to serviceId S001
   useEffect(() => {
     const filtered = contracts
       .filter((contract) => contract.status === "Progressing")
@@ -1149,10 +1526,7 @@ const MyRentalCostume = () => {
         (contract) =>
           (contract?.contractName?.toLowerCase?.() || "").includes(
             debouncedSearchTerm.toLowerCase()
-          ) ||
-          dayjs(contract?.startDate || "")
-            .format("HH:mm DD/MM/YYYY")
-            .includes(debouncedSearchTerm)
+          ) || (contract?.startDate || "").includes(debouncedSearchTerm)
       );
     setFilteredRefundContracts(filtered);
     setCurrentRefundPage(1);
@@ -1163,13 +1537,13 @@ const MyRentalCostume = () => {
     return data.slice(start, start + perPage);
   };
 
+  // Handle viewing request details
   const handleViewRequest = async (requestId) => {
     setLoading(true);
     setSelectedRequestId(requestId);
     try {
-      const requestDetails = await MyRentalCostumeService.getRequestByRequestId(
-        requestId
-      );
+      const requestDetails = await getRequestByRequestId(requestId);
+      console.log("Request Details:", requestDetails);
       const characters = requestDetails.charactersListResponse || [];
 
       const characterDetailsPromises = characters.map(async (char) => {
@@ -1178,6 +1552,7 @@ const MyRentalCostume = () => {
         );
         return {
           characterId: char.characterId,
+          characterName: characterData.characterName,
           maxHeight: characterData.maxHeight || 0,
           maxWeight: characterData.maxWeight || 0,
           minHeight: characterData.minHeight || 0,
@@ -1186,23 +1561,53 @@ const MyRentalCostume = () => {
           urlImage: characterData.images?.[0]?.urlImage || "",
           description: characterData.description || "",
           price: characterData.price || 0,
+          maxQuantity: characterData.maxQuantity || 10, // Assume API provides maxQuantity, default to 10 if not
         };
       });
 
       const detailedCharacters = await Promise.all(characterDetailsPromises);
 
+      const dateFormats = [
+        "DD/MM/YYYY",
+        "HH:mm DD/MM/YYYY",
+        "YYYY-MM-DD",
+        "YYYY/MM/DD",
+        "MM/DD/YYYY",
+        "HH:mm DD-MM-YYYY",
+        "D/M/YYYY",
+        "DD/M/YYYY",
+        "D/MM/YYYY",
+      ];
+      const parsedStartDate = requestDetails.startDate
+        ? dayjs(requestDetails.startDate, dateFormats, true)
+        : null;
+      const parsedEndDate = requestDetails.endDate
+        ? dayjs(requestDetails.endDate, dateFormats, true)
+        : null;
+
+      console.log(
+        `Parsed Dates: startDate=${
+          parsedStartDate?.format("DD/MM/YYYY") || "null"
+        }, endDate=${parsedEndDate?.format("DD/MM/YYYY") || "null"}`
+      );
+
       setModalData({
         name: requestDetails.name || "",
         description: requestDetails.description || "",
+        startDate: parsedStartDate?.isValid() ? parsedStartDate : null,
+        endDate: parsedEndDate?.isValid() ? parsedEndDate : null,
         characters: detailedCharacters,
-        fullRequestData: requestDetails,
+        fullRequestData: {
+          ...requestDetails,
+          startDate: formatDate(requestDetails.startDate),
+          endDate: formatDate(requestDetails.endDate),
+        },
       });
 
-      // Open the edit modal if the status is "Pending"
       if (requestDetails.status === "Pending") {
         setIsEditModalVisible(true);
       } else {
-        setIsViewModalVisible(true); // Open the view modal for other statuses
+        setIsViewModalVisible(true);
       }
       setCurrentCharacterPage(1);
     } catch (error) {
@@ -1212,37 +1617,86 @@ const MyRentalCostume = () => {
       setLoading(false);
     }
   };
+
+  const handleViewDetail = (requestId) => {
+    setSelectedRequestId(requestId);
+    setIsDetailModalVisible(true);
+  };
+
+  // Handle submission of edited request
   const handleSubmitEdit = async () => {
-    const { characters, fullRequestData } = modalData;
-    if (characters.some((char) => char.quantity <= 0)) {
-      toast.error("All quantities must be positive numbers!");
-      return;
-    }
-    if (!fullRequestData) {
-      toast.error("Request data is missing!");
+    const { characters, startDate, endDate, description } = modalData;
+
+    // Validate required fields
+    if (!startDate || !endDate) {
+      toast.error("Start Date and End Date are required!");
       return;
     }
 
+    // Validate end date is not before start date
+    if (endDate.isBefore(startDate)) {
+      toast.error("End Date must be on or after Start Date!");
+      return;
+    }
+
+    // Validate rental period does not exceed 5 days
+    if (endDate.diff(startDate, "day") > 5) {
+      toast.error("The rental period cannot exceed 5 days!");
+      return;
+    }
+
+    // Validate quantities
+    for (const char of characters) {
+      if (char.quantity <= 0) {
+        toast.error(`Quantity for ${char.characterName} must be positive!`);
+        return;
+      }
+      if (char.quantity > (char.maxQuantity || Number.MAX_SAFE_INTEGER)) {
+        toast.error(
+          `Quantity for ${char.characterName} exceeds available stock (${char.maxQuantity})!`
+        );
+        return;
+      }
+    }
+
+    // Proceed with submission
     try {
-      const newStartDate = dayjs().add(1, "minute").format("HH:mm DD/MM/YYYY");
-      const formattedEndDate = dayjs(fullRequestData.endDate).format(
-        "HH:mm DD/MM/YYYY"
-      );
+      const formattedStartDate = formatDate(startDate);
+      const formattedEndDate = formatDate(endDate);
+
+      if (
+        formattedStartDate === "Invalid Date" ||
+        formattedEndDate === "Invalid Date"
+      ) {
+        toast.error("Invalid date format!");
+        return;
+      }
 
       const updatedData = {
-        name: fullRequestData.name,
-        description: modalData.description,
-        startDate: newStartDate,
+        name: modalData.fullRequestData.name || "Unnamed Request",
+        description: description || "",
+        price: modalData.fullRequestData.price || 100000,
+        startDate: formattedStartDate,
         endDate: formattedEndDate,
-        location: fullRequestData.location,
-        serviceId: fullRequestData.serviceId,
+        location: modalData.fullRequestData.location || "q tan binh",
+        serviceId: modalData.fullRequestData.serviceId || "S001",
+        packageId: "",
         listUpdateRequestCharacters: characters.map((char) => ({
           characterId: char.characterId,
           cosplayerId: null,
-          description: char.description,
+          description: char.description || "",
           quantity: char.quantity,
+          listUpdateRequestDates: [
+            {
+              requestDateId: "",
+              startDate: formattedStartDate,
+              endDate: formattedEndDate,
+            },
+          ],
         })),
       };
+
+      console.log("UpdateRequest Payload:", updatedData);
 
       const response = await MyRentalCostumeService.UpdateRequest(
         selectedRequestId,
@@ -1253,8 +1707,11 @@ const MyRentalCostume = () => {
           req.requestId === selectedRequestId
             ? {
                 ...req,
-                charactersListResponse: response.charactersListResponse,
-                startDate: newStartDate,
+                charactersListResponse:
+                  response.charactersListResponse || req.charactersListResponse,
+                startDate: formattedStartDate,
+                endDate: formattedEndDate,
+                deposit: req.deposit,
               }
             : req
         )
@@ -1263,27 +1720,46 @@ const MyRentalCostume = () => {
       setIsEditModalVisible(false);
     } catch (error) {
       console.error("Error updating request:", error);
-      toast.error("Failed to update costumes. Please try again.");
+      toast.error(
+        error.response?.data?.message ||
+          "Failed to update costumes. Please try again."
+      );
     }
   };
 
+  // Handle character information changes
   const handleCharacterChange = (characterId, field, value) => {
     setModalData((prev) => ({
       ...prev,
       characters: prev.characters.map((char) =>
         char.characterId === characterId
-          ? { ...char, [field]: field === "quantity" ? Number(value) : value }
+          ? {
+              ...char,
+              [field]:
+                field === "quantity"
+                  ? Math.min(
+                      Number(value) > 0 ? Number(value) : 0,
+                      char.maxQuantity || Number.MAX_SAFE_INTEGER
+                    )
+                  : value,
+            }
           : char
       ),
+    }));
+  };
+
+  // Handle date changes
+  const handleDateChange = (field, date) => {
+    setModalData((prev) => ({
+      ...prev,
+      [field]: date,
     }));
   };
 
   const handleConfirmDeposit = async (request) => {
     setSelectedRequestId(request.requestId);
     try {
-      const requestDetails = await MyRentalCostumeService.getRequestByRequestId(
-        request.requestId
-      );
+      const requestDetails = await getRequestByRequestId(request.requestId);
       const characters = requestDetails.charactersListResponse || [];
 
       const characterDetailsPromises = characters.map(async (char) => {
@@ -1322,19 +1798,55 @@ const MyRentalCostume = () => {
       const requestData = await MyRentalCostumeService.GetAllRequestByAccountId(
         accountId
       );
-      const filteredRequests = (
-        Array.isArray(requestData) ? requestData : []
-      ).filter((req) => req?.serviceId === "S001");
-      setRequests(filteredRequests);
+      const enrichedRequests = await Promise.all(
+        (Array.isArray(requestData) ? requestData : [])
+          .filter((req) => req?.serviceId === "S001")
+          .map(async (request) => {
+            const characters = request.charactersListResponse || [];
+            let totalDeposit = 0;
+
+            const characterDetails = await Promise.all(
+              characters.map(async (char) => {
+                const characterData =
+                  await MyRentalCostumeService.getCharacterById(
+                    char.characterId
+                  );
+                const deposit =
+                  (characterData.price || 0) * (char.quantity || 0) * 5;
+                return { ...char, price: characterData.price || 0, deposit };
+              })
+            );
+
+            totalDeposit = characterDetails.reduce(
+              (sum, char) => sum + char.deposit,
+              0
+            );
+
+            return {
+              ...request,
+              startDate: formatDate(request.startDate),
+              endDate: formatDate(request.endDate),
+              deposit: totalDeposit,
+              charactersListResponse: characterDetails,
+            };
+          })
+      );
+      setRequests(enrichedRequests);
 
       const contractDataUpdated =
         await MyRentalCostumeService.getAllContractByAccountId(accountId);
       setContracts(
-        Array.isArray(contractDataUpdated) ? contractDataUpdated : []
+        Array.isArray(contractDataUpdated)
+          ? contractDataUpdated.map((contract) => ({
+              ...contract,
+              startDate: formatDate(contract.startDate),
+              endDate: formatDate(contract.endDate),
+            }))
+          : []
       );
 
       toast.success(
-        "Deposit confirmed! Please proceed to payment in the Deposit Payment tab."
+        "Deposit confirmed successfully! Please proceed to payment in the Deposit Payment tab."
       );
       setIsConfirmDepositModalVisible(false);
     } catch (error) {
@@ -1349,9 +1861,7 @@ const MyRentalCostume = () => {
   const handlePayment = async (contract) => {
     setSelectedContractId(contract.contractId);
     try {
-      const requestDetails = await MyRentalCostumeService.getRequestByRequestId(
-        contract.requestId
-      );
+      const requestDetails = await getRequestByRequestId(contract.requestId);
       const characters = requestDetails.charactersListResponse || [];
 
       const characterDetailsPromises = characters.map(async (char) => {
@@ -1399,7 +1909,13 @@ const MyRentalCostume = () => {
       const contractDataUpdated =
         await MyRentalCostumeService.getAllContractByAccountId(accountId);
       setContracts(
-        Array.isArray(contractDataUpdated) ? contractDataUpdated : []
+        Array.isArray(contractDataUpdated)
+          ? contractDataUpdated.map((contract) => ({
+              ...contract,
+              startDate: formatDate(contract.startDate),
+              endDate: formatDate(contract.endDate),
+            }))
+          : []
       );
 
       toast.success("Payment successful! Redirecting to payment gateway...");
@@ -1422,7 +1938,7 @@ const MyRentalCostume = () => {
   const handleRefundConfirm = () => {
     const { bankAccount, bankName } = refundData;
     if (!bankAccount.trim() || !bankName.trim()) {
-      toast.error("Bank account and name cannot be empty!");
+      toast.error("Bank account number and bank name cannot be empty!");
       return;
     }
     toast.success("Refund request submitted!");
@@ -1462,7 +1978,7 @@ const MyRentalCostume = () => {
     <div className="rental-management bg-light min-vh-100">
       <Container className="py-5">
         <h1 className="text-center mb-5 fw-bold title-rental-management">
-          <span>Rental Management</span>
+          <span>Costume Rental Management</span>
         </h1>
 
         <div className="filter-section bg-white p-4 rounded shadow mb-5">
@@ -1501,20 +2017,20 @@ const MyRentalCostume = () => {
                                 <div>
                                   <h3 className="rental-title">{req.name}</h3>
                                   <div className="text-muted small">
-                                    <DollarSign size={16} /> Total Price:{" "}
+                                    <DollarSign size={16} /> Unit Price / day:{" "}
                                     {(req.price || 0).toLocaleString()} VND
                                   </div>
                                   <div className="text-muted small">
+                                    <DollarSign size={16} /> Deposit:{" "}
+                                    {(req.deposit || 0).toLocaleString()} VND
+                                  </div>
+                                  <div className="text-muted small">
                                     <Calendar size={16} /> Start Date:{" "}
-                                    {dayjs(req.startDate).format(
-                                      "HH:mm DD/MM/YYYY"
-                                    )}
+                                    {req.startDate}
                                   </div>
                                   <div className="text-muted small">
                                     <Calendar size={16} /> Return Date:{" "}
-                                    {dayjs(req.endDate).format(
-                                      "HH:mm DD/MM/YYYY"
-                                    )}
+                                    {req.endDate}
                                   </div>
                                   {getStatusBadge(req.status)}
                                 </div>
@@ -1529,6 +2045,13 @@ const MyRentalCostume = () => {
                               >
                                 <Eye size={16} />{" "}
                                 {req.status === "Pending" ? "Edit" : "View"}
+                              </Button>
+                              <Button
+                                size="small"
+                                className="btn-detail"
+                                onClick={() => handleViewDetail(req.requestId)}
+                              >
+                                <Eye size={16} /> View Details
                               </Button>
                               {req.status === "Browsed" && (
                                 <Button
@@ -1734,6 +2257,35 @@ const MyRentalCostume = () => {
                 rows={3}
               />
             </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Start Date</Form.Label>
+              <DatePicker
+                value={modalData.startDate}
+                format="DD/MM/YYYY"
+                onChange={(date) => handleDateChange("startDate", date)}
+                style={{ width: "100%" }}
+                placeholder="Select start date"
+                disabledDate={(current) =>
+                  current && current <= dayjs().endOf("day")
+                }
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>End Date</Form.Label>
+              <DatePicker
+                value={modalData.endDate}
+                format="DD/MM/YYYY"
+                onChange={(date) => handleDateChange("endDate", date)}
+                style={{ width: "100%" }}
+                placeholder="Select end date"
+                disabledDate={(current) =>
+                  current &&
+                  (current < modalData.startDate ||
+                    (modalData.startDate &&
+                      current > modalData.startDate.add(5, "day")))
+                }
+              />
+            </Form.Group>
             <h5>Costumes</h5>
             {modalData.characters.length === 0 ? (
               <p>No costumes found.</p>
@@ -1749,8 +2301,8 @@ const MyRentalCostume = () => {
                       <Row>
                         <Col md={6}>
                           <Form.Group className="mb-3">
-                            <Form.Label>Character ID</Form.Label>
-                            <Input value={char.characterId} readOnly />
+                            <Form.Label>Costume Name</Form.Label>
+                            <Input value={char.characterName} readOnly />
                           </Form.Group>
                           <Form.Group className="mb-3">
                             <Form.Label>Description</Form.Label>
@@ -1801,7 +2353,9 @@ const MyRentalCostume = () => {
                             />
                           </Form.Group>
                           <Form.Group className="mb-3">
-                            <Form.Label>Quantity</Form.Label>
+                            <Form.Label>
+                              Quantity (Max: {char.maxQuantity})
+                            </Form.Label>
                             <Input
                               type="number"
                               value={char.quantity}
@@ -1813,6 +2367,8 @@ const MyRentalCostume = () => {
                                 )
                               }
                               placeholder="Enter quantity"
+                              min={1}
+                              max={char.maxQuantity || 10}
                             />
                           </Form.Group>
                           {char.urlImage && (
@@ -1861,6 +2417,20 @@ const MyRentalCostume = () => {
             <Form.Group className="mb-3">
               <Form.Label>Description</Form.Label>
               <TextArea value={modalData.description} disabled rows={3} />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Start Date</Form.Label>
+              <Input
+                value={modalData.fullRequestData?.startDate || "N/A"}
+                disabled
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>End Date</Form.Label>
+              <Input
+                value={modalData.fullRequestData?.endDate || "N/A"}
+                disabled
+              />
             </Form.Group>
             <h5>Costumes</h5>
             {modalData.characters.length === 0 ? (
@@ -1998,7 +2568,7 @@ const MyRentalCostume = () => {
           open={isRefundModalVisible}
           onOk={handleRefundConfirm}
           onCancel={() => setIsRefundModalVisible(false)}
-          okText="Submit Refund"
+          okText="Submit Refund Request"
         >
           <Form>
             <Form.Group className="mb-3">
@@ -2021,6 +2591,14 @@ const MyRentalCostume = () => {
             </Form.Group>
           </Form>
         </Modal>
+
+        <ViewMyRentalCostume
+          visible={isDetailModalVisible}
+          onCancel={() => setIsDetailModalVisible(false)}
+          requestId={selectedRequestId}
+          getRequestByRequestId={getRequestByRequestId}
+          style={{ width: "70%" }}
+        />
       </Container>
       <MyCustomerCharacter />
     </div>

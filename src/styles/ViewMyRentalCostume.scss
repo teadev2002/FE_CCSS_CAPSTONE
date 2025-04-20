@@ -1,0 +1,54 @@
+.view-my-rental-costume {
+  width: 70%;
+  .request-item-container{
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+  }
+    .ant-modal-content {
+      border-radius: 8px;
+      
+    }
+  
+    .request-details {
+      padding: 16px 0;
+  
+      .detail-item {
+        margin-bottom: 16px;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+  
+        strong {
+          font-weight: 500;
+          color: #333;
+          min-width: 150px;
+        }
+  
+        p {
+          margin: 0;
+          color: #555;
+          flex: 1;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+      }
+  
+      h5 {
+        margin: 24px 0 16px;
+        font-weight: 600;
+        color: #333;
+      }
+    }
+  
+    .ant-collapse-header {
+      font-weight: 600;
+      background-color: #f8f9fa;
+    }
+  
+    .ant-card {
+      border-radius: 4px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+  }

@@ -54,7 +54,7 @@ const MyRentalCostumeService = {
   UpdateRequest: async (id, data) => {
     try {
       const response = await apiClient.put(
-        `/api/Request/?RequestId=${id}`,
+        `/api/Request?RequestId=${id}`,
         data
       );
       return response.data;
