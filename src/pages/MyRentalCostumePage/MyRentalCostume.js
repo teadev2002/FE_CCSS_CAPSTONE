@@ -1,4 +1,3 @@
-//============== sua ngay oke
 // import React, { useState, useEffect } from "react";
 // import { Container, Row, Col, Form, Card, Badge } from "react-bootstrap";
 // import {
@@ -15,19 +14,20 @@
 // import "react-toastify/dist/ReactToastify.css";
 // import "antd/dist/reset.css";
 // import "../../styles/MyRentalCostume.scss";
-// import { jwtDecode } from "jwt-decode";
 // import MyRentalCostumeService from "../../services/MyRentalCostumeService/MyRentalCostumeService.js";
 // import PaymentService from "../../services/PaymentService/PaymentService.js";
-// import { FileText, DollarSign, Calendar, CreditCard, Eye } from "lucide-react";
+// import { FileText, DollarSign, Calendar, Eye, File } from "lucide-react";
 // import dayjs from "dayjs";
 // import { useDebounce } from "use-debounce";
 // import MyCustomerCharacter from "../MyCustomerCharacterPage/MyCustomerCharacter.js";
-// import ViewMyRentalCostume from "./ViewMyRentalCostume"; // Import component mới
+// import ViewMyRentalCostume from "./ViewMyRentalCostume";
+// import { useParams } from "react-router-dom";
 
 // const { TabPane } = Tabs;
 // const { TextArea } = Input;
 
 // const MyRentalCostume = () => {
+//   const { id: accountId } = useParams(); // Lấy accountId từ URL params
 //   const [requests, setRequests] = useState([]);
 //   const [contracts, setContracts] = useState([]);
 //   const [filteredPendingRequests, setFilteredPendingRequests] = useState([]);
@@ -39,13 +39,10 @@
 //   const [currentRefundPage, setCurrentRefundPage] = useState(1);
 //   const [searchTerm, setSearchTerm] = useState("");
 //   const [debouncedSearchTerm] = useDebounce(searchTerm, 300);
-//   const [isViewModalVisible, setIsViewModalVisible] = useState(false);
 //   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
 //   const [isPaymentModalVisible, setIsPaymentModalVisible] = useState(false);
 //   const [isRefundModalVisible, setIsRefundModalVisible] = useState(false);
-//   const [isConfirmDepositModalVisible, setIsConfirmDepositModalVisible] =
-//     useState(false);
-//   const [isDetailModalVisible, setIsDetailModalVisible] = useState(false); // State cho modal ViewMyRentalCostume
+//   const [isDetailModalVisible, setIsDetailModalVisible] = useState(false);
 //   const [selectedRequestId, setSelectedRequestId] = useState(null);
 //   const [selectedContractId, setSelectedContractId] = useState(null);
 //   const [modalData, setModalData] = useState({
@@ -65,11 +62,8 @@
 
 //   const itemsPerPage = 5;
 //   const charactersPerPage = 2;
-//   const accessToken = localStorage.getItem("accessToken");
-//   const decoded = jwtDecode(accessToken);
-//   const accountId = decoded?.Id;
 
-//   // Hàm định dạng ngày
+//   // Date formatting function
 //   const formatDate = (date) => {
 //     if (!date || date === "null" || date === "undefined" || date === "") {
 //       console.log(`formatDate: Empty or invalid input - ${date}`);
@@ -104,10 +98,28 @@
 //       : "Invalid Date";
 //   };
 
-//   // API getRequestByRequestId
+//   // Utility function to calculate total days (inclusive)
+//   const calculateTotalDays = (startDate, endDate) => {
+//     if (
+//       !startDate ||
+//       !endDate ||
+//       !dayjs(startDate).isValid() ||
+//       !dayjs(endDate).isValid()
+//     ) {
+//       return 0;
+//     }
+//     const start = dayjs(startDate);
+//     const end = dayjs(endDate);
+//     if (end.isBefore(start)) {
+//       return 0;
+//     }
+//     return end.diff(start, "day") + 1; // Inclusive of start and end date
+//   };
+
+//   // API to fetch request by requestId
 //   const getRequestByRequestId = async (id) => {
 //     try {
-//       const response = await MyRentalCostumeService.getRequestByRequestId(id); // Giả sử service đã được cập nhật
+//       const response = await MyRentalCostumeService.getRequestByRequestId(id);
 //       return response;
 //     } catch (error) {
 //       console.error("Error fetching request details:", error);
@@ -115,7 +127,7 @@
 //     }
 //   };
 
-//   // Lấy danh sách requests và tính deposit
+//   // Fetch requests and calculate deposit
 //   useEffect(() => {
 //     const fetchRequests = async () => {
 //       setLoading(true);
@@ -170,10 +182,10 @@
 //         setLoading(false);
 //       }
 //     };
-//     fetchRequests();
+//     if (accountId) fetchRequests();
 //   }, [accountId]);
 
-//   // Lấy danh sách contracts
+//   // Fetch contracts
 //   useEffect(() => {
 //     const fetchContracts = async () => {
 //       setLoading(true);
@@ -198,12 +210,17 @@
 //         setLoading(false);
 //       }
 //     };
-//     fetchContracts();
+//     if (accountId) fetchContracts();
 //   }, [accountId]);
 
-//   // Lọc requests chưa có contract (Pending hoặc Browsed)
+//   // Filter requests without contracts (Pending or Browsed)
 //   useEffect(() => {
-//     const contractRequestIds = contracts.map((contract) => contract.requestId);
+//     const contractRequestIds = contracts
+//       .filter(
+//         (contract) =>
+//           contract.status === "Active" || contract.status === "Deposited"
+//       )
+//       .map((contract) => contract.requestId);
 //     const filtered = requests
 //       .filter((request) => !contractRequestIds.includes(request.requestId))
 //       .filter(
@@ -216,21 +233,62 @@
 //     setCurrentPendingPage(1);
 //   }, [debouncedSearchTerm, requests, contracts]);
 
-//   // Lọc contracts chưa thanh toán cọc (Active)
+//   // Filter contracts for Deposit Payment (check serviceId S001)
 //   useEffect(() => {
-//     const filtered = contracts
-//       .filter((contract) => contract.status === "Active")
-//       .filter(
-//         (contract) =>
-//           (contract?.contractName?.toLowerCase?.() || "").includes(
-//             debouncedSearchTerm.toLowerCase()
-//           ) || (contract?.startDate || "").includes(debouncedSearchTerm)
-//       );
-//     setFilteredDepositContracts(filtered);
-//     setCurrentDepositPage(1);
-//   }, [debouncedSearchTerm, contracts]);
+//     const filterDepositContracts = async () => {
+//       setLoading(true);
+//       try {
+//         const data = await MyRentalCostumeService.getAllContractByAccountId(
+//           accountId
+//         );
+//         console.log("Deposit Contracts API Response:", data);
+//         const contractsArray = Array.isArray(data) ? data : [];
 
-//   // Lọc contracts có trạng thái Progressing và liên quan đến serviceId S001
+//         // Lọc contract có serviceId === "S001"
+//         const filtered = await Promise.all(
+//           contractsArray.map(async (contract) => {
+//             try {
+//               const request = await getRequestByRequestId(contract.requestId);
+//               if (request.serviceId === "S001") {
+//                 return {
+//                   ...contract,
+//                   startDate: formatDate(contract.startDate),
+//                   endDate: formatDate(contract.endDate),
+//                 };
+//               }
+//               return null;
+//             } catch (error) {
+//               console.error(
+//                 `Error fetching request ${contract.requestId}:`,
+//                 error
+//               );
+//               return null;
+//             }
+//           })
+//         );
+
+//         const validContracts = filtered
+//           .filter((contract) => contract !== null)
+//           .filter(
+//             (contract) =>
+//               (contract?.contractName?.toLowerCase?.() || "").includes(
+//                 debouncedSearchTerm.toLowerCase()
+//               ) || (contract?.startDate || "").includes(debouncedSearchTerm)
+//           );
+
+//         setFilteredDepositContracts(validContracts);
+//         setCurrentDepositPage(1);
+//       } catch (error) {
+//         console.error("Failed to fetch deposit contracts:", error);
+//         toast.error("Failed to load deposit contracts.");
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+//     if (accountId) filterDepositContracts();
+//   }, [debouncedSearchTerm, accountId]);
+
+//   // Filter contracts in Progressing status related to serviceId S001
 //   useEffect(() => {
 //     const filtered = contracts
 //       .filter((contract) => contract.status === "Progressing")
@@ -255,7 +313,8 @@
 //     return data.slice(start, start + perPage);
 //   };
 
-//   const handleViewRequest = async (requestId) => {
+//   // Handle editing request (only for Pending status)
+//   const handleEditRequest = async (requestId) => {
 //     setLoading(true);
 //     setSelectedRequestId(requestId);
 //     try {
@@ -278,6 +337,7 @@
 //           urlImage: characterData.images?.[0]?.urlImage || "",
 //           description: characterData.description || "",
 //           price: characterData.price || 0,
+//           maxQuantity: characterData.maxQuantity || 10,
 //         };
 //       });
 
@@ -320,11 +380,7 @@
 //         },
 //       });
 
-//       if (requestDetails.status === "Pending") {
-//         setIsEditModalVisible(true);
-//       } else {
-//         setIsViewModalVisible(true);
-//       }
+//       setIsEditModalVisible(true);
 //       setCurrentCharacterPage(1);
 //     } catch (error) {
 //       console.error("Failed to fetch request details:", error);
@@ -334,28 +390,42 @@
 //     }
 //   };
 
+//   // Handle viewing request details (ViewMyRentalCostume)
 //   const handleViewDetail = (requestId) => {
 //     setSelectedRequestId(requestId);
 //     setIsDetailModalVisible(true);
 //   };
 
+//   // Handle submission of edited request
 //   const handleSubmitEdit = async () => {
 //     const { characters, startDate, endDate, description } = modalData;
-//     if (characters.some((char) => char.quantity <= 0)) {
-//       toast.error("All quantities must be positive numbers!");
-//       return;
-//     }
-//     if (!modalData.fullRequestData) {
-//       toast.error("Request data is missing!");
-//       return;
-//     }
+
 //     if (!startDate || !endDate) {
 //       toast.error("Start Date and End Date are required!");
 //       return;
 //     }
+
 //     if (endDate.isBefore(startDate)) {
-//       toast.error("End Date must be after Start Date!");
+//       toast.error("End Date must be on or after Start Date!");
 //       return;
+//     }
+
+//     if (endDate.diff(startDate, "day") > 5) {
+//       toast.error("The rental period cannot exceed 5 days!");
+//       return;
+//     }
+
+//     for (const char of characters) {
+//       if (char.quantity <= 0) {
+//         toast.error(`Quantity for ${char.characterName} must be positive!`);
+//         return;
+//       }
+//       if (char.quantity > (char.maxQuantity || Number.MAX_SAFE_INTEGER)) {
+//         toast.error(
+//           `Quantity for ${char.characterName} exceeds available stock (${char.maxQuantity})!`
+//         );
+//         return;
+//       }
 //     }
 
 //     try {
@@ -370,10 +440,35 @@
 //         return;
 //       }
 
+//       const oldStartDate = dayjs(
+//         modalData.fullRequestData.startDate,
+//         "DD/MM/YYYY"
+//       );
+//       const oldEndDate = dayjs(modalData.fullRequestData.endDate, "DD/MM/YYYY");
+//       const oldTotalDays = calculateTotalDays(oldStartDate, oldEndDate);
+//       const newTotalDays = calculateTotalDays(startDate, endDate);
+
+//       let newPrice = modalData.fullRequestData.price || 100000;
+//       if (oldTotalDays > 0 && newTotalDays > 0) {
+//         newPrice = Math.round((newPrice / oldTotalDays) * newTotalDays);
+//       } else {
+//         console.warn(
+//           "Invalid oldTotalDays or newTotalDays, using fallback price:",
+//           newPrice
+//         );
+//       }
+
+//       console.log("Price calculation:", {
+//         oldPrice: modalData.fullRequestData.price,
+//         oldTotalDays,
+//         newTotalDays,
+//         newPrice,
+//       });
+
 //       const updatedData = {
 //         name: modalData.fullRequestData.name || "Unnamed Request",
 //         description: description || "",
-//         price: modalData.fullRequestData.price || 100000,
+//         price: newPrice,
 //         startDate: formattedStartDate,
 //         endDate: formattedEndDate,
 //         location: modalData.fullRequestData.location || "q tan binh",
@@ -405,6 +500,7 @@
 //           req.requestId === selectedRequestId
 //             ? {
 //                 ...req,
+//                 price: newPrice,
 //                 charactersListResponse:
 //                   response.charactersListResponse || req.charactersListResponse,
 //                 startDate: formattedStartDate,
@@ -425,17 +521,28 @@
 //     }
 //   };
 
+//   // Handle character information changes
 //   const handleCharacterChange = (characterId, field, value) => {
 //     setModalData((prev) => ({
 //       ...prev,
 //       characters: prev.characters.map((char) =>
 //         char.characterId === characterId
-//           ? { ...char, [field]: field === "quantity" ? Number(value) : value }
+//           ? {
+//               ...char,
+//               [field]:
+//                 field === "quantity"
+//                   ? Math.min(
+//                       Number(value) > 0 ? Number(value) : 0,
+//                       char.maxQuantity || Number.MAX_SAFE_INTEGER
+//                     )
+//                   : value,
+//             }
 //           : char
 //       ),
 //     }));
 //   };
 
+//   // Handle date changes
 //   const handleDateChange = (field, date) => {
 //     setModalData((prev) => ({
 //       ...prev,
@@ -443,108 +550,7 @@
 //     }));
 //   };
 
-//   const handleConfirmDeposit = async (request) => {
-//     setSelectedRequestId(request.requestId);
-//     try {
-//       const requestDetails = await getRequestByRequestId(request.requestId);
-//       const characters = requestDetails.charactersListResponse || [];
-
-//       const characterDetailsPromises = characters.map(async (char) => {
-//         const characterData = await MyRentalCostumeService.getCharacterById(
-//           char.characterId
-//         );
-//         return {
-//           price: characterData.price || 0,
-//           quantity: char.quantity || 0,
-//         };
-//       });
-
-//       const detailedCharacters = await Promise.all(characterDetailsPromises);
-//       const totalDeposit = detailedCharacters.reduce(
-//         (sum, char) => sum + char.price * 5 * char.quantity,
-//         0
-//       );
-
-//       setPaymentAmount(totalDeposit);
-//       setIsConfirmDepositModalVisible(true);
-//     } catch (error) {
-//       console.error("Error calculating deposit:", error);
-//       toast.error("Failed to calculate deposit amount.");
-//     }
-//   };
-
-//   const handleConfirmDepositOk = async () => {
-//     if (!selectedRequestId) {
-//       toast.error("Request ID is missing!");
-//       return;
-//     }
-//     setLoading(true);
-//     try {
-//       await MyRentalCostumeService.addContractCostume(selectedRequestId, 100);
-
-//       const requestData = await MyRentalCostumeService.GetAllRequestByAccountId(
-//         accountId
-//       );
-//       const enrichedRequests = await Promise.all(
-//         (Array.isArray(requestData) ? requestData : [])
-//           .filter((req) => req?.serviceId === "S001")
-//           .map(async (request) => {
-//             const characters = request.charactersListResponse || [];
-//             let totalDeposit = 0;
-
-//             const characterDetails = await Promise.all(
-//               characters.map(async (char) => {
-//                 const characterData =
-//                   await MyRentalCostumeService.getCharacterById(
-//                     char.characterId
-//                   );
-//                 const deposit =
-//                   (characterData.price || 0) * (char.quantity || 0) * 5;
-//                 return { ...char, price: characterData.price || 0, deposit };
-//               })
-//             );
-
-//             totalDeposit = characterDetails.reduce(
-//               (sum, char) => sum + char.deposit,
-//               0
-//             );
-
-//             return {
-//               ...request,
-//               startDate: formatDate(request.startDate),
-//               endDate: formatDate(request.endDate),
-//               deposit: totalDeposit,
-//               charactersListResponse: characterDetails,
-//             };
-//           })
-//       );
-//       setRequests(enrichedRequests);
-
-//       const contractDataUpdated =
-//         await MyRentalCostumeService.getAllContractByAccountId(accountId);
-//       setContracts(
-//         Array.isArray(contractDataUpdated)
-//           ? contractDataUpdated.map((contract) => ({
-//               ...contract,
-//               startDate: formatDate(contract.startDate),
-//               endDate: formatDate(contract.endDate),
-//             }))
-//           : []
-//       );
-
-//       toast.success(
-//         "Deposit confirmed! Please proceed to payment in the Deposit Payment tab."
-//       );
-//       setIsConfirmDepositModalVisible(false);
-//     } catch (error) {
-//       console.error("Error confirming deposit:", error);
-//       toast.error(error.message || "Failed to confirm deposit.");
-//     } finally {
-//       setLoading(false);
-//       setSelectedRequestId(null);
-//     }
-//   };
-
+//   // Handle payment for Deposit Payment tab
 //   const handlePayment = async (contract) => {
 //     setSelectedContractId(contract.contractId);
 //     try {
@@ -575,6 +581,7 @@
 //     }
 //   };
 
+//   // Handle payment confirmation
 //   const handlePaymentConfirm = async () => {
 //     if (!selectedContractId) {
 //       toast.error("Contract ID is missing!");
@@ -583,7 +590,7 @@
 //     setLoading(true);
 //     try {
 //       const paymentData = {
-//         fullName: decoded?.AccountName || "User",
+//         fullName: "User", // Có thể lấy từ API hoặc state nếu cần
 //         orderInfo: `Deposit for ${modalData.name || "Costume Rental"}`,
 //         amount: paymentAmount,
 //         purpose: 1,
@@ -617,15 +624,17 @@
 //     }
 //   };
 
+//   // Handle refund request
 //   const handleRefundRequest = (contract) => {
 //     setSelectedContractId(contract.contractId);
 //     setIsRefundModalVisible(true);
 //   };
 
+//   // Handle refund confirmation
 //   const handleRefundConfirm = () => {
 //     const { bankAccount, bankName } = refundData;
 //     if (!bankAccount.trim() || !bankName.trim()) {
-//       toast.error("Bank account and name cannot be empty!");
+//       toast.error("Bank account number and bank name cannot be empty!");
 //       return;
 //     }
 //     toast.success("Refund request submitted!");
@@ -639,6 +648,8 @@
 //       Browsed: "success",
 //       Cancel: "secondary",
 //       Active: "warning",
+//       Created: "warning",
+//       Deposited: "info",
 //       Progressing: "info",
 //       Completed: "success",
 //     };
@@ -665,7 +676,7 @@
 //     <div className="rental-management bg-light min-vh-100">
 //       <Container className="py-5">
 //         <h1 className="text-center mb-5 fw-bold title-rental-management">
-//           <span>Rental Management</span>
+//           <span>Costume Rental Management</span>
 //         </h1>
 
 //         <div className="filter-section bg-white p-4 rounded shadow mb-5">
@@ -704,7 +715,7 @@
 //                                 <div>
 //                                   <h3 className="rental-title">{req.name}</h3>
 //                                   <div className="text-muted small">
-//                                     <DollarSign size={16} /> Unit Price / day:{" "}
+//                                     <DollarSign size={16} /> Price:{" "}
 //                                     {(req.price || 0).toLocaleString()} VND
 //                                   </div>
 //                                   <div className="text-muted small">
@@ -724,31 +735,25 @@
 //                               </div>
 //                             </div>
 //                             <div className="d-flex gap-2 align-items-center">
-//                               <Button
-//                                 type="primary"
-//                                 size="small"
-//                                 className="btn-view"
-//                                 onClick={() => handleViewRequest(req.requestId)}
-//                               >
-//                                 <Eye size={16} />{" "}
-//                                 {req.status === "Pending" ? "Edit" : "View"}
-//                               </Button>
+//                               {req.status === "Pending" && (
+//                                 <Button
+//                                   type="primary"
+//                                   size="small"
+//                                   className="btn-edit"
+//                                   onClick={() =>
+//                                     handleEditRequest(req.requestId)
+//                                   }
+//                                 >
+//                                   <Eye size={16} /> Edit
+//                                 </Button>
+//                               )}
 //                               <Button
 //                                 size="small"
 //                                 className="btn-detail"
 //                                 onClick={() => handleViewDetail(req.requestId)}
 //                               >
-//                                 <Eye size={16} /> View Detail
+//                                 <Eye size={16} /> View Details
 //                               </Button>
-//                               {req.status === "Browsed" && (
-//                                 <Button
-//                                   size="small"
-//                                   className="btn-deposit"
-//                                   onClick={() => handleConfirmDeposit(req)}
-//                                 >
-//                                   <CreditCard size={16} /> Confirm Deposit
-//                                 </Button>
-//                               )}
 //                             </div>
 //                           </div>
 //                         </Card.Body>
@@ -773,7 +778,8 @@
 //               <Spin tip="Loading..." />
 //             ) : currentDepositItems.length === 0 ? (
 //               <p className="text-center">
-//                 No contracts awaiting payment found.
+//                 No contracts awaiting payment found. Please wait for admin to
+//                 create contracts.
 //               </p>
 //             ) : (
 //               <>
@@ -810,21 +816,31 @@
 //                             </div>
 //                             <div className="d-flex gap-2 align-items-center">
 //                               <Button
-//                                 type="primary"
 //                                 size="small"
-//                                 className="btn-view"
+//                                 className="btn-detail"
 //                                 onClick={() =>
-//                                   handleViewRequest(contract.requestId)
+//                                   handleViewDetail(contract.requestId)
 //                                 }
 //                               >
-//                                 <Eye size={16} /> View
+//                                 <Eye size={16} /> View Details
 //                               </Button>
 //                               <Button
 //                                 size="small"
 //                                 className="btn-deposit"
 //                                 onClick={() => handlePayment(contract)}
+//                                 disabled={contract.status === "Deposited"}
 //                               >
-//                                 <CreditCard size={16} /> Pay Now
+//                                 <DollarSign size={16} /> Pay Now
+//                               </Button>
+//                               <Button
+//                                 size="small"
+//                                 className="btn-pdf"
+//                                 disabled={!contract.urlPdf}
+//                                 onClick={() =>
+//                                   window.open(contract.urlPdf, "_blank")
+//                                 }
+//                               >
+//                                 <File size={16} /> View Contract PDF
 //                               </Button>
 //                             </div>
 //                           </div>
@@ -885,21 +901,30 @@
 //                             </div>
 //                             <div className="d-flex gap-2 align-items-center">
 //                               <Button
-//                                 type="primary"
 //                                 size="small"
-//                                 className="btn-view"
+//                                 className="btn-detail"
 //                                 onClick={() =>
-//                                   handleViewRequest(contract.requestId)
+//                                   handleViewDetail(contract.requestId)
 //                                 }
 //                               >
-//                                 <Eye size={16} /> View
+//                                 <Eye size={16} /> View Details
 //                               </Button>
 //                               <Button
 //                                 size="small"
 //                                 className="btn-refund"
 //                                 onClick={() => handleRefundRequest(contract)}
 //                               >
-//                                 <CreditCard size={16} /> Request Refund
+//                                 <DollarSign size={16} /> Request Refund
+//                               </Button>
+//                               <Button
+//                                 size="small"
+//                                 className="btn-pdf"
+//                                 disabled={!contract.urlPdf}
+//                                 onClick={() =>
+//                                   window.open(contract.urlPdf, "_blank")
+//                                 }
+//                               >
+//                                 <File size={16} /> View Contract PDF
 //                               </Button>
 //                             </div>
 //                           </div>
@@ -952,6 +977,9 @@
 //                 onChange={(date) => handleDateChange("startDate", date)}
 //                 style={{ width: "100%" }}
 //                 placeholder="Select start date"
+//                 disabledDate={(current) =>
+//                   current && current <= dayjs().endOf("day")
+//                 }
 //               />
 //             </Form.Group>
 //             <Form.Group className="mb-3">
@@ -962,6 +990,12 @@
 //                 onChange={(date) => handleDateChange("endDate", date)}
 //                 style={{ width: "100%" }}
 //                 placeholder="Select end date"
+//                 disabledDate={(current) =>
+//                   current &&
+//                   (current < modalData.startDate ||
+//                     (modalData.startDate &&
+//                       current > modalData.startDate.add(5, "day")))
+//                 }
 //               />
 //             </Form.Group>
 //             <h5>Costumes</h5>
@@ -1031,7 +1065,9 @@
 //                             />
 //                           </Form.Group>
 //                           <Form.Group className="mb-3">
-//                             <Form.Label>Quantity</Form.Label>
+//                             <Form.Label>
+//                               Quantity (Max: {char.maxQuantity})
+//                             </Form.Label>
 //                             <Input
 //                               type="number"
 //                               value={char.quantity}
@@ -1043,6 +1079,8 @@
 //                                 )
 //                               }
 //                               placeholder="Enter quantity"
+//                               min={1}
+//                               max={char.maxQuantity || 10}
 //                             />
 //                           </Form.Group>
 //                           {char.urlImage && (
@@ -1069,151 +1107,6 @@
 //                 />
 //               </>
 //             )}
-//           </Form>
-//         </Modal>
-
-//         <Modal
-//           title="View Costume Request"
-//           open={isViewModalVisible}
-//           onCancel={() => setIsViewModalVisible(false)}
-//           footer={[
-//             <Button key="close" onClick={() => setIsViewModalVisible(false)}>
-//               Close
-//             </Button>,
-//           ]}
-//           width={800}
-//         >
-//           <Form>
-//             <Form.Group className="mb-3">
-//               <Form.Label>Name</Form.Label>
-//               <Input value={modalData.name} disabled />
-//             </Form.Group>
-//             <Form.Group className="mb-3">
-//               <Form.Label>Description</Form.Label>
-//               <TextArea value={modalData.description} disabled rows={3} />
-//             </Form.Group>
-//             <Form.Group className="mb-3">
-//               <Form.Label>Start Date</Form.Label>
-//               <Input
-//                 value={modalData.fullRequestData?.startDate || "N/A"}
-//                 disabled
-//               />
-//             </Form.Group>
-//             <Form.Group className="mb-3">
-//               <Form.Label>End Date</Form.Label>
-//               <Input
-//                 value={modalData.fullRequestData?.endDate || "N/A"}
-//                 disabled
-//               />
-//             </Form.Group>
-//             <h5>Costumes</h5>
-//             {modalData.characters.length === 0 ? (
-//               <p>No costumes found.</p>
-//             ) : (
-//               <>
-//                 {paginate(
-//                   modalData.characters,
-//                   currentCharacterPage,
-//                   charactersPerPage
-//                 ).map((char) => (
-//                   <Card key={char.characterId} className="mb-3">
-//                     <Card.Body>
-//                       <Row>
-//                         <Col md={6}>
-//                           <Form.Group className="mb-3">
-//                             <Form.Label>Character ID</Form.Label>
-//                             <Input value={char.characterId} disabled />
-//                           </Form.Group>
-//                           <Form.Group className="mb-3">
-//                             <Form.Label>Description</Form.Label>
-//                             <Input value={char.description} disabled />
-//                           </Form.Group>
-//                           <Form.Group className="mb-3">
-//                             <Form.Label>Max Height (cm)</Form.Label>
-//                             <Input
-//                               type="number"
-//                               value={char.maxHeight}
-//                               disabled
-//                             />
-//                           </Form.Group>
-//                           <Form.Group className="mb-3">
-//                             <Form.Label>Max Weight (kg)</Form.Label>
-//                             <Input
-//                               type="number"
-//                               value={char.maxWeight}
-//                               disabled
-//                             />
-//                           </Form.Group>
-//                         </Col>
-//                         <Col md={6}>
-//                           <Form.Group className="mb-3">
-//                             <Form.Label>Min Height (cm)</Form.Label>
-//                             <Input
-//                               type="number"
-//                               value={char.minHeight}
-//                               disabled
-//                             />
-//                           </Form.Group>
-//                           <Form.Group className="mb-3">
-//                             <Form.Label>Min Weight (kg)</Form.Label>
-//                             <Input
-//                               type="number"
-//                               value={char.minWeight}
-//                               disabled
-//                             />
-//                           </Form.Group>
-//                           <Form.Group className="mb-3">
-//                             <Form.Label>Quantity</Form.Label>
-//                             <Input
-//                               type="number"
-//                               value={char.quantity}
-//                               disabled
-//                             />
-//                           </Form.Group>
-//                           {char.urlImage && (
-//                             <Image
-//                               src={char.urlImage}
-//                               alt="Costume Preview"
-//                               width={100}
-//                               preview
-//                               style={{ display: "block", marginTop: "10px" }}
-//                             />
-//                           )}
-//                         </Col>
-//                       </Row>
-//                     </Card.Body>
-//                   </Card>
-//                 ))}
-//                 <Pagination
-//                   current={currentCharacterPage}
-//                   pageSize={charactersPerPage}
-//                   total={modalData.characters.length}
-//                   onChange={(page) => setCurrentCharacterPage(page)}
-//                   showSizeChanger={false}
-//                   style={{ textAlign: "right" }}
-//                 />
-//               </>
-//             )}
-//           </Form>
-//         </Modal>
-
-//         <Modal
-//           title="Confirm Deposit"
-//           open={isConfirmDepositModalVisible}
-//           onOk={handleConfirmDepositOk}
-//           onCancel={() => setIsConfirmDepositModalVisible(false)}
-//           okText="Confirm"
-//           confirmLoading={loading}
-//         >
-//           <Form>
-//             <Form.Group className="mb-3">
-//               <Form.Label>Deposit Amount (VND)</Form.Label>
-//               <Input value={paymentAmount.toLocaleString()} readOnly />
-//             </Form.Group>
-//             <p style={{ color: "#888", fontSize: "12px" }}>
-//               Note: This amount will be refunded after the costume rental is
-//               completed.
-//             </p>
 //           </Form>
 //         </Modal>
 
@@ -1242,7 +1135,7 @@
 //           open={isRefundModalVisible}
 //           onOk={handleRefundConfirm}
 //           onCancel={() => setIsRefundModalVisible(false)}
-//           okText="Submit Refund"
+//           okText="Submit Refund Request"
 //         >
 //           <Form>
 //             <Form.Group className="mb-3">
@@ -1271,6 +1164,7 @@
 //           onCancel={() => setIsDetailModalVisible(false)}
 //           requestId={selectedRequestId}
 //           getRequestByRequestId={getRequestByRequestId}
+//           style={{ width: "70%" }}
 //         />
 //       </Container>
 //       <MyCustomerCharacter />
@@ -1280,7 +1174,7 @@
 
 // export default MyRentalCostume;
 
-/////////////////////////////////////////// tu sua edit
+//==== thêm vài tính năng
 import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Form, Card, Badge } from "react-bootstrap";
 import {
@@ -1292,24 +1186,28 @@ import {
   Spin,
   Image,
   DatePicker,
+  Select,
+  Checkbox,
 } from "antd";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "antd/dist/reset.css";
 import "../../styles/MyRentalCostume.scss";
-import { jwtDecode } from "jwt-decode";
 import MyRentalCostumeService from "../../services/MyRentalCostumeService/MyRentalCostumeService.js";
 import PaymentService from "../../services/PaymentService/PaymentService.js";
-import { FileText, DollarSign, Calendar, CreditCard, Eye } from "lucide-react";
+import { FileText, DollarSign, Calendar, Eye, File } from "lucide-react";
 import dayjs from "dayjs";
 import { useDebounce } from "use-debounce";
 import MyCustomerCharacter from "../MyCustomerCharacterPage/MyCustomerCharacter.js";
 import ViewMyRentalCostume from "./ViewMyRentalCostume";
+import { useParams } from "react-router-dom";
 
 const { TabPane } = Tabs;
 const { TextArea } = Input;
+const { Option } = Select;
 
 const MyRentalCostume = () => {
+  const { id: accountId } = useParams();
   const [requests, setRequests] = useState([]);
   const [contracts, setContracts] = useState([]);
   const [filteredPendingRequests, setFilteredPendingRequests] = useState([]);
@@ -1321,12 +1219,9 @@ const MyRentalCostume = () => {
   const [currentRefundPage, setCurrentRefundPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm] = useDebounce(searchTerm, 300);
-  const [isViewModalVisible, setIsViewModalVisible] = useState(false);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [isPaymentModalVisible, setIsPaymentModalVisible] = useState(false);
   const [isRefundModalVisible, setIsRefundModalVisible] = useState(false);
-  const [isConfirmDepositModalVisible, setIsConfirmDepositModalVisible] =
-    useState(false);
   const [isDetailModalVisible, setIsDetailModalVisible] = useState(false);
   const [selectedRequestId, setSelectedRequestId] = useState(null);
   const [selectedContractId, setSelectedContractId] = useState(null);
@@ -1344,24 +1239,26 @@ const MyRentalCostume = () => {
   });
   const [paymentAmount, setPaymentAmount] = useState(0);
   const [currentCharacterPage, setCurrentCharacterPage] = useState(1);
+  // New states for sorting and filtering
+  const [sortField, setSortField] = useState("date"); // price, deposit, date
+  const [sortOrder, setSortOrder] = useState("desc"); // asc, desc
+  const [statusFilters, setStatusFilters] = useState({
+    Pending: true,
+    Browsed: true,
+    Cancel: true,
+  });
 
   const itemsPerPage = 5;
   const charactersPerPage = 2;
-  const accessToken = localStorage.getItem("accessToken");
-  const decoded = jwtDecode(accessToken);
-  const accountId = decoded?.Id;
 
   // Date formatting function
   const formatDate = (date) => {
     if (!date || date === "null" || date === "undefined" || date === "") {
-      console.log(`formatDate: Empty or invalid input - ${date}`);
       return "N/A";
     }
-
     if (dayjs.isDayjs(date)) {
       return date.format("DD/MM/YYYY");
     }
-
     const formats = [
       "DD/MM/YYYY",
       "HH:mm DD/MM/YYYY",
@@ -1373,17 +1270,47 @@ const MyRentalCostume = () => {
       "DD/M/YYYY",
       "D/MM/YYYY",
     ];
-
     const parsedDate = dayjs(date, formats, true);
-    console.log(
-      `formatDate: Input=${date}, Parsed=${
-        parsedDate.isValid() ? parsedDate.format() : "invalid"
-      }`
-    );
-
     return parsedDate.isValid()
       ? parsedDate.format("DD/MM/YYYY")
       : "Invalid Date";
+  };
+
+  // Utility function to calculate total days
+  const calculateTotalDays = (startDate, endDate) => {
+    if (
+      !startDate ||
+      !endDate ||
+      !dayjs(startDate).isValid() ||
+      !dayjs(endDate).isValid()
+    ) {
+      return 0;
+    }
+    const start = dayjs(startDate);
+    const end = dayjs(endDate);
+    return end.isBefore(start) ? 0 : end.diff(start, "day") + 1;
+  };
+
+  // Sorting function
+  const sortData = (data, field, order) => {
+    return [...data].sort((a, b) => {
+      let valueA, valueB;
+      if (field === "price") {
+        valueA = a.price || 0;
+        valueB = b.price || 0;
+      } else if (field === "deposit") {
+        valueA = a.deposit || 0;
+        valueB = b.deposit || 0;
+      } else if (field === "date") {
+        valueA = dayjs(a.startDate, "DD/MM/YYYY").unix();
+        valueB = dayjs(b.startDate, "DD/MM/YYYY").unix();
+      }
+      if (order === "asc") {
+        return valueA - valueB;
+      } else {
+        return valueB - valueA;
+      }
+    });
   };
 
   // API to fetch request by requestId
@@ -1405,16 +1332,13 @@ const MyRentalCostume = () => {
         const data = await MyRentalCostumeService.GetAllRequestByAccountId(
           accountId
         );
-        console.log("Requests API Response:", data);
         const requestsArray = Array.isArray(data) ? data : [];
-
         const enrichedRequests = await Promise.all(
           requestsArray
             .filter((request) => request?.serviceId === "S001")
             .map(async (request) => {
               const characters = request.charactersListResponse || [];
               let totalDeposit = 0;
-
               const characterDetails = await Promise.all(
                 characters.map(async (char) => {
                   const characterData =
@@ -1426,12 +1350,10 @@ const MyRentalCostume = () => {
                   return { ...char, price: characterData.price || 0, deposit };
                 })
               );
-
               totalDeposit = characterDetails.reduce(
                 (sum, char) => sum + char.deposit,
                 0
               );
-
               return {
                 ...request,
                 startDate: formatDate(request.startDate),
@@ -1441,7 +1363,6 @@ const MyRentalCostume = () => {
               };
             })
         );
-
         setRequests(enrichedRequests);
       } catch (error) {
         console.error("Failed to fetch requests:", error);
@@ -1452,7 +1373,7 @@ const MyRentalCostume = () => {
         setLoading(false);
       }
     };
-    fetchRequests();
+    if (accountId) fetchRequests();
   }, [accountId]);
 
   // Fetch contracts
@@ -1463,7 +1384,6 @@ const MyRentalCostume = () => {
         const data = await MyRentalCostumeService.getAllContractByAccountId(
           accountId
         );
-        console.log("Contracts API Response:", data);
         const contractsArray = Array.isArray(data) ? data : [];
         const formattedContracts = contractsArray.map((contract) => ({
           ...contract,
@@ -1480,13 +1400,18 @@ const MyRentalCostume = () => {
         setLoading(false);
       }
     };
-    fetchContracts();
+    if (accountId) fetchContracts();
   }, [accountId]);
 
-  // Filter requests without contracts (Pending or Browsed)
+  // Filter and sort requests without contracts (Pending, Browsed, Cancel)
   useEffect(() => {
-    const contractRequestIds = contracts.map((contract) => contract.requestId);
-    const filtered = requests
+    const contractRequestIds = contracts
+      .filter(
+        (contract) =>
+          contract.status === "Active" || contract.status === "Deposited"
+      )
+      .map((contract) => contract.requestId);
+    let filtered = requests
       .filter((request) => !contractRequestIds.includes(request.requestId))
       .filter(
         (request) =>
@@ -1494,27 +1419,77 @@ const MyRentalCostume = () => {
             debouncedSearchTerm.toLowerCase()
           ) || (request?.startDate || "").includes(debouncedSearchTerm)
       );
+    // Apply status filters
+    filtered = filtered.filter((request) => statusFilters[request.status]);
+    // Apply sorting
+    filtered = sortData(filtered, sortField, sortOrder);
     setFilteredPendingRequests(filtered);
     setCurrentPendingPage(1);
-  }, [debouncedSearchTerm, requests, contracts]);
+  }, [
+    debouncedSearchTerm,
+    requests,
+    contracts,
+    sortField,
+    sortOrder,
+    statusFilters,
+  ]);
 
-  // Filter contracts awaiting deposit payment (Active)
+  // Filter and sort contracts for Deposit Payment
   useEffect(() => {
-    const filtered = contracts
-      .filter((contract) => contract.status === "Active")
-      .filter(
-        (contract) =>
-          (contract?.contractName?.toLowerCase?.() || "").includes(
-            debouncedSearchTerm.toLowerCase()
-          ) || (contract?.startDate || "").includes(debouncedSearchTerm)
-      );
-    setFilteredDepositContracts(filtered);
-    setCurrentDepositPage(1);
-  }, [debouncedSearchTerm, contracts]);
+    const filterDepositContracts = async () => {
+      setLoading(true);
+      try {
+        const data = await MyRentalCostumeService.getAllContractByAccountId(
+          accountId
+        );
+        const contractsArray = Array.isArray(data) ? data : [];
+        const filtered = await Promise.all(
+          contractsArray.map(async (contract) => {
+            try {
+              const request = await getRequestByRequestId(contract.requestId);
+              if (request.serviceId === "S001") {
+                return {
+                  ...contract,
+                  startDate: formatDate(contract.startDate),
+                  endDate: formatDate(contract.endDate),
+                  deposit: request.deposit || 0, // Include deposit for sorting
+                };
+              }
+              return null;
+            } catch (error) {
+              console.error(
+                `Error fetching request ${contract.requestId}:`,
+                error
+              );
+              return null;
+            }
+          })
+        );
+        let validContracts = filtered
+          .filter((contract) => contract !== null)
+          .filter(
+            (contract) =>
+              (contract?.contractName?.toLowerCase?.() || "").includes(
+                debouncedSearchTerm.toLowerCase()
+              ) || (contract?.startDate || "").includes(debouncedSearchTerm)
+          );
+        // Apply sorting
+        validContracts = sortData(validContracts, sortField, sortOrder);
+        setFilteredDepositContracts(validContracts);
+        setCurrentDepositPage(1);
+      } catch (error) {
+        console.error("Failed to fetch deposit contracts:", error);
+        toast.error("Failed to load deposit contracts.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (accountId) filterDepositContracts();
+  }, [debouncedSearchTerm, accountId, sortField, sortOrder]);
 
-  // Filter contracts in Progressing status related to serviceId S001
+  // Filter and sort contracts in Progressing status
   useEffect(() => {
-    const filtered = contracts
+    let filtered = contracts
       .filter((contract) => contract.status === "Progressing")
       .filter((contract) => {
         const relatedRequest = requests.find(
@@ -1522,28 +1497,46 @@ const MyRentalCostume = () => {
         );
         return relatedRequest && relatedRequest.serviceId === "S001";
       })
+      .map((contract) => {
+        const relatedRequest = requests.find(
+          (req) => req.requestId === contract.requestId
+        );
+        return {
+          ...contract,
+          deposit: relatedRequest ? relatedRequest.deposit || 0 : 0, // Include deposit for sorting
+        };
+      })
       .filter(
         (contract) =>
           (contract?.contractName?.toLowerCase?.() || "").includes(
             debouncedSearchTerm.toLowerCase()
           ) || (contract?.startDate || "").includes(debouncedSearchTerm)
       );
+    // Apply sorting
+    filtered = sortData(filtered, sortField, sortOrder);
     setFilteredRefundContracts(filtered);
     setCurrentRefundPage(1);
-  }, [debouncedSearchTerm, contracts, requests]);
+  }, [debouncedSearchTerm, contracts, requests, sortField, sortOrder]);
 
   const paginate = (data, page, perPage) => {
     const start = (page - 1) * perPage;
     return data.slice(start, start + perPage);
   };
 
-  // Handle viewing request details
-  const handleViewRequest = async (requestId) => {
+  // Handle status filter change
+  const handleStatusFilterChange = (status) => {
+    setStatusFilters((prev) => ({
+      ...prev,
+      [status]: !prev[status],
+    }));
+  };
+
+  // Handle editing request (only for Pending status)
+  const handleEditRequest = async (requestId) => {
     setLoading(true);
     setSelectedRequestId(requestId);
     try {
       const requestDetails = await getRequestByRequestId(requestId);
-      console.log("Request Details:", requestDetails);
       const characters = requestDetails.charactersListResponse || [];
 
       const characterDetailsPromises = characters.map(async (char) => {
@@ -1561,7 +1554,7 @@ const MyRentalCostume = () => {
           urlImage: characterData.images?.[0]?.urlImage || "",
           description: characterData.description || "",
           price: characterData.price || 0,
-          maxQuantity: characterData.maxQuantity || 10, // Assume API provides maxQuantity, default to 10 if not
+          maxQuantity: characterData.maxQuantity || 10,
         };
       });
 
@@ -1585,12 +1578,6 @@ const MyRentalCostume = () => {
         ? dayjs(requestDetails.endDate, dateFormats, true)
         : null;
 
-      console.log(
-        `Parsed Dates: startDate=${
-          parsedStartDate?.format("DD/MM/YYYY") || "null"
-        }, endDate=${parsedEndDate?.format("DD/MM/YYYY") || "null"}`
-      );
-
       setModalData({
         name: requestDetails.name || "",
         description: requestDetails.description || "",
@@ -1604,11 +1591,7 @@ const MyRentalCostume = () => {
         },
       });
 
-      if (requestDetails.status === "Pending") {
-        setIsEditModalVisible(true);
-      } else {
-        setIsViewModalVisible(true);
-      }
+      setIsEditModalVisible(true);
       setCurrentCharacterPage(1);
     } catch (error) {
       console.error("Failed to fetch request details:", error);
@@ -1618,6 +1601,7 @@ const MyRentalCostume = () => {
     }
   };
 
+  // Handle viewing request details
   const handleViewDetail = (requestId) => {
     setSelectedRequestId(requestId);
     setIsDetailModalVisible(true);
@@ -1627,25 +1611,21 @@ const MyRentalCostume = () => {
   const handleSubmitEdit = async () => {
     const { characters, startDate, endDate, description } = modalData;
 
-    // Validate required fields
     if (!startDate || !endDate) {
       toast.error("Start Date and End Date are required!");
       return;
     }
 
-    // Validate end date is not before start date
     if (endDate.isBefore(startDate)) {
       toast.error("End Date must be on or after Start Date!");
       return;
     }
 
-    // Validate rental period does not exceed 5 days
     if (endDate.diff(startDate, "day") > 5) {
       toast.error("The rental period cannot exceed 5 days!");
       return;
     }
 
-    // Validate quantities
     for (const char of characters) {
       if (char.quantity <= 0) {
         toast.error(`Quantity for ${char.characterName} must be positive!`);
@@ -1659,7 +1639,6 @@ const MyRentalCostume = () => {
       }
     }
 
-    // Proceed with submission
     try {
       const formattedStartDate = formatDate(startDate);
       const formattedEndDate = formatDate(endDate);
@@ -1672,10 +1651,28 @@ const MyRentalCostume = () => {
         return;
       }
 
+      const oldStartDate = dayjs(
+        modalData.fullRequestData.startDate,
+        "DD/MM/YYYY"
+      );
+      const oldEndDate = dayjs(modalData.fullRequestData.endDate, "DD/MM/YYYY");
+      const oldTotalDays = calculateTotalDays(oldStartDate, oldEndDate);
+      const newTotalDays = calculateTotalDays(startDate, endDate);
+
+      let newPrice = modalData.fullRequestData.price || 100000;
+      if (oldTotalDays > 0 && newTotalDays > 0) {
+        newPrice = Math.round((newPrice / oldTotalDays) * newTotalDays);
+      } else {
+        console.warn(
+          "Invalid oldTotalDays or newTotalDays, using fallback price:",
+          newPrice
+        );
+      }
+
       const updatedData = {
         name: modalData.fullRequestData.name || "Unnamed Request",
         description: description || "",
-        price: modalData.fullRequestData.price || 100000,
+        price: newPrice,
         startDate: formattedStartDate,
         endDate: formattedEndDate,
         location: modalData.fullRequestData.location || "q tan binh",
@@ -1696,8 +1693,6 @@ const MyRentalCostume = () => {
         })),
       };
 
-      console.log("UpdateRequest Payload:", updatedData);
-
       const response = await MyRentalCostumeService.UpdateRequest(
         selectedRequestId,
         updatedData
@@ -1707,6 +1702,7 @@ const MyRentalCostume = () => {
           req.requestId === selectedRequestId
             ? {
                 ...req,
+                price: newPrice,
                 charactersListResponse:
                   response.charactersListResponse || req.charactersListResponse,
                 startDate: formattedStartDate,
@@ -1756,108 +1752,7 @@ const MyRentalCostume = () => {
     }));
   };
 
-  const handleConfirmDeposit = async (request) => {
-    setSelectedRequestId(request.requestId);
-    try {
-      const requestDetails = await getRequestByRequestId(request.requestId);
-      const characters = requestDetails.charactersListResponse || [];
-
-      const characterDetailsPromises = characters.map(async (char) => {
-        const characterData = await MyRentalCostumeService.getCharacterById(
-          char.characterId
-        );
-        return {
-          price: characterData.price || 0,
-          quantity: char.quantity || 0,
-        };
-      });
-
-      const detailedCharacters = await Promise.all(characterDetailsPromises);
-      const totalDeposit = detailedCharacters.reduce(
-        (sum, char) => sum + char.price * 5 * char.quantity,
-        0
-      );
-
-      setPaymentAmount(totalDeposit);
-      setIsConfirmDepositModalVisible(true);
-    } catch (error) {
-      console.error("Error calculating deposit:", error);
-      toast.error("Failed to calculate deposit amount.");
-    }
-  };
-
-  const handleConfirmDepositOk = async () => {
-    if (!selectedRequestId) {
-      toast.error("Request ID is missing!");
-      return;
-    }
-    setLoading(true);
-    try {
-      await MyRentalCostumeService.addContractCostume(selectedRequestId, 100);
-
-      const requestData = await MyRentalCostumeService.GetAllRequestByAccountId(
-        accountId
-      );
-      const enrichedRequests = await Promise.all(
-        (Array.isArray(requestData) ? requestData : [])
-          .filter((req) => req?.serviceId === "S001")
-          .map(async (request) => {
-            const characters = request.charactersListResponse || [];
-            let totalDeposit = 0;
-
-            const characterDetails = await Promise.all(
-              characters.map(async (char) => {
-                const characterData =
-                  await MyRentalCostumeService.getCharacterById(
-                    char.characterId
-                  );
-                const deposit =
-                  (characterData.price || 0) * (char.quantity || 0) * 5;
-                return { ...char, price: characterData.price || 0, deposit };
-              })
-            );
-
-            totalDeposit = characterDetails.reduce(
-              (sum, char) => sum + char.deposit,
-              0
-            );
-
-            return {
-              ...request,
-              startDate: formatDate(request.startDate),
-              endDate: formatDate(request.endDate),
-              deposit: totalDeposit,
-              charactersListResponse: characterDetails,
-            };
-          })
-      );
-      setRequests(enrichedRequests);
-
-      const contractDataUpdated =
-        await MyRentalCostumeService.getAllContractByAccountId(accountId);
-      setContracts(
-        Array.isArray(contractDataUpdated)
-          ? contractDataUpdated.map((contract) => ({
-              ...contract,
-              startDate: formatDate(contract.startDate),
-              endDate: formatDate(contract.endDate),
-            }))
-          : []
-      );
-
-      toast.success(
-        "Deposit confirmed successfully! Please proceed to payment in the Deposit Payment tab."
-      );
-      setIsConfirmDepositModalVisible(false);
-    } catch (error) {
-      console.error("Error confirming deposit:", error);
-      toast.error(error.message || "Failed to confirm deposit.");
-    } finally {
-      setLoading(false);
-      setSelectedRequestId(null);
-    }
-  };
-
+  // Handle payment for Deposit Payment tab
   const handlePayment = async (contract) => {
     setSelectedContractId(contract.contractId);
     try {
@@ -1888,6 +1783,7 @@ const MyRentalCostume = () => {
     }
   };
 
+  // Handle payment confirmation
   const handlePaymentConfirm = async () => {
     if (!selectedContractId) {
       toast.error("Contract ID is missing!");
@@ -1896,7 +1792,7 @@ const MyRentalCostume = () => {
     setLoading(true);
     try {
       const paymentData = {
-        fullName: decoded?.AccountName || "User",
+        fullName: "User",
         orderInfo: `Deposit for ${modalData.name || "Costume Rental"}`,
         amount: paymentAmount,
         purpose: 1,
@@ -1930,11 +1826,13 @@ const MyRentalCostume = () => {
     }
   };
 
+  // Handle refund request
   const handleRefundRequest = (contract) => {
     setSelectedContractId(contract.contractId);
     setIsRefundModalVisible(true);
   };
 
+  // Handle refund confirmation
   const handleRefundConfirm = () => {
     const { bankAccount, bankName } = refundData;
     if (!bankAccount.trim() || !bankName.trim()) {
@@ -1952,6 +1850,8 @@ const MyRentalCostume = () => {
       Browsed: "success",
       Cancel: "secondary",
       Active: "warning",
+      Created: "warning",
+      Deposited: "info",
       Progressing: "info",
       Completed: "success",
     };
@@ -1983,7 +1883,7 @@ const MyRentalCostume = () => {
 
         <div className="filter-section bg-white p-4 rounded shadow mb-5">
           <Row>
-            <Col md={12}>
+            <Col md={6}>
               <Form.Control
                 type="text"
                 placeholder="Search by name or date..."
@@ -1992,11 +1892,55 @@ const MyRentalCostume = () => {
                 className="search-input"
               />
             </Col>
+            <Col md={3}>
+              <Select
+                style={{ width: "100%" }}
+                value={sortField}
+                onChange={(value) => setSortField(value)}
+              >
+                <Option value="price">Sort by Price</Option>
+                <Option value="deposit">Sort by Deposit</Option>
+                <Option value="date">Sort by Date</Option>
+              </Select>
+            </Col>
+            <Col md={3}>
+              <Select
+                style={{ width: "100%" }}
+                value={sortOrder}
+                onChange={(value) => setSortOrder(value)}
+              >
+                <Option value="asc">Ascending</Option>
+                <Option value="desc">Descending</Option>
+              </Select>
+            </Col>
           </Row>
         </div>
 
         <Tabs defaultActiveKey="1" type="card">
           <TabPane tab="My Requests" key="1">
+            <Row className="mt-3" style={{ margin: "20px 0" }}>
+              <Col>
+                <h6>Filter by Status: </h6>
+                <Checkbox
+                  checked={statusFilters.Pending}
+                  onChange={() => handleStatusFilterChange("Pending")}
+                >
+                  Pending
+                </Checkbox>
+                <Checkbox
+                  checked={statusFilters.Browsed}
+                  onChange={() => handleStatusFilterChange("Browsed")}
+                >
+                  Browsed
+                </Checkbox>
+                <Checkbox
+                  checked={statusFilters.Cancel}
+                  onChange={() => handleStatusFilterChange("Cancel")}
+                >
+                  Cancel
+                </Checkbox>
+              </Col>
+            </Row>
             {loading ? (
               <Spin tip="Loading..." />
             ) : currentPendingItems.length === 0 ? (
@@ -2017,7 +1961,7 @@ const MyRentalCostume = () => {
                                 <div>
                                   <h3 className="rental-title">{req.name}</h3>
                                   <div className="text-muted small">
-                                    <DollarSign size={16} /> Unit Price / day:{" "}
+                                    <DollarSign size={16} /> Price:{" "}
                                     {(req.price || 0).toLocaleString()} VND
                                   </div>
                                   <div className="text-muted small">
@@ -2032,20 +1976,31 @@ const MyRentalCostume = () => {
                                     <Calendar size={16} /> Return Date:{" "}
                                     {req.endDate}
                                   </div>
+                                  {req.reason && (
+                                    <div
+                                      className="small"
+                                      style={{ color: "red" }}
+                                    >
+                                      Reason: {req.reason}
+                                    </div>
+                                  )}
                                   {getStatusBadge(req.status)}
                                 </div>
                               </div>
                             </div>
                             <div className="d-flex gap-2 align-items-center">
-                              <Button
-                                type="primary"
-                                size="small"
-                                className="btn-view"
-                                onClick={() => handleViewRequest(req.requestId)}
-                              >
-                                <Eye size={16} />{" "}
-                                {req.status === "Pending" ? "Edit" : "View"}
-                              </Button>
+                              {req.status === "Pending" && (
+                                <Button
+                                  type="primary"
+                                  size="small"
+                                  className="btn-edit"
+                                  onClick={() =>
+                                    handleEditRequest(req.requestId)
+                                  }
+                                >
+                                  <Eye size={16} /> Edit
+                                </Button>
+                              )}
                               <Button
                                 size="small"
                                 className="btn-detail"
@@ -2053,15 +2008,6 @@ const MyRentalCostume = () => {
                               >
                                 <Eye size={16} /> View Details
                               </Button>
-                              {req.status === "Browsed" && (
-                                <Button
-                                  size="small"
-                                  className="btn-deposit"
-                                  onClick={() => handleConfirmDeposit(req)}
-                                >
-                                  <CreditCard size={16} /> Confirm Deposit
-                                </Button>
-                              )}
                             </div>
                           </div>
                         </Card.Body>
@@ -2086,7 +2032,8 @@ const MyRentalCostume = () => {
               <Spin tip="Loading..." />
             ) : currentDepositItems.length === 0 ? (
               <p className="text-center">
-                No contracts awaiting payment found.
+                No contracts awaiting payment found. Please wait for admin to
+                create contracts.
               </p>
             ) : (
               <>
@@ -2123,21 +2070,31 @@ const MyRentalCostume = () => {
                             </div>
                             <div className="d-flex gap-2 align-items-center">
                               <Button
-                                type="primary"
                                 size="small"
-                                className="btn-view"
+                                className="btn-detail"
                                 onClick={() =>
-                                  handleViewRequest(contract.requestId)
+                                  handleViewDetail(contract.requestId)
                                 }
                               >
-                                <Eye size={16} /> View
+                                <Eye size={16} /> View Details
                               </Button>
                               <Button
                                 size="small"
                                 className="btn-deposit"
                                 onClick={() => handlePayment(contract)}
+                                disabled={contract.status === "Deposited"}
                               >
-                                <CreditCard size={16} /> Pay Now
+                                <DollarSign size={16} /> Pay Now
+                              </Button>
+                              <Button
+                                size="small"
+                                className="btn-pdf"
+                                disabled={!contract.urlPdf}
+                                onClick={() =>
+                                  window.open(contract.urlPdf, "_blank")
+                                }
+                              >
+                                <File size={16} /> View Contract PDF
                               </Button>
                             </div>
                           </div>
@@ -2198,21 +2155,30 @@ const MyRentalCostume = () => {
                             </div>
                             <div className="d-flex gap-2 align-items-center">
                               <Button
-                                type="primary"
                                 size="small"
-                                className="btn-view"
+                                className="btn-detail"
                                 onClick={() =>
-                                  handleViewRequest(contract.requestId)
+                                  handleViewDetail(contract.requestId)
                                 }
                               >
-                                <Eye size={16} /> View
+                                <Eye size={16} /> View Details
                               </Button>
                               <Button
                                 size="small"
                                 className="btn-refund"
                                 onClick={() => handleRefundRequest(contract)}
                               >
-                                <CreditCard size={16} /> Request Refund
+                                <DollarSign size={16} /> Request Refund
+                              </Button>
+                              <Button
+                                size="small"
+                                className="btn-pdf"
+                                disabled={!contract.urlPdf}
+                                onClick={() =>
+                                  window.open(contract.urlPdf, "_blank")
+                                }
+                              >
+                                <File size={16} /> View Contract PDF
                               </Button>
                             </div>
                           </div>
@@ -2395,151 +2361,6 @@ const MyRentalCostume = () => {
                 />
               </>
             )}
-          </Form>
-        </Modal>
-
-        <Modal
-          title="View Costume Request"
-          open={isViewModalVisible}
-          onCancel={() => setIsViewModalVisible(false)}
-          footer={[
-            <Button key="close" onClick={() => setIsViewModalVisible(false)}>
-              Close
-            </Button>,
-          ]}
-          width={800}
-        >
-          <Form>
-            <Form.Group className="mb-3">
-              <Form.Label>Name</Form.Label>
-              <Input value={modalData.name} disabled />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Description</Form.Label>
-              <TextArea value={modalData.description} disabled rows={3} />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Start Date</Form.Label>
-              <Input
-                value={modalData.fullRequestData?.startDate || "N/A"}
-                disabled
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>End Date</Form.Label>
-              <Input
-                value={modalData.fullRequestData?.endDate || "N/A"}
-                disabled
-              />
-            </Form.Group>
-            <h5>Costumes</h5>
-            {modalData.characters.length === 0 ? (
-              <p>No costumes found.</p>
-            ) : (
-              <>
-                {paginate(
-                  modalData.characters,
-                  currentCharacterPage,
-                  charactersPerPage
-                ).map((char) => (
-                  <Card key={char.characterId} className="mb-3">
-                    <Card.Body>
-                      <Row>
-                        <Col md={6}>
-                          <Form.Group className="mb-3">
-                            <Form.Label>Character ID</Form.Label>
-                            <Input value={char.characterId} disabled />
-                          </Form.Group>
-                          <Form.Group className="mb-3">
-                            <Form.Label>Description</Form.Label>
-                            <Input value={char.description} disabled />
-                          </Form.Group>
-                          <Form.Group className="mb-3">
-                            <Form.Label>Max Height (cm)</Form.Label>
-                            <Input
-                              type="number"
-                              value={char.maxHeight}
-                              disabled
-                            />
-                          </Form.Group>
-                          <Form.Group className="mb-3">
-                            <Form.Label>Max Weight (kg)</Form.Label>
-                            <Input
-                              type="number"
-                              value={char.maxWeight}
-                              disabled
-                            />
-                          </Form.Group>
-                        </Col>
-                        <Col md={6}>
-                          <Form.Group className="mb-3">
-                            <Form.Label>Min Height (cm)</Form.Label>
-                            <Input
-                              type="number"
-                              value={char.minHeight}
-                              disabled
-                            />
-                          </Form.Group>
-                          <Form.Group className="mb-3">
-                            <Form.Label>Min Weight (kg)</Form.Label>
-                            <Input
-                              type="number"
-                              value={char.minWeight}
-                              disabled
-                            />
-                          </Form.Group>
-                          <Form.Group className="mb-3">
-                            <Form.Label>Quantity</Form.Label>
-                            <Input
-                              type="number"
-                              value={char.quantity}
-                              disabled
-                            />
-                          </Form.Group>
-                          {char.urlImage && (
-                            <Image
-                              src={char.urlImage}
-                              alt="Costume Preview"
-                              width={100}
-                              preview
-                              style={{ display: "block", marginTop: "10px" }}
-                            />
-                          )}
-                        </Col>
-                      </Row>
-                    </Card.Body>
-                  </Card>
-                ))}
-                <Pagination
-                  current={currentCharacterPage}
-                  pageSize={charactersPerPage}
-                  total={modalData.characters.length}
-                  onChange={(page) => setCurrentCharacterPage(page)}
-                  showSizeChanger={false}
-                  style={{ textAlign: "right" }}
-                />
-              </>
-            )}
-          </Form>
-        </Modal>
-
-        <Modal
-          title="Confirm Deposit"
-          open={isConfirmDepositModalVisible}
-          onOk={handleConfirmDepositOk}
-          onCancel={() => setIsConfirmDepositModalVisible(false)}
-          okText="Confirm"
-          confirmLoading={loading}
-        >
-          <Form>
-            <Form.Group className="mb-3">
-              <Form.Label>Deposit Amount (VND)</Form.Label>
-              <Input value={paymentAmount.toLocaleString()} readOnly />
-            </Form.Group>
-            <p style={{ color: "#888", fontSize: "12px" }}>
-              Note: This amount will be refunded after the costume rental is
-              completed.
-            </p>
           </Form>
         </Modal>
 

@@ -1,4 +1,4 @@
-////=============================== đổi mới
+/// =================================== tam oke roi
 import React, { useState, useEffect, useMemo } from "react";
 import { Search } from "lucide-react";
 import { Modal, Button, Carousel, Form } from "react-bootstrap";
@@ -79,6 +79,46 @@ const CostumesPage = () => {
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   const minStartDate = tomorrow.toISOString().split("T")[0];
+
+  // Function to calculate number of days
+  const calculateNumberOfDays = (startDate, returnDate) => {
+    if (!startDate || !returnDate) return 0;
+
+    const startDateObj = new Date(startDate);
+    const returnDateObj = new Date(returnDate);
+
+    // Validate dates
+    if (
+      isNaN(startDateObj) ||
+      isNaN(returnDateObj) ||
+      returnDateObj < startDateObj
+    ) {
+      return 0;
+    }
+
+    // Calculate number of days (inclusive)
+    const timeDiff = returnDateObj - startDateObj;
+    return Math.floor(timeDiff / (1000 * 60 * 60 * 24)) + 1;
+  };
+
+  // Function to calculate total hire price
+  const calculateTotalHirePrice = (requestData, startDate, returnDate) => {
+    if (!requestData) return 0;
+
+    const numberOfDays = calculateNumberOfDays(startDate, returnDate);
+
+    // Log total days
+    console.log("Total days:", numberOfDays);
+
+    return requestData.listRequestCharacters.reduce((total, character) => {
+      const item =
+        favorites.find((fav) => fav.id === character.characterId) ||
+        costumes.find((costume) => costume.id === character.characterId);
+      return (
+        total + (item ? item.price * character.quantity * numberOfDays : 0)
+      );
+    }, 0);
+  };
 
   useEffect(() => {
     const savedFavorites = localStorage.getItem("favorites");
@@ -203,12 +243,15 @@ const CostumesPage = () => {
   };
 
   const createRequestData = (items, startDateStr, endDateStr) => {
+    const startDateObj = startDateStr ? new Date(startDateStr) : null;
+    const endDateObj = endDateStr ? new Date(endDateStr) : null;
     const numberOfDays =
-      endDateStr && startDateStr
-        ? Math.ceil(
-            (parseDate(endDateStr) - parseDate(startDateStr)) /
-              (1000 * 60 * 60 * 24)
-          ) + 1
+      endDateObj &&
+      startDateObj &&
+      !isNaN(endDateObj) &&
+      !isNaN(startDateObj) &&
+      endDateObj >= startDateObj
+        ? Math.floor((endDateObj - startDateObj) / (1000 * 60 * 60 * 24)) + 1
         : 1;
 
     const price = items.reduce(
@@ -225,8 +268,8 @@ const CostumesPage = () => {
       name: auth.accountName,
       description: description || null,
       price,
-      startDate: startDateStr || "",
-      endDate: endDateStr || "",
+      startDate: startDateStr ? formatDateSimple(startDateObj) : "",
+      endDate: endDateStr ? formatDateSimple(endDateObj) : "",
       location: location || "",
       deposit,
       accountCouponId: null,
@@ -278,12 +321,15 @@ const CostumesPage = () => {
           : character
       );
 
+      const startDateObj = prev.startDate ? parseDate(prev.startDate) : null;
+      const endDateObj = prev.endDate ? parseDate(prev.endDate) : null;
       const numberOfDays =
-        prev.startDate && prev.endDate
-          ? Math.ceil(
-              (parseDate(prev.endDate) - parseDate(prev.startDate)) /
-                (1000 * 60 * 60 * 24)
-            ) + 1
+        endDateObj &&
+        startDateObj &&
+        !isNaN(endDateObj) &&
+        !isNaN(startDateObj) &&
+        endDateObj >= startDateObj
+          ? Math.floor((endDateObj - startDateObj) / (1000 * 60 * 60 * 24)) + 1
           : 1;
 
       const updatedPrice = updatedList.reduce((total, character) => {
@@ -323,15 +369,15 @@ const CostumesPage = () => {
     const startDateObj = new Date(startDate);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    if (startDateObj < today) {
-      toast.error("Start date cannot be in the past!");
+    if (isNaN(startDateObj) || startDateObj < today) {
+      toast.error("Start date must be today or in the future!");
       return;
     }
 
-    // Validate returnDate > startDate
+    // Validate returnDate >= startDate
     const returnDateObj = new Date(returnDate);
-    if (returnDateObj <= startDateObj) {
-      toast.error("Return date must be after start date!");
+    if (isNaN(returnDateObj)) {
+      toast.error("Invalid return date!");
       return;
     }
 
@@ -345,16 +391,25 @@ const CostumesPage = () => {
     const formattedStartDate = formatDateSimple(startDateObj);
     const formattedEndDate = formatDateSimple(returnDateObj);
 
+    // Recalculate price to ensure it's multiplied by number of days
+    const finalPrice = calculateTotalHirePrice(
+      requestData,
+      startDate,
+      returnDate
+    );
+
     const updatedRequestData = {
       ...requestData,
       description: description || null,
       location: location || "",
       startDate: formattedStartDate,
       endDate: formattedEndDate,
+      price: finalPrice, // Update price to include number of days
     };
 
     setIsSending(true);
     try {
+      console.log("Sending API request with data:", updatedRequestData); // Debug log
       await CostumeService.sendRequestHireCostume(updatedRequestData);
       toast.success("Request sent successfully!");
       setShowConfirmModal(false);
@@ -704,8 +759,7 @@ const CostumesPage = () => {
           }}
         >
           <div>
-            <strong>Total Hire Price / day:</strong>{" "}
-            {totalPrice.toLocaleString()} VND
+            <strong>Preview Price: </strong> {totalPrice.toLocaleString()}
           </div>
           <AntButton
             type="primary"
@@ -740,7 +794,7 @@ const CostumesPage = () => {
                       name: e.target.value,
                     }))
                   }
-                  aria-label="Requestor name"
+                  aria-label="Requester name"
                 />
               </div>
               <div className="request-item" style={{ marginBottom: "16px" }}>
@@ -773,7 +827,6 @@ const CostumesPage = () => {
                   min={startDate || minStartDate}
                   aria-label="Return date"
                 />
-                <p style={{ fontSize: "12px" }}>Shop opening at: 8:00 AM</p>
               </div>
               <div className="request-item" style={{ marginBottom: "16px" }}>
                 <strong>Location:</strong>
@@ -781,67 +834,93 @@ const CostumesPage = () => {
                   type="text"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
-                  placeholder="Input location..."
+                  placeholder="Enter location..."
                   aria-label="Request location"
                 />
               </div>
               <div className="request-item" style={{ marginBottom: "16px" }}>
-                <strong>Request Hire Costume:</strong>
+                <strong>Costume Rental Request:</strong>
                 <div className="character-list">
-                  {requestData.listRequestCharacters.map((character, index) => {
-                    const item =
-                      favorites.find(
-                        (fav) => fav.id === character.characterId
-                      ) ||
-                      costumes.find(
-                        (costume) => costume.id === character.characterId
-                      );
-                    if (!item) return null;
-                    return (
-                      <div
-                        key={index}
-                        className="character-item"
-                        style={{
-                          marginBottom: "16px",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                        }}
-                      >
-                        <span>
-                          {item.name} - Quantity:{" "}
-                          <InputNumber
-                            min={1}
-                            value={character.quantity}
-                            onChange={(value) =>
-                              updateRequestQuantity(
-                                character.characterId,
-                                value
-                              )
-                            }
-                            style={{ width: "60px" }}
-                          />{" "}
-                          - Price:{" "}
-                          {(item.price * character.quantity).toLocaleString()}{" "}
-                          VND
-                        </span>
-                      </div>
-                    );
-                  })}
+                  <table className="table table-bordered table-sm">
+                    <thead>
+                      <tr>
+                        <th>Costume Name</th>
+                        <th>Unit Price (VND)</th>
+                        <th>Quantity</th>
+                        <th>Total (VND)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {requestData.listRequestCharacters.map(
+                        (character, index) => {
+                          const item =
+                            favorites.find(
+                              (fav) => fav.id === character.characterId
+                            ) ||
+                            costumes.find(
+                              (costume) => costume.id === character.characterId
+                            );
+                          if (!item) return null;
+                          const itemTotal = item.price * character.quantity;
+                          return (
+                            <tr key={index}>
+                              <td>{item.name}</td>
+                              <td>{item.price.toLocaleString()}</td>
+                              <td>
+                                <InputNumber
+                                  min={1}
+                                  value={character.quantity}
+                                  onChange={(value) =>
+                                    updateRequestQuantity(
+                                      character.characterId,
+                                      value
+                                    )
+                                  }
+                                  style={{ width: "60px" }}
+                                />
+                              </td>
+                              <td>{itemTotal.toLocaleString()}</td>
+                            </tr>
+                          );
+                        }
+                      )}
+                    </tbody>
+                  </table>
                 </div>
+              </div>
+              <div
+                className="request-item total-days"
+                style={{ marginBottom: "16px" }}
+              >
+                <strong>Total Days:</strong>{" "}
+                <span>
+                  {startDate && returnDate
+                    ? calculateNumberOfDays(startDate, returnDate) ||
+                      "Invalid dates"
+                    : "Please select start and return dates"}
+                </span>
               </div>
               <div
                 className="request-item total-price"
                 style={{ marginBottom: "16px" }}
               >
-                <strong>Total Hire Price / day: </strong>
-                <span>{requestData.price.toLocaleString()} VND</span>
+                <strong>Total Rental Price:</strong>{" "}
+                <span>
+                  {startDate && returnDate
+                    ? calculateTotalHirePrice(
+                        requestData,
+                        startDate,
+                        returnDate
+                      ).toLocaleString() + " VND"
+                    : "Please select start and return dates"}
+                </span>
               </div>
               <div className="request-item deposit-note">
                 <p style={{ fontSize: "14px", color: "#555" }}>
-                  - Above is the rental price (calculated by number of days).{" "}
-                  <br /> - Deposit price = character price * 5 * quantity will
-                  be: {parseInt(requestData.deposit).toLocaleString()} VND
+                  - The total rental price is calculated as Unit Price *
+                  Quantity * Number of days. <br />- Deposit = Unit Price * 5 *
+                  Quantity which is:{" "}
+                  {parseInt(requestData.deposit).toLocaleString()} VND
                 </p>
               </div>
             </div>

@@ -4,12 +4,12 @@ import { DollarSign, Calendar } from "lucide-react";
 import { toast } from "react-toastify";
 import dayjs from "dayjs";
 import PropTypes from "prop-types";
-import MyRentalCostumeService from "../../services/MyRentalCostumeService/MyRentalCostumeService.js";
-import "../../styles/ViewMyRentalCostume.scss";
+import MyRentalCostumeService from "../../../services/MyRentalCostumeService/MyRentalCostumeService.js";
+import "../../../styles/ViewMyRentalCostume.scss";
 
 const { Panel } = Collapse;
 
-const ViewMyRentalCostume = ({
+const ViewApprovedContractRentalCostume = ({
   visible,
   onCancel,
   requestId,
@@ -126,7 +126,7 @@ const ViewMyRentalCostume = ({
   if (loading) {
     return (
       <Modal
-        title="Costume Rental Request Details"
+        title="Request Details"
         open={visible}
         onCancel={onCancel}
         footer={null}
@@ -359,11 +359,11 @@ const ViewMyRentalCostume = ({
   );
 };
 
-ViewMyRentalCostume.propTypes = {
+ViewApprovedContractRentalCostume.propTypes = {
   visible: PropTypes.bool.isRequired,
   onCancel: PropTypes.func.isRequired,
   requestId: PropTypes.string,
   getRequestByRequestId: PropTypes.func.isRequired,
 };
 
-export default ViewMyRentalCostume;
+export default ViewApprovedContractRentalCostume;
