@@ -1,84 +1,105 @@
-import React, { useState } from "react";
-import {
-  Table,
-  Modal,
-  Form,
-  Card,
-  Pagination,
-  Dropdown,
-} from "react-bootstrap";
-import { Button, Popconfirm, message, Select } from "antd";
-import { toast } from "react-toastify";
+import React, { useState, useEffect } from "react";
+import { Table, Modal, Card, Pagination, Dropdown, Form } from "react-bootstrap";
+import { Button, message } from "antd";
 import { ArrowUp, ArrowDown } from "lucide-react";
 import "../../../styles/Manager/ManageFeedback.scss";
 import Box from "@mui/material/Box";
 import LinearProgress from "@mui/material/LinearProgress";
+import ManageFeedbackService from "../../../services/ManageServicePages/ManageFeedbackService/ManageFeedbackService";
 
-const { Option } = Select;
-
-const initialFeedbacks = [
-  {
-    id: "FB001",
-    customer: "John Doe",
-    cosplayerName: "Alice Smith",
-    service: "Hire Cosplayer",
-    rating: 5,
-    comment: "Alice was fantastic, very professional and friendly!",
-    date: "2025-04-10",
-  },
-  {
-    id: "FB002",
-    customer: "Jane Roe",
-    cosplayerName: "Bob Johnson",
-    service: "Hire Cosplayer",
-    rating: 3,
-    comment: "Good performance overall, but arrived a bit late.",
-    date: "2025-04-08",
-  },
-  {
-    id: "FB003",
-    customer: "Emily Brown",
-    cosplayerName: "Clara Lee",
-    service: "Hire Cosplayer",
-    rating: 4,
-    comment: "Great costume and interaction with guests!",
-    date: "2025-04-05",
-  },
-];
+// Định dạng ngày hiển thị
+const formatDateForDisplay = (dateString) => {
+  if (!dateString) return "N/A";
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+  if (dateRegex.test(dateString)) {
+    const [year, month, day] = dateString.split("-");
+    return `${day}/${month}/${year}`;
+  }
+  const date = new Date(dateString);
+  if (!isNaN(date.getTime())) {
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+  return "N/A";
+};
 
 const ManageFeedback = () => {
-  const [feedbacks, setFeedbacks] = useState(initialFeedbacks);
-  const [showModal, setShowModal] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [currentFeedback, setCurrentFeedback] = useState(null);
+  const [feedbacks, setFeedbacks] = useState([]);
+  const [accounts, setAccounts] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [formData, setFormData] = useState({
-    rating: 5,
-    comment: "",
-  });
   const [searchTerm, setSearchTerm] = useState("");
   const [sortFeedback, setSortFeedback] = useState({
-    field: "cosplayerName",
+    field: "name",
     order: "asc",
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [selectedAccount, setSelectedAccount] = useState(null);
   const rowsPerPageOptions = [10, 20, 30];
 
+  // Lấy dữ liệu feedback và account
+  const fetchFeedbacks = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      // Lấy danh sách feedback
+      const feedbackData = await ManageFeedbackService.getAllFeedbacks();
+      setFeedbacks(feedbackData);
+
+      // Lấy chi tiết account cho mỗi accountId
+      const accountIds = [...new Set(feedbackData.map((fb) => fb.accountId))];
+      const accountPromises = accountIds.map((id) =>
+        ManageFeedbackService.getAccountById(id)
+      );
+      const accountResults = await Promise.all(accountPromises);
+      const accountMap = accountResults.reduce((acc, account) => {
+        acc[account.accountId] = account;
+        return acc;
+      }, {});
+      setAccounts(accountMap);
+    } catch (error) {
+      setError("Failed to fetch feedbacks or accounts.");
+      message.error("Failed to fetch feedbacks or accounts.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchFeedbacks();
+  }, []);
+
+  // Lọc và sắp xếp dữ liệu
   const filterAndSortData = (data, search, sort) => {
     let filtered = [...data];
     if (search) {
-      filtered = filtered.filter(
-        (item) =>
-          item.customer.toLowerCase().includes(search.toLowerCase()) ||
-          item.cosplayerName.toLowerCase().includes(search.toLowerCase()) ||
-          item.comment.toLowerCase().includes(search.toLowerCase())
-      );
+      filtered = filtered.filter((item) => {
+        const account = accounts[item.accountId] || {};
+        return (
+          account.name?.toLowerCase().includes(search.toLowerCase()) ||
+          account.email?.toLowerCase().includes(search.toLowerCase()) ||
+          item.description?.toLowerCase().includes(search.toLowerCase())
+        );
+      });
     }
     return filtered.sort((a, b) => {
-      const valueA = String(a[sort.field]).toLowerCase();
-      const valueB = String(b[sort.field]).toLowerCase();
+      const accountA = accounts[a.accountId] || {};
+      const accountB = accounts[b.accountId] || {};
+      let valueA, valueB;
+      if (sort.field === "star" || sort.field === "description") {
+        valueA = String(a[sort.field] || "").toLowerCase();
+        valueB = String(b[sort.field] || "").toLowerCase();
+      } else if (sort.field === "averageStar") {
+        valueA = String(accountA.averageStar || 0);
+        valueB = String(accountB.averageStar || 0);
+      } else {
+        valueA = String(accountA[sort.field] || "").toLowerCase();
+        valueB = String(accountB[sort.field] || "").toLowerCase();
+      }
       return sort.order === "asc"
         ? valueA.localeCompare(valueB)
         : valueB.localeCompare(valueA);
@@ -100,73 +121,25 @@ const ManageFeedback = () => {
   const endEntry = Math.min(currentPage * rowsPerPage, totalEntries);
   const showingText = `Showing ${startEntry} to ${endEntry} of ${totalEntries} entries`;
 
-  const handleShowModal = (feedback = null) => {
-    if (feedback) {
-      setIsEditing(true);
-      setCurrentFeedback(feedback);
-      setFormData({
-        rating: feedback.rating,
-        comment: feedback.comment,
-      });
-    }
-    setShowModal(true);
+  // Xử lý hiển thị modal chi tiết
+  const handleShowDetails = (feedback) => {
+    const account = accounts[feedback.accountId] || {};
+    setSelectedAccount(account);
+    setShowDetailsModal(true);
   };
 
-  const handleCloseModal = () => {
-    setShowModal(false);
-    setIsEditing(false);
-    setCurrentFeedback(null);
-    setFormData({ rating: 5, comment: "" });
+  const handleCloseDetails = () => {
+    setShowDetailsModal(false);
+    setSelectedAccount(null);
   };
 
-  const handleInputChange = (name, value) => {
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      if (isEditing && currentFeedback?.id) {
-        const updatedFeedbacks = feedbacks.map((fb) =>
-          fb.id === currentFeedback.id
-            ? { ...fb, rating: formData.rating, comment: formData.comment }
-            : fb
-        );
-        setFeedbacks(updatedFeedbacks);
-        toast.success("Feedback updated successfully!");
-      }
-      handleCloseModal();
-    } catch (error) {
-      setError("Failed to save feedback.");
-      toast.error("Failed to save feedback.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDelete = async (id) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const updatedFeedbacks = feedbacks.filter((fb) => fb.id !== id);
-      setFeedbacks(updatedFeedbacks);
-      message.success("Feedback deleted successfully!");
-    } catch (error) {
-      setError("Failed to delete feedback.");
-      message.error("Failed to delete feedback.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+  // Xử lý tìm kiếm
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
     setCurrentPage(1);
   };
 
+  // Xử lý sắp xếp
   const handleSort = (field) => {
     setSortFeedback((prev) => ({
       field,
@@ -175,6 +148,7 @@ const ManageFeedback = () => {
     setCurrentPage(1);
   };
 
+  // Xử lý phân trang
   const handlePageChange = (page) => setCurrentPage(page);
 
   const handleRowsPerPageChange = (value) => {
@@ -192,7 +166,7 @@ const ManageFeedback = () => {
               <h3>Feedbacks</h3>
               <Form.Control
                 type="text"
-                placeholder="Search by customer, cosplayer, or comment..."
+                placeholder="Search by name, email, or description..."
                 value={searchTerm}
                 onChange={handleSearch}
                 className="search-input"
@@ -210,14 +184,10 @@ const ManageFeedback = () => {
                 <Table striped bordered hover responsive>
                   <thead>
                     <tr>
-                      <th className="text-center">Customer</th>
                       <th className="text-center">
-                        <span
-                          className="sortable"
-                          onClick={() => handleSort("cosplayerName")}
-                        >
-                          Cosplayer
-                          {sortFeedback.field === "cosplayerName" ? (
+                        <span className="sortable" onClick={() => handleSort("star")}>
+                          Star
+                          {sortFeedback.field === "star" ? (
                             sortFeedback.order === "asc" ? (
                               <ArrowUp size={16} />
                             ) : (
@@ -228,14 +198,13 @@ const ManageFeedback = () => {
                           )}
                         </span>
                       </th>
-                      <th className="text-center">Service</th>
                       <th className="text-center">
                         <span
                           className="sortable"
-                          onClick={() => handleSort("rating")}
+                          onClick={() => handleSort("description")}
                         >
-                          Rating
-                          {sortFeedback.field === "rating" ? (
+                          Description
+                          {sortFeedback.field === "description" ? (
                             sortFeedback.order === "asc" ? (
                               <ArrowUp size={16} />
                             ) : (
@@ -246,14 +215,41 @@ const ManageFeedback = () => {
                           )}
                         </span>
                       </th>
-                      <th className="text-center">Comment</th>
+                      <th className="text-center">
+                        <span className="sortable" onClick={() => handleSort("name")}>
+                          Cosplayer's Name
+                          {sortFeedback.field === "name" ? (
+                            sortFeedback.order === "asc" ? (
+                              <ArrowUp size={16} />
+                            ) : (
+                              <ArrowDown size={16} />
+                            )
+                          ) : (
+                            <ArrowUp size={16} className="default-sort-icon" />
+                          )}
+                        </span>
+                      </th>
+                      <th className="text-center">
+                        <span className="sortable" onClick={() => handleSort("email")}>
+                          Email
+                          {sortFeedback.field === "email" ? (
+                            sortFeedback.order === "asc" ? (
+                              <ArrowUp size={16} />
+                            ) : (
+                              <ArrowDown size={16} />
+                            )
+                          ) : (
+                            <ArrowUp size={16} className="default-sort-icon" />
+                          )}
+                        </span>
+                      </th>
                       <th className="text-center">
                         <span
                           className="sortable"
-                          onClick={() => handleSort("date")}
+                          onClick={() => handleSort("averageStar")}
                         >
-                          Date
-                          {sortFeedback.field === "date" ? (
+                          Average Star
+                          {sortFeedback.field === "averageStar" ? (
                             sortFeedback.order === "asc" ? (
                               <ArrowUp size={16} />
                             ) : (
@@ -270,43 +266,34 @@ const ManageFeedback = () => {
                   <tbody>
                     {paginatedFeedbacks.length === 0 ? (
                       <tr>
-                        <td colSpan="7" className="text-center text-muted">
+                        <td colSpan="6" className="text-center text-muted">
                           No feedback found {searchTerm && "matching your search"}.
                         </td>
                       </tr>
                     ) : (
-                      paginatedFeedbacks.map((feedback) => (
-                        <tr key={feedback.id}>
-                          <td className="text-center">{feedback.customer}</td>
-                          <td className="text-center">{feedback.cosplayerName}</td>
-                          <td className="text-center">{feedback.service}</td>
-                          <td className="text-center">{feedback.rating} ⭐</td>
-                          <td className="text-center">{feedback.comment}</td>
-                          <td className="text-center">{feedback.date}</td>
-                          <td className="text-center">
-                            <Button
-                              type="primary"
-                              size="small"
-                              onClick={() => handleShowModal(feedback)}
-                              style={{ marginRight: "8px" }}
-                            >
-                              Edit
-                            </Button>
-                            <Popconfirm
-                              title="Delete the feedback"
-                              description="Are you sure to delete this feedback?"
-                              onConfirm={() => handleDelete(feedback.id)}
-                              onCancel={() => message.info("Cancelled")}
-                              okText="Yes"
-                              cancelText="No"
-                            >
-                              <Button type="primary" danger size="small">
-                                Delete
+                      paginatedFeedbacks.map((feedback, index) => {
+                        const account = accounts[feedback.accountId] || {};
+                        return (
+                          <tr key={index}>
+                            <td className="text-center">{feedback.star} ⭐</td>
+                            <td className="text-center">{feedback.description}</td>
+                            <td className="text-center">{account.name || "N/A"}</td>
+                            <td className="text-center">{account.email || "N/A"}</td>
+                            <td className="text-center">
+                              {account.averageStar ? `${account.averageStar} ⭐` : "N/A"}
+                            </td>
+                            <td className="text-center">
+                              <Button
+                                type="primary"
+                                size="small"
+                                onClick={() => handleShowDetails(feedback)}
+                              >
+                                Cosplayer Details
                               </Button>
-                            </Popconfirm>
-                          </td>
-                        </tr>
-                      ))
+                            </td>
+                          </tr>
+                        );
+                      })
                     )}
                   </tbody>
                 </Table>
@@ -369,63 +356,37 @@ const ManageFeedback = () => {
         </Card>
       </div>
 
+      {/* Modal hiển thị chi tiết cosplayer */}
       <Modal
-        show={showModal}
-        onHide={handleCloseModal}
+        show={showDetailsModal}
+        onHide={handleCloseDetails}
         centered
         backdrop="static"
         className="feedback-modal"
       >
-        <Modal.Header closeButton={!isLoading}>
-          <Modal.Title>Edit Feedback</Modal.Title>
+        <Modal.Header closeButton>
+          <Modal.Title>Cosplayer Details</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {error && !isLoading && <p className="error-message">{error}</p>}
-          <Form onSubmit={handleSubmit}>
-            <Form.Group className="mb-3">
-              <Form.Label>Rating</Form.Label>
-              <Select
-                value={formData.rating}
-                onChange={(value) => handleInputChange("rating", value)}
-                style={{ width: "100%" }}
-                disabled={isLoading}
-              >
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <Option key={star} value={star}>
-                    {star} ⭐
-                  </Option>
-                ))}
-              </Select>
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>Comment</Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={3}
-                name="comment"
-                value={formData.comment}
-                onChange={(e) => handleInputChange("comment", e.target.value)}
-                required
-                disabled={isLoading}
-                placeholder="Enter feedback comment"
-              />
-            </Form.Group>
-          </Form>
+          {selectedAccount ? (
+            <div className="cosplayer-details">
+              <p><strong>Name:</strong> {selectedAccount.name || "N/A"}</p>
+              <p><strong>Email:</strong> {selectedAccount.email || "N/A"}</p>
+              <p><strong>Average Star:</strong> {selectedAccount.averageStar ? `${selectedAccount.averageStar} ⭐` : "N/A"}</p>
+              <p><strong>Birthday:</strong> {formatDateForDisplay(selectedAccount.birthday)}</p>
+              <p><strong>Phone:</strong> {selectedAccount.phone || "N/A"}</p>
+              <p><strong>Height:</strong> {selectedAccount.height ? `${selectedAccount.height} cm` : "N/A"}</p>
+              <p><strong>Weight:</strong> {selectedAccount.weight ? `${selectedAccount.weight} kg` : "N/A"}</p>
+              <p><strong>Salary Index:</strong> {selectedAccount.salaryIndex || "N/A"}</p>
+              <p><strong>Description:</strong> {selectedAccount.description || "N/A"}</p>
+            </div>
+          ) : (
+            <p>No details available.</p>
+          )}
         </Modal.Body>
         <Modal.Footer>
-          <Button
-            type="default"
-            onClick={handleCloseModal}
-            disabled={isLoading}
-          >
-            Cancel
-          </Button>
-          <Button
-            type="primary"
-            onClick={handleSubmit}
-            disabled={isLoading}
-          >
-            {isLoading ? "Saving..." : "Update Feedback"}
+          <Button type="default" onClick={handleCloseDetails}>
+            Close
           </Button>
         </Modal.Footer>
       </Modal>

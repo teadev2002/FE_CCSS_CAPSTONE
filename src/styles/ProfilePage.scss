@@ -255,237 +255,719 @@
 //   }
 // }
 
-$bg-dark: #ffffff;
-$text-light: #080808;
-$text-secondary: #a8a8a8;
-$border-color: #262626;
-$button-bg: #363636;
-$link-color: #0095f6;
-.profile-page{
-  margin-top: 8vh;
-}
-.profile-container {
-  background-color: $bg-dark;
-  min-height: 100vh;
-  color: $text-light;
-  padding-top: 2rem;
+//---------------------------------------------------------------------------------------------------//
 
-  .profile-header {
-    padding: 0 1rem;
-    margin-bottom: 2rem;
-  }
+// $bg-dark: #ffffff;
+// $text-light: #080808;
+// $text-secondary: #a8a8a8;
+// $border-color: #262626;
+// $button-bg: #363636;
+// $link-color: #0095f6;
+// .profile-page{
+//   margin-top: 8vh;
+// }
+// .profile-container {
+//   background-color: $bg-dark;
+//   min-height: 100vh;
+//   color: $text-light;
+//   padding-top: 2rem;
 
-  .profile-image {
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    object-fit: cover;
-  }
-  .left-side{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-  }
+//   .profile-header {
+//     padding: 0 1rem;
+//     margin-bottom: 2rem;
+//   }
 
-  .username {
-    font-size: 20px;
-    font-weight: 400;
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
+//   .profile-image {
+//     width: 150px;
+//     height: 150px;
+//     border-radius: 50%;
+//     object-fit: cover;
+//   }
+//   .left-side{
+//     display: flex;
+//     justify-content: center;
+//     align-items: center;
+//     flex-direction: column;
+//   }
 
-  .stats {
-    display: flex;
-    gap: 2rem;
-    margin: 1rem 0;
+//   .username {
+//     font-size: 20px;
+//     font-weight: 400;
+//     margin-bottom: 1rem;
+//     display: flex;
+//     align-items: center;
+//     gap: 1rem;
+//   }
+
+//   .stats {
+//     display: flex;
+//     gap: 2rem;
+//     margin: 1rem 0;
     
-    .stat-item {
-      .value {
-        color: $text-light;
-        font-weight: 500;
-      }
-      .label {
-        color: $text-secondary;
-      }
+//     .stat-item {
+//       .value {
+//         color: $text-light;
+//         font-weight: 500;
+//       }
+//       .label {
+//         color: $text-secondary;
+//       }
+//     }
+//   }
+
+//   .action-buttons {
+//     display: flex;
+//     gap: 0.5rem;
+//     margin: 1rem 0;
+
+//     .btn {
+//       background-color: $button-bg;
+//       border: none;
+//       color: $text-light;
+//       padding: 0.5rem 1rem;
+//       border-radius: 8px;
+//       font-weight: 500;
+
+//       &:hover {
+//         background-color: lighten($button-bg, 5%);
+//       }
+//     }
+//   }
+
+//   .profile-info {
+//     margin-top: 1.5rem;
+
+//     .name {
+//       font-size: 16px;
+//       font-weight: 600;
+//       margin-bottom: 0.5rem;
+//     }
+
+//     .description {
+//       color: $text-secondary;
+//       font-size: 14px;
+//       margin-bottom: 1rem;
+//     }
+
+//     .status-badges {
+//       display: flex;
+//       gap: 0.5rem;
+//       margin-bottom: 1rem;
+//       flex-wrap: wrap;
+
+//       .status-badge {
+//         display: inline-flex;
+//         align-items: center;
+//         gap: 0.25rem;
+//         padding: 0.25rem 0.75rem;
+//         border-radius: 1rem;
+//         font-size: 12px;
+//         font-weight: 500;
+
+//         &.active {
+//           background-color: #00875a;
+//         }
+
+//         &.on-task {
+//           background-color: #0052cc;
+//         }
+
+//         &.leader {
+//           background-color: #ff991f;
+//         }
+//       }
+//     }
+
+//     .details-grid {
+//       display: grid;
+//       grid-template-columns: repeat(2, 1fr);
+//       gap: 1rem;
+//       margin-top: 1rem;
+
+//       .detail-item {
+//         display: flex;
+//         align-items: center;
+//         gap: 0.5rem;
+//         color: $text-secondary;
+//         font-size: 14px;
+
+//         svg {
+//           color: $text-light;
+//         }
+//       }
+//     }
+//   }
+
+//   .tabs {
+//     border-top: 1px solid $border-color;
+//     margin-top: 2rem;
+//     display: flex;
+//     justify-content: center;
+//     gap: 3rem;
+
+//     .tab {
+//       color: $text-secondary;
+//       text-transform: uppercase;
+//       font-size: 12px;
+//       font-weight: 500;
+//       padding: 1rem 0;
+//       cursor: pointer;
+//       letter-spacing: 1px;
+//       border-top: 1px solid transparent;
+//       margin-top: -1px;
+
+//       &.active {
+//         color: $text-light;
+//         border-top-color: $text-light;
+//       }
+
+//       .icon {
+//         margin-right: 0.3rem;
+//       }
+//     }
+//   }
+
+//   .empty-state {
+//     text-align: center;
+//     padding: 4rem 1rem;
+//     color: $text-light;
+
+//     .camera-icon {
+//       width: 60px;
+//       height: 60px;
+//       border: 2px solid $text-light;
+//       border-radius: 50%;
+//       display: flex;
+//       align-items: center;
+//       justify-content: center;
+//       margin: 0 auto 1rem;
+//     }
+
+//     h2 {
+//       font-size: 24px;
+//       margin-bottom: 1rem;
+//     }
+
+//     p {
+//       color: $text-secondary;
+//       margin-bottom: 1rem;
+//     }
+
+//     .share-button {
+//       color: $link-color;
+//       font-weight: 500;
+//       text-decoration: none;
+
+//       &:hover {
+//         color: darken($link-color, 10%);
+//       }
+//     }
+//   }
+//   .image-gallery {
+//     display: flex;
+//     flex-wrap: wrap;
+//     justify-content: center;
+//     gap: 8px; // Space between images
+  
+//     .ant-image {
+//       flex: 0 0 calc(25% - 8px); // 25% width for 4 images per row, minus gap
+//       max-width: 150px; // Match the width prop on Image
+//     }
+  
+//     // Ensure the image itself takes up the full width of the container
+//     .ant-image-img {
+//       width: 100%;
+//       height: auto;
+//       object-fit: cover;
+//       border-radius: 8px;
+//     }
+//   }
+  
+//   .additional-images {
+//     text-align: center;
+//     h5 {
+//       font-size: 1.2rem;
+//       margin-bottom: 1rem;
+//     }
+//   }
+// }
+
+//---------------------------------------------------------------------------------------------------//
+
+// Định nghĩa biến màu sắc
+$bg-light: #f8f9fa; // Nền trắng nhạt
+$primary-color: #510545; // Màu chính (purple)
+$secondary-color: #22668a; // Màu phụ (teal)
+$text-primary: #4a4a4a; // Văn bản chính
+$text-secondary: #6b7280; // Văn bản phụ
+$border-color: #e0e0e0; // Viền
+$shadow: 0 6px 20px rgba(0, 0, 0, 0.08); // Bóng
+$badge-bg-active: #28a745; // Badge active
+$badge-bg-task: #007bff; // Badge on-task
+$badge-bg-leader: #ffca28; // Badge leader
+
+.profile-page {
+  // Nền trắng nhạt, đồng bộ với FestivalsPage
+  background: $bg-light;
+  min-height: 100vh;
+  padding-top: 8vh;
+
+  .profile-container {
+    // Container chính với nền trắng và bóng nhẹ
+    background: white;
+    border-radius: 1rem;
+    margin: 0 auto;
+    box-shadow: $shadow;
+    padding: 2.5rem;
+    min-height: 80vh;
+
+    // Thông báo lỗi
+    .error-message {
+      text-align: center;
+      padding: 2rem;
+      color: $text-primary;
+      font-size: 1.2rem;
     }
-  }
 
-  .action-buttons {
-    display: flex;
-    gap: 0.5rem;
-    margin: 1rem 0;
-
-    .btn {
-      background-color: $button-bg;
-      border: none;
-      color: $text-light;
-      padding: 0.5rem 1rem;
-      border-radius: 8px;
-      font-weight: 500;
+    // Header hồ sơ
+    .profile-header {
+      display: flex;
+      gap: 2rem;
+      padding: 2rem;
+      background: white;
+      border-radius: 0.75rem;
+      box-shadow: $shadow;
+      transition: transform 0.3s ease;
 
       &:hover {
-        background-color: lighten($button-bg, 5%);
+        transform: translateY(-5px);
       }
-    }
-  }
 
-  .profile-info {
-    margin-top: 1.5rem;
-
-    .name {
-      font-size: 16px;
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-    }
-
-    .description {
-      color: $text-secondary;
-      font-size: 14px;
-      margin-bottom: 1rem;
-    }
-
-    .status-badges {
-      display: flex;
-      gap: 0.5rem;
-      margin-bottom: 1rem;
-      flex-wrap: wrap;
-
-      .status-badge {
-        display: inline-flex;
+      @media (max-width: 768px) {
+        flex-direction: column;
         align-items: center;
-        gap: 0.25rem;
-        padding: 0.25rem 0.75rem;
-        border-radius: 1rem;
-        font-size: 12px;
-        font-weight: 500;
+      }
+    }
 
-        &.active {
-          background-color: #00875a;
-        }
+    // Avatar
+    .avatar-wrapper {
+      position: relative;
+      transition: transform 0.3s ease;
+      width: 180px;
+      height: 180px;
 
-        &.on-task {
-          background-color: #0052cc;
-        }
+      &:hover {
+        transform: scale(1.05);
+      }
 
-        &.leader {
-          background-color: #ff991f;
+      .profile-image {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid transparent;
+        background: linear-gradient(45deg, $primary-color, $secondary-color) border-box;
+        box-shadow: $shadow;
+      }
+    }
+
+    // Cột bên trái (avatar và nút)
+    .left-side {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 250px;
+
+      .form-label {
+        font-weight: 600;
+        color: $primary-color;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+      }
+
+      .form-control-custom {
+        border-radius: 0.5rem;
+        border: 2px solid $primary-color;
+        background: white;
+        padding: 0.75rem;
+        color: $text-primary;
+        font-size: 0.9rem;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+
+        &:focus {
+          border-color: $secondary-color;
+          box-shadow: 0 0 5px rgba($secondary-color, 0.3);
+          outline: none;
         }
       }
     }
 
-    .details-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 1rem;
-      margin-top: 1rem;
+    // Nút hành động
+    .action-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+      width: 100%;
 
-      .detail-item {
+      .btn-custom {
+        padding: 0.75rem;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        border: none;
+        font-size: 0.9rem;
+
+        &.btn-edit {
+          background: linear-gradient(135deg, $primary-color, $secondary-color);
+          color: white;
+
+          &:hover {
+            background: linear-gradient(135deg, $secondary-color, $primary-color);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba($primary-color, 0.3);
+          }
+        }
+
+        &.btn-save {
+          background: linear-gradient(135deg, #28a745, #218838);
+          color: white;
+
+          &:hover {
+            background: linear-gradient(135deg, #218838, #28a745);
+            transform: translateY(-3px);
+            box-shadow: $shadow;
+          }
+        }
+
+        &.btn-cancel {
+          background: linear-gradient(135deg, #6b7280, $text-primary);
+          color: white;
+
+          &:hover {
+            background: linear-gradient(135deg, $text-primary, #6b7280);
+            transform: translateY(-3px);
+            box-shadow: $shadow;
+          }
+        }
+      }
+    }
+
+    // Thông tin hồ sơ
+    .profile-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+
+      .name {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: $primary-color;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .description-card {
+        background: white;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        box-shadow: $shadow;
+        transition: transform 0.3s ease;
+
+        &:hover {
+          transform: translateY(-5px);
+        }
+
+        .description {
+          color: $text-primary;
+          font-size: 1rem;
+          line-height: 1.6;
+          font-style: italic;
+          margin: 0;
+        }
+
+        .form-label {
+          font-weight: 600;
+          color: $primary-color;
+          margin-bottom: 0.5rem;
+          text-transform: uppercase;
+        }
+
+        .form-control-custom {
+          border-radius: 0.5rem;
+          border: 2px solid $primary-color;
+          background: white;
+          padding: 0.75rem;
+          color: $text-primary;
+          font-size: 0.9rem;
+
+          &:focus {
+            border-color: $secondary-color;
+            box-shadow: 0 0 5px rgba($secondary-color, 0.3);
+            outline: none;
+          }
+        }
+
+        .textarea-custom {
+          resize: none;
+          height: 120px;
+        }
+      }
+
+      // Badge trạng thái
+      .status-badges {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+
+        .status-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.3rem;
+          padding: 0.4rem 1rem;
+          border-radius: 1rem;
+          font-size: 0.9rem;
+          font-weight: 600;
+          transition: transform 0.3s ease;
+
+          &.active {
+            background-color: $badge-bg-active;
+            color: white;
+          }
+
+          &.on-task {
+            background-color: $badge-bg-task;
+            color: white;
+          }
+
+          &.leader {
+            background-color: $badge-bg-leader;
+            color: $text-primary;
+          }
+
+          &:hover {
+            transform: scale(1.05);
+          }
+        }
+      }
+
+      // Grid chi tiết
+      .details-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+
+        @media (max-width: 768px) {
+          grid-template-columns: 1fr; // 1 cột trên mobile
+        }
+
+        .detail-item {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem; // Khoảng cách giữa icon và nội dung
+          padding: 1rem;
+          background: white;
+          border-radius: 0.5rem;
+          box-shadow: $shadow;
+          color: $text-primary;
+          font-size: 0.95rem;
+          transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+          &:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba($primary-color, 0.2);
+          }
+
+          svg {
+            color: $primary-color;
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+          }
+
+          // Container cho nội dung
+          span {
+            flex: 1;
+            padding-right: 0.5rem; // Khoảng cách vô hình bên phải
+          }
+
+          .form-control-custom {
+            border: 2px solid $primary-color;
+            background: white;
+            color: $text-primary;
+            padding: 0.5rem;
+            width: 100%;
+            font-size: 0.9rem;
+            border-radius: 0.5rem;
+            transition: border-color 0.3s ease;
+
+            &:focus {
+              border-color: $secondary-color;
+              box-shadow: 0 0 5px rgba($secondary-color, 0.3);
+              outline: none;
+            }
+          }
+        }
+      }
+    }
+
+    // Tabs
+    .tabs {
+      margin: 2rem 0;
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      border-bottom: 2px solid $border-color;
+
+      .tab {
+        color: $text-secondary;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+        font-weight: 600;
+        padding: 0.75rem 0;
+        cursor: pointer;
+        letter-spacing: 1px;
+        border-bottom: 3px solid transparent;
+        transition: all 0.3s ease;
         display: flex;
         align-items: center;
-        gap: 0.5rem;
-        color: $text-secondary;
-        font-size: 14px;
 
-        svg {
-          color: $text-light;
+        &.active {
+          color: $primary-color;
+          border-bottom-color: $primary-color;
+          background: linear-gradient(180deg, rgba($primary-color, 0.1), transparent);
+        }
+
+        .icon {
+          margin-right: 0.5rem;
+          color: $primary-color;
+        }
+
+        &:hover {
+          color: $primary-color;
+        }
+      }
+    }
+
+    // Gallery ảnh
+    .additional-images {
+      padding: 2rem 0;
+
+      h5 {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        color: $primary-color;
+        text-transform: uppercase;
+      }
+
+      .image-gallery {
+        column-count: 3;
+        column-gap: 1rem;
+
+        @media (max-width: 768px) {
+          column-count: 1;
+        }
+
+        .ant-image {
+          break-inside: avoid;
+          margin-bottom: 1rem;
+        }
+
+        .gallery-image {
+          width: 100%;
+          border-radius: 0.75rem;
+          box-shadow: $shadow;
+          transition: transform 0.3s ease, box-shadow 0.3s ease;
+          display: block;
+
+          &:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 30px rgba($primary-color, 0.2);
+          }
+        }
+      }
+    }
+
+    // Trạng thái trống
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4rem 2rem;
+      background: white;
+      border-radius: 1rem;
+      box-shadow: $shadow;
+      margin: 2rem 0;
+      text-align: center;
+      color: $text-primary;
+
+      .camera-icon {
+        width: 80px;
+        height: 80px;
+        border: 3px solid $primary-color;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+        animation: pulse 2s infinite;
+        background: linear-gradient(45deg, $primary-color, $secondary-color);
+        color: white;
+      }
+
+      h2 {
+        font-size: 1.8rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: $primary-color;
+      }
+
+      p {
+        color: $text-secondary;
+        margin-bottom: 1.5rem;
+        font-size: 1rem;
+        font-style: italic;
+      }
+
+      .share-button {
+        display: inline-block;
+        padding: 0.75rem 2rem;
+        background: linear-gradient(135deg, $primary-color, $secondary-color);
+        color: white;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        text-decoration: none;
+        transition: all 0.3s ease;
+
+        &:hover {
+          background: linear-gradient(135deg, $secondary-color, $primary-color);
+          transform: translateY(-3px);
+          box-shadow: 0 6px 15px rgba($primary-color, 0.3);
         }
       }
     }
   }
+}
 
-  .tabs {
-    border-top: 1px solid $border-color;
-    margin-top: 2rem;
-    display: flex;
-    justify-content: center;
-    gap: 3rem;
-
-    .tab {
-      color: $text-secondary;
-      text-transform: uppercase;
-      font-size: 12px;
-      font-weight: 500;
-      padding: 1rem 0;
-      cursor: pointer;
-      letter-spacing: 1px;
-      border-top: 1px solid transparent;
-      margin-top: -1px;
-
-      &.active {
-        color: $text-light;
-        border-top-color: $text-light;
-      }
-
-      .icon {
-        margin-right: 0.3rem;
-      }
-    }
+// Keyframes cho hiệu ứng pulse
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba($primary-color, 0.7);
   }
-
-  .empty-state {
-    text-align: center;
-    padding: 4rem 1rem;
-    color: $text-light;
-
-    .camera-icon {
-      width: 60px;
-      height: 60px;
-      border: 2px solid $text-light;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 1rem;
-    }
-
-    h2 {
-      font-size: 24px;
-      margin-bottom: 1rem;
-    }
-
-    p {
-      color: $text-secondary;
-      margin-bottom: 1rem;
-    }
-
-    .share-button {
-      color: $link-color;
-      font-weight: 500;
-      text-decoration: none;
-
-      &:hover {
-        color: darken($link-color, 10%);
-      }
-    }
+  70% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 10px rgba($primary-color, 0);
   }
-  .image-gallery {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 8px; // Space between images
-  
-    .ant-image {
-      flex: 0 0 calc(25% - 8px); // 25% width for 4 images per row, minus gap
-      max-width: 150px; // Match the width prop on Image
-    }
-  
-    // Ensure the image itself takes up the full width of the container
-    .ant-image-img {
-      width: 100%;
-      height: auto;
-      object-fit: cover;
-      border-radius: 8px;
-    }
-  }
-  
-  .additional-images {
-    text-align: center;
-    h5 {
-      font-size: 1.2rem;
-      margin-bottom: 1rem;
-    }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba($primary-color, 0);
   }
 }
