@@ -198,29 +198,35 @@ const CartPage = () => {
   const handleFinalConfirm = async () => {
     const selectedCart = cartItems.filter((item) => selectedItems[item.cartProductId]);
     const totalAmount = calculateTotal();
-
+  
     if (!accountId) {
       toast.error("Please log in to proceed with payment!");
       return;
     }
-
+  
     try {
       const orderpaymentId = await createOrder();
-
+  
+      // Tạo orderInfo từ danh sách sản phẩm
+      const orderInfo = `Purchase: ${selectedCart
+        .map((item) => `${item.name} (${item.quantitySelected})`)
+        .join(", ")}`;
+  
       if (paymentMethod === "Momo") {
         const paymentData = {
           fullName: accountName || "Unknown",
-          orderInfo: "Cart Checkout",
+          orderInfo: orderInfo,
           amount: totalAmount,
           purpose: 3,
           accountId: accountId,
           accountCouponId: null,
-          ticketId: "string",
-          ticketQuantity: "string",
-          contractId: "string",
+          ticketId: null,
+          ticketQuantity: null,
+          contractId: null,
           orderpaymentId: orderpaymentId,
+          isWeb: true,
         };
-
+  
         const paymentUrl = await PaymentService.createMomoPayment(paymentData);
         toast.success("Redirecting to MoMo payment...");
         localStorage.setItem("paymentSource", "cart");
@@ -228,14 +234,18 @@ const CartPage = () => {
       } else if (paymentMethod === "VNPay") {
         const paymentData = {
           fullName: accountName || "Unknown",
-          orderInfo: "Cart Checkout",
+          orderInfo: orderInfo,
           amount: totalAmount,
           purpose: 3,
           accountId: accountId,
           accountCouponId: null,
+          ticketId: null,
+          ticketQuantity: null,
+          contractId: null,
           orderpaymentId: orderpaymentId,
+          isWeb: true,
         };
-
+  
         const paymentUrl = await PaymentService.createVnpayPayment(paymentData);
         toast.success("Redirecting to VNPay payment...");
         localStorage.setItem("paymentSource", "cart");

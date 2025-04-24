@@ -154,22 +154,22 @@ const FestivalsPage = () => {
 
   const handleFinalConfirm = async () => {
     const totalAmount = selectedTicketType?.price * ticketQuantity;
-
+  
     if (!accountId) {
       toast.error("Please log in to proceed with payment!");
       return;
     }
-
+  
     if (!selectedTicketType || !selectedTicketType.ticketId) {
       toast.error("Please select a valid ticket type!");
       return;
     }
-
+  
     try {
       if (paymentMethod === "Momo") {
         const paymentData = {
           fullName: accountName || "Unknown",
-          orderInfo: `Purchase tickets for ${selectedFestival.eventName}`,
+          orderInfo: `Purchase ${ticketQuantity} ${selectedTicketType.ticketType === 0 ? 'Normal' : 'Premium'} ticket(s) for ${selectedFestival.eventName}`,
           amount: totalAmount,
           purpose: 0,
           accountId: accountId,
@@ -178,37 +178,41 @@ const FestivalsPage = () => {
           ticketQuantity: ticketQuantity.toString(),
           contractId: null,
           orderpaymentId: null,
+          isWeb: true,
         };
-
+  
         console.log("Payment Data (MoMo):", paymentData);
-
+  
         const paymentUrl = await PaymentService.createMomoPayment(paymentData);
         if (!paymentUrl) {
           throw new Error("Failed to create MoMo payment URL");
         }
-
+  
         toast.success("Redirecting to MoMo payment...");
         localStorage.setItem("paymentSource", "festivals");
         window.location.href = paymentUrl;
       } else if (paymentMethod === "VNPay") {
         const paymentData = {
-          purpose: 0,
+          fullName: accountName || "Unknown",
+          orderInfo: `Purchase ${ticketQuantity} ${selectedTicketType.ticketType === 0 ? 'Normal' : 'Premium'} ticket(s) for ${selectedFestival.eventName}`,
           amount: totalAmount,
+          purpose: 0,
           accountId: accountId,
           accountCouponId: null,
           ticketId: selectedTicketType.ticketId.toString(),
           ticketQuantity: ticketQuantity.toString(),
           contractId: null,
-          orderPaymentId: null,
+          orderpaymentId: null,
+          isWeb: true,
         };
-
+  
         console.log("Payment Data (VNPay):", paymentData);
-
+  
         const paymentUrl = await PaymentService.createVnpayPayment(paymentData);
         if (!paymentUrl) {
           throw new Error("Failed to create VNPay payment URL");
         }
-
+  
         toast.success("Redirecting to VNPay payment...");
         localStorage.setItem("paymentSource", "festivals");
         window.location.href = paymentUrl;

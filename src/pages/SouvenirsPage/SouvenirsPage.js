@@ -159,29 +159,30 @@ const SouvenirsPage = () => {
 
   const handleFinalConfirm = async () => {
     const totalAmount = selectedSouvenir.price * quantity;
-
+  
     if (!accountId) {
       toast.error("Please log in to proceed with payment!");
       return;
     }
-
+  
     try {
       const orderpaymentId = await createOrder();
-
+  
       if (paymentMethod === "Momo") {
         const paymentData = {
           fullName: accountName || "Unknown",
-          orderInfo: `Purchase ${selectedSouvenir.name}`,
+          orderInfo: `Purchase ${quantity} ${selectedSouvenir.name}(s)`,
           amount: totalAmount,
           purpose: 3,
           accountId: accountId,
           accountCouponId: null,
-          ticketId: "string",
-          ticketQuantity: "string",
-          contractId: "string",
+          ticketId: null,
+          ticketQuantity: null,
+          contractId: null,
           orderpaymentId: orderpaymentId,
+          isWeb: true,
         };
-
+  
         const paymentUrl = await PaymentService.createMomoPayment(paymentData);
         toast.success("Redirecting to MoMo payment...");
         localStorage.setItem("paymentSource", "souvenirs");
@@ -189,14 +190,18 @@ const SouvenirsPage = () => {
       } else if (paymentMethod === "VNPay") {
         const paymentData = {
           fullName: accountName || "Unknown",
-          orderInfo: `Purchase ${selectedSouvenir.name}`,
+          orderInfo: `Purchase ${quantity} ${selectedSouvenir.name}(s)`,
           amount: totalAmount,
           purpose: 3,
           accountId: accountId,
           accountCouponId: null,
+          ticketId: null,
+          ticketQuantity: null,
+          contractId: null,
           orderpaymentId: orderpaymentId,
+          isWeb: true,
         };
-
+  
         const paymentUrl = await PaymentService.createVnpayPayment(paymentData);
         toast.success("Redirecting to VNPay payment...");
         localStorage.setItem("paymentSource", "souvenirs");

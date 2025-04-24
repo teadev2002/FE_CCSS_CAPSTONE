@@ -1,0 +1,254 @@
+.manage-activities {
+    padding: 10px;
+    background: url("https://i.pinimg.com/originals/d2/ad/3f/d2ad3f633977d1ec518916b5c4fe5acd.jpg") no-repeat center center fixed;
+    background-size: cover;
+    min-height: 100vh;
+
+    .manage-activities-title {
+        font-size: 32px;
+        font-weight: bold;
+        margin-bottom: 15px;
+        text-align: center;
+        color: #ffffff;
+        background: transparent;
+    }
+
+    .content-container {
+        display: flex;
+        padding: 10px;
+    }
+
+    .manage-activities-card {
+        width: 90%;
+        margin: 10px auto;
+        box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.2);
+        background: #fff;
+        border-radius: 15px;
+        opacity: 0.9;
+
+        .card-body {
+            padding: 15px;
+        }
+
+        .table-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+
+            h3 {
+                font-size: 20px;
+                font-weight: 600;
+                margin: 0;
+            }
+
+            .search-input {
+                width: 40%;
+                border-radius: 5px;
+                border: 1px solid #ced4da;
+                padding: 5px 10px;
+
+                &:focus {
+                    border-color: #007bff;
+                    box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+                }
+            }
+
+            .ant-btn-primary {
+                padding: 5px 10px;
+                font-size: 14px;
+                border-radius: 4px;
+            }
+        }
+
+        .table {
+            margin-bottom: 0;
+
+            th,
+            td {
+                vertical-align: middle;
+                padding: 8px;
+                text-align: center;
+            }
+
+            thead {
+                background-color: #f5f5f5;
+                font-weight: bold;
+                color: #333;
+
+                .sortable {
+                    cursor: pointer;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    gap: 5px;
+
+                    &:hover {
+                        background-color: #f5f5f5;
+                    }
+
+                    .default-sort-icon {
+                        opacity: 0.5; // Làm mờ biểu tượng mặc định để phân biệt với trạng thái sắp xếp
+                    }
+                }
+            }
+
+            tbody tr:hover {
+                background-color: #f0f0f0;
+            }
+
+            .ant-btn {
+                padding: 5px 10px;
+                font-size: 14px;
+                border-radius: 4px;
+                text-transform: none;
+            }
+        }
+
+        .pagination-controls {
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            .pagination-info {
+                display: flex;
+                align-items: center;
+                gap: 20px;
+
+                span {
+                    font-size: 14px;
+                    color: #333;
+                }
+
+                .rows-per-page {
+                    display: flex;
+                    align-items: center;
+                    gap: 5px;
+
+                    span {
+                        font-size: 14px;
+                        color: #333;
+                    }
+
+                    .dropdown {
+                        .btn-secondary {
+                            padding: 4px 8px;
+                            font-size: 14px;
+                            border-radius: 4px;
+                        }
+
+                        .dropdown-menu {
+                            min-width: 60px;
+
+                            .dropdown-item {
+                                font-size: 14px;
+                                padding: 4px 8px;
+                            }
+                        }
+                    }
+                }
+            }
+
+            .pagination {
+                margin: 0;
+
+                .page-item {
+                    .page-link {
+                        padding: 4px 8px;
+                        font-size: 14px;
+                        border-radius: 4px;
+                    }
+
+                    &.active .page-link {
+                        background-color: #007bff;
+                        border-color: #007bff;
+                    }
+                }
+            }
+        }
+    }
+
+    .activity-modal {
+        .modal-content {
+            border-radius: 8px;
+        }
+
+        .modal-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            padding: 10px 15px;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .modal-body {
+            padding: 15px;
+
+            .form-group {
+                margin-bottom: 12px;
+
+                label {
+                    font-weight: 500;
+                    color: #333;
+                    margin-bottom: 4px;
+                    display: block;
+                }
+
+                .form-control {
+                    border-radius: 5px;
+                    border: 1px solid #ced4da;
+                    padding: 6px 10px;
+                    font-size: 16px;
+
+                    &:focus {
+                        border-color: #007bff;
+                        box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+                    }
+                }
+
+                textarea.form-control {
+                    resize: vertical;
+                    min-height: 80px;
+                }
+            }
+        }
+
+        .modal-footer {
+            border-top: 1px solid #dee2e6;
+            padding: 10px 15px;
+
+            .ant-btn {
+                padding: 5px 12px;
+                font-size: 14px;
+                border-radius: 4px;
+                text-transform: none;
+            }
+        }
+    }
+
+    .ant-descriptions {
+        .ant-descriptions-title {
+            font-size: 22px;
+            font-weight: 600;
+        }
+
+        .ant-descriptions-item-label {
+            font-weight: 500;
+            width: 150px;
+        }
+
+        .ant-descriptions-item-content {
+            font-size: 16px;
+        }
+    }
+
+    .ant-list {
+        .ant-list-item {
+            padding: 8px 0;
+        }
+    }
+}
