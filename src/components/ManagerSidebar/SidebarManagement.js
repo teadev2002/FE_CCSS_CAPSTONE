@@ -324,6 +324,7 @@ import {
   LogOut,
   CheckCircle,
   ListTodo,
+  Activity,
 } from "lucide-react";
 import { jwtDecode } from "jwt-decode";
 import { toast } from "react-toastify";
@@ -408,11 +409,17 @@ const SidebarManagement = () => {
       allowedRoles: ["Manager"],
     },
     {
-      path: "/manage/ticket",
-      label: "Manage Festival Tickets",
-      icon: <Ticket size={20} />,
+      path: "/manage/activity",
+      label: "Manage Activities",
+      icon: <Activity size={20} />,
       allowedRoles: ["Manager"],
     },
+    // {
+    //   path: "/manage/ticket",
+    //   label: "Manage Festival Tickets",
+    //   icon: <Ticket size={20} />,
+    //   allowedRoles: ["Manager"],
+    // },
     {
       path: "/manage/ticket-check",
       label: "Ticket Check",

@@ -56,39 +56,34 @@ const ManageAllFestivalsService = {
     }
   },
 
-  addEvent: async (eventData, imageFiles) => {
+  addEvent: async (eventJson, imageFiles) => {
     try {
-      console.log("Adding new event with data:", eventData);
+      console.log("Adding new event with eventJson:", eventJson);
       console.log("Image files:", imageFiles);
 
-      // Tạo FormData để gửi dữ liệu dạng multipart/form-data
+      // Tạo FormData chỉ để gửi ImageUrl
       const formData = new FormData();
-
-      // Thêm các trường JSON vào FormData (trừ ImageUrl)
-      formData.append("EventName", eventData.EventName);
-      formData.append("Description", eventData.Description);
-      formData.append("Location", eventData.Location);
-      formData.append("StartDate", eventData.StartDate);
-      formData.append("EndDate", eventData.EndDate);
-      if (eventData.CreateBy) {
-        formData.append("CreateBy", eventData.CreateBy);
-      }
-      formData.append("Ticket", JSON.stringify(eventData.Ticket));
-      formData.append("EventCharacterRequest", JSON.stringify(eventData.EventCharacterRequest));
-      formData.append("EventActivityRequests", JSON.stringify(eventData.EventActivityRequests));
-
-      // Thêm các file hình ảnh vào FormData với key là "ImageUrl"
       imageFiles.forEach((file, index) => {
         if (file) {
-          formData.append("ImageUrl", file); // API sẽ nhận file trực tiếp
+          formData.append("ImageUrl", file);
         }
       });
 
-      const response = await apiClient.post("/api/Event/AddEvent", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      // Log nội dung FormData để debug
+      for (let pair of formData.entries()) {
+        console.log(`${pair[0]}:`, pair[1]);
+      }
+
+      // Gửi eventJson qua query string
+      const response = await apiClient.post(
+        `/api/Event/AddEvent?eventJson=${encodeURIComponent(eventJson)}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
       console.log("AddEvent response:", response.data);
       return response.data;
     } catch (error) {
@@ -97,6 +92,60 @@ const ManageAllFestivalsService = {
         error.response?.data?.notification ||
         error.response?.data?.message ||
         "Failed to add event";
+      throw new Error(errorMessage);
+    }
+  },
+
+  getAllCharacters: async () => {
+    try {
+      console.log("Fetching all characters...");
+      const response = await apiClient.get("/api/Character/all");
+      console.log("GetAllCharacters response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching characters:", error.response?.data || error);
+      const errorMessage =
+        error.response?.data?.notification ||
+        error.response?.data?.message ||
+        "Failed to fetch characters";
+      throw new Error(errorMessage);
+    }
+  },
+
+  getAvailableCosplayers: async (characterId, startDate, endDate) => {
+    try {
+      console.log(`Fetching available cosplayers for characterId=${characterId}`);
+      const payload = {
+        characterId,
+        dates: [{ startDate, endDate }],
+        accountId: null,
+      };
+      console.log("GetAvailableCosplayers payload:", JSON.stringify(payload, null, 2));
+      const response = await apiClient.post("/api/Account/characterId", payload);
+      console.log("GetAvailableCosplayers response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching cosplayers:", error.response?.data || error);
+      const errorMessage =
+        error.response?.data?.notification ||
+        error.response?.data?.message ||
+        "Failed to fetch cosplayers";
+      throw new Error(errorMessage);
+    }
+  },
+
+  getAllActivities: async () => {
+    try {
+      console.log("Fetching all activities...");
+      const response = await apiClient.get("/api/Activity");
+      console.log("GetAllActivities response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching activities:", error.response?.data || error);
+      const errorMessage =
+        error.response?.data?.notification ||
+        error.response?.data?.message ||
+        "Failed to fetch activities";
       throw new Error(errorMessage);
     }
   },

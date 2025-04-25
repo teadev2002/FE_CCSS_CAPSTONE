@@ -7,12 +7,21 @@ import {
   Pagination,
   Dropdown,
 } from "react-bootstrap";
-import { Button, Popconfirm, Image, Descriptions, List } from "antd";
+import { Button, Popconfirm, Image, Descriptions, List, Select } from "antd";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { ArrowUp, ArrowDown, PlusCircle } from "lucide-react";
 import "../../../styles/Manager/ManageAllFestivals.scss";
 import ManageAllFestivalsService from "../../../services/ManageServicePages/ManageAllFestivalsService/ManageAllFestivalsService";
+import { DatePicker } from "antd";
+import dayjs from "dayjs";
+import { jwtDecode } from "jwt-decode";
+import ProfileService from "../../../services/ProfileService/ProfileService";
+
+
+const { RangePicker: DateRangePicker } = DatePicker;
+const { Option } = Select;
+const dateTimeFormat = "DD/MM/YYYY HH:mm";
 
 const ManageAllFestivals = () => {
   const [festivals, setFestivals] = useState([]);
@@ -21,16 +30,20 @@ const ManageAllFestivals = () => {
   const [isDetailsModalVisible, setIsDetailsModalVisible] = useState(false);
   const [selectedFestival, setSelectedFestival] = useState(null);
   const [eventDetails, setEventDetails] = useState(null);
+  const [characters, setCharacters] = useState([]);
+  const [activities, setActivities] = useState([]);
+  const [cosplayers, setCosplayers] = useState([]);
+  const [selectedCharacterId, setSelectedCharacterId] = useState(null);
   const [formData, setFormData] = useState({
     eventName: "",
     description: "",
-    startDate: "",
-    endDate: "",
+    dateRange: null,
     location: "",
     tickets: [{ quantity: 0, price: 0, description: "", ticketType: 0 }],
-    eventCharacters: [{ characterId: "", description: "", cosplayerId: "" }],
-    eventActivities: [{ activityId: "", description: "", createBy: "" }],
-    imageFiles: [], // Lưu danh sách file hình ảnh
+    selectedCosplayers: [],
+    eventActivities: [],
+    imageFiles: [],
+    imagePreviews: [],
   });
   const [searchTerm, setSearchTerm] = useState("");
   const [sortFestival, setSortFestival] = useState({
@@ -40,6 +53,77 @@ const ManageAllFestivals = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const rowsPerPageOptions = [10, 20, 30];
+
+  useEffect(() => {
+    if (isCreateModalVisible || isDetailsModalVisible) {
+      const fetchCharactersAndActivities = async () => {
+        try {
+          const charData = await ManageAllFestivalsService.getAllCharacters();
+          console.log("Characters:", charData);
+          charData.forEach(char => console.log("Character ID:", char.characterId, typeof char.characterId));
+          setCharacters(Array.isArray(charData) ? charData : []);
+
+          const actData = await ManageAllFestivalsService.getAllActivities();
+          console.log("Activities:", actData);
+          setActivities(Array.isArray(actData) ? actData : []);
+        } catch (error) {
+          toast.error(error.message || "Failed to load characters or activities");
+          setCharacters([]);
+          setActivities([]);
+        }
+      };
+      fetchCharactersAndActivities();
+    }
+  }, [isCreateModalVisible, isDetailsModalVisible]);
+
+  useEffect(() => {
+    if (selectedCharacterId && formData.dateRange) {
+      if (typeof selectedCharacterId !== 'string' || !selectedCharacterId) {
+        toast.error("Invalid character ID");
+        setCosplayers([]);
+        return;
+      }
+
+      const [startDate, endDate] = formData.dateRange;
+      const startDateTime = startDate.format("HH:mm DD/MM/YYYY");
+      const endDateTime = endDate.format("HH:mm DD/MM/YYYY");
+
+      console.log("Fetching cosplayers with:", {
+        characterId: selectedCharacterId,
+        startDate: startDateTime,
+        endDate: endDateTime,
+      });
+
+      const fetchCosplayers = async () => {
+        try {
+          const cosplayerData = await ManageAllFestivalsService.getAvailableCosplayers(
+            selectedCharacterId,
+            startDateTime,
+            endDateTime
+          );
+          const selectedCosplayerIds = formData.selectedCosplayers.map(sc => sc.cosplayerId);
+          const filteredCosplayers = cosplayerData.filter(
+            cosplayer => !selectedCosplayerIds.includes(cosplayer.accountId)
+          );
+          console.log("Filtered Cosplayers:", filteredCosplayers);
+          filteredCosplayers.forEach(cosplayer => {
+            console.log(`Cosplayer ${cosplayer.name} images:`, cosplayer.images);
+          });
+          if (Array.isArray(filteredCosplayers) && filteredCosplayers.length === 0) {
+            toast.warn("No cosplayers available for this character and time range.");
+          }
+          setCosplayers(Array.isArray(filteredCosplayers) ? filteredCosplayers : []);
+        } catch (error) {
+          console.error("Error fetching cosplayers:", error.response?.data || error);
+          toast.error(error.message || "Failed to load cosplayers");
+          setCosplayers([]);
+        }
+      };
+      fetchCosplayers();
+    } else {
+      setCosplayers([]);
+    }
+  }, [selectedCharacterId, formData.dateRange, formData.selectedCosplayers]);
 
   useEffect(() => {
     const fetchFestivals = async () => {
@@ -63,12 +147,13 @@ const ManageAllFestivals = () => {
           item.location.toLowerCase().includes(search.toLowerCase()) ||
           item.startDate.toLowerCase().includes(search.toLowerCase()) ||
           item.endDate.toLowerCase().includes(search.toLowerCase()) ||
-          item.createDate.toLowerCase().includes(search.toLowerCase())
+          item.createDate.toLowerCase().includes(search.toLowerCase()) ||
+          (item.createBy && item.createBy.toLowerCase().includes(search.toLowerCase())) // Thêm tìm kiếm theo createBy
       );
     }
     return filtered.sort((a, b) => {
-      const valueA = String(a[sort.field]).toLowerCase();
-      const valueB = String(b[sort.field]).toLowerCase();
+      const valueA = String(a[sort.field] || "").toLowerCase();
+      const valueB = String(b[sort.field] || "").toLowerCase();
       return sort.order === "asc"
         ? valueA.localeCompare(valueB)
         : valueB.localeCompare(valueA);
@@ -96,14 +181,16 @@ const ManageAllFestivals = () => {
     setFormData({
       eventName: "",
       description: "",
-      startDate: "",
-      endDate: "",
+      dateRange: null,
       location: "",
       tickets: [{ quantity: 0, price: 0, description: "", ticketType: 0 }],
-      eventCharacters: [{ characterId: "", description: "", cosplayerId: "" }],
-      eventActivities: [{ activityId: "", description: "", createBy: "" }],
+      selectedCosplayers: [],
+      eventActivities: [],
       imageFiles: [],
+      imagePreviews: [],
     });
+    setSelectedCharacterId(null);
+    setCosplayers([]);
     setIsCreateModalVisible(true);
   };
 
@@ -113,13 +200,16 @@ const ManageAllFestivals = () => {
     setFormData({
       eventName: record.eventName,
       description: record.description,
-      startDate: record.startDate,
-      endDate: record.endDate,
+      dateRange: [
+        dayjs(record.startDate, "YYYY-MM-DD HH:mm:ss"),
+        dayjs(record.endDate, "YYYY-MM-DD HH:mm:ss"),
+      ],
       location: record.location,
       tickets: [{ quantity: 0, price: 0, description: "", ticketType: 0 }],
-      eventCharacters: [{ characterId: "", description: "", cosplayerId: "" }],
-      eventActivities: [{ activityId: "", description: "", createBy: "" }],
+      selectedCosplayers: [],
+      eventActivities: [],
       imageFiles: [],
+      imagePreviews: [],
     });
     setIsCreateModalVisible(true);
   };
@@ -127,20 +217,36 @@ const ManageAllFestivals = () => {
   const showDetailsModal = async (record) => {
     try {
       const eventData = await ManageAllFestivalsService.getEventById(record.eventId);
+      console.log("Event data:", eventData);
       const cosplayers = await Promise.all(
         eventData.eventCharacterResponses.map(async (ec) => {
           const cosplayer = await ManageAllFestivalsService.getCosplayerByEventCharacterId(
             ec.eventCharacterId
           );
+          const character = characters.find(char => char.characterId === ec.characterId);
+          console.log("Cosplayer data:", cosplayer);
           return {
             eventCharacterId: ec.eventCharacterId,
             name: cosplayer.name,
-            description: cosplayer.description || "No description",
-            urlImage: cosplayer.images.find((img) => img.isAvatar)?.urlImage || cosplayer.images[0]?.urlImage,
+            description: character ? `Cosplay as ${character.characterName}` : "No character info",
+            urlImage:
+              cosplayer.images?.find((img) => img.isAvatar)?.urlImage ||
+              cosplayer.images?.[0]?.urlImage ||
+              "https://via.placeholder.com/100?text=No+Image",
           };
         })
       );
-      setEventDetails({ ...eventData, cosplayers });
+
+      const updatedActivities = eventData.eventActivityResponse.map(activity => {
+        const matchingActivity = activities.find(act => act.activityId === activity.activityId);
+        console.log(`Activity ${activity.activityId}:`, { matchingActivity, description: matchingActivity?.description });
+        return {
+          ...activity,
+          description: matchingActivity?.description || "No description available",
+        };
+      });
+
+      setEventDetails({ ...eventData, cosplayers, eventActivityResponse: updatedActivities });
       setIsDetailsModalVisible(true);
     } catch (error) {
       toast.error(error.message || "Failed to load event details");
@@ -153,14 +259,16 @@ const ManageAllFestivals = () => {
     setFormData({
       eventName: "",
       description: "",
-      startDate: "",
-      endDate: "",
+      dateRange: null,
       location: "",
       tickets: [{ quantity: 0, price: 0, description: "", ticketType: 0 }],
-      eventCharacters: [{ characterId: "", description: "", cosplayerId: "" }],
-      eventActivities: [{ activityId: "", description: "", createBy: "" }],
+      selectedCosplayers: [],
+      eventActivities: [],
       imageFiles: [],
+      imagePreviews: [],
     });
+    setSelectedCharacterId(null);
+    setCosplayers([]);
   };
 
   const handleInputChange = (e) => {
@@ -168,7 +276,73 @@ const ManageAllFestivals = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleDateRangeChange = (dates) => {
+    if (!dates) {
+      setFormData((prev) => ({ ...prev, dateRange: null }));
+      setSelectedCharacterId(null);
+      setCosplayers([]);
+      return;
+    }
+
+    const [start, end] = dates;
+    const today = dayjs().startOf("day");
+    const tomorrow = today.add(1, "day");
+
+    if (start.isBefore(tomorrow)) {
+      toast.error("Start date must be tomorrow or later!");
+      setFormData((prev) => ({ ...prev, dateRange: null }));
+      setSelectedCharacterId(null);
+      setCosplayers([]);
+      return;
+    }
+
+    if (end.isBefore(start)) {
+      toast.error("End date must be on or after start date!");
+      setFormData((prev) => ({ ...prev, dateRange: null }));
+      setSelectedCharacterId(null);
+      setCosplayers([]);
+      return;
+    }
+
+    setFormData((prev) => ({ ...prev, dateRange: dates }));
+  };
+
+  const disabledDate = (current) => {
+    const today = dayjs().startOf("day");
+    const tomorrow = today.add(1, "day");
+    return current && current < tomorrow;
+  };
+
+  const disabledTime = () => {
+    const startHour = 8;
+    const endHour = 22;
+
+    return {
+      disabledHours: () => {
+        const hours = [];
+        for (let i = 0; i < 24; i++) {
+          if (i < startHour || i > endHour) {
+            hours.push(i);
+          }
+        }
+        return hours;
+      },
+      disabledMinutes: (selectedHour) => {
+        if (selectedHour === startHour || selectedHour === endHour) {
+          return Array.from({ length: 60 }, (_, i) => i).filter(
+            (minute) => minute !== 0
+          );
+        }
+        return [];
+      },
+    };
+  };
+
   const handleArrayChange = (arrayName, index, field, value) => {
+    if ((field === "quantity" || field === "price") && Number(value) < 0) {
+      toast.error(`${field.charAt(0).toUpperCase() + field.slice(1)} cannot be negative!`);
+      return;
+    }
     setFormData((prev) => {
       const updatedArray = [...prev[arrayName]];
       updatedArray[index] = { ...updatedArray[index], [field]: value };
@@ -177,11 +351,37 @@ const ManageAllFestivals = () => {
   };
 
   const handleImageFilesChange = (e) => {
-    const files = Array.from(e.target.files); // Chuyển FileList thành mảng
+    const files = Array.from(e.target.files);
+    const newPreviews = files.map(file => URL.createObjectURL(file));
     setFormData((prev) => ({
       ...prev,
-      imageFiles: files, // Lưu tất cả file được chọn
+      imageFiles: [...prev.imageFiles, ...files],
+      imagePreviews: [...prev.imagePreviews, ...newPreviews],
     }));
+  };
+
+  const addMoreImages = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.multiple = true;
+    input.onchange = handleImageFilesChange;
+    input.click();
+  };
+
+  const removeImage = (index) => {
+    setFormData((prev) => {
+      const updatedFiles = [...prev.imageFiles];
+      const updatedPreviews = [...prev.imagePreviews];
+      updatedFiles.splice(index, 1);
+      updatedPreviews.splice(index, 1);
+      URL.revokeObjectURL(prev.imagePreviews[index]);
+      return {
+        ...prev,
+        imageFiles: updatedFiles,
+        imagePreviews: updatedPreviews,
+      };
+    });
   };
 
   const addArrayItem = (arrayName, defaultItem) => {
@@ -191,55 +391,146 @@ const ManageAllFestivals = () => {
     }));
   };
 
+  const handleAddCosplayer = (cosplayer) => {
+    const character = characters.find((c) => c.characterId === selectedCharacterId);
+    const currentCount = formData.selectedCosplayers.filter(
+      (sc) => sc.characterId === selectedCharacterId
+    ).length;
+
+    if (currentCount >= character.quantity) {
+      toast.error(
+        `Cannot add more cosplayers for ${character.characterName}. Maximum quantity is ${character.quantity}.`
+      );
+      return;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      selectedCosplayers: [
+        ...prev.selectedCosplayers,
+        {
+          characterId: selectedCharacterId,
+          cosplayerId: cosplayer.accountId,
+          cosplayerName: cosplayer.name,
+          description: cosplayer.description || "Cosplayer for event",
+        },
+      ],
+    }));
+    toast.success(`Added cosplayer ${cosplayer.name}`);
+  };
+
+  const handleRemoveCosplayer = (index) => {
+    setFormData((prev) => ({
+      ...prev,
+      selectedCosplayers: prev.selectedCosplayers.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleActivityChange = (selectedActivityIds) => {
+    const newActivities = selectedActivityIds.map((activityId) => ({
+      activityId,
+      description: activities.find((act) => act.activityId === activityId)?.description || "",
+      createBy: "",
+    }));
+    setFormData((prev) => ({
+      ...prev,
+      eventActivities: newActivities,
+    }));
+  };
+
+  const validateForm = () => {
+    const errors = [];
+    if (!formData.eventName.trim()) errors.push("Event name is required");
+    if (!formData.description.trim()) errors.push("Description is required");
+    if (!formData.location.trim()) errors.push("Location is required");
+    if (!formData.dateRange) errors.push("Date and time range is required");
+    if (formData.tickets.length === 0) errors.push("At least one ticket is required");
+    if (formData.selectedCosplayers.length === 0)
+      errors.push("At least one cosplayer is required");
+    if (formData.eventActivities.length === 0)
+      errors.push("At least one activity is required");
+    if (formData.imageFiles.length === 0) errors.push("At least one image is required");
+    return errors;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const errors = validateForm();
+    if (errors.length > 0) {
+      toast.error(errors.join("; "));
+      return;
+    }
+
     try {
-      // Kiểm tra dữ liệu đầu vào
-      if (!formData.eventName || !formData.description || !formData.location || !formData.startDate || !formData.endDate) {
-        toast.error("Please fill in all required fields!");
-        return;
+      const [startDate, endDate] = formData.dateRange;
+      const token = localStorage.getItem("accessToken");
+      let createBy = "Unknown User";
+
+      // Kiểm tra và lấy accountId từ token
+      if (token) {
+        try {
+          const decodedToken = jwtDecode(token);
+          console.log("Decoded token:", decodedToken);
+          const accountId =
+            decodedToken.Id ||
+            decodedToken.id ||
+            decodedToken.sub ||
+            decodedToken.userId;
+
+          if (!accountId) {
+            console.warn("No accountId found in decoded token");
+          } else {
+            // Gọi API để lấy thông tin hồ sơ, giống ProfilePage
+            try {
+              const profileData = await ProfileService.getProfileById(accountId);
+              createBy = profileData.name || "Unknown User";
+              console.log("Profile name fetched:", createBy);
+            } catch (error) {
+              console.error("Error fetching profile:", error);
+              toast.error("Failed to fetch user profile");
+            }
+          }
+        } catch (error) {
+          console.error("Error decoding token:", error);
+          toast.error("Invalid access token");
+        }
+      } else {
+        console.warn("No access token found in localStorage");
+        toast.warn("No access token available");
       }
 
-      // Kiểm tra các mảng không rỗng và hợp lệ
-      if (formData.tickets.length === 0 || formData.eventCharacters.length === 0 || formData.eventActivities.length === 0 || formData.imageFiles.length === 0) {
-        toast.error("Please provide at least one ticket, character, activity, and image!");
-        return;
-      }
-
+      // Tạo dữ liệu sự kiện với createBy đã lấy
       const eventData = {
-        EventName: formData.eventName,
-        Description: formData.description,
-        Location: formData.location,
-        StartDate: formData.startDate,
-        EndDate: formData.endDate,
-        CreateBy: null,
-        Ticket: formData.tickets,
-        EventCharacterRequest: formData.eventCharacters,
-        EventActivityRequests: formData.eventActivities,
+        eventName: formData.eventName,
+        description: formData.description,
+        location: formData.location,
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+        createBy: createBy,
+        ticket: formData.tickets,
+        eventCharacterRequest: formData.selectedCosplayers.map((sc) => ({
+          characterId: sc.characterId,
+          cosplayerId: sc.cosplayerId,
+          description: sc.description,
+        })),
+        eventActivityRequests: formData.eventActivities,
       };
 
-      // Gửi dữ liệu và file hình ảnh lên API
-      await ManageAllFestivalsService.addEvent(eventData, formData.imageFiles);
+      const eventJson = JSON.stringify(eventData, null, 0);
+      console.log("Event JSON before sending:", eventJson);
+      console.log("Image files before sending:", formData.imageFiles);
 
-      // Lấy lại danh sách festival sau khi thêm mới
+      // Gửi yêu cầu tạo sự kiện
+      await ManageAllFestivalsService.addEvent(eventJson, formData.imageFiles);
+
+      // Cập nhật danh sách festivals
       const updatedFestivals = await ManageAllFestivalsService.getAllEvents(searchTerm);
       setFestivals(updatedFestivals);
       toast.success("Festival created successfully!");
 
-      // Đóng modal và reset form
-      setIsCreateModalVisible(false);
-      setFormData({
-        eventName: "",
-        description: "",
-        startDate: "",
-        endDate: "",
-        location: "",
-        tickets: [{ quantity: 0, price: 0, description: "", ticketType: 0 }],
-        eventCharacters: [{ characterId: "", description: "", cosplayerId: "" }],
-        eventActivities: [{ activityId: "", description: "", createBy: "" }],
-        imageFiles: [],
-      });
+      handleCancel();
     } catch (error) {
+      console.error("Error adding event:", error);
       toast.error(error.message || "Failed to save festival");
     }
   };
@@ -284,16 +575,12 @@ const ManageAllFestivals = () => {
               <h3>Festivals</h3>
               <Form.Control
                 type="text"
-                placeholder="Search by Name, Description, or Location..."
+                placeholder="Search by Name, Description, Location, or Created By..."
                 value={searchTerm}
                 onChange={handleSearch}
                 className="search-input"
               />
-              <Button
-                type="primary"
-                size="large"
-                onClick={showCreateModal}
-              >
+              <Button type="primary" size="large" onClick={showCreateModal}>
                 Add New Festival
               </Button>
             </div>
@@ -354,6 +641,23 @@ const ManageAllFestivals = () => {
                       )}
                     </span>
                   </th>
+                  <th className="text-center">
+                    <span
+                      className="sortable"
+                      onClick={() => handleSort("createBy")}
+                    >
+                      Created By
+                      {sortFestival.field === "createBy" ? (
+                        sortFestival.order === "asc" ? (
+                          <ArrowUp size={16} />
+                        ) : (
+                          <ArrowDown size={16} />
+                        )
+                      ) : (
+                        <ArrowUp size={16} className="default-sort-icon" />
+                      )}
+                    </span>
+                  </th>
                   <th className="text-center">Actions</th>
                 </tr>
               </thead>
@@ -361,11 +665,18 @@ const ManageAllFestivals = () => {
                 {paginatedFestivals.map((festival) => (
                   <tr key={festival.eventId}>
                     <td className="text-center">{festival.eventName}</td>
-                    <td className="text-center">{festival.description.length > 50 ? `${festival.description.slice(0, 50)}...` : festival.description}</td>
+                    <td className="text-center">
+                      {festival.description.length > 50
+                        ? `${festival.description.slice(0, 50)}...`
+                        : festival.description}
+                    </td>
                     <td className="text-center">{festival.location}</td>
                     <td className="text-center">{festival.startDate.split("T")[0]}</td>
                     <td className="text-center">{festival.endDate.split("T")[0]}</td>
-                    <td className="text-center">{new Date(festival.createDate).toLocaleDateString()}</td>
+                    <td className="text-center">
+                      {new Date(festival.createDate).toLocaleDateString()}
+                    </td>
+                    <td className="text-center">{festival.createBy || "Unknown"}</td>
                     <td className="text-center">
                       <Button
                         type="primary"
@@ -463,7 +774,6 @@ const ManageAllFestivals = () => {
         show={isCreateModalVisible}
         onHide={handleCancel}
         centered
-        backdrop="static"
         className="festival-modal"
         size="lg"
       >
@@ -474,7 +784,6 @@ const ManageAllFestivals = () => {
         </Modal.Header>
         <Modal.Body>
           <Form onSubmit={handleSubmit}>
-            {/* Thông tin cơ bản của sự kiện */}
             <Form.Group className="mb-3">
               <Form.Label>Event Name</Form.Label>
               <Form.Control
@@ -499,25 +808,26 @@ const ManageAllFestivals = () => {
               />
             </Form.Group>
             <Form.Group className="mb-3">
-              <Form.Label>Start Date (Format: YYYY-MM-DD HH:mm:ss.SSSSSSS)</Form.Label>
-              <Form.Control
-                type="text"
-                name="startDate"
-                value={formData.startDate}
-                onChange={handleInputChange}
-                placeholder="2025-01-01 00:00:00.0000000"
+              <Form.Label>Date and Time Range</Form.Label>
+              <DateRangePicker
+                value={formData.dateRange}
+                onChange={handleDateRangeChange}
+                format={dateTimeFormat}
+                disabledDate={disabledDate}
+                disabledTime={disabledTime}
+                showTime={{ format: "HH:mm" }}
+                allowClear={false}
+                inputReadOnly={true}
                 required
-              />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>End Date (Format: YYYY-MM-DD HH:mm:ss.SSSSSSS)</Form.Label>
-              <Form.Control
-                type="text"
-                name="endDate"
-                value={formData.endDate}
-                onChange={handleInputChange}
-                placeholder="2025-01-01 00:00:00.0000000"
-                required
+                style={{
+                  width: "100%",
+                  padding: "6px 10px",
+                  borderRadius: "5px",
+                  border: "1px solid #ced4da",
+                  fontSize: "16px",
+                  zIndex: 9999,
+                }}
+                popupStyle={{ zIndex: 9999 }}
               />
             </Form.Group>
             <Form.Group className="mb-3">
@@ -532,7 +842,142 @@ const ManageAllFestivals = () => {
               />
             </Form.Group>
 
-            {/* Tickets */}
+            {formData.dateRange && (
+              <Form.Group className="mb-3">
+                <Form.Label>Select Character</Form.Label>
+                <Select
+                  style={{ width: "100%", zIndex: 9999 }}
+                  placeholder="Select a character"
+                  onChange={setSelectedCharacterId}
+                  value={selectedCharacterId}
+                  dropdownStyle={{ zIndex: 9999 }}
+                >
+                  {characters.map((char) => (
+                    <Option key={char.characterId} value={char.characterId}>
+                      {char.characterName} (Quantity: {char.quantity})
+                    </Option>
+                  ))}
+                </Select>
+
+                {selectedCharacterId && cosplayers.length > 0 && (
+                  <div className="cosplayer-grid mt-3">
+                    <h5>Available Cosplayers</h5>
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
+                        gap: "15px",
+                        padding: "10px",
+                        maxHeight: "300px",
+                        overflowY: "auto",
+                      }}
+                    >
+                      {cosplayers.map((cosplayer) => (
+                        <div
+                          key={cosplayer.accountId}
+                          style={{
+                            border: "1px solid #e0e0e0",
+                            borderRadius: "8px",
+                            padding: "10px",
+                            textAlign: "center",
+                            backgroundColor: "#fff",
+                            boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
+                            transition: "transform 0.2s",
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            height: "180px",
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.05)"}
+                          onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
+                        >
+                          <div
+                            style={{
+                              width: "100px",
+                              height: "100px",
+                              borderRadius: "50%",
+                              overflow: "hidden",
+                              backgroundColor: "#f0f0f0",
+                              marginBottom: "10px",
+                            }}
+                          >
+                            <img
+                              src={
+                                cosplayer.images?.find((img) => img.isAvatar)?.urlImage ||
+                                cosplayer.images?.[0]?.urlImage ||
+                                "https://via.placeholder.com/100?text=No+Image"
+                              }
+                              alt={cosplayer.name}
+                              style={{
+                                width: "100%",
+                                height: "100%",
+                                objectFit: "cover",
+                              }}
+                            />
+                          </div>
+                          <p
+                            style={{
+                              fontSize: "14px",
+                              fontWeight: "500",
+                              margin: "0 0 10px",
+                              color: "#333",
+                              flex: "1",
+                            }}
+                          >
+                            {cosplayer.name}
+                          </p>
+                          <Button
+                            type="primary"
+                            size="small"
+                            onClick={() => handleAddCosplayer(cosplayer)}
+                            style={{
+                              fontSize: "12px",
+                              padding: "2px 8px",
+                              borderRadius: "4px",
+                            }}
+                          >
+                            Add
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {selectedCharacterId && cosplayers.length === 0 && (
+                  <p className="mt-2">No cosplayers available for this character.</p>
+                )}
+
+                <h5 className="mt-3">Selected Cosplayers</h5>
+                <List
+                  dataSource={formData.selectedCosplayers}
+                  renderItem={(item, index) => {
+                    const character = characters.find(
+                      (c) => c.characterId === item.characterId
+                    );
+                    return (
+                      <List.Item
+                        actions={[
+                          <Button
+                            type="primary"
+                            danger
+                            size="small"
+                            onClick={() => handleRemoveCosplayer(index)}
+                          >
+                            Remove
+                          </Button>,
+                        ]}
+                      >
+                        <List.Item.Meta
+                          title={`Character: ${character?.characterName || item.characterId}`}
+                          description={`Cosplayer: ${item.cosplayerName}`}
+                        />
+                      </List.Item>
+                    );
+                  }}
+                />
+              </Form.Group>
+            )}
+
             <Form.Group className="mb-3">
               <Form.Label>Tickets</Form.Label>
               {formData.tickets.map((ticket, index) => (
@@ -541,9 +986,15 @@ const ManageAllFestivals = () => {
                     <Form.Label>Quantity</Form.Label>
                     <Form.Control
                       type="number"
+                      min="0"
                       value={ticket.quantity}
                       onChange={(e) =>
-                        handleArrayChange("tickets", index, "quantity", Number(e.target.value))
+                        handleArrayChange(
+                          "tickets",
+                          index,
+                          "quantity",
+                          Number(e.target.value)
+                        )
                       }
                       placeholder="Quantity"
                       required
@@ -553,9 +1004,15 @@ const ManageAllFestivals = () => {
                     <Form.Label>Price</Form.Label>
                     <Form.Control
                       type="number"
+                      min="0"
                       value={ticket.price}
                       onChange={(e) =>
-                        handleArrayChange("tickets", index, "price", Number(e.target.value))
+                        handleArrayChange(
+                          "tickets",
+                          index,
+                          "price",
+                          Number(e.target.value)
+                        )
                       }
                       placeholder="Price"
                       required
@@ -567,7 +1024,12 @@ const ManageAllFestivals = () => {
                       type="text"
                       value={ticket.description}
                       onChange={(e) =>
-                        handleArrayChange("tickets", index, "description", e.target.value)
+                        handleArrayChange(
+                          "tickets",
+                          index,
+                          "description",
+                          e.target.value
+                        )
                       }
                       placeholder="Description"
                       required
@@ -578,7 +1040,12 @@ const ManageAllFestivals = () => {
                     <Form.Select
                       value={ticket.ticketType}
                       onChange={(e) =>
-                        handleArrayChange("tickets", index, "ticketType", Number(e.target.value))
+                        handleArrayChange(
+                          "tickets",
+                          index,
+                          "ticketType",
+                          Number(e.target.value)
+                        )
                       }
                       required
                     >
@@ -591,119 +1058,40 @@ const ManageAllFestivals = () => {
               <Button
                 variant="outline-primary"
                 onClick={() =>
-                  addArrayItem("tickets", { quantity: 0, price: 0, description: "", ticketType: 0 })
+                  addArrayItem("tickets", {
+                    quantity: 0,
+                    price: 0,
+                    description: "",
+                    ticketType: 0,
+                  })
                 }
               >
                 <PlusCircle size={16} className="me-1" /> Add Ticket
               </Button>
             </Form.Group>
 
-            {/* Event Characters */}
-            <Form.Group className="mb-3">
-              <Form.Label>Event Characters (Cosplayers)</Form.Label>
-              {formData.eventCharacters.map((character, index) => (
-                <div key={index} className="mb-2 border p-3 rounded">
-                  <Form.Group className="mb-2">
-                    <Form.Label>Character ID</Form.Label>
-                    <Form.Control
-                      type="text"
-                      value={character.characterId}
-                      onChange={(e) =>
-                        handleArrayChange("eventCharacters", index, "characterId", e.target.value)
-                      }
-                      placeholder="Character ID (e.g., CH014)"
-                      required
-                    />
-                  </Form.Group>
-                  <Form.Group className="mb-2">
-                    <Form.Label>Description</Form.Label>
-                    <Form.Control
-                      type="text"
-                      value={character.description}
-                      onChange={(e) =>
-                        handleArrayChange("eventCharacters", index, "description", e.target.value)
-                      }
-                      placeholder="Description (e.g., pika pika)"
-                      required
-                    />
-                  </Form.Group>
-                  <Form.Group className="mb-2">
-                    <Form.Label>Cosplayer ID</Form.Label>
-                    <Form.Control
-                      type="text"
-                      value={character.cosplayerId}
-                      onChange={(e) =>
-                        handleArrayChange("eventCharacters", index, "cosplayerId", e.target.value)
-                      }
-                      placeholder="Cosplayer ID (e.g., A001)"
-                      required
-                    />
-                  </Form.Group>
-                </div>
-              ))}
-              <Button
-                variant="outline-primary"
-                onClick={() =>
-                  addArrayItem("eventCharacters", { characterId: "", description: "", cosplayerId: "" })
-                }
-              >
-                <PlusCircle size={16} className="me-1" /> Add Cosplayer
-              </Button>
-            </Form.Group>
-
-            {/* Event Activities */}
             <Form.Group className="mb-3">
               <Form.Label>Event Activities</Form.Label>
-              {formData.eventActivities.map((activity, index) => (
-                <div key={index} className="mb-2 border p-3 rounded">
-                  <Form.Group className="mb-2">
-                    <Form.Label>Activity ID</Form.Label>
-                    <Form.Control
-                      type="text"
-                      value={activity.activityId}
-                      onChange={(e) =>
-                        handleArrayChange("eventActivities", index, "activityId", e.target.value)
-                      }
-                      placeholder="Activity ID (e.g., ACT008)"
-                      required
-                    />
-                  </Form.Group>
-                  <Form.Group className="mb-2">
-                    <Form.Label>Description</Form.Label>
-                    <Form.Control
-                      type="text"
-                      value={activity.description}
-                      onChange={(e) =>
-                        handleArrayChange("eventActivities", index, "description", e.target.value)
-                      }
-                      placeholder="Description (e.g., chụp hình)"
-                      required
-                    />
-                  </Form.Group>
-                  <Form.Group className="mb-2">
-                    <Form.Label>Create By (Optional)</Form.Label>
-                    <Form.Control
-                      type="text"
-                      value={activity.createBy}
-                      onChange={(e) =>
-                        handleArrayChange("eventActivities", index, "createBy", e.target.value)
-                      }
-                      placeholder="Create By (optional)"
-                    />
-                  </Form.Group>
-                </div>
-              ))}
-              <Button
-                variant="outline-primary"
-                onClick={() =>
-                  addArrayItem("eventActivities", { activityId: "", description: "", createBy: "" })
-                }
+              <Select
+                mode="multiple"
+                style={{ width: "100%", zIndex: 9999 }}
+                placeholder="Select activities"
+                onChange={handleActivityChange}
+                optionLabelProp="label"
+                dropdownStyle={{ zIndex: 9999 }}
               >
-                <PlusCircle size={16} className="me-1" /> Add Activity
-              </Button>
+                {activities.map((act) => (
+                  <Option
+                    key={act.activityId}
+                    value={act.activityId}
+                    label={act.name}
+                  >
+                    {act.name} - {act.description}
+                  </Option>
+                ))}
+              </Select>
             </Form.Group>
 
-            {/* Image Files */}
             <Form.Group className="mb-3">
               <Form.Label>Images (Select one or more images)</Form.Label>
               <Form.Control
@@ -711,18 +1099,65 @@ const ManageAllFestivals = () => {
                 multiple
                 onChange={handleImageFilesChange}
                 accept="image/*"
-                required
+                required={!formData.imageFiles.length}
               />
-              {formData.imageFiles.length > 0 && (
-                <div className="mt-2">
-                  <strong>Selected Files:</strong>
-                  <ul>
-                    {formData.imageFiles.map((file, index) => (
-                      <li key={index}>{file.name}</li>
+              {formData.imagePreviews.length > 0 && (
+                <div style={{ marginTop: "10px" }}>
+                  <strong>Selected Images:</strong>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexWrap: "wrap",
+                      gap: "10px",
+                      marginTop: "10px",
+                    }}
+                  >
+                    {formData.imagePreviews.map((preview, index) => (
+                      <div
+                        key={index}
+                        style={{
+                          position: "relative",
+                          width: "100px",
+                          height: "100px",
+                        }}
+                      >
+                        <img
+                          src={preview}
+                          alt={`preview-${index}`}
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                            borderRadius: "5px",
+                          }}
+                        />
+                        <Button
+                          type="primary"
+                          danger
+                          size="small"
+                          onClick={() => removeImage(index)}
+                          style={{
+                            position: "absolute",
+                            top: "5px",
+                            right: "5px",
+                            fontSize: "10px",
+                            padding: "2px 5px",
+                          }}
+                        >
+                          X
+                        </Button>
+                      </div>
                     ))}
-                  </ul>
+                  </div>
                 </div>
               )}
+              <Button
+                variant="outline-primary"
+                onClick={addMoreImages}
+                style={{ marginTop: "10px" }}
+              >
+                <PlusCircle size={16} className="me-1" /> Add More Images
+              </Button>
             </Form.Group>
           </Form>
         </Modal.Body>
@@ -749,7 +1184,9 @@ const ManageAllFestivals = () => {
         <Modal.Body>
           {eventDetails && (
             <div>
-              <h3 style={{ marginTop: 16, fontSize: "22px", fontWeight: 600 }}>Event Images</h3>
+              <h3 style={{ marginTop: 16, fontSize: "22px", fontWeight: 600 }}>
+                Event Images
+              </h3>
               <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
                 {eventDetails.eventImageResponses.map((img) => (
                   <Image key={img.imageId} src={img.imageUrl} width={150} />
@@ -757,14 +1194,24 @@ const ManageAllFestivals = () => {
               </div>
 
               <Descriptions
-                title={<span style={{ fontSize: "22px", fontWeight: 600 }}>Event Information</span>}
+                title={
+                  <span style={{ fontSize: "22px", fontWeight: 600 }}>
+                    Event Information
+                  </span>
+                }
                 bordered
                 column={1}
                 style={{ marginTop: 16 }}
               >
-                <Descriptions.Item label="Event Name">{eventDetails.eventName}</Descriptions.Item>
-                <Descriptions.Item label="Description">{eventDetails.description}</Descriptions.Item>
-                <Descriptions.Item label="Location">{eventDetails.location}</Descriptions.Item>
+                <Descriptions.Item label="Event Name">
+                  {eventDetails.eventName}
+                </Descriptions.Item>
+                <Descriptions.Item label="Description">
+                  {eventDetails.description}
+                </Descriptions.Item>
+                <Descriptions.Item label="Location">
+                  {eventDetails.location}
+                </Descriptions.Item>
                 <Descriptions.Item label="Start Date">
                   {new Date(eventDetails.startDate).toLocaleDateString()}
                 </Descriptions.Item>
@@ -774,29 +1221,44 @@ const ManageAllFestivals = () => {
                 <Descriptions.Item label="Create Date">
                   {new Date(eventDetails.createDate).toLocaleDateString()}
                 </Descriptions.Item>
+                <Descriptions.Item label="Created By">
+                  {eventDetails.createBy || "Unknown"}
+                </Descriptions.Item>
               </Descriptions>
 
-              <h3 style={{ marginTop: 16, fontSize: "22px", fontWeight: 600 }}>Activities</h3>
+              <h3 style={{ marginTop: 16, fontSize: "22px", fontWeight: 600 }}>
+                Activities
+              </h3>
               <List
                 dataSource={eventDetails.eventActivityResponse}
                 renderItem={(activity) => (
                   <List.Item>
                     <Descriptions bordered column={1}>
-                      <Descriptions.Item label="Name">{activity.activity.name}</Descriptions.Item>
-                      <Descriptions.Item label="Description">{activity.description}</Descriptions.Item>
+                      <Descriptions.Item label="Name">
+                        {activity.activity.name}
+                      </Descriptions.Item>
+                      <Descriptions.Item label="Description">
+                        {activity.description}
+                      </Descriptions.Item>
                     </Descriptions>
                   </List.Item>
                 )}
               />
 
-              <h3 style={{ marginTop: 16, fontSize: "22px", fontWeight: 600 }}>Cosplayers</h3>
+              <h3 style={{ marginTop: 16, fontSize: "22px", fontWeight: 600 }}>
+                Cosplayers
+              </h3>
               <List
                 dataSource={eventDetails.cosplayers}
                 renderItem={(cosplayer) => (
                   <List.Item>
                     <Descriptions bordered column={1}>
-                      <Descriptions.Item label="Name">{cosplayer.name}</Descriptions.Item>
-                      <Descriptions.Item label="Description">{cosplayer.description}</Descriptions.Item>
+                      <Descriptions.Item label="Name">
+                        {cosplayer.name}
+                      </Descriptions.Item>
+                      <Descriptions.Item label="Description">
+                        {cosplayer.description}
+                      </Descriptions.Item>
                       <Descriptions.Item label="Image">
                         <Image src={cosplayer.urlImage} width={100} />
                       </Descriptions.Item>
@@ -805,7 +1267,9 @@ const ManageAllFestivals = () => {
                 )}
               />
 
-              <h3 style={{ marginTop: 16, fontSize: "22px", fontWeight: 600 }}>Tickets</h3>
+              <h3 style={{ marginTop: 16, fontSize: "22px", fontWeight: 600 }}>
+                Tickets
+              </h3>
               <List
                 dataSource={eventDetails.ticket}
                 renderItem={(ticket) => (
@@ -814,9 +1278,15 @@ const ManageAllFestivals = () => {
                       <Descriptions.Item label="Type">
                         {ticket.ticketType === 0 ? "Normal" : "Premium"}
                       </Descriptions.Item>
-                      <Descriptions.Item label="Description">{ticket.description}</Descriptions.Item>
-                      <Descriptions.Item label="Quantity">{ticket.quantity}</Descriptions.Item>
-                      <Descriptions.Item label="Price">{ticket.price.toLocaleString()} VND</Descriptions.Item>
+                      <Descriptions.Item label="Description">
+                        {ticket.description}
+                      </Descriptions.Item>
+                      <Descriptions.Item label="Quantity">
+                        {ticket.quantity}
+                      </Descriptions.Item>
+                      <Descriptions.Item label="Price">
+                        {ticket.price.toLocaleString()} VND
+                      </Descriptions.Item>
                     </Descriptions>
                   </List.Item>
                 )}
