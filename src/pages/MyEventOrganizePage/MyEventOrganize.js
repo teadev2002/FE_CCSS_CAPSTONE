@@ -1,1673 +1,48 @@
-//=== api edit
-
+//// ========================= ở trên vẫn bị lỗi thg char đổi nó ko có data thời gian gắn vào thg cũ, th cũ bị xóa di
 // import React, { useState, useEffect } from "react";
 // import { Container, Row, Col, Form, Card, Badge } from "react-bootstrap";
-// import { Pagination, Modal, Input, Button, Tabs, Radio, message } from "antd";
+// import {
+//   Pagination,
+//   Modal,
+//   Button,
+//   Tabs,
+//   Radio,
+//   message,
+//   Collapse,
+// } from "antd";
 // import { toast } from "react-toastify";
 // import "react-toastify/dist/ReactToastify.css";
 // import "antd/dist/reset.css";
 // import "../../styles/MyEventOrganize.scss";
+// import ViewMyEventOrganize from "./ViewMyEventOrganize";
 // import MyEventOrganizeService from "../../services/MyEventOrganizeService/MyEventOrganizeService";
-// import { FileText, Calendar, Eye, CreditCard } from "lucide-react";
-// import dayjs from "dayjs";
-
-// const { TabPane } = Tabs;
-// const { TextArea } = Input;
-
-// const MyEventOrganize = () => {
-//   const [requests, setRequests] = useState([]);
-//   const [filteredPendingRequests, setFilteredPendingRequests] = useState([]);
-//   const [filteredActiveContracts, setFilteredActiveContracts] = useState([]);
-//   const [filteredCompletedContracts, setFilteredCompletedContracts] = useState(
-//     []
-//   );
-//   const [loading, setLoading] = useState(false);
-//   const [currentPendingPage, setCurrentPendingPage] = useState(1);
-//   const [currentActivePage, setCurrentActivePage] = useState(1);
-//   const [currentCompletedPage, setCurrentCompletedPage] = useState(1);
-//   const [searchTerm, setSearchTerm] = useState("");
-//   const [isViewEditModalVisible, setIsViewEditModalVisible] = useState(false);
-//   const [isDepositModalVisible, setIsDepositModalVisible] = useState(false);
-//   const [isPaymentModalVisible, setIsPaymentModalVisible] = useState(false);
-//   const [modalData, setModalData] = useState({
-//     requestId: "",
-//     name: "",
-//     description: "",
-//     startDate: "",
-//     endDate: "",
-//     location: "",
-//     packageName: "",
-//     listCharacters: [],
-//     status: "",
-//     price: 0,
-//   });
-//   const [depositAmount, setDepositAmount] = useState(null);
-//   const [paymentMethod, setPaymentMethod] = useState(null);
-//   const [selectedRequestId, setSelectedRequestId] = useState(null);
-
-//   const itemsPerPage = 5;
-//   const accountId = "447fb184-4754-4ca5-be94-6606e0b54ddc"; // Giả định accountId
-
-//   // Lấy dữ liệu từ API khi component mount
-//   useEffect(() => {
-//     const fetchRequests = async () => {
-//       setLoading(true);
-//       try {
-//         const data = await MyEventOrganizeService.getAllRequestByAccountId(
-//           accountId
-//         );
-//         const filteredRequests = (Array.isArray(data) ? data : []).filter(
-//           (request) => request.serviceId === "S003"
-//         );
-
-//         const requestsWithPackageName = await Promise.all(
-//           filteredRequests.map(async (request) => {
-//             let packageName = "N/A";
-//             if (request.packageId) {
-//               try {
-//                 const packageData = await MyEventOrganizeService.getPackageById(
-//                   request.packageId
-//                 );
-//                 packageName = packageData.packageName || "N/A";
-//               } catch (error) {
-//                 console.warn(
-//                   `Failed to fetch packageName for packageId ${request.packageId}`
-//                 );
-//               }
-//             }
-//             return {
-//               requestId: request.requestId,
-//               name: request.name || "N/A",
-//               description: request.description || "N/A",
-//               startDate: request.startDate,
-//               endDate: request.endDate,
-//               location: request.location || "N/A",
-//               packageName,
-//               listCharacters:
-//                 request.charactersListResponse?.map((char) => ({
-//                   characterId: char.characterId,
-//                   characterName: char.description || "Unknown Character",
-//                   quantity: char.quantity,
-//                 })) || [],
-//               status: request.status || "Unknown",
-//               price: request.price || 0,
-//               serviceId: request.serviceId,
-//             };
-//           })
-//         );
-
-//         setRequests(requestsWithPackageName);
-//       } catch (error) {
-//         toast.error("Failed to load requests. Please try again later.");
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-
-//     fetchRequests();
-//   }, [accountId]);
-
-//   // Phân loại và lọc dữ liệu theo trạng thái
-//   useEffect(() => {
-//     if (requests.length > 0) {
-//       const filterByStatusAndSearch = (status) =>
-//         requests
-//           .filter((request) => request.status === status)
-//           .filter(
-//             (request) =>
-//               request.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-//               dayjs(request.startDate)
-//                 .format("HH:mm DD/MM/YYYY")
-//                 .includes(searchTerm)
-//           );
-
-//       setFilteredPendingRequests(
-//         filterByStatusAndSearch("Pending").concat(
-//           filterByStatusAndSearch("Browsed")
-//         )
-//       );
-//       setFilteredActiveContracts(filterByStatusAndSearch("Active"));
-//       setFilteredCompletedContracts(filterByStatusAndSearch("Completed"));
-//     }
-//   }, [searchTerm, requests]);
-
-//   // Xử lý phân trang cho từng tab
-//   const paginateItems = (items, currentPage) => {
-//     const indexOfLastItem = currentPage * itemsPerPage;
-//     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-//     return items.slice(indexOfFirstItem, indexOfLastItem);
-//   };
-
-//   const currentPendingItems = paginateItems(
-//     filteredPendingRequests,
-//     currentPendingPage
-//   );
-//   const currentActiveItems = paginateItems(
-//     filteredActiveContracts,
-//     currentActivePage
-//   );
-//   const currentCompletedItems = paginateItems(
-//     filteredCompletedContracts,
-//     currentCompletedPage
-//   );
-
-//   const handlePendingPageChange = (page) => setCurrentPendingPage(page);
-//   const handleActivePageChange = (page) => setCurrentActivePage(page);
-//   const handleCompletedPageChange = (page) => setCurrentCompletedPage(page);
-
-//   // Xử lý xem và chỉnh sửa
-//   const handleViewEditRequest = (request) => {
-//     setModalData({
-//       requestId: request.requestId,
-//       name: request.name || "",
-//       description: request.description || "",
-//       startDate: request.startDate
-//         ? dayjs(request.startDate).format("HH:mm DD/MM/YYYY")
-//         : "N/A",
-//       endDate: request.endDate
-//         ? dayjs(request.endDate).format("HH:mm DD/MM/YYYY")
-//         : "N/A",
-//       location: request.location || "",
-//       packageName: request.packageName || "N/A",
-//       listCharacters: request.listCharacters || [],
-//       status: request.status || "N/A",
-//       price: request.price || 0,
-//     });
-//     setIsViewEditModalVisible(true);
-//   };
-
-//   const handleViewEditConfirm = async () => {
-//     if (!modalData.name.trim()) {
-//       toast.error("Event name cannot be empty!");
-//       return;
-//     }
-
-//     if (modalData.status === "Pending") {
-//       try {
-//         const requestData = {
-//           name: modalData.name,
-//           startDate: modalData.startDate,
-//           endDate: modalData.endDate,
-//           location: modalData.location,
-//           serviceId: "S003", // Giá trị cố định dựa trên yêu cầu
-//           listUpdateRequestCharacters: modalData.listCharacters.map((char) => ({
-//             characterId: char.characterId,
-//             cosplayerId: null, // Không có cosplayerId trong UI, để null
-//             description: char.characterName,
-//             quantity: char.quantity,
-//           })),
-//         };
-
-//         await MyEventOrganizeService.editRequest(
-//           modalData.requestId,
-//           requestData
-//         );
-
-//         // Cập nhật state local sau khi API thành công
-//         setRequests((prev) =>
-//           prev.map((req) =>
-//             req.requestId === modalData.requestId
-//               ? { ...req, ...modalData }
-//               : req
-//           )
-//         );
-//         toast.success("Request updated successfully!");
-//       } catch (error) {
-//         toast.error("Failed to update request. Please try again.");
-//       }
-//     }
-
-//     setIsViewEditModalVisible(false);
-//   };
-
-//   // Xử lý chọn mức deposit
-//   const handleDepositRequest = (request) => {
-//     setSelectedRequestId(request.requestId);
-//     setModalData({
-//       requestId: request.requestId,
-//       name: request.name || "N/A",
-//       description: request.description || "N/A",
-//       startDate: request.startDate
-//         ? dayjs(request.startDate).format("HH:mm DD/MM/YYYY")
-//         : "N/A",
-//       endDate: request.endDate
-//         ? dayjs(request.endDate).format("HH:mm DD/MM/YYYY")
-//         : "N/A",
-//       location: request.location || "N/A",
-//       packageName: request.packageName || "N/A",
-//       listCharacters: request.listCharacters || [],
-//       status: request.status || "N/A",
-//       price: request.price || 0,
-//     });
-//     setIsDepositModalVisible(true);
-//   };
-
-//   const handleDepositConfirm = () => {
-//     if (depositAmount === null) {
-//       message.warning("Please select a deposit amount.");
-//       return;
-//     }
-//     const depositValue =
-//       depositAmount === 50 ? modalData.price * 0.5 : modalData.price;
-//     toast.success(
-//       `Deposit of ${depositValue.toLocaleString()} VND confirmed! Moving to Payment Deposit Contract tab.`
-//     );
-//     setRequests((prev) =>
-//       prev.map((req) =>
-//         req.requestId === selectedRequestId ? { ...req, status: "Active" } : req
-//       )
-//     );
-//     setIsDepositModalVisible(false);
-//     setDepositAmount(null);
-//     setSelectedRequestId(null);
-//   };
-
-//   // Xử lý thanh toán deposit
-//   const handlePaymentRequest = (contract) => {
-//     setSelectedRequestId(contract.requestId);
-//     setModalData({
-//       requestId: contract.requestId,
-//       name: contract.name || "N/A",
-//       description: contract.description || "N/A",
-//       startDate: contract.startDate
-//         ? dayjs(contract.startDate).format("HH:mm DD/MM/YYYY")
-//         : "N/A",
-//       endDate: contract.endDate
-//         ? dayjs(contract.endDate).format("HH:mm DD/MM/YYYY")
-//         : "N/A",
-//       location: contract.location || "N/A",
-//       packageName: contract.packageName || "N/A",
-//       listCharacters: contract.listCharacters || [],
-//       status: contract.status || "N/A",
-//       price: contract.price || 0,
-//     });
-//     setIsPaymentModalVisible(true);
-//   };
-
-//   const handlePaymentConfirm = () => {
-//     if (paymentMethod === null) {
-//       message.warning("Please select a payment method.");
-//       return;
-//     }
-//     toast.success(
-//       `Payment via ${paymentMethod} completed! Moving to Completed Contract tab.`
-//     );
-//     setRequests((prev) =>
-//       prev.map((req) =>
-//         req.requestId === selectedRequestId
-//           ? { ...req, status: "Completed" }
-//           : req
-//       )
-//     );
-//     setIsPaymentModalVisible(false);
-//     setPaymentMethod(null);
-//     setSelectedRequestId(null);
-//   };
-
-//   // Badge trạng thái
-//   const getStatusBadge = (status) => {
-//     const statusColors = {
-//       Pending: "primary",
-//       Browsed: "success",
-//       Active: "warning",
-//       Completed: "success",
-//     };
-//     return (
-//       <Badge bg={statusColors[status] || "secondary"}>
-//         {status || "Unknown"}
-//       </Badge>
-//     );
-//   };
-
-//   return (
-//     <div className="my-event-organize bg-light min-vh-100">
-//       <Container className="py-5">
-//         <h1 className="text-center mb-5 fw-bold title-my-event">
-//           <span>My Event Organize</span>
-//         </h1>
-
-//         <div className="filter-section bg-white p-4 rounded shadow mb-5">
-//           <Row className="align-items-center g-3">
-//             <Col md={12}>
-//               <Form.Control
-//                 type="text"
-//                 placeholder="Search by name or date (HH:mm DD/MM/YYYY)..."
-//                 value={searchTerm}
-//                 onChange={(e) => setSearchTerm(e.target.value)}
-//                 className="search-input"
-//               />
-//             </Col>
-//           </Row>
-//         </div>
-
-//         <Tabs defaultActiveKey="1" type="card">
-//           <TabPane tab="Request Pending and Choose Deposit" key="1">
-//             {loading ? (
-//               <p className="text-center">Loading...</p>
-//             ) : currentPendingItems.length === 0 ? (
-//               <p className="text-center">No pending requests found.</p>
-//             ) : (
-//               <>
-//                 <Row className="g-4">
-//                   {currentPendingItems.map((request) => (
-//                     <Col key={request.requestId} xs={12}>
-//                       <Card className="event-card shadow">
-//                         <Card.Body>
-//                           <div className="d-flex flex-column flex-md-row gap-4">
-//                             <div className="flex-grow-1">
-//                               <div className="d-flex gap-3">
-//                                 <div className="icon-circle">
-//                                   <FileText size={24} />
-//                                 </div>
-//                                 <div className="flex-grow-1">
-//                                   <div className="d-flex justify-content-between align-items-start">
-//                                     <h3 className="event-title mb-0">
-//                                       {request.name || "N/A"}
-//                                     </h3>
-//                                     {getStatusBadge(request.status)}
-//                                   </div>
-//                                   <div className="text-muted small mt-1">
-//                                     <Calendar size={16} className="me-1" />
-//                                     Start Date:{" "}
-//                                     {dayjs(request.startDate).format(
-//                                       "HH:mm DD/MM/YYYY"
-//                                     ) || "N/A"}
-//                                   </div>
-//                                   <div className="text-muted small mt-1">
-//                                     Package: {request.packageName || "N/A"}
-//                                   </div>
-//                                   <div className="text-muted small mt-1">
-//                                     Price:{" "}
-//                                     {(request.price || 0).toLocaleString()} VND
-//                                   </div>
-//                                 </div>
-//                               </div>
-//                             </div>
-//                             <div className="text-md-end">
-//                               <div className="d-flex gap-2 justify-content-md-end">
-//                                 <Button
-//                                   type="primary"
-//                                   size="small"
-//                                   className="btn-view-edit"
-//                                   onClick={() => handleViewEditRequest(request)}
-//                                 >
-//                                   <Eye size={16} className="me-1" />
-//                                   {request.status === "Pending"
-//                                     ? "View/Edit"
-//                                     : "View"}
-//                                 </Button>
-//                                 {request.status === "Browsed" && (
-//                                   <Button
-//                                     size="small"
-//                                     className="btn-deposit"
-//                                     onClick={() =>
-//                                       handleDepositRequest(request)
-//                                     }
-//                                   >
-//                                     <CreditCard size={16} className="me-1" />
-//                                     Choose Deposit
-//                                   </Button>
-//                                 )}
-//                               </div>
-//                             </div>
-//                           </div>
-//                         </Card.Body>
-//                       </Card>
-//                     </Col>
-//                   ))}
-//                 </Row>
-//                 <Row className="mt-5 align-items-center">
-//                   <Col xs={12} sm={6} className="mb-3 mb-sm-0">
-//                     <p className="mb-0">
-//                       Showing{" "}
-//                       <strong>
-//                         {(currentPendingPage - 1) * itemsPerPage + 1}
-//                       </strong>{" "}
-//                       to{" "}
-//                       <strong>
-//                         {Math.min(
-//                           currentPendingPage * itemsPerPage,
-//                           filteredPendingRequests.length
-//                         )}
-//                       </strong>{" "}
-//                       of <strong>{filteredPendingRequests.length}</strong>{" "}
-//                       results
-//                     </p>
-//                   </Col>
-//                   <Col xs={12} sm={6} className="d-flex justify-content-end">
-//                     <Pagination
-//                       current={currentPendingPage}
-//                       pageSize={itemsPerPage}
-//                       total={filteredPendingRequests.length}
-//                       onChange={handlePendingPageChange}
-//                       showSizeChanger={false}
-//                     />
-//                   </Col>
-//                 </Row>
-//               </>
-//             )}
-//           </TabPane>
-
-//           <TabPane tab="Payment Deposit Contract" key="2">
-//             {loading ? (
-//               <p className="text-center">Loading...</p>
-//             ) : currentActiveItems.length === 0 ? (
-//               <p className="text-center">No active contracts found.</p>
-//             ) : (
-//               <>
-//                 <Row className="g-4">
-//                   {currentActiveItems.map((contract) => (
-//                     <Col key={contract.requestId} xs={12}>
-//                       <Card className="event-card shadow">
-//                         <Card.Body>
-//                           <div className="d-flex flex-column flex-md-row gap-4">
-//                             <div className="flex-grow-1">
-//                               <div className="d-flex gap-3">
-//                                 <div className="icon-circle">
-//                                   <FileText size={24} />
-//                                 </div>
-//                                 <div className="flex-grow-1">
-//                                   <div className="d-flex justify-content-between align-items-start">
-//                                     <h3 className="event-title mb-0">
-//                                       {contract.name || "N/A"}
-//                                     </h3>
-//                                     {getStatusBadge("Active")}
-//                                   </div>
-//                                   <div className="text-muted small mt-1">
-//                                     <Calendar size={16} className="me-1" />
-//                                     Start Date:{" "}
-//                                     {dayjs(contract.startDate).format(
-//                                       "HH:mm DD/MM/YYYY"
-//                                     ) || "N/A"}
-//                                   </div>
-//                                   <div className="text-muted small mt-1">
-//                                     Package: {contract.packageName || "N/A"}
-//                                   </div>
-//                                   <div className="text-muted small mt-1">
-//                                     Price:{" "}
-//                                     {(contract.price || 0).toLocaleString()} VND
-//                                   </div>
-//                                   <div className="text-muted small mt-1">
-//                                     Status: Awaiting Payment
-//                                   </div>
-//                                 </div>
-//                               </div>
-//                             </div>
-//                             <div className="text-md-end">
-//                               <div className="d-flex gap-2 justify-content-md-end">
-//                                 <Button
-//                                   type="primary"
-//                                   size="small"
-//                                   className="btn-view-edit"
-//                                   onClick={() =>
-//                                     handleViewEditRequest(contract)
-//                                   }
-//                                 >
-//                                   <Eye size={16} className="me-1" />
-//                                   View
-//                                 </Button>
-//                                 <Button
-//                                   size="small"
-//                                   className="btn-payment"
-//                                   onClick={() => handlePaymentRequest(contract)}
-//                                 >
-//                                   <CreditCard size={16} className="me-1" />
-//                                   Payment Deposit
-//                                 </Button>
-//                               </div>
-//                             </div>
-//                           </div>
-//                         </Card.Body>
-//                       </Card>
-//                     </Col>
-//                   ))}
-//                 </Row>
-//                 <Row className="mt-5 align-items-center">
-//                   <Col xs={12} sm={6} className="mb-3 mb-sm-0">
-//                     <p className="mb-0">
-//                       Showing{" "}
-//                       <strong>
-//                         {(currentActivePage - 1) * itemsPerPage + 1}
-//                       </strong>{" "}
-//                       to{" "}
-//                       <strong>
-//                         {Math.min(
-//                           currentActivePage * itemsPerPage,
-//                           filteredActiveContracts.length
-//                         )}
-//                       </strong>{" "}
-//                       of <strong>{filteredActiveContracts.length}</strong>{" "}
-//                       results
-//                     </p>
-//                   </Col>
-//                   <Col xs={12} sm={6} className="d-flex justify-content-end">
-//                     <Pagination
-//                       current={currentActivePage}
-//                       pageSize={itemsPerPage}
-//                       total={filteredActiveContracts.length}
-//                       onChange={handleActivePageChange}
-//                       showSizeChanger={false}
-//                     />
-//                   </Col>
-//                 </Row>
-//               </>
-//             )}
-//           </TabPane>
-
-//           <TabPane tab="Completed Contract" key="3">
-//             {loading ? (
-//               <p className="text-center">Loading...</p>
-//             ) : currentCompletedItems.length === 0 ? (
-//               <p className="text-center">No completed contracts found.</p>
-//             ) : (
-//               <>
-//                 <Row className="g-4">
-//                   {currentCompletedItems.map((contract) => (
-//                     <Col key={contract.requestId} xs={12}>
-//                       <Card className="event-card shadow">
-//                         <Card.Body>
-//                           <div className="d-flex flex-column flex-md-row gap-4">
-//                             <div className="flex-grow-1">
-//                               <div className="d-flex gap-3">
-//                                 <div className="icon-circle">
-//                                   <FileText size={24} />
-//                                 </div>
-//                                 <div className="flex-grow-1">
-//                                   <div className="d-flex justify-content-between align-items-start">
-//                                     <h3 className="event-title mb-0">
-//                                       {contract.name || "N/A"}
-//                                     </h3>
-//                                     {getStatusBadge(contract.status)}
-//                                   </div>
-//                                   <div className="text-muted small mt-1">
-//                                     <Calendar size={16} className="me-1" />
-//                                     Start Date:{" "}
-//                                     {dayjs(contract.startDate).format(
-//                                       "HH:mm DD/MM/YYYY"
-//                                     ) || "N/A"}
-//                                   </div>
-//                                   <div className="text-muted small mt-1">
-//                                     Package: {contract.packageName || "N/A"}
-//                                   </div>
-//                                   <div className="text-muted small mt-1">
-//                                     Price:{" "}
-//                                     {(contract.price || 0).toLocaleString()} VND
-//                                   </div>
-//                                 </div>
-//                               </div>
-//                             </div>
-//                             <div className="text-md-end">
-//                               <Button
-//                                 type="primary"
-//                                 size="small"
-//                                 className="btn-view-edit"
-//                                 onClick={() => handleViewEditRequest(contract)}
-//                               >
-//                                 <Eye size={16} className="me-1" />
-//                                 View
-//                               </Button>
-//                             </div>
-//                           </div>
-//                         </Card.Body>
-//                       </Card>
-//                     </Col>
-//                   ))}
-//                 </Row>
-//                 <Row className="mt-5 align-items-center">
-//                   <Col xs={12} sm={6} className="mb-3 mb-sm-0">
-//                     <p className="mb-0">
-//                       Showing{" "}
-//                       <strong>
-//                         {(currentCompletedPage - 1) * itemsPerPage + 1}
-//                       </strong>{" "}
-//                       to{" "}
-//                       <strong>
-//                         {Math.min(
-//                           currentCompletedPage * itemsPerPage,
-//                           filteredCompletedContracts.length
-//                         )}
-//                       </strong>{" "}
-//                       of <strong>{filteredCompletedContracts.length}</strong>{" "}
-//                       results
-//                     </p>
-//                   </Col>
-//                   <Col xs={12} sm={6} className="d-flex justify-content-end">
-//                     <Pagination
-//                       current={currentCompletedPage}
-//                       pageSize={itemsPerPage}
-//                       total={filteredCompletedContracts.length}
-//                       onChange={handleCompletedPageChange}
-//                       showSizeChanger={false}
-//                     />
-//                   </Col>
-//                 </Row>
-//               </>
-//             )}
-//           </TabPane>
-//         </Tabs>
-
-//         {/* Modal tích hợp View/Edit */}
-//         <Modal
-//           title={
-//             modalData.status === "Pending"
-//               ? "View/Edit Event Request"
-//               : "View Event Request"
-//           }
-//           open={isViewEditModalVisible}
-//           onOk={
-//             modalData.status === "Pending"
-//               ? handleViewEditConfirm
-//               : () => setIsViewEditModalVisible(false)
-//           }
-//           onCancel={() => setIsViewEditModalVisible(false)}
-//           okText={modalData.status === "Pending" ? "Save" : "Close"}
-//           cancelText="Cancel"
-//           cancelButtonProps={{
-//             style: {
-//               display: modalData.status === "Pending" ? "inline" : "none",
-//             },
-//           }}
-//         >
-//           <Form>
-//             <Form.Group className="mb-3">
-//               <Form.Label>
-//                 <strong>Name</strong>
-//               </Form.Label>
-//               {modalData.status === "Pending" ? (
-//                 <Input
-//                   value={modalData.name}
-//                   onChange={(e) =>
-//                     setModalData({ ...modalData, name: e.target.value })
-//                   }
-//                   placeholder="Enter event name"
-//                 />
-//               ) : (
-//                 <p>{modalData.name}</p>
-//               )}
-//             </Form.Group>
-//             <Form.Group className="mb-3">
-//               <Form.Label>
-//                 <strong>Description</strong>
-//               </Form.Label>
-//               {modalData.status === "Pending" ? (
-//                 <TextArea
-//                   value={modalData.description}
-//                   onChange={(e) =>
-//                     setModalData({ ...modalData, description: e.target.value })
-//                   }
-//                   placeholder="Enter description"
-//                 />
-//               ) : (
-//                 <p>{modalData.description}</p>
-//               )}
-//             </Form.Group>
-//             <Form.Group className="mb-3">
-//               <Form.Label>
-//                 <strong>Start Date</strong>
-//               </Form.Label>
-//               <p>{modalData.startDate}</p>
-//             </Form.Group>
-//             <Form.Group className="mb-3">
-//               <Form.Label>
-//                 <strong>End Date</strong>
-//               </Form.Label>
-//               <p>{modalData.endDate}</p>
-//             </Form.Group>
-//             <Form.Group className="mb-3">
-//               <Form.Label>
-//                 <strong>Location</strong>
-//               </Form.Label>
-//               {modalData.status === "Pending" ? (
-//                 <Input
-//                   value={modalData.location}
-//                   onChange={(e) =>
-//                     setModalData({ ...modalData, location: e.target.value })
-//                   }
-//                   placeholder="Enter location"
-//                 />
-//               ) : (
-//                 <p>{modalData.location}</p>
-//               )}
-//             </Form.Group>
-//             <Form.Group className="mb-3">
-//               <Form.Label>
-//                 <strong>Package</strong>
-//               </Form.Label>
-//               <p>{modalData.packageName}</p>
-//             </Form.Group>
-//             <Form.Group className="mb-3">
-//               <Form.Label>
-//                 <strong>Price</strong>
-//               </Form.Label>
-//               <p>{(modalData.price || 0).toLocaleString()} VND</p>
-//             </Form.Group>
-//             <h4>List of Characters:</h4>
-//             {(modalData.listCharacters || []).length > 0 ? (
-//               <ul>
-//                 {(modalData.listCharacters || []).map((char, index) => (
-//                   <li key={index}>
-//                     {char.characterName} - Quantity: {char.quantity}
-//                   </li>
-//                 ))}
-//               </ul>
-//             ) : (
-//               <p>No characters requested.</p>
-//             )}
-//           </Form>
-//         </Modal>
-
-//         {/* Modal chọn mức deposit */}
-//         <Modal
-//           title="Choose Deposit Amount"
-//           open={isDepositModalVisible}
-//           onOk={handleDepositConfirm}
-//           onCancel={() => {
-//             setIsDepositModalVisible(false);
-//             setDepositAmount(null);
-//           }}
-//           okText="Accept"
-//           cancelText="Cancel"
-//         >
-//           <p>Total Price: {(modalData.price || 0).toLocaleString()} VND</p>
-//           <p>Please select a deposit amount:</p>
-//           <Radio.Group
-//             onChange={(e) => setDepositAmount(e.target.value)}
-//             value={depositAmount}
-//           >
-//             <Radio value={50}>
-//               Deposit 50% ({((modalData.price || 0) * 0.5).toLocaleString()}{" "}
-//               VND)
-//             </Radio>
-//             <Radio value={100}>
-//               Deposit 100% {(modalData.price || 0).toLocaleString()} VND
-//             </Radio>
-//           </Radio.Group>
-//         </Modal>
-
-//         {/* Modal thanh toán deposit */}
-//         <Modal
-//           title="Payment Deposit"
-//           open={isPaymentModalVisible}
-//           onOk={handlePaymentConfirm}
-//           onCancel={() => {
-//             setIsPaymentModalVisible(false);
-//             setPaymentMethod(null);
-//           }}
-//           okText="Confirm Payment"
-//           cancelText="Cancel"
-//         >
-//           <p>Total Price: {(modalData.price || 0).toLocaleString()} VND</p>
-//           <p>Please select a payment method:</p>
-//           <Radio.Group
-//             onChange={(e) => setPaymentMethod(e.target.value)}
-//             value={paymentMethod}
-//           >
-//             <Radio value="MoMo">MoMo</Radio>
-//             <Radio value="VNPay">VNPay</Radio>
-//           </Radio.Group>
-//         </Modal>
-//       </Container>
-//     </div>
-//   );
-// };
-
-// export default MyEventOrganize;
-
-//============== xem ten cosplayer trong request ===============//
-// import React, { useState, useEffect } from "react";
-// import { Container, Row, Col, Form, Card, Badge } from "react-bootstrap";
-// import { Pagination, Modal, Input, Button, Tabs, Radio, message } from "antd";
-// import { toast } from "react-toastify";
-// import "react-toastify/dist/ReactToastify.css";
-// import "antd/dist/reset.css";
-// import "../../styles/MyEventOrganize.scss";
-// import MyEventOrganizeService from "../../services/MyEventOrganizeService/MyEventOrganizeService";
-// import { FileText, Calendar, Eye, CreditCard } from "lucide-react";
-// import dayjs from "dayjs";
-
-// const { TabPane } = Tabs;
-// const { TextArea } = Input;
-
-// const MyEventOrganize = () => {
-//   const [requests, setRequests] = useState([]);
-//   const [filteredPendingRequests, setFilteredPendingRequests] = useState([]);
-//   const [filteredActiveContracts, setFilteredActiveContracts] = useState([]);
-//   const [filteredCompletedContracts, setFilteredCompletedContracts] = useState(
-//     []
-//   );
-//   const [loading, setLoading] = useState(false);
-//   const [currentPendingPage, setCurrentPendingPage] = useState(1);
-//   const [currentActivePage, setCurrentActivePage] = useState(1);
-//   const [currentCompletedPage, setCurrentCompletedPage] = useState(1);
-//   const [searchTerm, setSearchTerm] = useState("");
-//   const [isViewEditModalVisible, setIsViewEditModalVisible] = useState(false);
-//   const [isDepositModalVisible, setIsDepositModalVisible] = useState(false);
-//   const [isPaymentModalVisible, setIsPaymentModalVisible] = useState(false);
-//   const [modalData, setModalData] = useState({
-//     requestId: "",
-//     name: "",
-//     description: "",
-//     startDate: "",
-//     endDate: "",
-//     location: "",
-//     packageName: "",
-//     listCharacters: [],
-//     status: "",
-//     price: 0,
-//   });
-//   const [depositAmount, setDepositAmount] = useState(null);
-//   const [paymentMethod, setPaymentMethod] = useState(null);
-//   const [selectedRequestId, setSelectedRequestId] = useState(null);
-
-//   const itemsPerPage = 5;
-//   const accountId = "447fb184-4754-4ca5-be94-6606e0b54ddc"; // Giả định accountId
-
-//   useEffect(() => {
-//     const fetchRequests = async () => {
-//       setLoading(true);
-//       try {
-//         const data = await MyEventOrganizeService.getAllRequestByAccountId(
-//           accountId
-//         );
-//         const filteredRequests = (Array.isArray(data) ? data : []).filter(
-//           (request) => request.serviceId === "S003"
-//         );
-
-//         const requestsWithPackageName = await Promise.all(
-//           filteredRequests.map(async (request) => {
-//             let packageName = "N/A";
-//             if (request.packageId) {
-//               try {
-//                 const packageData = await MyEventOrganizeService.getPackageById(
-//                   request.packageId
-//                 );
-//                 packageName = packageData.packageName || "N/A";
-//               } catch (error) {
-//                 console.warn(
-//                   `Failed to fetch packageName for packageId ${request.packageId}`
-//                 );
-//               }
-//             }
-//             return {
-//               requestId: request.requestId,
-//               name: request.name || "N/A",
-//               description: request.description || "N/A",
-//               startDate: request.startDate,
-//               endDate: request.endDate,
-//               location: request.location || "N/A",
-//               packageName,
-//               listCharacters:
-//                 request.charactersListResponse?.map((char) => ({
-//                   characterId: char.characterId,
-//                   characterName: char.description || "Unknown Character",
-//                   quantity: char.quantity,
-//                 })) || [],
-//               status: request.status || "Unknown",
-//               price: request.price || 0,
-//               serviceId: request.serviceId,
-//             };
-//           })
-//         );
-
-//         setRequests(requestsWithPackageName);
-//       } catch (error) {
-//         toast.error("Failed to load requests. Please try again later.");
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-
-//     fetchRequests();
-//   }, [accountId]);
-
-//   useEffect(() => {
-//     if (requests.length > 0) {
-//       const filterByStatusAndSearch = (status) =>
-//         requests
-//           .filter((request) => request.status === status)
-//           .filter(
-//             (request) =>
-//               request.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-//               dayjs(request.startDate)
-//                 .format("HH:mm DD/MM/YYYY")
-//                 .includes(searchTerm)
-//           );
-
-//       setFilteredPendingRequests(
-//         filterByStatusAndSearch("Pending").concat(
-//           filterByStatusAndSearch("Browsed")
-//         )
-//       );
-//       setFilteredActiveContracts(filterByStatusAndSearch("Active"));
-//       setFilteredCompletedContracts(filterByStatusAndSearch("Completed"));
-//     }
-//   }, [searchTerm, requests]);
-
-//   const paginateItems = (items, currentPage) => {
-//     const indexOfLastItem = currentPage * itemsPerPage;
-//     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-//     return items.slice(indexOfFirstItem, indexOfLastItem);
-//   };
-
-//   const currentPendingItems = paginateItems(
-//     filteredPendingRequests,
-//     currentPendingPage
-//   );
-//   const currentActiveItems = paginateItems(
-//     filteredActiveContracts,
-//     currentActivePage
-//   );
-//   const currentCompletedItems = paginateItems(
-//     filteredCompletedContracts,
-//     currentCompletedPage
-//   );
-
-//   const handlePendingPageChange = (page) => setCurrentPendingPage(page);
-//   const handleActivePageChange = (page) => setCurrentActivePage(page);
-//   const handleCompletedPageChange = (page) => setCurrentCompletedPage(page);
-
-//   const handleViewEditRequest = async (request) => {
-//     try {
-//       const requestData = await MyEventOrganizeService.getRequestByRequestId(
-//         request.requestId
-//       );
-//       const charactersList = requestData?.charactersListResponse || [];
-
-//       const listCharacters = await Promise.all(
-//         charactersList.map(async (char) => {
-//           let cosplayerName = "Not Assigned";
-//           if (char.cosplayerId) {
-//             try {
-//               const cosplayerData =
-//                 await MyEventOrganizeService.getNameCosplayerInRequestByCosplayerId(
-//                   char.cosplayerId
-//                 );
-//               cosplayerName = cosplayerData?.name || "Unknown";
-//             } catch (error) {
-//               console.warn(
-//                 `Failed to fetch cosplayer for ID ${char.cosplayerId}:`,
-//                 error
-//               );
-//             }
-//           }
-//           return {
-//             characterId: char.characterId,
-//             characterName: char.description || "Unknown Character",
-//             cosplayerName,
-//             quantity: char.quantity,
-//           };
-//         })
-//       );
-
-//       setModalData({
-//         requestId: request.requestId,
-//         name: requestData.name || request.name || "",
-//         description: requestData.description || request.description || "",
-//         startDate: requestData.startDate
-//           ? dayjs(requestData.startDate).format("HH:mm DD/MM/YYYY")
-//           : "N/A",
-//         endDate: requestData.endDate
-//           ? dayjs(requestData.endDate).format("HH:mm DD/MM/YYYY")
-//           : "N/A",
-//         location: requestData.location || request.location || "",
-//         packageName: request.packageName || "N/A",
-//         listCharacters,
-//         status: requestData.status || request.status || "N/A",
-//         price: requestData.price || request.price || 0,
-//       });
-//       setIsViewEditModalVisible(true);
-//     } catch (error) {
-//       toast.error("Failed to fetch request details");
-//       console.error("Error in handleViewEditRequest:", error);
-//     }
-//   };
-
-//   const handleViewEditConfirm = async () => {
-//     if (!modalData.name.trim()) {
-//       toast.error("Event name cannot be empty!");
-//       return;
-//     }
-
-//     if (modalData.status === "Pending") {
-//       try {
-//         const requestData = {
-//           name: modalData.name,
-//           startDate: modalData.startDate,
-//           endDate: modalData.endDate,
-//           location: modalData.location,
-//           serviceId: "S003",
-//           listUpdateRequestCharacters: modalData.listCharacters.map((char) => ({
-//             characterId: char.characterName,
-//             cosplayerId: null, // Không chỉnh sửa cosplayerId qua UI
-//             description: char.characterName,
-//             quantity: char.quantity,
-//           })),
-//         };
-
-//         await MyEventOrganizeService.editRequest(
-//           modalData.requestId,
-//           requestData
-//         );
-
-//         setRequests((prev) =>
-//           prev.map((req) =>
-//             req.requestId === modalData.requestId
-//               ? { ...req, ...modalData }
-//               : req
-//           )
-//         );
-//         toast.success("Request updated successfully!");
-//       } catch (error) {
-//         toast.error("Failed to update request. Please try again.");
-//       }
-//     }
-
-//     setIsViewEditModalVisible(false);
-//   };
-
-//   const handleDepositRequest = (request) => {
-//     setSelectedRequestId(request.requestId);
-//     setModalData({
-//       requestId: request.requestId,
-//       name: request.name || "N/A",
-//       description: request.description || "N/A",
-//       startDate: request.startDate
-//         ? dayjs(request.startDate).format("HH:mm DD/MM/YYYY")
-//         : "N/A",
-//       endDate: request.endDate
-//         ? dayjs(request.endDate).format("HH:mm DD/MM/YYYY")
-//         : "N/A",
-//       location: request.location || "N/A",
-//       packageName: request.packageName || "N/A",
-//       listCharacters: request.listCharacters || [],
-//       status: request.status || "N/A",
-//       price: request.price || 0,
-//     });
-//     setIsDepositModalVisible(true);
-//   };
-
-//   const handleDepositConfirm = () => {
-//     if (depositAmount === null) {
-//       message.warning("Please select a deposit amount.");
-//       return;
-//     }
-//     const depositValue =
-//       depositAmount === 50 ? modalData.price * 0.5 : modalData.price;
-//     toast.success(
-//       `Deposit of ${depositValue.toLocaleString()} VND confirmed! Moving to Payment Deposit Contract tab.`
-//     );
-//     setRequests((prev) =>
-//       prev.map((req) =>
-//         req.requestId === selectedRequestId ? { ...req, status: "Active" } : req
-//       )
-//     );
-//     setIsDepositModalVisible(false);
-//     setDepositAmount(null);
-//     setSelectedRequestId(null);
-//   };
-
-//   const handlePaymentRequest = (contract) => {
-//     setSelectedRequestId(contract.requestId);
-//     setModalData({
-//       requestId: contract.requestId,
-//       name: contract.name || "N/A",
-//       description: contract.description || "N/A",
-//       startDate: contract.startDate
-//         ? dayjs(contract.startDate).format("HH:mm DD/MM/YYYY")
-//         : "N/A",
-//       endDate: contract.endDate
-//         ? dayjs(contract.endDate).format("HH:mm DD/MM/YYYY")
-//         : "N/A",
-//       location: contract.location || "N/A",
-//       packageName: contract.packageName || "N/A",
-//       listCharacters: contract.listCharacters || [],
-//       status: contract.status || "N/A",
-//       price: contract.price || 0,
-//     });
-//     setIsPaymentModalVisible(true);
-//   };
-
-//   const handlePaymentConfirm = () => {
-//     if (paymentMethod === null) {
-//       message.warning("Please select a payment method.");
-//       return;
-//     }
-//     toast.success(
-//       `Payment via ${paymentMethod} completed! Moving to Completed Contract tab.`
-//     );
-//     setRequests((prev) =>
-//       prev.map((req) =>
-//         req.requestId === selectedRequestId
-//           ? { ...req, status: "Completed" }
-//           : req
-//       )
-//     );
-//     setIsPaymentModalVisible(false);
-//     setPaymentMethod(null);
-//     setSelectedRequestId(null);
-//   };
-
-//   const getStatusBadge = (status) => {
-//     const statusColors = {
-//       Pending: "primary",
-//       Browsed: "success",
-//       Active: "warning",
-//       Completed: "success",
-//     };
-//     return (
-//       <Badge bg={statusColors[status] || "secondary"}>
-//         {status || "Unknown"}
-//       </Badge>
-//     );
-//   };
-
-//   return (
-//     <div className="my-event-organize bg-light min-vh-100">
-//       <Container className="py-5">
-//         <h1 className="text-center mb-5 fw-bold title-my-event">
-//           <span>My Event Organize</span>
-//         </h1>
-
-//         <div className="filter-section bg-white p-4 rounded shadow mb-5">
-//           <Row className="align-items-center g-3">
-//             <Col md={12}>
-//               <Form.Control
-//                 type="text"
-//                 placeholder="Search by name or date (HH:mm DD/MM/YYYY)..."
-//                 value={searchTerm}
-//                 onChange={(e) => setSearchTerm(e.target.value)}
-//                 className="search-input"
-//               />
-//             </Col>
-//           </Row>
-//         </div>
-
-//         <Tabs defaultActiveKey="1" type="card">
-//           <TabPane tab="Request Pending and Choose Deposit" key="1">
-//             {loading ? (
-//               <p className="text-center">Loading...</p>
-//             ) : currentPendingItems.length === 0 ? (
-//               <p className="text-center">No pending requests found.</p>
-//             ) : (
-//               <>
-//                 <Row className="g-4">
-//                   {currentPendingItems.map((request) => (
-//                     <Col key={request.requestId} xs={12}>
-//                       <Card className="event-card shadow">
-//                         <Card.Body>
-//                           <div className="d-flex flex-column flex-md-row gap-4">
-//                             <div className="flex-grow-1">
-//                               <div className="d-flex gap-3">
-//                                 <div className="icon-circle">
-//                                   <FileText size={24} />
-//                                 </div>
-//                                 <div className="flex-grow-1">
-//                                   <div className="d-flex justify-content-between align-items-start">
-//                                     <h3 className="event-title mb-0">
-//                                       {request.name || "N/A"}
-//                                     </h3>
-//                                     {getStatusBadge(request.status)}
-//                                   </div>
-//                                   <div className="text-muted small mt-1">
-//                                     <Calendar size={16} className="me-1" />
-//                                     Start Date:{" "}
-//                                     {dayjs(request.startDate).format(
-//                                       "HH:mm DD/MM/YYYY"
-//                                     ) || "N/A"}
-//                                   </div>
-//                                   <div className="text-muted small mt-1">
-//                                     Package: {request.packageName || "N/A"}
-//                                   </div>
-//                                   <div className="text-muted small mt-1">
-//                                     Price:{" "}
-//                                     {(request.price || 0).toLocaleString()} VND
-//                                   </div>
-//                                 </div>
-//                               </div>
-//                             </div>
-//                             <div className="text-md-end">
-//                               <div className="d-flex gap-2 justify-content-md-end">
-//                                 <Button
-//                                   type="primary"
-//                                   size="small"
-//                                   className="btn-view-edit"
-//                                   onClick={() => handleViewEditRequest(request)}
-//                                 >
-//                                   <Eye size={16} className="me-1" />
-//                                   {request.status === "Pending"
-//                                     ? "View/Edit"
-//                                     : "View"}
-//                                 </Button>
-//                                 {request.status === "Browsed" && (
-//                                   <Button
-//                                     size="small"
-//                                     className="btn-deposit"
-//                                     onClick={() =>
-//                                       handleDepositRequest(request)
-//                                     }
-//                                   >
-//                                     <CreditCard size={16} className="me-1" />
-//                                     Choose Deposit
-//                                   </Button>
-//                                 )}
-//                               </div>
-//                             </div>
-//                           </div>
-//                         </Card.Body>
-//                       </Card>
-//                     </Col>
-//                   ))}
-//                 </Row>
-//                 <Row className="mt-5 align-items-center">
-//                   <Col xs={12} sm={6} className="mb-3 mb-sm-0">
-//                     <p className="mb-0">
-//                       Showing{" "}
-//                       <strong>
-//                         {(currentPendingPage - 1) * itemsPerPage + 1}
-//                       </strong>{" "}
-//                       to{" "}
-//                       <strong>
-//                         {Math.min(
-//                           currentPendingPage * itemsPerPage,
-//                           filteredPendingRequests.length
-//                         )}
-//                       </strong>{" "}
-//                       of <strong>{filteredPendingRequests.length}</strong>{" "}
-//                       results
-//                     </p>
-//                   </Col>
-//                   <Col xs={12} sm={6} className="d-flex justify-content-end">
-//                     <Pagination
-//                       current={currentPendingPage}
-//                       pageSize={itemsPerPage}
-//                       total={filteredPendingRequests.length}
-//                       onChange={handlePendingPageChange}
-//                       showSizeChanger={false}
-//                     />
-//                   </Col>
-//                 </Row>
-//               </>
-//             )}
-//           </TabPane>
-
-//           <TabPane tab="Payment Deposit Contract" key="2">
-//             {loading ? (
-//               <p className="text-center">Loading...</p>
-//             ) : currentActiveItems.length === 0 ? (
-//               <p className="text-center">No active contracts found.</p>
-//             ) : (
-//               <>
-//                 <Row className="g-4">
-//                   {currentActiveItems.map((contract) => (
-//                     <Col key={contract.requestId} xs={12}>
-//                       <Card className="event-card shadow">
-//                         <Card.Body>
-//                           <div className="d-flex flex-column flex-md-row gap-4">
-//                             <div className="flex-grow-1">
-//                               <div className="d-flex gap-3">
-//                                 <div className="icon-circle">
-//                                   <FileText size={24} />
-//                                 </div>
-//                                 <div className="flex-grow-1">
-//                                   <div className="d-flex justify-content-between align-items-start">
-//                                     <h3 className="event-title mb-0">
-//                                       {contract.name || "N/A"}
-//                                     </h3>
-//                                     {getStatusBadge("Active")}
-//                                   </div>
-//                                   <div className="text-muted small mt-1">
-//                                     <Calendar size={16} className="me-1" />
-//                                     Start Date:{" "}
-//                                     {dayjs(contract.startDate).format(
-//                                       "HH:mm DD/MM/YYYY"
-//                                     ) || "N/A"}
-//                                   </div>
-//                                   <div className="text-muted small mt-1">
-//                                     Package: {contract.packageName || "N/A"}
-//                                   </div>
-//                                   <div className="text-muted small mt-1">
-//                                     Price:{" "}
-//                                     {(contract.price || 0).toLocaleString()} VND
-//                                   </div>
-//                                   <div className="text-muted small mt-1">
-//                                     Status: Awaiting Payment
-//                                   </div>
-//                                 </div>
-//                               </div>
-//                             </div>
-//                             <div className="text-md-end">
-//                               <div className="d-flex gap-2 justify-content-md-end">
-//                                 <Button
-//                                   type="primary"
-//                                   size="small"
-//                                   className="btn-view-edit"
-//                                   onClick={() =>
-//                                     handleViewEditRequest(contract)
-//                                   }
-//                                 >
-//                                   <Eye size={16} className="me-1" />
-//                                   View
-//                                 </Button>
-//                                 <Button
-//                                   size="small"
-//                                   className="btn-payment"
-//                                   onClick={() => handlePaymentRequest(contract)}
-//                                 >
-//                                   <CreditCard size={16} className="me-1" />
-//                                   Payment Deposit
-//                                 </Button>
-//                               </div>
-//                             </div>
-//                           </div>
-//                         </Card.Body>
-//                       </Card>
-//                     </Col>
-//                   ))}
-//                 </Row>
-//                 <Row className="mt-5 align-items-center">
-//                   <Col xs={12} sm={6} className="mb-3 mb-sm-0">
-//                     <p className="mb-0">
-//                       Showing{" "}
-//                       <strong>
-//                         {(currentActivePage - 1) * itemsPerPage + 1}
-//                       </strong>{" "}
-//                       to{" "}
-//                       <strong>
-//                         {Math.min(
-//                           currentActivePage * itemsPerPage,
-//                           filteredActiveContracts.length
-//                         )}
-//                       </strong>{" "}
-//                       of <strong>{filteredActiveContracts.length}</strong>{" "}
-//                       results
-//                     </p>
-//                   </Col>
-//                   <Col xs={12} sm={6} className="d-flex justify-content-end">
-//                     <Pagination
-//                       current={currentActivePage}
-//                       pageSize={itemsPerPage}
-//                       total={filteredActiveContracts.length}
-//                       onChange={handleActivePageChange}
-//                       showSizeChanger={false}
-//                     />
-//                   </Col>
-//                 </Row>
-//               </>
-//             )}
-//           </TabPane>
-
-//           <TabPane tab="Completed Contract" key="3">
-//             {loading ? (
-//               <p className="text-center">Loading...</p>
-//             ) : currentCompletedItems.length === 0 ? (
-//               <p className="text-center">No completed contracts found.</p>
-//             ) : (
-//               <>
-//                 <Row className="g-4">
-//                   {currentCompletedItems.map((contract) => (
-//                     <Col key={contract.requestId} xs={12}>
-//                       <Card className="event-card shadow">
-//                         <Card.Body>
-//                           <div className="d-flex flex-column flex-md-row gap-4">
-//                             <div className="flex-grow-1">
-//                               <div className="d-flex gap-3">
-//                                 <div className="icon-circle">
-//                                   <FileText size={24} />
-//                                 </div>
-//                                 <div className="flex-grow-1">
-//                                   <div className="d-flex justify-content-between align-items-start">
-//                                     <h3 className="event-title mb-0">
-//                                       {contract.name || "N/A"}
-//                                     </h3>
-//                                     {getStatusBadge(contract.status)}
-//                                   </div>
-//                                   <div className="text-muted small mt-1">
-//                                     <Calendar size={16} className="me-1" />
-//                                     Start Date:{" "}
-//                                     {dayjs(contract.startDate).format(
-//                                       "HH:mm DD/MM/YYYY"
-//                                     ) || "N/A"}
-//                                   </div>
-//                                   <div className="text-muted small mt-1">
-//                                     Package: {contract.packageName || "N/A"}
-//                                   </div>
-//                                   <div className="text-muted small mt-1">
-//                                     Price:{" "}
-//                                     {(contract.price || 0).toLocaleString()} VND
-//                                   </div>
-//                                 </div>
-//                               </div>
-//                             </div>
-//                             <div className="text-md-end">
-//                               <Button
-//                                 type="primary"
-//                                 size="small"
-//                                 className="btn-view-edit"
-//                                 onClick={() => handleViewEditRequest(contract)}
-//                               >
-//                                 <Eye size={16} className="me-1" />
-//                                 View
-//                               </Button>
-//                             </div>
-//                           </div>
-//                         </Card.Body>
-//                       </Card>
-//                     </Col>
-//                   ))}
-//                 </Row>
-//                 <Row className="mt-5 align-items-center">
-//                   <Col xs={12} sm={6} className="mb-3 mb-sm-0">
-//                     <p className="mb-0">
-//                       Showing{" "}
-//                       <strong>
-//                         {(currentCompletedPage - 1) * itemsPerPage + 1}
-//                       </strong>{" "}
-//                       to{" "}
-//                       <strong>
-//                         {Math.min(
-//                           currentCompletedPage * itemsPerPage,
-//                           filteredCompletedContracts.length
-//                         )}
-//                       </strong>{" "}
-//                       of <strong>{filteredCompletedContracts.length}</strong>{" "}
-//                       results
-//                     </p>
-//                   </Col>
-//                   <Col xs={12} sm={6} className="d-flex justify-content-end">
-//                     <Pagination
-//                       current={currentCompletedPage}
-//                       pageSize={itemsPerPage}
-//                       total={filteredCompletedContracts.length}
-//                       onChange={handleCompletedPageChange}
-//                       showSizeChanger={false}
-//                     />
-//                   </Col>
-//                 </Row>
-//               </>
-//             )}
-//           </TabPane>
-//         </Tabs>
-
-//         <Modal
-//           title={
-//             modalData.status === "Pending"
-//               ? "View/Edit Event Request"
-//               : "View Event Request"
-//           }
-//           open={isViewEditModalVisible}
-//           onOk={
-//             modalData.status === "Pending"
-//               ? handleViewEditConfirm
-//               : () => setIsViewEditModalVisible(false)
-//           }
-//           onCancel={() => setIsViewEditModalVisible(false)}
-//           okText={modalData.status === "Pending" ? "Save" : "Close"}
-//           cancelText="Cancel"
-//           cancelButtonProps={{
-//             style: {
-//               display: modalData.status === "Pending" ? "inline" : "none",
-//             },
-//           }}
-//         >
-//           <Form>
-//             <Form.Group className="mb-3">
-//               <Form.Label>
-//                 <strong>Name</strong>
-//               </Form.Label>
-//               {modalData.status === "Pending" ? (
-//                 <Input
-//                   value={modalData.name}
-//                   onChange={(e) =>
-//                     setModalData({ ...modalData, name: e.target.value })
-//                   }
-//                   placeholder="Enter event name"
-//                 />
-//               ) : (
-//                 <p>{modalData.name}</p>
-//               )}
-//             </Form.Group>
-//             <Form.Group className="mb-3">
-//               <Form.Label>
-//                 <strong>Description</strong>
-//               </Form.Label>
-//               {modalData.status === "Pending" ? (
-//                 <TextArea
-//                   value={modalData.description}
-//                   onChange={(e) =>
-//                     setModalData({ ...modalData, description: e.target.value })
-//                   }
-//                   placeholder="Enter description"
-//                 />
-//               ) : (
-//                 <p>{modalData.description}</p>
-//               )}
-//             </Form.Group>
-//             <Form.Group className="mb-3">
-//               <Form.Label>
-//                 <strong>Start Date</strong>
-//               </Form.Label>
-//               <p>{modalData.startDate}</p>
-//             </Form.Group>
-//             <Form.Group className="mb-3">
-//               <Form.Label>
-//                 <strong>End Date</strong>
-//               </Form.Label>
-//               <p>{modalData.endDate}</p>
-//             </Form.Group>
-//             <Form.Group className="mb-3">
-//               <Form.Label>
-//                 <strong>Location</strong>
-//               </Form.Label>
-//               {modalData.status === "Pending" ? (
-//                 <Input
-//                   value={modalData.location}
-//                   onChange={(e) =>
-//                     setModalData({ ...modalData, location: e.target.value })
-//                   }
-//                   placeholder="Enter location"
-//                 />
-//               ) : (
-//                 <p>{modalData.location}</p>
-//               )}
-//             </Form.Group>
-//             <Form.Group className="mb-3">
-//               <Form.Label>
-//                 <strong>Package</strong>
-//               </Form.Label>
-//               <p>{modalData.packageName}</p>
-//             </Form.Group>
-//             <Form.Group className="mb-3">
-//               <Form.Label>
-//                 <strong>Price</strong>
-//               </Form.Label>
-//               <p>{(modalData.price || 0).toLocaleString()} VND</p>
-//             </Form.Group>
-//             <h4>List of Characters:</h4>
-//             {(modalData.listCharacters || []).length > 0 ? (
-//               <ul>
-//                 {(modalData.listCharacters || []).map((char, index) => (
-//                   <li key={index}>
-//                     {char.characterName} - Cosplayer: {char.cosplayerName} -
-//                     Quantity: {char.quantity}
-//                   </li>
-//                 ))}
-//               </ul>
-//             ) : (
-//               <p>No characters requested.</p>
-//             )}
-//           </Form>
-//         </Modal>
-
-//         <Modal
-//           title="Choose Deposit Amount"
-//           open={isDepositModalVisible}
-//           onOk={handleDepositConfirm}
-//           onCancel={() => {
-//             setIsDepositModalVisible(false);
-//             setDepositAmount(null);
-//           }}
-//           okText="Accept"
-//           cancelText="Cancel"
-//         >
-//           <p>Total Price: {(modalData.price || 0).toLocaleString()} VND</p>
-//           <p>Please select a deposit amount:</p>
-//           <Radio.Group
-//             onChange={(e) => setDepositAmount(e.target.value)}
-//             value={depositAmount}
-//           >
-//             <Radio value={50}>
-//               Deposit 50% ({((modalData.price || 0) * 0.5).toLocaleString()}{" "}
-//               VND)
-//             </Radio>
-//             <Radio value={100}>
-//               Deposit 100% {(modalData.price || 0).toLocaleString()} VND
-//             </Radio>
-//           </Radio.Group>
-//         </Modal>
-
-//         <Modal
-//           title="Payment Deposit"
-//           open={isPaymentModalVisible}
-//           onOk={handlePaymentConfirm}
-//           onCancel={() => {
-//             setIsPaymentModalVisible(false);
-//             setPaymentMethod(null);
-//           }}
-//           okText="Confirm Payment"
-//           cancelText="Cancel"
-//         >
-//           <p>Total Price: {(modalData.price || 0).toLocaleString()} VND</p>
-//           <p>Please select a payment method:</p>
-//           <Radio.Group
-//             onChange={(e) => setPaymentMethod(e.target.value)}
-//             value={paymentMethod}
-//           >
-//             <Radio value="MoMo">MoMo</Radio>
-//             <Radio value="VNPay">VNPay</Radio>
-//           </Radio.Group>
-//         </Modal>
-//       </Container>
-//     </div>
-//   );
-// };
-
-// export default MyEventOrganize;
-
-//======= chỉnh lại giá và list cos char
-// import React, { useState, useEffect } from "react";
-// import { Container, Row, Col, Form, Card, Badge } from "react-bootstrap";
-// import { Pagination, Modal, Input, Button, Tabs, Radio, message } from "antd";
-// import { toast } from "react-toastify";
-// import "react-toastify/dist/ReactToastify.css";
-// import "antd/dist/reset.css";
-// import "../../styles/MyEventOrganize.scss";
-// import MyEventOrganizeService from "../../services/MyEventOrganizeService/MyEventOrganizeService";
-// import { FileText, Calendar, Eye, CreditCard } from "lucide-react";
+// import DetailEventOrganizationPageService from "../../services/DetailEventOrganizationPageService/DetailEventOrganizationPageService";
+// import {
+//   FileText,
+//   Calendar,
+//   Eye,
+//   CreditCard,
+//   DollarSign,
+//   MapPin,
+// } from "lucide-react";
 // import dayjs from "dayjs";
 // import { jwtDecode } from "jwt-decode";
 
 // const { TabPane } = Tabs;
-// const { TextArea } = Input;
+// const { Panel } = Collapse;
+
+// const formatDate = (date) => {
+//   if (!date || date === "null" || date === "undefined" || date === "")
+//     return "N/A";
+//   const parsedDate = dayjs(
+//     date,
+//     ["DD/MM/YYYY", "YYYY-MM-DD", "HH:mm DD/MM/YYYY"],
+//     true
+//   );
+//   return parsedDate.isValid()
+//     ? parsedDate.format("DD/MM/YYYY")
+//     : "Invalid Date";
+// };
 
 // const MyEventOrganize = () => {
 //   const [requests, setRequests] = useState([]);
@@ -1684,6 +59,9 @@
 //   const [isViewEditModalVisible, setIsViewEditModalVisible] = useState(false);
 //   const [isDepositModalVisible, setIsDepositModalVisible] = useState(false);
 //   const [isPaymentModalVisible, setIsPaymentModalVisible] = useState(false);
+//   const [isViewDetailsModalVisible, setIsViewDetailsModalVisible] =
+//     useState(false);
+//   const [selectedRequestId, setSelectedRequestId] = useState(null);
 //   const [modalData, setModalData] = useState({
 //     requestId: "",
 //     name: "",
@@ -1691,19 +69,26 @@
 //     startDate: "",
 //     endDate: "",
 //     location: "",
-//     packageName: "",
-//     packagePrice: 0,
+//     packageId: "",
 //     listCharacters: [],
 //     status: "",
 //     price: 0,
+//     deposit: null,
+//     accountId: "",
+//     serviceId: "",
+//     reason: null,
+//     totalDate: 0,
+//     accountCouponId: null,
 //   });
 //   const [depositAmount, setDepositAmount] = useState(null);
 //   const [paymentMethod, setPaymentMethod] = useState(null);
-//   const [selectedRequestId, setSelectedRequestId] = useState(null);
+//   const [packages, setPackages] = useState([]);
+//   const [characters, setCharacters] = useState([]);
+//   const [packagePrice, setPackagePrice] = useState(0);
+//   const [characterPrices, setCharacterPrices] = useState({});
 
 //   const itemsPerPage = 5;
 
-//   // Lấy accountId từ accessToken
 //   const getAccountIdFromToken = () => {
 //     const token = localStorage.getItem("accessToken");
 //     if (token) {
@@ -1737,108 +122,82 @@
 //           (request) => request.serviceId === "S003"
 //         );
 
-//         const requestsWithDetails = await Promise.all(
-//           filteredRequests.map(async (request) => {
-//             let packageName = "N/A";
-//             let packagePrice = 0;
-//             if (request.packageId) {
-//               try {
-//                 const packageData = await MyEventOrganizeService.getPackageById(
-//                   request.packageId
-//                 );
-//                 packageName = packageData.packageName || "N/A";
-//                 packagePrice = packageData.price || 0;
-//               } catch (error) {
-//                 console.warn(
-//                   `Failed to fetch package for packageId ${request.packageId}:`,
-//                   error
-//                 );
-//               }
-//             }
+//         const formattedRequests = filteredRequests.map((request) => ({
+//           requestId: request.requestId,
+//           name: request.name || "N/A",
+//           description: request.description || "N/A",
+//           startDate: formatDate(request.startDate),
+//           endDate: formatDate(request.endDate),
+//           location: request.location || "N/A",
+//           packageId: request.packageId || "N/A",
+//           listCharacters: (request.charactersListResponse || []).map(
+//             (char) => ({
+//               requestCharacterId: char.requestCharacterId || "",
+//               characterId: char.characterId,
+//               characterName: char.characterName || "Unknown Character",
+//               quantity: char.quantity || 1,
+//               description: char.description || "N/A",
+//               characterImages: char.characterImages || [],
+//               requestDateResponses: char.requestDateResponses || [],
+//               maxHeight: char.maxHeight,
+//               maxWeight: char.maxWeight,
+//               minHeight: char.minHeight,
+//               minWeight: char.minWeight,
+//               status: char.status,
+//             })
+//           ),
+//           status: request.status || "Unknown",
+//           price: request.price || 0,
+//           deposit: request.deposit || null,
+//           serviceId: request.serviceId,
+//         }));
 
-//             const charactersList = request.charactersListResponse || [];
-//             let totalCharactersPrice = 0;
-//             const listCharacters = await Promise.all(
-//               charactersList.map(async (char) => {
-//                 let cosplayerName = "Not Assigned";
-//                 let salaryIndex = 1;
-//                 let characterPrice = 0;
-//                 let characterName = "Unknown Character";
-
-//                 // Lấy thông tin character
-//                 try {
-//                   const characterData =
-//                     await MyEventOrganizeService.getCharacterById(
-//                       char.characterId
-//                     );
-//                   characterName =
-//                     characterData.characterName || "Unknown Character";
-//                   characterPrice = characterData.price || 0;
-//                 } catch (error) {
-//                   console.warn(
-//                     `Failed to fetch character for ID ${char.characterId}:`,
-//                     error
-//                   );
-//                 }
-
-//                 // Lấy thông tin cosplayer nếu có
-//                 if (char.cosplayerId) {
-//                   try {
-//                     const cosplayerData =
-//                       await MyEventOrganizeService.getNameCosplayerInRequestByCosplayerId(
-//                         char.cosplayerId
-//                       );
-//                     cosplayerName = cosplayerData?.name || "Unknown";
-//                     salaryIndex = cosplayerData?.salaryIndex || 1;
-//                   } catch (error) {
-//                     console.warn(
-//                       `Failed to fetch cosplayer for ID ${char.cosplayerId}:`,
-//                       error
-//                     );
-//                   }
-//                 }
-
-//                 const price = characterPrice * char.quantity * salaryIndex;
-//                 totalCharactersPrice += price;
-
-//                 return {
-//                   characterId: char.characterId,
-//                   characterName,
-//                   cosplayerName,
-//                   quantity: char.quantity,
-//                   price,
-//                 };
-//               })
-//             );
-
-//             const totalPrice = packagePrice + totalCharactersPrice;
-
-//             return {
-//               requestId: request.requestId,
-//               name: request.name || "N/A",
-//               description: request.description || "N/A",
-//               startDate: request.startDate,
-//               endDate: request.endDate,
-//               location: request.location || "N/A",
-//               packageName,
-//               packagePrice,
-//               listCharacters,
-//               status: request.status || "Unknown",
-//               price: totalPrice,
-//               serviceId: request.serviceId,
-//             };
-//           })
-//         );
-
-//         setRequests(requestsWithDetails);
+//         setRequests(formattedRequests);
 //       } catch (error) {
 //         toast.error("Failed to load requests. Please try again later.");
+//         console.error("Error fetching requests:", error);
 //       } finally {
 //         setLoading(false);
 //       }
 //     };
 
+//     const fetchPackages = async () => {
+//       try {
+//         const data = await DetailEventOrganizationPageService.getAllPackages();
+//         setPackages(data || []);
+//       } catch (error) {
+//         console.error("Error fetching packages:", error);
+//       }
+//     };
+
+//     const fetchCharacters = async () => {
+//       try {
+//         const data = await MyEventOrganizeService.getAllCharacters();
+//         const formattedCharacters = data.map((char) => ({
+//           characterId: char.characterId,
+//           characterName: char.characterName,
+//           price: char.price,
+//           description: char.description,
+//           maxHeight: char.maxHeight,
+//           maxWeight: char.maxWeight,
+//           minHeight: char.minHeight,
+//           minWeight: char.minWeight,
+//           images: char.images || [],
+//           isActive: char.isActive,
+//           categoryId: char.categoryId,
+//           createDate: char.createDate,
+//           updateDate: char.updateDate,
+//         }));
+//         setCharacters(formattedCharacters || []);
+//       } catch (error) {
+//         console.error("Error fetching characters:", error);
+//         toast.error("Failed to load characters.");
+//       }
+//     };
+
 //     fetchRequests();
+//     fetchPackages();
+//     fetchCharacters();
 //   }, [accountId]);
 
 //   useEffect(() => {
@@ -1849,9 +208,7 @@
 //           .filter(
 //             (request) =>
 //               request.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-//               dayjs(request.startDate)
-//                 .format("HH:mm DD/MM/YYYY")
-//                 .includes(searchTerm)
+//               request.startDate.includes(searchTerm)
 //           );
 
 //       setFilteredPendingRequests(
@@ -1863,6 +220,66 @@
 //       setFilteredCompletedContracts(filterByStatusAndSearch("Completed"));
 //     }
 //   }, [searchTerm, requests]);
+
+//   useEffect(() => {
+//     const calculatePrice = async () => {
+//       if (
+//         !modalData.packageId ||
+//         !modalData.startDate ||
+//         !modalData.endDate ||
+//         !modalData.listCharacters.length
+//       ) {
+//         setModalData((prev) => ({ ...prev, price: 0 }));
+//         return;
+//       }
+
+//       try {
+//         const packageData = await MyEventOrganizeService.getPackageById(
+//           modalData.packageId
+//         );
+//         const pkgPrice = packageData.price || 0;
+//         setPackagePrice(pkgPrice);
+
+//         const charPricePromises = modalData.listCharacters.map(async (char) => {
+//           if (char.characterId) {
+//             const charData = await MyEventOrganizeService.getCharacterById(
+//               char.characterId
+//             );
+//             return { [char.characterId]: charData.price || 0 };
+//           }
+//           return {};
+//         });
+//         const charPriceResults = await Promise.all(charPricePromises);
+//         const newCharPrices = Object.assign({}, ...charPriceResults);
+//         setCharacterPrices(newCharPrices);
+
+//         const start = dayjs(modalData.startDate, "DD/MM/YYYY");
+//         const end = dayjs(modalData.endDate, "DD/MM/YYYY");
+//         const totalDays = end.diff(start, "day") + 1;
+
+//         const totalCharPrice = modalData.listCharacters.reduce((sum, char) => {
+//           const charPrice = newCharPrices[char.characterId] || 0;
+//           return sum + charPrice * (char.quantity || 1);
+//         }, 0);
+
+//         const newPrice = pkgPrice + totalCharPrice * totalDays;
+//         setModalData((prev) => ({ ...prev, price: newPrice }));
+//       } catch (error) {
+//         console.error("Error calculating price:", error);
+//         toast.error("Failed to calculate price.");
+//       }
+//     };
+
+//     if (isViewEditModalVisible && modalData.status === "Pending") {
+//       calculatePrice();
+//     }
+//   }, [
+//     modalData.packageId,
+//     modalData.listCharacters,
+//     modalData.startDate,
+//     modalData.endDate,
+//     isViewEditModalVisible,
+//   ]);
 
 //   const paginateItems = (items, currentPage) => {
 //     const indexOfLastItem = currentPage * itemsPerPage;
@@ -1887,130 +304,252 @@
 //   const handleActivePageChange = (page) => setCurrentActivePage(page);
 //   const handleCompletedPageChange = (page) => setCurrentCompletedPage(page);
 
-//   const handleViewEditRequest = (request) => {
-//     setModalData({
-//       requestId: request.requestId,
-//       name: request.name,
-//       description: request.description,
-//       startDate: request.startDate
-//         ? dayjs(request.startDate).format("HH:mm DD/MM/YYYY")
-//         : "N/A",
-//       endDate: request.endDate
-//         ? dayjs(request.endDate).format("HH:mm DD/MM/YYYY")
-//         : "N/A",
-//       location: request.location,
-//       packageName: request.packageName,
-//       packagePrice: request.packagePrice,
-//       listCharacters: request.listCharacters,
-//       status: request.status,
-//       price: request.price,
-//     });
-//     setIsViewEditModalVisible(true);
-//   };
-
-//   const handleViewEditConfirm = async () => {
-//     if (!modalData.name.trim()) {
-//       toast.error("Event name cannot be empty!");
+//   const handleViewEditRequest = async (request) => {
+//     if (!request?.requestId) {
+//       toast.error("Invalid request data");
 //       return;
 //     }
 
-//     if (modalData.status === "Pending") {
-//       try {
-//         const requestData = {
-//           name: modalData.name,
-//           startDate: modalData.startDate,
-//           endDate: modalData.endDate,
-//           location: modalData.location,
-//           serviceId: "S003",
-//           listUpdateRequestCharacters: modalData.listCharacters.map((char) => ({
-//             characterId: char.characterId,
-//             cosplayerId: null,
-//             description: char.characterName,
-//             quantity: char.quantity,
-//           })),
-//         };
+//     setLoading(true);
+//     try {
+//       const response = await MyEventOrganizeService.getRequestByRequestId(
+//         request.requestId
+//       );
+//       setModalData({
+//         requestId: response.requestId || "",
+//         name: response.name || "",
+//         description: response.description || "",
+//         startDate: response.startDate ? formatDate(response.startDate) : "",
+//         endDate: response.endDate ? formatDate(response.endDate) : "",
+//         location: response.location || "",
+//         packageId: response.packageId || "",
+//         listCharacters: (response.charactersListResponse || []).map((char) => ({
+//           requestCharacterId: char.requestCharacterId || "",
+//           characterId: char.characterId || "",
+//           characterName: char.characterName || "Unknown Character",
+//           quantity: char.quantity || 1,
+//           description: char.description || "",
+//           cosplayerId: char.cosplayerId || null,
+//           characterImages: char.characterImages || [],
+//           requestDateResponses: (char.requestDateResponses || []).map(
+//             (date) => ({
+//               requestDateId: date.requestDateId || "",
+//               startDate: date.startDate || "",
+//               endDate: date.endDate || "",
+//               totalHour: date.totalHour || 0,
+//               reason: date.reason || "",
+//               status: date.status || 0,
+//             })
+//           ),
+//           maxHeight: char.maxHeight,
+//           maxWeight: char.maxWeight,
+//           minHeight: char.minHeight,
+//           minWeight: char.minWeight,
+//           status: char.status,
+//         })),
+//         status: response.status || "Unknown",
+//         price: response.price || 0,
+//         deposit: response.deposit || null,
+//         accountId: response.accountId || "",
+//         serviceId: response.serviceId || "",
+//         reason: response.reason || null,
+//         totalDate: response.totalDate || 0,
+//         accountCouponId: response.accountCouponId || null,
+//       });
+//       setIsViewEditModalVisible(true);
+//     } catch (error) {
+//       toast.error("Failed to load request details.");
+//       console.error("Error fetching request details:", error);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
 
-//         await MyEventOrganizeService.editRequest(
-//           modalData.requestId,
-//           requestData
-//         );
+//   const handleViewDetailsRequest = (requestId) => {
+//     if (!requestId) {
+//       toast.error("Invalid request ID");
+//       return;
+//     }
+//     setSelectedRequestId(requestId);
+//     setIsViewDetailsModalVisible(true);
+//   };
 
-//         setRequests((prev) =>
-//           prev.map((req) =>
-//             req.requestId === modalData.requestId
-//               ? { ...req, ...modalData }
-//               : req
-//           )
-//         );
-//         toast.success("Request updated successfully!");
-//       } catch (error) {
-//         toast.error("Failed to update request. Please try again.");
-//       }
+//   const handleAddCharacter = () => {
+//     setModalData({
+//       ...modalData,
+//       listCharacters: [
+//         ...modalData.listCharacters,
+//         {
+//           requestCharacterId: "",
+//           characterId: "",
+//           characterName: "",
+//           quantity: 1,
+//           description: "shared",
+//           requestDateResponses: [],
+//         },
+//       ],
+//     });
+//   };
+
+//   const handleRemoveCharacter = (charIndex) => {
+//     const updatedCharacters = modalData.listCharacters.filter(
+//       (_, index) => index !== charIndex
+//     );
+//     setModalData({ ...modalData, listCharacters: updatedCharacters });
+//   };
+
+//   const handleViewEditConfirm = async () => {
+//     if (modalData.status !== "Pending") {
+//       setIsViewEditModalVisible(false);
+//       return;
 //     }
 
-//     setIsViewEditModalVisible(false);
+//     if (!modalData.packageId) {
+//       toast.error("Package is required!");
+//       return;
+//     }
+//     if (modalData.listCharacters.some((char) => !char.characterId)) {
+//       toast.error("All characters must have a selected character!");
+//       return;
+//     }
+//     if (
+//       modalData.listCharacters.some(
+//         (char) => !char.quantity || char.quantity < 1
+//       )
+//     ) {
+//       toast.error("All characters must have a valid quantity (minimum 1)!");
+//       return;
+//     }
+
+//     try {
+//       const requestData = {
+//         name: modalData.name,
+//         description: modalData.description,
+//         price: modalData.price,
+//         startDate: modalData.startDate,
+//         endDate: modalData.endDate,
+//         location: modalData.location,
+//         serviceId: modalData.serviceId || "S003",
+//         packageId: modalData.packageId,
+//         listUpdateRequestCharacters: modalData.listCharacters.map((char) => ({
+//           requestCharacterId: char.requestCharacterId || null,
+//           characterId: char.characterId,
+//           description: char.description || "shared",
+//           quantity: char.quantity || 1,
+//         })),
+//       };
+
+//       await MyEventOrganizeService.updateEventOrganizationRequest(
+//         modalData.requestId,
+//         requestData
+//       );
+
+//       setRequests((prev) =>
+//         prev.map((req) =>
+//           req.requestId === modalData.requestId
+//             ? {
+//                 ...req,
+//                 packageId: modalData.packageId,
+//                 price: modalData.price,
+//                 listCharacters: modalData.listCharacters.map((char) => ({
+//                   requestCharacterId: char.requestCharacterId,
+//                   characterId: char.characterId,
+//                   characterName: char.characterName,
+//                   quantity: char.quantity,
+//                   description: char.description,
+//                   characterImages: char.characterImages,
+//                   requestDateResponses: char.requestDateResponses,
+//                   maxHeight: char.maxHeight,
+//                   maxWeight: char.maxWeight,
+//                   minHeight: char.minHeight,
+//                   minWeight: char.minWeight,
+//                   status: char.status,
+//                 })),
+//               }
+//             : req
+//         )
+//       );
+//       toast.success("Request updated successfully!");
+//       setIsViewEditModalVisible(false);
+//     } catch (error) {
+//       toast.error("Failed to update request. Please try again.");
+//       console.error("Error updating request:", error);
+//     }
 //   };
 
 //   const handleDepositRequest = (request) => {
+//     if (!request?.requestId || !request?.price) {
+//       toast.error("Invalid request or price data");
+//       return;
+//     }
 //     setSelectedRequestId(request.requestId);
 //     setModalData({
 //       requestId: request.requestId,
 //       name: request.name,
 //       description: request.description,
-//       startDate: request.startDate
-//         ? dayjs(request.startDate).format("HH:mm DD/MM/YYYY")
-//         : "N/A",
-//       endDate: request.endDate
-//         ? dayjs(request.endDate).format("HH:mm DD/MM/YYYY")
-//         : "N/A",
+//       startDate: request.startDate,
+//       endDate: request.endDate,
 //       location: request.location,
-//       packageName: request.packageName,
-//       packagePrice: request.packagePrice,
+//       packageId: request.packageId,
 //       listCharacters: request.listCharacters,
 //       status: request.status,
 //       price: request.price,
+//       deposit: request.deposit,
+//       serviceId: request.serviceId,
 //     });
 //     setIsDepositModalVisible(true);
 //   };
 
-//   const handleDepositConfirm = () => {
+//   const handleDepositConfirm = async () => {
 //     if (depositAmount === null) {
 //       message.warning("Please select a deposit amount.");
 //       return;
 //     }
 //     const depositValue =
 //       depositAmount === 50 ? modalData.price * 0.5 : modalData.price;
-//     toast.success(
-//       `Deposit of ${depositValue.toLocaleString()} VND confirmed! Moving to Payment Deposit Contract tab.`
-//     );
-//     setRequests((prev) =>
-//       prev.map((req) =>
-//         req.requestId === selectedRequestId ? { ...req, status: "Active" } : req
-//       )
-//     );
+//     try {
+//       await MyEventOrganizeService.updateDeposit(selectedRequestId, {
+//         deposit: depositAmount,
+//         status: "Active",
+//       });
+//       setRequests((prev) =>
+//         prev.map((req) =>
+//           req.requestId === selectedRequestId
+//             ? { ...req, status: "Active", deposit: depositAmount }
+//             : req
+//         )
+//       );
+//       toast.success(
+//         `Deposit of ${depositValue.toLocaleString()} VND confirmed! Moving to Payment Deposit Contract tab.`
+//       );
+//     } catch (error) {
+//       toast.error("Failed to update deposit. Please try again.");
+//       console.error("Error updating deposit:", error);
+//     }
 //     setIsDepositModalVisible(false);
 //     setDepositAmount(null);
 //     setSelectedRequestId(null);
 //   };
 
 //   const handlePaymentRequest = (contract) => {
+//     if (!contract?.requestId) {
+//       toast.error("Invalid contract data");
+//       return;
+//     }
 //     setSelectedRequestId(contract.requestId);
 //     setModalData({
 //       requestId: contract.requestId,
 //       name: contract.name,
 //       description: contract.description,
-//       startDate: contract.startDate
-//         ? dayjs(contract.startDate).format("HH:mm DD/MM/YYYY")
-//         : "N/A",
-//       endDate: contract.endDate
-//         ? dayjs(contract.endDate).format("HH:mm DD/MM/YYYY")
-//         : "N/A",
+//       startDate: contract.startDate,
+//       endDate: contract.endDate,
 //       location: contract.location,
-//       packageName: contract.packageName,
-//       packagePrice: contract.packagePrice,
+//       packageId: contract.packageId,
 //       listCharacters: contract.listCharacters,
 //       status: contract.status,
 //       price: contract.price,
+//       deposit: contract.deposit,
+//       serviceId: contract.serviceId,
 //     });
 //     setIsPaymentModalVisible(true);
 //   };
@@ -2053,7 +592,7 @@
 //     <div className="my-event-organize bg-light min-vh-100">
 //       <Container className="py-5">
 //         <h1 className="text-center mb-5 fw-bold title-my-event">
-//           <span>My Event Organize</span>
+//           <span>My Event Organization</span>
 //         </h1>
 
 //         <div className="filter-section bg-white p-4 rounded shadow mb-5">
@@ -2061,7 +600,7 @@
 //             <Col md={12}>
 //               <Form.Control
 //                 type="text"
-//                 placeholder="Search by name or date (HH:mm DD/MM/YYYY)..."
+//                 placeholder="Search by name or date (DD/MM/YYYY)..."
 //                 value={searchTerm}
 //                 onChange={(e) => setSearchTerm(e.target.value)}
 //                 className="search-input"
@@ -2092,39 +631,57 @@
 //                                 <div className="flex-grow-1">
 //                                   <div className="d-flex justify-content-between align-items-start">
 //                                     <h3 className="event-title mb-0">
-//                                       {request.name || "N/A"}
+//                                       {request.name}
 //                                     </h3>
 //                                     {getStatusBadge(request.status)}
 //                                   </div>
 //                                   <div className="text-muted small mt-1">
 //                                     <Calendar size={16} className="me-1" />
-//                                     Start Date:{" "}
-//                                     {dayjs(request.startDate).format(
-//                                       "HH:mm DD/MM/YYYY"
-//                                     ) || "N/A"}
+//                                     Start Date: {request.startDate}
 //                                   </div>
 //                                   <div className="text-muted small mt-1">
-//                                     Package: {request.packageName || "N/A"}
+//                                     <Calendar size={16} className="me-1" />
+//                                     End Date: {request.endDate}
 //                                   </div>
 //                                   <div className="text-muted small mt-1">
+//                                     <DollarSign size={16} className="me-1" />
 //                                     Total Price:{" "}
 //                                     {(request.price || 0).toLocaleString()} VND
+//                                   </div>
+//                                   <div className="text-muted small mt-1">
+//                                     <MapPin size={16} className="me-1" />
+//                                     Location: {request.location}
 //                                   </div>
 //                                 </div>
 //                               </div>
 //                             </div>
 //                             <div className="text-md-end">
-//                               <div className="d-flex gap-2 justify-content-md-end">
+//                               <div className="d-flex gap-2 justify-content-md-end flex-wrap">
+//                                 {request.status === "Pending" && (
+//                                   <Button
+//                                     type="primary"
+//                                     size="small"
+//                                     className="btn-view-edit"
+//                                     onClick={() =>
+//                                       handleViewEditRequest(request)
+//                                     }
+//                                     aria-label="Edit request"
+//                                   >
+//                                     <Eye size={16} className="me-1" />
+//                                     Edit
+//                                   </Button>
+//                                 )}
 //                                 <Button
-//                                   type="primary"
+//                                   type="default"
 //                                   size="small"
-//                                   className="btn-view-edit"
-//                                   onClick={() => handleViewEditRequest(request)}
+//                                   className="btn-view-details"
+//                                   onClick={() =>
+//                                     handleViewDetailsRequest(request.requestId)
+//                                   }
+//                                   aria-label="View request details"
 //                                 >
 //                                   <Eye size={16} className="me-1" />
-//                                   {request.status === "Pending"
-//                                     ? "View/Edit"
-//                                     : "View"}
+//                                   View Details
 //                                 </Button>
 //                                 {request.status === "Browsed" && (
 //                                   <Button
@@ -2133,6 +690,7 @@
 //                                     onClick={() =>
 //                                       handleDepositRequest(request)
 //                                     }
+//                                     aria-label="Choose deposit"
 //                                   >
 //                                     <CreditCard size={16} className="me-1" />
 //                                     Choose Deposit
@@ -2199,23 +757,26 @@
 //                                 <div className="flex-grow-1">
 //                                   <div className="d-flex justify-content-between align-items-start">
 //                                     <h3 className="event-title mb-0">
-//                                       {contract.name || "N/A"}
+//                                       {contract.name}
 //                                     </h3>
 //                                     {getStatusBadge("Active")}
 //                                   </div>
 //                                   <div className="text-muted small mt-1">
 //                                     <Calendar size={16} className="me-1" />
-//                                     Start Date:{" "}
-//                                     {dayjs(contract.startDate).format(
-//                                       "HH:mm DD/MM/YYYY"
-//                                     ) || "N/A"}
+//                                     Start Date: {contract.startDate}
 //                                   </div>
 //                                   <div className="text-muted small mt-1">
-//                                     Package: {contract.packageName || "N/A"}
+//                                     End Date: {contract.endDate}
 //                                   </div>
 //                                   <div className="text-muted small mt-1">
 //                                     Total Price:{" "}
 //                                     {(contract.price || 0).toLocaleString()} VND
+//                                   </div>
+//                                   <div className="text-muted small mt-1">
+//                                     Deposit:{" "}
+//                                     {contract.deposit
+//                                       ? `${contract.deposit}%`
+//                                       : "N/A"}
 //                                   </div>
 //                                   <div className="text-muted small mt-1">
 //                                     Status: Awaiting Payment
@@ -2224,7 +785,7 @@
 //                               </div>
 //                             </div>
 //                             <div className="text-md-end">
-//                               <div className="d-flex gap-2 justify-content-md-end">
+//                               <div className="d-flex gap-2 justify-content-md-end flex-wrap">
 //                                 <Button
 //                                   type="primary"
 //                                   size="small"
@@ -2232,14 +793,28 @@
 //                                   onClick={() =>
 //                                     handleViewEditRequest(contract)
 //                                   }
+//                                   aria-label="View contract"
 //                                 >
 //                                   <Eye size={16} className="me-1" />
 //                                   View
 //                                 </Button>
 //                                 <Button
+//                                   type="default"
+//                                   size="small"
+//                                   className="btn-view-details"
+//                                   onClick={() =>
+//                                     handleViewDetailsRequest(contract.requestId)
+//                                   }
+//                                   aria-label="View contract details"
+//                                 >
+//                                   <Eye size={16} className="me-1" />
+//                                   View Details
+//                                 </Button>
+//                                 <Button
 //                                   size="small"
 //                                   className="btn-payment"
 //                                   onClick={() => handlePaymentRequest(contract)}
+//                                   aria-label="Make payment"
 //                                 >
 //                                   <CreditCard size={16} className="me-1" />
 //                                   Payment Deposit
@@ -2305,37 +880,57 @@
 //                                 <div className="flex-grow-1">
 //                                   <div className="d-flex justify-content-between align-items-start">
 //                                     <h3 className="event-title mb-0">
-//                                       {contract.name || "N/A"}
+//                                       {contract.name}
 //                                     </h3>
 //                                     {getStatusBadge(contract.status)}
 //                                   </div>
 //                                   <div className="text-muted small mt-1">
 //                                     <Calendar size={16} className="me-1" />
-//                                     Start Date:{" "}
-//                                     {dayjs(contract.startDate).format(
-//                                       "HH:mm DD/MM/YYYY"
-//                                     ) || "N/A"}
+//                                     Start Date: {contract.startDate}
 //                                   </div>
 //                                   <div className="text-muted small mt-1">
-//                                     Package: {contract.packageName || "N/A"}
+//                                     End Date: {contract.endDate}
 //                                   </div>
 //                                   <div className="text-muted small mt-1">
 //                                     Total Price:{" "}
 //                                     {(contract.price || 0).toLocaleString()} VND
 //                                   </div>
+//                                   <div className="text-muted small mt-1">
+//                                     Deposit:{" "}
+//                                     {contract.deposit
+//                                       ? `${contract.deposit}%`
+//                                       : "N/A"}
+//                                   </div>
 //                                 </div>
 //                               </div>
 //                             </div>
 //                             <div className="text-md-end">
-//                               <Button
-//                                 type="primary"
-//                                 size="small"
-//                                 className="btn-view-edit"
-//                                 onClick={() => handleViewEditRequest(contract)}
-//                               >
-//                                 <Eye size={16} className="me-1" />
-//                                 View
-//                               </Button>
+//                               <div className="d-flex gap-2 justify-content-md-end flex-wrap">
+//                                 <Button
+//                                   type="primary"
+//                                   size="small"
+//                                   className="btn-view-edit"
+//                                   onClick={() =>
+//                                     handleViewEditRequest(contract)
+//                                   }
+//                                   aria-label="View contract"
+//                                 >
+//                                   <Eye size={16} className="me-1" />
+//                                   View
+//                                 </Button>
+//                                 <Button
+//                                   type="default"
+//                                   size="small"
+//                                   className="btn-view-details"
+//                                   onClick={() =>
+//                                     handleViewDetailsRequest(contract.requestId)
+//                                   }
+//                                   aria-label="View contract details"
+//                                 >
+//                                   <Eye size={16} className="me-1" />
+//                                   View Details
+//                                 </Button>
+//                               </div>
 //                             </div>
 //                           </div>
 //                         </Card.Body>
@@ -2379,15 +974,11 @@
 //         <Modal
 //           title={
 //             modalData.status === "Pending"
-//               ? "View/Edit Event Request"
+//               ? "Edit Event Request"
 //               : "View Event Request"
 //           }
 //           open={isViewEditModalVisible}
-//           onOk={
-//             modalData.status === "Pending"
-//               ? handleViewEditConfirm
-//               : () => setIsViewEditModalVisible(false)
-//           }
+//           onOk={handleViewEditConfirm}
 //           onCancel={() => setIsViewEditModalVisible(false)}
 //           okText={modalData.status === "Pending" ? "Save" : "Close"}
 //           cancelText="Cancel"
@@ -2396,97 +987,255 @@
 //               display: modalData.status === "Pending" ? "inline" : "none",
 //             },
 //           }}
+//           width={800}
 //         >
 //           <Form>
 //             <Form.Group className="mb-3">
 //               <Form.Label>
 //                 <strong>Name</strong>
 //               </Form.Label>
-//               {modalData.status === "Pending" ? (
-//                 <Input
-//                   value={modalData.name}
-//                   onChange={(e) =>
-//                     setModalData({ ...modalData, name: e.target.value })
-//                   }
-//                   placeholder="Enter event name"
-//                 />
-//               ) : (
-//                 <p>{modalData.name}</p>
-//               )}
-//             </Form.Group>
-//             <Form.Group className="mb-3">
-//               <Form.Label>
-//                 <strong>Description</strong>
-//               </Form.Label>
-//               {modalData.status === "Pending" ? (
-//                 <TextArea
-//                   value={modalData.description}
-//                   onChange={(e) =>
-//                     setModalData({ ...modalData, description: e.target.value })
-//                   }
-//                   placeholder="Enter description"
-//                 />
-//               ) : (
-//                 <p>{modalData.description}</p>
-//               )}
-//             </Form.Group>
-//             <Form.Group className="mb-3">
-//               <Form.Label>
-//                 <strong>Start Date</strong>
-//               </Form.Label>
-//               <p>{modalData.startDate}</p>
-//             </Form.Group>
-//             <Form.Group className="mb-3">
-//               <Form.Label>
-//                 <strong>End Date</strong>
-//               </Form.Label>
-//               <p>{modalData.endDate}</p>
-//             </Form.Group>
-//             <Form.Group className="mb-3">
-//               <Form.Label>
-//                 <strong>Location</strong>
-//               </Form.Label>
-//               {modalData.status === "Pending" ? (
-//                 <Input
-//                   value={modalData.location}
-//                   onChange={(e) =>
-//                     setModalData({ ...modalData, location: e.target.value })
-//                   }
-//                   placeholder="Enter location"
-//                 />
-//               ) : (
-//                 <p>{modalData.location}</p>
-//               )}
+//               <p>{modalData.name}</p>
 //             </Form.Group>
 //             <Form.Group className="mb-3">
 //               <Form.Label>
 //                 <strong>Package</strong>
 //               </Form.Label>
-//               <p>
-//                 {modalData.packageName} -{" "}
-//                 {(modalData.packagePrice || 0).toLocaleString()} VND
-//               </p>
+//               {modalData.status === "Pending" ? (
+//                 <Form.Select
+//                   value={modalData.packageId}
+//                   onChange={(e) =>
+//                     setModalData({ ...modalData, packageId: e.target.value })
+//                   }
+//                 >
+//                   <option value="">Select Package</option>
+//                   {packages.map((pkg) => (
+//                     <option key={pkg.packageId} value={pkg.packageId}>
+//                       {pkg.packageName} - {pkg.price.toLocaleString()} VND
+//                     </option>
+//                   ))}
+//                 </Form.Select>
+//               ) : (
+//                 <p>
+//                   {packages.find((pkg) => pkg.packageId === modalData.packageId)
+//                     ?.packageName || modalData.packageId}
+//                 </p>
+//               )}
 //             </Form.Group>
-//             <h4>List of Requested Characters:</h4>
-//             {(modalData.listCharacters || []).length > 0 ? (
-//               <ul>
-//                 {(modalData.listCharacters || []).map((item, index) => (
-//                   <li key={index}>
-//                     {item.cosplayerName} - {item.characterName} - Quantity:{" "}
-//                     {item.quantity} - Price: {item.price.toLocaleString()} VND
-//                   </li>
-//                 ))}
-//               </ul>
-//             ) : (
-//               <p>No characters requested.</p>
-//             )}
 //             <Form.Group className="mb-3">
 //               <Form.Label>
-//                 <strong>Total Price</strong>
+//                 <strong>Characters</strong>
 //               </Form.Label>
-//               <p>{(modalData.price || 0).toLocaleString()} VND</p>
+//               {modalData.status === "Pending" ? (
+//                 <>
+//                   {(modalData.listCharacters || []).map((char, charIndex) => (
+//                     <Row key={charIndex} className="mb-2 align-items-center">
+//                       <Col md={9}>
+//                         <Form.Select
+//                           value={char.characterId}
+//                           onChange={(e) => {
+//                             const selectedChar = characters.find(
+//                               (c) => c.characterId === e.target.value
+//                             );
+//                             const updatedCharacters = [
+//                               ...modalData.listCharacters,
+//                             ];
+//                             updatedCharacters[charIndex] = {
+//                               ...updatedCharacters[charIndex],
+//                               characterId: e.target.value,
+//                               characterName: selectedChar?.characterName || "",
+//                             };
+//                             setModalData({
+//                               ...modalData,
+//                               listCharacters: updatedCharacters,
+//                             });
+//                           }}
+//                         >
+//                           <option value="">Select Character</option>
+//                           {characters.map((c) => (
+//                             <option key={c.characterId} value={c.characterId}>
+//                               {c.characterName} - {c.price.toLocaleString()} VND
+//                             </option>
+//                           ))}
+//                         </Form.Select>
+//                       </Col>
+//                       <Col md={3}>
+//                         <Button
+//                           type="danger"
+//                           size="small"
+//                           onClick={() => handleRemoveCharacter(charIndex)}
+//                         >
+//                           Remove
+//                         </Button>
+//                       </Col>
+//                     </Row>
+//                   ))}
+//                   <Button
+//                     type="dashed"
+//                     onClick={handleAddCharacter}
+//                     className="mt-2"
+//                   >
+//                     Add Character
+//                   </Button>
+//                 </>
+//               ) : (
+//                 <p>
+//                   {modalData.listCharacters
+//                     .map((char) => char.characterName)
+//                     .join(", ")}
+//                 </p>
+//               )}
 //             </Form.Group>
+//             <Collapse>
+//               <Panel header="Additional Details" key="1">
+//                 <div
+//                   style={{ display: "flex", justifyContent: "space-between" }}
+//                 >
+//                   <div>
+//                     <Form.Group className="mb-3">
+//                       <Form.Label>
+//                         <strong>Description</strong>
+//                       </Form.Label>
+//                       <p>{modalData.description}</p>
+//                     </Form.Group>
+//                     <Form.Group className="mb-3">
+//                       <Form.Label>
+//                         <strong>Start Date</strong>
+//                       </Form.Label>
+//                       <p>{modalData.startDate}</p>
+//                     </Form.Group>
+//                     <Form.Group className="mb-3">
+//                       <Form.Label>
+//                         <strong>End Date</strong>
+//                       </Form.Label>
+//                       <p>{modalData.endDate}</p>
+//                     </Form.Group>
+//                     <Form.Group className="mb-3">
+//                       <Form.Label>
+//                         <strong>Location</strong>
+//                       </Form.Label>
+//                       <p>{modalData.location}</p>
+//                     </Form.Group>
+//                   </div>
+//                   <div>
+//                     <Form.Group className="mb-3">
+//                       <Form.Label>
+//                         <strong>Total Price</strong>
+//                       </Form.Label>
+//                       <p>{(modalData.price || 0).toLocaleString()} VND</p>
+//                     </Form.Group>
+//                     <Form.Group className="mb-3">
+//                       <Form.Label>
+//                         <strong>Deposit</strong>
+//                       </Form.Label>
+//                       <p>
+//                         {modalData.deposit ? `${modalData.deposit}%` : "N/A"}
+//                       </p>
+//                     </Form.Group>
+//                     <Form.Group className="mb-3">
+//                       <Form.Label>
+//                         <strong>Total Date</strong>
+//                       </Form.Label>
+//                       <p>{modalData.totalDate}</p>
+//                     </Form.Group>
+//                     {modalData.reason && (
+//                       <Form.Group className="mb-3">
+//                         <Form.Label>
+//                           <strong>Reason</strong>
+//                         </Form.Label>
+//                         <p>{modalData.reason}</p>
+//                       </Form.Group>
+//                     )}
+//                   </div>
+//                 </div>
+
+//                 <Collapse>
+//                   <Panel header="Character Details" key="2">
+//                     {(modalData.listCharacters || []).map((char, charIndex) => (
+//                       <Collapse key={charIndex}>
+//                         <Panel
+//                           header={`Character: ${char.characterName} (Qty: ${char.quantity})`}
+//                           key={charIndex}
+//                         >
+//                           <p>Description: {char.description}</p>
+//                           <p>Max Height: {char.maxHeight}</p>
+//                           <p>Max Weight: {char.maxWeight}</p>
+//                           <p>Min Height: {char.minHeight}</p>
+//                           <p>Min Weight: {char.minWeight}</p>
+//                           {char.status !== "Pending" && (
+//                             <p>Status: {char.status}</p>
+//                           )}
+//                           <Collapse>
+//                             <Panel header="Character Images" key="images">
+//                               {char.characterImages.length > 0 ? (
+//                                 <ul>
+//                                   {char.characterImages.map((img, idx) => (
+//                                     <li key={idx}>
+//                                       <img
+//                                         src={img.urlImage}
+//                                         style={{
+//                                           maxWidth: "100px",
+//                                           maxHeight: "100px",
+//                                         }}
+//                                       />
+//                                     </li>
+//                                   ))}
+//                                 </ul>
+//                               ) : (
+//                                 <p>No images available.</p>
+//                               )}
+//                             </Panel>
+//                             <Panel header="Request Dates" key="dates">
+//                               {char.requestDateResponses.length > 0 ? (
+//                                 <ul>
+//                                   {char.requestDateResponses.map(
+//                                     (date, idx) => (
+//                                       <li key={idx}>
+//                                         Date: {formatDate(date.startDate)} -{" "}
+//                                         {formatDate(date.endDate)} (Total Hours:{" "}
+//                                         {date.totalHour})
+//                                         {date.reason && (
+//                                           <>
+//                                             <br />
+//                                             Reason: {date.reason}
+//                                           </>
+//                                         )}
+//                                         {date.status !== 0 && (
+//                                           <>
+//                                             <br />
+//                                             Status: {date.status}
+//                                           </>
+//                                         )}
+//                                       </li>
+//                                     )
+//                                   )}
+//                                 </ul>
+//                               ) : (
+//                                 <p>No request dates available.</p>
+//                               )}
+//                             </Panel>
+//                           </Collapse>
+//                         </Panel>
+//                       </Collapse>
+//                     ))}
+//                   </Panel>
+//                 </Collapse>
+//               </Panel>
+//             </Collapse>
 //           </Form>
+//         </Modal>
+
+//         <Modal
+//           title="View Event Details"
+//           open={isViewDetailsModalVisible}
+//           onOk={() => setIsViewDetailsModalVisible(false)}
+//           onCancel={() => setIsViewDetailsModalVisible(false)}
+//           okText="Close"
+//           cancelText="Cancel"
+//           width={800}
+//           style={{ top: 20 }}
+//           bodyStyle={{ maxHeight: "70vh", overflowY: "auto" }}
+//         >
+//           <ViewMyEventOrganize requestId={selectedRequestId} />
 //         </Modal>
 
 //         <Modal
@@ -2544,21 +1293,51 @@
 
 // export default MyEventOrganize;
 
-//====================== sua lai ======================
+// fix button choose deposit ==============================================
 import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Form, Card, Badge } from "react-bootstrap";
-import { Pagination, Modal, Input, Button, Tabs, Radio, message } from "antd";
+import {
+  Pagination,
+  Modal,
+  Button,
+  Tabs,
+  Radio,
+  message,
+  Collapse,
+} from "antd";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "antd/dist/reset.css";
 import "../../styles/MyEventOrganize.scss";
+import ViewMyEventOrganize from "./ViewMyEventOrganize";
 import MyEventOrganizeService from "../../services/MyEventOrganizeService/MyEventOrganizeService";
-import { FileText, Calendar, Eye, CreditCard } from "lucide-react";
+import DetailEventOrganizationPageService from "../../services/DetailEventOrganizationPageService/DetailEventOrganizationPageService";
+import {
+  FileText,
+  Calendar,
+  Eye,
+  CreditCard,
+  DollarSign,
+  MapPin,
+} from "lucide-react";
 import dayjs from "dayjs";
 import { jwtDecode } from "jwt-decode";
 
 const { TabPane } = Tabs;
-const { TextArea } = Input;
+const { Panel } = Collapse;
+
+const formatDate = (date) => {
+  if (!date || date === "null" || date === "undefined" || date === "")
+    return "N/A";
+  const parsedDate = dayjs(
+    date,
+    ["DD/MM/YYYY", "YYYY-MM-DD", "HH:mm DD/MM/YYYY"],
+    true
+  );
+  return parsedDate.isValid()
+    ? parsedDate.format("DD/MM/YYYY")
+    : "Invalid Date";
+};
 
 const MyEventOrganize = () => {
   const [requests, setRequests] = useState([]);
@@ -2575,6 +1354,9 @@ const MyEventOrganize = () => {
   const [isViewEditModalVisible, setIsViewEditModalVisible] = useState(false);
   const [isDepositModalVisible, setIsDepositModalVisible] = useState(false);
   const [isPaymentModalVisible, setIsPaymentModalVisible] = useState(false);
+  const [isViewDetailsModalVisible, setIsViewDetailsModalVisible] =
+    useState(false);
+  const [selectedRequestId, setSelectedRequestId] = useState(null);
   const [modalData, setModalData] = useState({
     requestId: "",
     name: "",
@@ -2582,19 +1364,26 @@ const MyEventOrganize = () => {
     startDate: "",
     endDate: "",
     location: "",
-    packageName: "",
-    packagePrice: 0,
+    packageId: "",
     listCharacters: [],
     status: "",
     price: 0,
+    deposit: null,
+    accountId: "",
+    serviceId: "",
+    reason: null,
+    totalDate: 0,
+    accountCouponId: null,
   });
   const [depositAmount, setDepositAmount] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState(null);
-  const [selectedRequestId, setSelectedRequestId] = useState(null);
+  const [packages, setPackages] = useState([]);
+  const [characters, setCharacters] = useState([]);
+  const [packagePrice, setPackagePrice] = useState(0);
+  const [characterPrices, setCharacterPrices] = useState({});
 
   const itemsPerPage = 5;
 
-  // Lấy accountId từ accessToken
   const getAccountIdFromToken = () => {
     const token = localStorage.getItem("accessToken");
     if (token) {
@@ -2628,88 +1417,83 @@ const MyEventOrganize = () => {
           (request) => request.serviceId === "S003"
         );
 
-        const requestsWithDetails = await Promise.all(
-          filteredRequests.map(async (request) => {
-            let packageName = "N/A";
-            let packagePrice = 0;
-            if (request.packageId) {
-              try {
-                const packageData = await MyEventOrganizeService.getPackageById(
-                  request.packageId
-                );
-                packageName = packageData.packageName || "N/A";
-                packagePrice = packageData.price || 0;
-              } catch (error) {
-                console.warn(
-                  `Failed to fetch package for packageId ${request.packageId}:`,
-                  error
-                );
-              }
-            }
+        const formattedRequests = filteredRequests.map((request) => ({
+          requestId: request.requestId,
+          name: request.name || "N/A",
+          description: request.description || "N/A",
+          startDate: formatDate(request.startDate),
+          endDate: formatDate(request.endDate),
+          location: request.location || "N/A",
+          packageId: request.packageId || "N/A",
+          charactersListResponse: (request.charactersListResponse || []).map(
+            (char) => ({
+              requestCharacterId: char.requestCharacterId || "",
+              characterId: char.characterId,
+              characterName: char.characterName || "Unknown Character",
+              cosplayerId: char.cosplayerId || null,
+              quantity: char.quantity || 1,
+              description: char.description || "N/A",
+              characterImages: char.characterImages || [],
+              requestDateResponses: char.requestDateResponses || [],
+              maxHeight: char.maxHeight,
+              maxWeight: char.maxWeight,
+              minHeight: char.minHeight,
+              minWeight: char.minWeight,
+              status: char.status,
+            })
+          ),
+          status: request.status || "Unknown",
+          price: request.price || 0,
+          deposit: request.deposit || null,
+          serviceId: request.serviceId,
+        }));
 
-            const charactersList = request.charactersListResponse || [];
-            let totalCharactersPrice = 0;
-            const listCharacters = await Promise.all(
-              charactersList.map(async (char) => {
-                let characterPrice = 0;
-                let characterName = "Unknown Character";
-
-                // Lấy thông tin character
-                try {
-                  const characterData =
-                    await MyEventOrganizeService.getCharacterById(
-                      char.characterId
-                    );
-                  characterName =
-                    characterData.characterName || "Unknown Character";
-                  characterPrice = characterData.price || 0;
-                } catch (error) {
-                  console.warn(
-                    `Failed to fetch character for ID ${char.characterId}:`,
-                    error
-                  );
-                }
-
-                const price = characterPrice * (char.quantity || 0);
-                totalCharactersPrice += price;
-
-                return {
-                  characterId: char.characterId,
-                  characterName,
-                  quantity: char.quantity,
-                  price,
-                };
-              })
-            );
-
-            const totalPrice = packagePrice + totalCharactersPrice;
-
-            return {
-              requestId: request.requestId,
-              name: request.name || "N/A",
-              description: request.description || "N/A",
-              startDate: request.startDate,
-              endDate: request.endDate,
-              location: request.location || "N/A",
-              packageName,
-              packagePrice,
-              listCharacters,
-              status: request.status || "Unknown",
-              price: totalPrice,
-              serviceId: request.serviceId,
-            };
-          })
-        );
-
-        setRequests(requestsWithDetails);
+        setRequests(formattedRequests);
       } catch (error) {
         toast.error("Failed to load requests. Please try again later.");
+        console.error("Error fetching requests:", error);
       } finally {
         setLoading(false);
       }
     };
 
+    const fetchPackages = async () => {
+      try {
+        const data = await DetailEventOrganizationPageService.getAllPackages();
+        setPackages(data || []);
+      } catch (error) {
+        console.error("Error fetching packages:", error);
+      }
+    };
+
+    const fetchCharacters = async () => {
+      try {
+        const data = await MyEventOrganizeService.getAllCharacters();
+        const formattedCharacters = data.map((char) => ({
+          characterId: char.characterId,
+          characterName: char.characterName,
+          price: char.price,
+          description: char.description,
+          maxHeight: char.maxHeight,
+          maxWeight: char.maxWeight,
+          minHeight: char.minHeight,
+          minWeight: char.minWeight,
+          images: char.images || [],
+          isActive: char.isActive,
+          categoryId: char.categoryId,
+          createDate: char.createDate,
+          updateDate: char.updateDate,
+        }));
+        setCharacters(formattedCharacters || []);
+      } catch (error) {
+        console.error("Error fetching characters:", error);
+        toast.error("Failed to load characters.");
+      }
+    };
+
     fetchRequests();
+    fetchPackages();
+    fetchCharacters();
   }, [accountId]);
 
   useEffect(() => {
@@ -2720,9 +1504,7 @@ const MyEventOrganize = () => {
           .filter(
             (request) =>
               request.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              dayjs(request.startDate)
-                .format("HH:mm DD/MM/YYYY")
-                .includes(searchTerm)
+              request.startDate.includes(searchTerm)
           );
 
       setFilteredPendingRequests(
@@ -2734,6 +1516,66 @@ const MyEventOrganize = () => {
       setFilteredCompletedContracts(filterByStatusAndSearch("Completed"));
     }
   }, [searchTerm, requests]);
+
+  useEffect(() => {
+    const calculatePrice = async () => {
+      if (
+        !modalData.packageId ||
+        !modalData.startDate ||
+        !modalData.endDate ||
+        !modalData.listCharacters.length
+      ) {
+        setModalData((prev) => ({ ...prev, price: 0 }));
+        return;
+      }
+
+      try {
+        const packageData = await MyEventOrganizeService.getPackageById(
+          modalData.packageId
+        );
+        const pkgPrice = packageData.price || 0;
+        setPackagePrice(pkgPrice);
+
+        const charPricePromises = modalData.listCharacters.map(async (char) => {
+          if (char.characterId) {
+            const charData = await MyEventOrganizeService.getCharacterById(
+              char.characterId
+            );
+            return { [char.characterId]: charData.price || 0 };
+          }
+          return {};
+        });
+        const charPriceResults = await Promise.all(charPricePromises);
+        const newCharPrices = Object.assign({}, ...charPriceResults);
+        setCharacterPrices(newCharPrices);
+
+        const start = dayjs(modalData.startDate, "DD/MM/YYYY");
+        const end = dayjs(modalData.endDate, "DD/MM/YYYY");
+        const totalDays = end.diff(start, "day") + 1;
+
+        const totalCharPrice = modalData.listCharacters.reduce((sum, char) => {
+          const charPrice = newCharPrices[char.characterId] || 0;
+          return sum + charPrice * (char.quantity || 1);
+        }, 0);
+
+        const newPrice = pkgPrice + totalCharPrice * totalDays;
+        setModalData((prev) => ({ ...prev, price: newPrice }));
+      } catch (error) {
+        console.error("Error calculating price:", error);
+        toast.error("Failed to calculate price.");
+      }
+    };
+
+    if (isViewEditModalVisible && modalData.status === "Pending") {
+      calculatePrice();
+    }
+  }, [
+    modalData.packageId,
+    modalData.listCharacters,
+    modalData.startDate,
+    modalData.endDate,
+    isViewEditModalVisible,
+  ]);
 
   const paginateItems = (items, currentPage) => {
     const indexOfLastItem = currentPage * itemsPerPage;
@@ -2758,131 +1600,256 @@ const MyEventOrganize = () => {
   const handleActivePageChange = (page) => setCurrentActivePage(page);
   const handleCompletedPageChange = (page) => setCurrentCompletedPage(page);
 
-  const handleViewEditRequest = (request) => {
-    setModalData({
-      requestId: request.requestId,
-      name: request.name,
-      description: request.description,
-      startDate: request.startDate
-        ? dayjs(request.startDate).format("HH:mm DD/MM/YYYY")
-        : "N/A",
-      endDate: request.endDate
-        ? dayjs(request.endDate).format("HH:mm DD/MM/YYYY")
-        : "N/A",
-      location: request.location,
-      packageName: request.packageName,
-      packagePrice: request.packagePrice,
-      listCharacters: request.listCharacters,
-      status: request.status,
-      price: request.price,
-    });
-    setIsViewEditModalVisible(true);
-  };
-
-  const handleViewEditConfirm = async () => {
-    if (!modalData.name.trim()) {
-      toast.error("Event name cannot be empty!");
+  const handleViewEditRequest = async (request) => {
+    if (!request?.requestId) {
+      toast.error("Invalid request data");
       return;
     }
 
-    if (modalData.status === "Pending") {
-      try {
-        const requestData = {
-          name: modalData.name,
-          description: modalData.description,
-          startDate: modalData.startDate,
-          endDate: modalData.endDate,
-          location: modalData.location,
-          serviceId: "S003",
-          listUpdateRequestCharacters: modalData.listCharacters.map((char) => ({
-            characterId: char.characterId,
-            cosplayerId: null,
-            description: char.characterName,
-            quantity: char.quantity,
-          })),
-        };
+    setLoading(true);
+    try {
+      const response = await MyEventOrganizeService.getRequestByRequestId(
+        request.requestId
+      );
+      setModalData({
+        requestId: response.requestId || "",
+        name: response.name || "",
+        description: response.description || "",
+        startDate: response.startDate ? formatDate(response.startDate) : "",
+        endDate: response.endDate ? formatDate(response.endDate) : "",
+        location: response.location || "",
+        packageId: response.packageId || "",
+        listCharacters: (response.charactersListResponse || []).map((char) => ({
+          requestCharacterId: char.requestCharacterId || "",
+          characterId: char.characterId || "",
+          characterName: char.characterName || "Unknown Character",
+          cosplayerId: char.cosplayerId || null,
+          quantity: char.quantity || 1,
+          description: char.description || "",
+          characterImages: char.characterImages || [],
+          requestDateResponses: (char.requestDateResponses || []).map(
+            (date) => ({
+              requestDateId: date.requestDateId || "",
+              startDate: date.startDate || "",
+              endDate: date.endDate || "",
+              totalHour: date.totalHour || 0,
+              reason: date.reason || "",
+              status: date.status || 0,
+            })
+          ),
+          maxHeight: char.maxHeight,
+          maxWeight: char.maxWeight,
+          minHeight: char.minHeight,
+          minWeight: char.minWeight,
+          status: char.status,
+        })),
+        status: response.status || "Unknown",
+        price: response.price || 0,
+        deposit: response.deposit || null,
+        accountId: response.accountId || "",
+        serviceId: response.serviceId || "",
+        reason: response.reason || null,
+        totalDate: response.totalDate || 0,
+        accountCouponId: response.accountCouponId || null,
+      });
+      setIsViewEditModalVisible(true);
+    } catch (error) {
+      toast.error("Failed to load request details.");
+      console.error("Error fetching request details:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        await MyEventOrganizeService.editRequest(
-          modalData.requestId,
-          requestData
-        );
+  const handleViewDetailsRequest = (requestId) => {
+    if (!requestId) {
+      toast.error("Invalid request ID");
+      return;
+    }
+    setSelectedRequestId(requestId);
+    setIsViewDetailsModalVisible(true);
+  };
 
-        setRequests((prev) =>
-          prev.map((req) =>
-            req.requestId === modalData.requestId
-              ? { ...req, ...modalData }
-              : req
-          )
-        );
-        toast.success("Request updated successfully!");
-      } catch (error) {
-        toast.error("Failed to update request. Please try again.");
-      }
+  const handleAddCharacter = () => {
+    setModalData({
+      ...modalData,
+      listCharacters: [
+        ...modalData.listCharacters,
+        {
+          requestCharacterId: "",
+          characterId: "",
+          characterName: "",
+          cosplayerId: null,
+          quantity: 1,
+          description: "shared",
+          requestDateResponses: [],
+        },
+      ],
+    });
+  };
+
+  const handleRemoveCharacter = (charIndex) => {
+    const updatedCharacters = modalData.listCharacters.filter(
+      (_, index) => index !== charIndex
+    );
+    setModalData({ ...modalData, listCharacters: updatedCharacters });
+  };
+
+  const handleViewEditConfirm = async () => {
+    if (modalData.status !== "Pending") {
+      setIsViewEditModalVisible(false);
+      return;
     }
 
-    setIsViewEditModalVisible(false);
+    if (!modalData.packageId) {
+      toast.error("Package is required!");
+      return;
+    }
+    if (modalData.listCharacters.some((char) => !char.characterId)) {
+      toast.error("All characters must have a selected character!");
+      return;
+    }
+    if (
+      modalData.listCharacters.some(
+        (char) => !char.quantity || char.quantity < 1
+      )
+    ) {
+      toast.error("All characters must have a valid quantity (minimum 1)!");
+      return;
+    }
+
+    try {
+      const requestData = {
+        name: modalData.name,
+        description: modalData.description,
+        price: modalData.price,
+        startDate: modalData.startDate,
+        endDate: modalData.endDate,
+        location: modalData.location,
+        serviceId: modalData.serviceId || "S003",
+        packageId: modalData.packageId,
+        listUpdateRequestCharacters: modalData.listCharacters.map((char) => ({
+          requestCharacterId: char.requestCharacterId || null,
+          characterId: char.characterId,
+          description: char.description || "shared",
+          quantity: char.quantity || 1,
+        })),
+      };
+
+      await MyEventOrganizeService.updateEventOrganizationRequest(
+        modalData.requestId,
+        requestData
+      );
+
+      setRequests((prev) =>
+        prev.map((req) =>
+          req.requestId === modalData.requestId
+            ? {
+                ...req,
+                packageId: modalData.packageId,
+                price: modalData.price,
+                charactersListResponse: modalData.listCharacters.map(
+                  (char) => ({
+                    requestCharacterId: char.requestCharacterId,
+                    characterId: char.characterId,
+                    characterName: char.characterName,
+                    cosplayerId: char.cosplayerId,
+                    quantity: char.quantity,
+                    description: char.description,
+                    characterImages: char.characterImages,
+                    requestDateResponses: char.requestDateResponses,
+                    maxHeight: char.maxHeight,
+                    maxWeight: char.maxWeight,
+                    minHeight: char.minHeight,
+                    minWeight: char.minWeight,
+                    status: char.status,
+                  })
+                ),
+              }
+            : req
+        )
+      );
+      toast.success("Request updated successfully!");
+      setIsViewEditModalVisible(false);
+    } catch (error) {
+      toast.error("Failed to update request. Please try again.");
+      console.error("Error updating request:", error);
+    }
   };
 
   const handleDepositRequest = (request) => {
+    if (!request?.requestId || !request?.price) {
+      toast.error("Invalid request or price data");
+      return;
+    }
     setSelectedRequestId(request.requestId);
     setModalData({
       requestId: request.requestId,
       name: request.name,
       description: request.description,
-      startDate: request.startDate
-        ? dayjs(request.startDate).format("HH:mm DD/MM/YYYY")
-        : "N/A",
-      endDate: request.endDate
-        ? dayjs(request.endDate).format("HH:mm DD/MM/YYYY")
-        : "N/A",
+      startDate: request.startDate,
+      endDate: request.endDate,
       location: request.location,
-      packageName: request.packageName,
-      packagePrice: request.packagePrice,
-      listCharacters: request.listCharacters,
+      packageId: request.packageId,
+      listCharacters: request.charactersListResponse,
       status: request.status,
       price: request.price,
+      deposit: request.deposit,
+      serviceId: request.serviceId,
     });
     setIsDepositModalVisible(true);
   };
 
-  const handleDepositConfirm = () => {
+  const handleDepositConfirm = async () => {
     if (depositAmount === null) {
       message.warning("Please select a deposit amount.");
       return;
     }
     const depositValue =
       depositAmount === 50 ? modalData.price * 0.5 : modalData.price;
-    toast.success(
-      `Deposit of ${depositValue.toLocaleString()} VND confirmed! Moving to Payment Deposit Contract tab.`
-    );
-    setRequests((prev) =>
-      prev.map((req) =>
-        req.requestId === selectedRequestId ? { ...req, status: "Active" } : req
-      )
-    );
+    try {
+      await MyEventOrganizeService.updateDeposit(selectedRequestId, {
+        deposit: depositAmount,
+        status: "Active",
+      });
+      setRequests((prev) =>
+        prev.map((req) =>
+          req.requestId === selectedRequestId
+            ? { ...req, status: "Active", deposit: depositAmount }
+            : req
+        )
+      );
+      toast.success(
+        `Deposit of ${depositValue.toLocaleString()} VND confirmed! Moving to Payment Deposit Contract tab.`
+      );
+    } catch (error) {
+      toast.error("Failed to update deposit. Please try again.");
+      console.error("Error updating deposit:", error);
+    }
     setIsDepositModalVisible(false);
     setDepositAmount(null);
     setSelectedRequestId(null);
   };
 
   const handlePaymentRequest = (contract) => {
+    if (!contract?.requestId) {
+      toast.error("Invalid contract data");
+      return;
+    }
     setSelectedRequestId(contract.requestId);
     setModalData({
       requestId: contract.requestId,
       name: contract.name,
       description: contract.description,
-      startDate: contract.startDate
-        ? dayjs(contract.startDate).format("HH:mm DD/MM/YYYY")
-        : "N/A",
-      endDate: contract.endDate
-        ? dayjs(contract.endDate).format("HH:mm DD/MM/YYYY")
-        : "N/A",
+      startDate: contract.startDate,
+      endDate: contract.endDate,
       location: contract.location,
-      packageName: contract.packageName,
-      packagePrice: contract.packagePrice,
-      listCharacters: contract.listCharacters,
+      packageId: contract.packageId,
+      listCharacters: contract.charactersListResponse,
       status: contract.status,
       price: contract.price,
+      deposit: contract.deposit,
+      serviceId: contract.serviceId,
     });
     setIsPaymentModalVisible(true);
   };
@@ -2933,7 +1900,7 @@ const MyEventOrganize = () => {
             <Col md={12}>
               <Form.Control
                 type="text"
-                placeholder="Search by name or date (HH:mm DD/MM/YYYY)..."
+                placeholder="Search by name or date (DD/MM/YYYY)..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="search-input"
@@ -2964,52 +1931,75 @@ const MyEventOrganize = () => {
                                 <div className="flex-grow-1">
                                   <div className="d-flex justify-content-between align-items-start">
                                     <h3 className="event-title mb-0">
-                                      {request.name || "N/A"}
+                                      {request.name}
                                     </h3>
                                     {getStatusBadge(request.status)}
                                   </div>
                                   <div className="text-muted small mt-1">
                                     <Calendar size={16} className="me-1" />
-                                    Start Date:{" "}
-                                    {dayjs(request.startDate).format(
-                                      "HH:mm DD/MM/YYYY"
-                                    ) || "N/A"}
+                                    Start Date: {request.startDate}
                                   </div>
                                   <div className="text-muted small mt-1">
-                                    Package: {request.packageName || "N/A"}
+                                    <Calendar size={16} className="me-1" />
+                                    End Date: {request.endDate}
                                   </div>
                                   <div className="text-muted small mt-1">
+                                    <DollarSign size={16} className="me-1" />
                                     Total Price:{" "}
                                     {(request.price || 0).toLocaleString()} VND
+                                  </div>
+                                  <div className="text-muted small mt-1">
+                                    <MapPin size={16} className="me-1" />
+                                    Location: {request.location}
                                   </div>
                                 </div>
                               </div>
                             </div>
                             <div className="text-md-end">
-                              <div className="d-flex gap-2 justify-content-md-end">
-                                <Button
-                                  type="primary"
-                                  size="small"
-                                  className="btn-view-edit"
-                                  onClick={() => handleViewEditRequest(request)}
-                                >
-                                  <Eye size={16} className="me-1" />
-                                  {request.status === "Pending"
-                                    ? "View/Edit"
-                                    : "View"}
-                                </Button>
-                                {request.status === "Browsed" && (
+                              <div className="d-flex gap-2 justify-content-md-end flex-wrap">
+                                {request.status === "Pending" && (
                                   <Button
+                                    type="primary"
                                     size="small"
-                                    className="btn-deposit"
+                                    className="btn-view-edit"
                                     onClick={() =>
-                                      handleDepositRequest(request)
+                                      handleViewEditRequest(request)
                                     }
+                                    aria-label="Edit request"
                                   >
-                                    <CreditCard size={16} className="me-1" />
-                                    Choose Deposit
+                                    <Eye size={16} className="me-1" />
+                                    Edit
                                   </Button>
                                 )}
+                                <Button
+                                  type="default"
+                                  size="small"
+                                  className="btn-view-details"
+                                  onClick={() =>
+                                    handleViewDetailsRequest(request.requestId)
+                                  }
+                                  aria-label="View request details"
+                                >
+                                  <Eye size={16} className="me-1" />
+                                  View Details
+                                </Button>
+                                {request.status === "Browsed" &&
+                                  request.charactersListResponse?.length > 0 &&
+                                  request.charactersListResponse.every(
+                                    (char) => char.cosplayerId != null
+                                  ) && (
+                                    <Button
+                                      size="small"
+                                      className="btn-deposit"
+                                      onClick={() =>
+                                        handleDepositRequest(request)
+                                      }
+                                      aria-label="Choose deposit"
+                                    >
+                                      <CreditCard size={16} className="me-1" />
+                                      Choose Deposit
+                                    </Button>
+                                  )}
                               </div>
                             </div>
                           </div>
@@ -3071,23 +2061,26 @@ const MyEventOrganize = () => {
                                 <div className="flex-grow-1">
                                   <div className="d-flex justify-content-between align-items-start">
                                     <h3 className="event-title mb-0">
-                                      {contract.name || "N/A"}
+                                      {contract.name}
                                     </h3>
                                     {getStatusBadge("Active")}
                                   </div>
                                   <div className="text-muted small mt-1">
                                     <Calendar size={16} className="me-1" />
-                                    Start Date:{" "}
-                                    {dayjs(contract.startDate).format(
-                                      "HH:mm DD/MM/YYYY"
-                                    ) || "N/A"}
+                                    Start Date: {contract.startDate}
                                   </div>
                                   <div className="text-muted small mt-1">
-                                    Package: {contract.packageName || "N/A"}
+                                    End Date: {contract.endDate}
                                   </div>
                                   <div className="text-muted small mt-1">
                                     Total Price:{" "}
                                     {(contract.price || 0).toLocaleString()} VND
+                                  </div>
+                                  <div className="text-muted small mt-1">
+                                    Deposit:{" "}
+                                    {contract.deposit
+                                      ? `${contract.deposit}%`
+                                      : "N/A"}
                                   </div>
                                   <div className="text-muted small mt-1">
                                     Status: Awaiting Payment
@@ -3096,7 +2089,7 @@ const MyEventOrganize = () => {
                               </div>
                             </div>
                             <div className="text-md-end">
-                              <div className="d-flex gap-2 justify-content-md-end">
+                              <div className="d-flex gap-2 justify-content-md-end flex-wrap">
                                 <Button
                                   type="primary"
                                   size="small"
@@ -3104,14 +2097,28 @@ const MyEventOrganize = () => {
                                   onClick={() =>
                                     handleViewEditRequest(contract)
                                   }
+                                  aria-label="View contract"
                                 >
                                   <Eye size={16} className="me-1" />
                                   View
                                 </Button>
                                 <Button
+                                  type="default"
+                                  size="small"
+                                  className="btn-view-details"
+                                  onClick={() =>
+                                    handleViewDetailsRequest(contract.requestId)
+                                  }
+                                  aria-label="View contract details"
+                                >
+                                  <Eye size={16} className="me-1" />
+                                  View Details
+                                </Button>
+                                <Button
                                   size="small"
                                   className="btn-payment"
                                   onClick={() => handlePaymentRequest(contract)}
+                                  aria-label="Make payment"
                                 >
                                   <CreditCard size={16} className="me-1" />
                                   Payment Deposit
@@ -3177,37 +2184,57 @@ const MyEventOrganize = () => {
                                 <div className="flex-grow-1">
                                   <div className="d-flex justify-content-between align-items-start">
                                     <h3 className="event-title mb-0">
-                                      {contract.name || "N/A"}
+                                      {contract.name}
                                     </h3>
                                     {getStatusBadge(contract.status)}
                                   </div>
                                   <div className="text-muted small mt-1">
                                     <Calendar size={16} className="me-1" />
-                                    Start Date:{" "}
-                                    {dayjs(contract.startDate).format(
-                                      "HH:mm DD/MM/YYYY"
-                                    ) || "N/A"}
+                                    Start Date: {contract.startDate}
                                   </div>
                                   <div className="text-muted small mt-1">
-                                    Package: {contract.packageName || "N/A"}
+                                    End Date: {contract.endDate}
                                   </div>
                                   <div className="text-muted small mt-1">
                                     Total Price:{" "}
                                     {(contract.price || 0).toLocaleString()} VND
                                   </div>
+                                  <div className="text-muted small mt-1">
+                                    Deposit:{" "}
+                                    {contract.deposit
+                                      ? `${contract.deposit}%`
+                                      : "N/A"}
+                                  </div>
                                 </div>
                               </div>
                             </div>
                             <div className="text-md-end">
-                              <Button
-                                type="primary"
-                                size="small"
-                                className="btn-view-edit"
-                                onClick={() => handleViewEditRequest(contract)}
-                              >
-                                <Eye size={16} className="me-1" />
-                                View
-                              </Button>
+                              <div className="d-flex gap-2 justify-content-md-end flex-wrap">
+                                <Button
+                                  type="primary"
+                                  size="small"
+                                  className="btn-view-edit"
+                                  onClick={() =>
+                                    handleViewEditRequest(contract)
+                                  }
+                                  aria-label="View contract"
+                                >
+                                  <Eye size={16} className="me-1" />
+                                  View
+                                </Button>
+                                <Button
+                                  type="default"
+                                  size="small"
+                                  className="btn-view-details"
+                                  onClick={() =>
+                                    handleViewDetailsRequest(contract.requestId)
+                                  }
+                                  aria-label="View contract details"
+                                >
+                                  <Eye size={16} className="me-1" />
+                                  View Details
+                                </Button>
+                              </div>
                             </div>
                           </div>
                         </Card.Body>
@@ -3251,15 +2278,11 @@ const MyEventOrganize = () => {
         <Modal
           title={
             modalData.status === "Pending"
-              ? "View/Edit Event Request"
+              ? "Edit Event Request"
               : "View Event Request"
           }
           open={isViewEditModalVisible}
-          onOk={
-            modalData.status === "Pending"
-              ? handleViewEditConfirm
-              : () => setIsViewEditModalVisible(false)
-          }
+          onOk={handleViewEditConfirm}
           onCancel={() => setIsViewEditModalVisible(false)}
           okText={modalData.status === "Pending" ? "Save" : "Close"}
           cancelText="Cancel"
@@ -3268,97 +2291,255 @@ const MyEventOrganize = () => {
               display: modalData.status === "Pending" ? "inline" : "none",
             },
           }}
+          width={800}
         >
           <Form>
             <Form.Group className="mb-3">
               <Form.Label>
                 <strong>Name</strong>
               </Form.Label>
-              {modalData.status === "Pending" ? (
-                <Input
-                  value={modalData.name}
-                  onChange={(e) =>
-                    setModalData({ ...modalData, name: e.target.value })
-                  }
-                  placeholder="Enter event name"
-                />
-              ) : (
-                <p>{modalData.name}</p>
-              )}
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>
-                <strong>Description</strong>
-              </Form.Label>
-              {modalData.status === "Pending" ? (
-                <TextArea
-                  value={modalData.description}
-                  onChange={(e) =>
-                    setModalData({ ...modalData, description: e.target.value })
-                  }
-                  placeholder="Enter description"
-                />
-              ) : (
-                <p>{modalData.description}</p>
-              )}
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>
-                <strong>Start Date</strong>
-              </Form.Label>
-              <p>{modalData.startDate}</p>
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>
-                <strong>End Date</strong>
-              </Form.Label>
-              <p>{modalData.endDate}</p>
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>
-                <strong>Location</strong>
-              </Form.Label>
-              {modalData.status === "Pending" ? (
-                <Input
-                  value={modalData.location}
-                  onChange={(e) =>
-                    setModalData({ ...modalData, location: e.target.value })
-                  }
-                  placeholder="Enter location"
-                />
-              ) : (
-                <p>{modalData.location}</p>
-              )}
+              <p>{modalData.name}</p>
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>
                 <strong>Package</strong>
               </Form.Label>
-              <p>
-                {modalData.packageName} -{" "}
-                {(modalData.packagePrice || 0).toLocaleString()} VND
-              </p>
+              {modalData.status === "Pending" ? (
+                <Form.Select
+                  value={modalData.packageId}
+                  onChange={(e) =>
+                    setModalData({ ...modalData, packageId: e.target.value })
+                  }
+                >
+                  <option value="">Select Package</option>
+                  {packages.map((pkg) => (
+                    <option key={pkg.packageId} value={pkg.packageId}>
+                      {pkg.packageName} - {pkg.price.toLocaleString()} VND
+                    </option>
+                  ))}
+                </Form.Select>
+              ) : (
+                <p>
+                  {packages.find((pkg) => pkg.packageId === modalData.packageId)
+                    ?.packageName || modalData.packageId}
+                </p>
+              )}
             </Form.Group>
-            <h4>List of Requested Characters:</h4>
-            {(modalData.listCharacters || []).length > 0 ? (
-              <ul>
-                {(modalData.listCharacters || []).map((item, index) => (
-                  <li key={index}>
-                    {item.characterName} - Quantity: {item.quantity} - Price:{" "}
-                    {item.price.toLocaleString()} VND
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>No characters requested.</p>
-            )}
             <Form.Group className="mb-3">
               <Form.Label>
-                <strong>Total Price</strong>
+                <strong>Characters</strong>
               </Form.Label>
-              <p>{(modalData.price || 0).toLocaleString()} VND</p>
+              {modalData.status === "Pending" ? (
+                <>
+                  {(modalData.listCharacters || []).map((char, charIndex) => (
+                    <Row key={charIndex} className="mb-2 align-items-center">
+                      <Col md={9}>
+                        <Form.Select
+                          value={char.characterId}
+                          onChange={(e) => {
+                            const selectedChar = characters.find(
+                              (c) => c.characterId === e.target.value
+                            );
+                            const updatedCharacters = [
+                              ...modalData.listCharacters,
+                            ];
+                            updatedCharacters[charIndex] = {
+                              ...updatedCharacters[charIndex],
+                              characterId: e.target.value,
+                              characterName: selectedChar?.characterName || "",
+                            };
+                            setModalData({
+                              ...modalData,
+                              listCharacters: updatedCharacters,
+                            });
+                          }}
+                        >
+                          <option value="">Select Character</option>
+                          {characters.map((c) => (
+                            <option key={c.characterId} value={c.characterId}>
+                              {c.characterName} - {c.price.toLocaleString()} VND
+                            </option>
+                          ))}
+                        </Form.Select>
+                      </Col>
+                      <Col md={3}>
+                        <Button
+                          type="danger"
+                          size="small"
+                          onClick={() => handleRemoveCharacter(charIndex)}
+                        >
+                          Remove
+                        </Button>
+                      </Col>
+                    </Row>
+                  ))}
+                  <Button
+                    type="dashed"
+                    onClick={handleAddCharacter}
+                    className="mt-2"
+                  >
+                    Add Character
+                  </Button>
+                </>
+              ) : (
+                <p>
+                  {modalData.listCharacters
+                    .map((char) => char.characterName)
+                    .join(", ")}
+                </p>
+              )}
             </Form.Group>
+            <Collapse>
+              <Panel header="Additional Details" key="1">
+                <div
+                  style={{ display: "flex", justifyContent: "space-between" }}
+                >
+                  <div>
+                    <Form.Group className="mb-3">
+                      <Form.Label>
+                        <strong>Description</strong>
+                      </Form.Label>
+                      <p>{modalData.description}</p>
+                    </Form.Group>
+                    <Form.Group className="mb-3">
+                      <Form.Label>
+                        <strong>Start Date</strong>
+                      </Form.Label>
+                      <p>{modalData.startDate}</p>
+                    </Form.Group>
+                    <Form.Group className="mb-3">
+                      <Form.Label>
+                        <strong>End Date</strong>
+                      </Form.Label>
+                      <p>{modalData.endDate}</p>
+                    </Form.Group>
+                    <Form.Group className="mb-3">
+                      <Form.Label>
+                        <strong>Location</strong>
+                      </Form.Label>
+                      <p>{modalData.location}</p>
+                    </Form.Group>
+                  </div>
+                  <div>
+                    <Form.Group className="mb-3">
+                      <Form.Label>
+                        <strong>Total Price</strong>
+                      </Form.Label>
+                      <p>{(modalData.price || 0).toLocaleString()} VND</p>
+                    </Form.Group>
+                    <Form.Group className="mb-3">
+                      <Form.Label>
+                        <strong>Deposit</strong>
+                      </Form.Label>
+                      <p>
+                        {modalData.deposit ? `${modalData.deposit}%` : "N/A"}
+                      </p>
+                    </Form.Group>
+                    <Form.Group className="mb-3">
+                      <Form.Label>
+                        <strong>Total Date</strong>
+                      </Form.Label>
+                      <p>{modalData.totalDate}</p>
+                    </Form.Group>
+                    {modalData.reason && (
+                      <Form.Group className="mb-3">
+                        <Form.Label>
+                          <strong>Reason</strong>
+                        </Form.Label>
+                        <p>{modalData.reason}</p>
+                      </Form.Group>
+                    )}
+                  </div>
+                </div>
+
+                <Collapse>
+                  <Panel header="Character Details" key="2">
+                    {(modalData.listCharacters || []).map((char, charIndex) => (
+                      <Collapse key={charIndex}>
+                        <Panel
+                          header={`Character: ${char.characterName} (Qty: ${char.quantity})`}
+                          key={charIndex}
+                        >
+                          <p>Description: {char.description}</p>
+                          <p>Max Height: {char.maxHeight}</p>
+                          <p>Max Weight: {char.maxWeight}</p>
+                          <p>Min Height: {char.minHeight}</p>
+                          <p>Min Weight: {char.minWeight}</p>
+                          {char.status !== "Pending" && (
+                            <p>Status: {char.status}</p>
+                          )}
+                          <Collapse>
+                            <Panel header="Character Images" key="images">
+                              {char.characterImages.length > 0 ? (
+                                <ul>
+                                  {char.characterImages.map((img, idx) => (
+                                    <li key={idx}>
+                                      <img
+                                        src={img.urlImage}
+                                        style={{
+                                          maxWidth: "100px",
+                                          maxHeight: "100px",
+                                        }}
+                                      />
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <p>No images available.</p>
+                              )}
+                            </Panel>
+                            <Panel header="Request Dates" key="dates">
+                              {char.requestDateResponses.length > 0 ? (
+                                <ul>
+                                  {char.requestDateResponses.map(
+                                    (date, idx) => (
+                                      <li key={idx}>
+                                        Date: {formatDate(date.startDate)} -{" "}
+                                        {formatDate(date.endDate)} (Total Hours:{" "}
+                                        {date.totalHour})
+                                        {date.reason && (
+                                          <>
+                                            <br />
+                                            Reason: {date.reason}
+                                          </>
+                                        )}
+                                        {date.status !== 0 && (
+                                          <>
+                                            <br />
+                                            Status: {date.status}
+                                          </>
+                                        )}
+                                      </li>
+                                    )
+                                  )}
+                                </ul>
+                              ) : (
+                                <p>No request dates available.</p>
+                              )}
+                            </Panel>
+                          </Collapse>
+                        </Panel>
+                      </Collapse>
+                    ))}
+                  </Panel>
+                </Collapse>
+              </Panel>
+            </Collapse>
           </Form>
+        </Modal>
+
+        <Modal
+          title="View Event Details"
+          open={isViewDetailsModalVisible}
+          onOk={() => setIsViewDetailsModalVisible(false)}
+          onCancel={() => setIsViewDetailsModalVisible(false)}
+          okText="Close"
+          cancelText="Cancel"
+          width={800}
+          style={{ top: 20 }}
+          bodyStyle={{ maxHeight: "70vh", overflowY: "auto" }}
+        >
+          <ViewMyEventOrganize requestId={selectedRequestId} />
         </Modal>
 
         <Modal

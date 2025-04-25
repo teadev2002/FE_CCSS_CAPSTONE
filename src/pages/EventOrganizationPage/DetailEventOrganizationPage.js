@@ -1,5 +1,6 @@
+// cho xem thêm thời gian
 import React, { useState, useEffect } from "react";
-import { Search, ChevronRight } from "lucide-react";
+import { Search, ChevronRight, ChevronDown, ChevronUp } from "lucide-react";
 import {
   Modal,
   Button,
@@ -11,25 +12,33 @@ import {
   ProgressBar,
   InputGroup,
   FormControl,
+  Table,
+  Dropdown,
 } from "react-bootstrap";
+import { Pagination } from "antd";
+import dayjs from "dayjs";
+import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
+import { useNavigate } from "react-router-dom";
 import "../../styles/DetailEventOrganizationPage.scss";
 import { toast, ToastContainer } from "react-toastify";
 import DetailEventOrganizationPageService from "../../services/DetailEventOrganizationPageService/DetailEventOrganizationPageService.js";
 import { jwtDecode } from "jwt-decode";
+
+// Extend dayjs with isSameOrBefore
+dayjs.extend(isSameOrBefore);
 
 const DetailEventOrganizationPage = () => {
   const [step, setStep] = useState(1);
   const [selectedPackage, setSelectedPackage] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [location, setLocation] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [startTime, setStartTime] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [endTime, setEndTime] = useState("");
+  const [dateRange, setDateRange] = useState([null, null]);
+  const [timeSlots, setTimeSlots] = useState({});
+  const [characterTimeSlots, setCharacterTimeSlots] = useState({});
   const [description, setDescription] = useState("");
   const [images, setImages] = useState([]);
   const [selectedCharacters, setSelectedCharacters] = useState([]);
-  const [showSummaryModal, setShowSummaryModal] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [characterSearch, setCharacterSearch] = useState("");
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [termsAgreed, setTermsAgreed] = useState(false);
@@ -40,14 +49,33 @@ const DetailEventOrganizationPage = () => {
   const [characters, setCharacters] = useState([]);
   const [loadingPackages, setLoadingPackages] = useState(true);
   const [loadingCharacters, setLoadingCharacters] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false); // Added for API call
-  const [placeholderImages] = useState([
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isApiSuccess, setIsApiSuccess] = useState(false);
+  const [currentPackagePage, setCurrentPackagePage] = useState(1);
+  const [currentCharacterPage, setCurrentCharacterPage] = useState(1);
+  const [characterPrices, setCharacterPrices] = useState({});
+  const [depositPercentage, setDepositPercentage] = useState(0);
+  const [sortOrder, setSortOrder] = useState("default");
+  // New state for toggling listRequestDates
+  const [expandedCharacters, setExpandedCharacters] = useState({});
+  const pageSize = 6;
+  const navigate = useNavigate();
+
+  const placeholderImages = [
     "https://cdn.prod.website-files.com/6769617aecf082b10bb149ff/67763d8a2775bee07438e7a5_Events.png",
     "https://jjrmarketing.com/wp-content/uploads/2019/12/International-Event.jpg",
-    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSnEys5tBHYLbhADjGJzoM5BloFy9AP-uyRzg&s",
-    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ3DNasCvfOLMIxJyQtbNq7EfLkWnMazHE9xw&s",
+    "https://encrypted-tbn0.gstatic.com/images?q=tbn=9GcSnEys5tBHYLbhADjGJzoM5BloFy9AP-uyRzg&s",
+    "https://encrypted-tbn0.gstatic.com/images?q=tbn=9GcQ3DNasCvfOLMIxJyQtbNq7EfLkWnMazHE9xw&s",
     "https://scandiweb.com/blog/wp-content/uploads/2020/01/ecom360_conference_hosting_successful_event.jpeg",
-  ]);
+  ];
+
+  // Toggle function for expanding/collapsing listRequestDates
+  const toggleCharacterDates = (characterId) => {
+    setExpandedCharacters((prev) => ({
+      ...prev,
+      [characterId]: !prev[characterId],
+    }));
+  };
 
   // Fetch packages
   useEffect(() => {
@@ -90,24 +118,199 @@ const DetailEventOrganizationPage = () => {
     }
   }, [step]);
 
+  // Fetch character prices when selectedCharacters change
+  useEffect(() => {
+    const fetchCharacterPrices = async () => {
+      try {
+        const pricePromises = selectedCharacters.map(async (sc) => {
+          if (!characterPrices[sc.characterId]) {
+            const characterData =
+              await DetailEventOrganizationPageService.getCharacterById(
+                sc.characterId
+              );
+            return { [sc.characterId]: characterData.price };
+          }
+          return null;
+        });
+
+        const priceResults = await Promise.all(pricePromises);
+        const newPrices = priceResults.reduce(
+          (acc, result) => ({ ...acc, ...result }),
+          {}
+        );
+
+        setCharacterPrices((prev) => ({ ...prev, ...newPrices }));
+      } catch (error) {
+        toast.error("Failed to fetch character prices. Using cached data.");
+        console.error(error);
+      }
+    };
+
+    if (selectedCharacters.length > 0) {
+      fetchCharacterPrices();
+    }
+  }, [selectedCharacters]);
+
+  // Ensure eventData is saved when entering Step 4
+  useEffect(() => {
+    if (step === 4) {
+      saveEventToLocalStorage();
+    }
+  }, [step]);
+
   // Decode accountId from accessToken
   const getAccountId = () => {
     try {
       const token = localStorage.getItem("accessToken");
       if (!token) throw new Error("No access token found");
       const decoded = jwtDecode(token);
-      return decoded.Id || decoded.sub || "unknown";
+      const accountId = decoded.Id || decoded.sub;
+      if (!accountId) throw new Error("Invalid token: No Id found");
+      return accountId;
     } catch (error) {
-      console.error("Error decoding token:", error);
-      return "unknown";
+      toast.error("Invalid token, please login again");
+      navigate("/login");
+      return null;
     }
   };
 
-  // Format date and time to "HH:mm DD/MM/YYYY"
-  const formatDateTime = (date, time) => {
+  // Date validation for Form.Control
+  const getMinStartDate = () => {
+    return dayjs().add(2, "day").format("YYYY-MM-DD");
+  };
+
+  const getMinEndDate = () => {
+    if (!dateRange[0]) return getMinStartDate();
+    return dayjs(dateRange[0]).format("YYYY-MM-DD");
+  };
+
+  const getMaxEndDate = () => {
+    if (!dateRange[0]) return null;
+    return dayjs(dateRange[0]).add(5, "day").format("YYYY-MM-DD");
+  };
+
+  // Generate list of dates between startDate and endDate
+  const getDateList = () => {
+    if (!dateRange[0] || !dateRange[1]) return [];
+    const start = dayjs(dateRange[0]).startOf("day");
+    const end = dayjs(dateRange[1]).startOf("day");
+    const dates = [];
+    let current = start;
+    while (current.isSameOrBefore(end, "day")) {
+      dates.push(current.format("YYYY-MM-DD"));
+      current = current.add(1, "day");
+    }
+    return dates;
+  };
+
+  // Update time slot for a specific date with validation
+  const updateTimeSlot = (date, times) => {
+    setTimeSlots((prev) => ({
+      ...prev,
+      [date]: times,
+    }));
+  };
+
+  // Validate time slot for a specific date
+  const validateTimeSlot = (date, startTime, endTime) => {
+    if (!startTime || !endTime) return;
+
+    const start = dayjs(startTime, "HH:mm");
+    const end = dayjs(endTime, "HH:mm");
+    const minTime = dayjs("08:00", "HH:mm");
+    const maxTime = dayjs("22:00", "HH:mm");
+
+    // Check if times are within 08:00–22:00
+    if (start.isBefore(minTime) || start.isAfter(maxTime)) {
+      toast.error(
+        `Start time for ${dayjs(date).format(
+          "DD/MM/YYYY"
+        )} must be between 08:00 and 22:00!`
+      );
+      return false;
+    }
+    if (end.isBefore(minTime) || end.isAfter(maxTime)) {
+      toast.error(
+        `End time for ${dayjs(date).format(
+          "DD/MM/YYYY"
+        )} must be between 08:00 and 22:00!`
+      );
+      return false;
+    }
+
+    // Check if end time is after start time
+    if (!end.isAfter(start)) {
+      toast.error(
+        `End time for ${dayjs(date).format(
+          "DD/MM/YYYY"
+        )} must be after start time!`
+      );
+      return false;
+    }
+
+    return true;
+  };
+
+  // Apply the same time slot to all dates
+  const applySameTimeToAll = () => {
+    const dateList = getDateList();
+    if (dateList.length === 0) return;
+
+    const firstDate = dateList[0];
+    const firstTimeSlot = timeSlots[firstDate];
+
+    if (!firstTimeSlot || !firstTimeSlot[0] || !firstTimeSlot[1]) {
+      toast.warn("Please select a valid time slot for the first day!");
+      return;
+    }
+
+    if (!dayjs(firstTimeSlot[1]).isAfter(dayjs(firstTimeSlot[0]))) {
+      toast.warn("End time must be after start time for the first day!");
+      return;
+    }
+
+    const newTimeSlots = { ...timeSlots };
+    dateList.forEach((date) => {
+      newTimeSlots[date] = [dayjs(firstTimeSlot[0]), dayjs(firstTimeSlot[1])];
+    });
+
+    setTimeSlots(newTimeSlots);
+    saveEventToLocalStorage();
+    toast.success("Time slots applied to all days!");
+  };
+
+  // Format date to "DD/MM/YYYY"
+  const formatDate = (date) => {
+    if (!date) return "";
+    return dayjs(date).format("DD/MM/YYYY");
+  };
+
+  // Format time slot to "HH:mm DD/MM/YYYY"
+  const formatTimeSlot = (date, time) => {
     if (!date || !time) return "";
-    const [year, month, day] = date.split("-");
-    return `${time} ${day}/${month}/${year}`;
+    return `${time.format("HH:mm")} ${formatDate(date)}`;
+  };
+
+  // Calculate total days
+  const totalDays =
+    dateRange[0] && dateRange[1]
+      ? dayjs(dateRange[1]).diff(dayjs(dateRange[0]), "day") + 1
+      : 0;
+
+  // Calculate total character price using API-fetched prices
+  const calculateTotalPrice = () => {
+    return selectedCharacters.reduce((sum, sc) => {
+      const characterPrice = characterPrices[sc.characterId] || 0;
+      return sum + characterPrice * (sc.quantity || 1);
+    }, 0);
+  };
+
+  // Validate time slots
+  const validateTimeSlots = () => {
+    return getDateList().every((date) => {
+      const [start, end] = timeSlots[date] || [null, null];
+      return start && end && dayjs(end).isAfter(dayjs(start));
+    });
   };
 
   // Validate event data before API call
@@ -117,56 +320,102 @@ const DetailEventOrganizationPage = () => {
       errors.push("Invalid account ID");
     if (!data.name) errors.push("Package name is required");
     if (!data.description) errors.push("Description is required");
-    if (!data.startDate) errors.push("Start date/time is required");
-    if (!data.endDate) errors.push("End date/time is required");
+    if (!data.startDate) errors.push("Start date is required");
+    if (!data.endDate) errors.push("End date is required");
     if (!data.location) errors.push("Location is required");
     if (!data.packageId) errors.push("Package ID is required");
-    if (data.listRequestCharacters.length === 0)
+    if (data.price === 0) errors.push("Total price cannot be zero");
+    // if (data.deposit) errors.push("Deposit percentage is required");
+    if (data.listRequestCharactersCreateEvent.length === 0)
       errors.push("At least one character is required");
-    data.listRequestCharacters.forEach((char, index) => {
+    data.listRequestCharactersCreateEvent.forEach((char, index) => {
       if (!char.characterId)
         errors.push(`Character ${index + 1}: ID is required`);
       if (char.quantity < 1)
         errors.push(`Character ${index + 1}: Quantity must be at least 1`);
+      if (!char.listRequestDates || char.listRequestDates.length === 0)
+        errors.push(
+          `Character ${index + 1}: At least one time slot is required`
+        );
+      char.listRequestDates.forEach((slot, slotIndex) => {
+        if (!slot.startDate)
+          errors.push(
+            `Character ${index + 1}, Slot ${
+              slotIndex + 1
+            }: Start time is required`
+          );
+        if (!slot.endDate)
+          errors.push(
+            `Character ${index + 1}, Slot ${
+              slotIndex + 1
+            }: End time is required`
+          );
+      });
     });
     return errors;
   };
 
-  // Save event data to localStorage and prepare for API
+  // Save event data to localStorage
   const saveEventToLocalStorage = () => {
+    const totalDaysCalc =
+      dateRange[0] && dateRange[1]
+        ? dayjs(dateRange[1]).diff(dayjs(dateRange[0]), "day") + 1
+        : 1;
+    const pricePackage = selectedPackage?.price || 0;
+    const totalCharacterPrice = calculateTotalPrice();
+    const totalPrice = Math.floor(
+      pricePackage + totalCharacterPrice * totalDaysCalc
+    );
+
     const eventData = {
       accountId: getAccountId(),
       name: selectedPackage?.packageName || "",
       description: description || "",
-      price: selectedPackage?.price || 0,
-      startDate: formatDateTime(startDate, startTime),
-      endDate: formatDateTime(endDate, endTime),
+      price: totalPrice,
+      startDate: dateRange[0] ? formatDate(dateRange[0]) : "",
+      endDate: dateRange[1] ? formatDate(dateRange[1]) : "",
       location: location || "",
-      serviceId: "S003",
+      deposit: 0 || "",
       packageId: selectedPackage?.packageId || "",
-      accountCouponId: null,
-      listRequestCharacters: selectedCharacters.map((sc) => ({
-        characterId: sc.characterId,
-        cosplayerId: null,
-        description: sc.note || null,
-        quantity: sc.quantity || 1,
-      })),
+      listRequestCharactersCreateEvent: selectedCharacters.map((sc) => {
+        const characterSlots = timeSlots;
+        const listRequestDates = getDateList()
+          .map((date) => {
+            const [startTime, endTime] = characterSlots[date] || [null, null];
+            return {
+              startDate: startTime ? formatTimeSlot(date, startTime) : "",
+              endDate: endTime ? formatTimeSlot(date, endTime) : "",
+            };
+          })
+          .filter((slot) => slot.startDate && slot.endDate);
+        return {
+          characterId: sc.characterId,
+          description: sc.note || "shared",
+          quantity: sc.quantity || 1,
+          listRequestDates,
+        };
+      }),
     };
     localStorage.setItem("eventData", JSON.stringify(eventData));
     return eventData;
   };
 
-  // Handle API submission
+  // Handle API submission with price recalculation
   const handleSubmitEvent = async (eventData) => {
     setIsSubmitting(true);
     try {
+      const updatedEventData = {
+        ...eventData,
+        price: eventData.price,
+      };
+
       const response =
         await DetailEventOrganizationPageService.sendRequestEventOrganization(
-          eventData
+          updatedEventData
         );
       toast.success("Event created successfully!");
       console.log("API Response:", response);
-      setShowSummaryModal(true);
+      setIsApiSuccess(true);
     } catch (error) {
       toast.error("Failed to create event. Please try again.");
       console.error("API Error:", error);
@@ -178,62 +427,107 @@ const DetailEventOrganizationPage = () => {
   // Handle next step
   const handleNextStep = () => {
     if (step === 1 && !selectedPackage) {
-      return toast.warn("Please select an event package!");
+      toast.warn("Please select an event package!");
+      return;
     }
     if (
       step === 2 &&
-      (!location ||
-        !startDate ||
-        !startTime ||
-        !endDate ||
-        !endTime ||
-        !description)
+      (!location || !dateRange[0] || !dateRange[1] || !description)
     ) {
-      return toast.warn("Please fill in all required fields!");
-    }
-    if (step === 3 && selectedCharacters.length === 0) {
-      return toast.warn("Please select at least one character!");
-    }
-    if (step === 4 && !termsAgreed) {
-      toast.warn("Please agree to the terms and conditions before submitting!");
+      toast.warn("Please fill in all required fields!");
       return;
     }
-
-    if (step === 1 || step === 2 || step === 3) {
-      saveEventToLocalStorage();
+    if (step === 2) {
+      const hasTimeSlots = getDateList().every(
+        (date) => timeSlots[date] && timeSlots[date][0] && timeSlots[date][1]
+      );
+      if (!hasTimeSlots) {
+        toast.warn("Please select a valid time slot for each day!");
+        return;
+      }
+      if (!validateTimeSlots()) {
+        toast.warn("End time must be after start time for all days!");
+        return;
+      }
     }
-
-    if (step < 4) {
-      setStep(step + 1);
+    if (step === 3 && selectedCharacters.length === 0) {
+      toast.warn("Please select at least one character!");
+      return;
+    }
+    if (step === 3) {
+      const hasCharacterTimeSlots = selectedCharacters.every(() => {
+        const slots = timeSlots;
+        return getDateList().every(
+          (date) => slots[date] && slots[date][0] && slots[date][1]
+        );
+      });
+      if (!hasCharacterTimeSlots) {
+        toast.warn("Please ensure all characters have valid time slots!");
+        return;
+      }
     }
     if (step === 4) {
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        toast.error("You must login to use this feature");
+        navigate("/login");
+        return;
+      }
+      if (!termsAgreed) {
+        toast.warn("Please agree to the terms and conditions!");
+        return;
+      }
+
       const eventData = saveEventToLocalStorage();
-      console.log("Event Data Before API:", JSON.stringify(eventData, null, 2));
       const validationErrors = validateEventData(eventData);
       if (validationErrors.length > 0) {
         validationErrors.forEach((error) => toast.error(error));
         return;
       }
-      handleSubmitEvent(eventData);
+      setShowConfirmModal(true);
+      return;
     }
+
+    saveEventToLocalStorage();
+    setStep(step + 1);
   };
 
-  // Handle input changes in Step 2
   const handleInputChange = () => {
-    const eventData = saveEventToLocalStorage();
-    console.log("Updated Event Data:", JSON.stringify(eventData, null, 2));
+    saveEventToLocalStorage();
   };
 
   const handlePrevStep = () => {
     if (step > 1) setStep(step - 1);
   };
 
-  const getFormattedDateTime = (date, time) => {
-    return date && time ? new Date(`${date}T${time}`).toLocaleString() : "N/A";
-  };
+  // Sort and filter packages
+  const filteredPackages = packages
+    .filter((pkg) =>
+      pkg.packageName.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => {
+      if (sortOrder === "asc") {
+        return a.price - b.price;
+      } else if (sortOrder === "desc") {
+        return b.price - a.price;
+      }
+      return 0; // Default order
+    });
 
-  const filteredPackages = packages.filter((pkg) =>
-    pkg.packageName.toLowerCase().includes(searchTerm.toLowerCase())
+  const totalPackages = filteredPackages.length;
+  const paginatedPackages = filteredPackages.slice(
+    (currentPackagePage - 1) * pageSize,
+    currentPackagePage * pageSize
+  );
+
+  // Pagination logic for characters
+  const filteredCharacters = characters.filter((char) =>
+    char.characterName.toLowerCase().includes(characterSearch.toLowerCase())
+  );
+  const totalCharacters = filteredCharacters.length;
+  const paginatedCharacters = filteredCharacters.slice(
+    (currentCharacterPage - 1) * pageSize,
+    currentCharacterPage * pageSize
   );
 
   const toggleCharacterSelection = (character) => {
@@ -242,8 +536,17 @@ const DetailEventOrganizationPage = () => {
         (sc) => sc.characterId === character.characterId
       );
       if (exists) {
+        setCharacterTimeSlots((prevSlots) => {
+          const newSlots = { ...prevSlots };
+          delete newSlots[character.characterId];
+          return newSlots;
+        });
         return prev.filter((sc) => sc.characterId !== character.characterId);
       } else {
+        setCharacterTimeSlots((prevSlots) => ({
+          ...prevSlots,
+          [character.characterId]: { ...timeSlots },
+        }));
         return [
           ...prev,
           {
@@ -274,15 +577,6 @@ const DetailEventOrganizationPage = () => {
     );
   };
 
-  const calculateTotalPrice = () => {
-    return selectedCharacters.reduce((sum, sc) => {
-      const characterPrice =
-        characters.find((char) => char.characterId === sc.characterId)?.price ||
-        0;
-      return sum + characterPrice * (sc.quantity || 1);
-    }, 0);
-  };
-
   useEffect(() => {
     const handleScroll = () => {
       const assignSection = document.getElementById(
@@ -297,6 +591,17 @@ const DetailEventOrganizationPage = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, [selectedCharacters]);
+
+  // Helper function to get eventData from localStorage
+  const getEventDataFromLocalStorage = () => {
+    try {
+      const eventData = localStorage.getItem("eventData");
+      return eventData ? JSON.parse(eventData) : null;
+    } catch (error) {
+      console.error("Failed to parse eventData from localStorage:", error);
+      return null;
+    }
+  };
 
   return (
     <div className="event-organize-page min-vh-100">
@@ -319,49 +624,88 @@ const DetailEventOrganizationPage = () => {
         {step === 1 && (
           <div className="step-section fade-in">
             <h2 className="text-center mb-4">Select Event Package</h2>
-            <div className="search-container mb-4">
-              <InputGroup>
-                <InputGroup.Text>
-                  <Search size={20} />
-                </InputGroup.Text>
-                <FormControl
-                  placeholder="Search for event packages..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </InputGroup>
-            </div>
+            <Row className="mb-4 align-items-center">
+              <Col md={8}>
+                <InputGroup>
+                  <InputGroup.Text>
+                    <Search size={20} />
+                  </InputGroup.Text>
+                  <FormControl
+                    placeholder="Search for event packages..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </InputGroup>
+              </Col>
+              <Col md={4} className="text-end">
+                <Dropdown>
+                  <Dropdown.Toggle
+                    variant="outline-secondary"
+                    id="sort-dropdown"
+                  >
+                    Sort by:{" "}
+                    {sortOrder === "asc"
+                      ? "Price Low to High"
+                      : sortOrder === "desc"
+                      ? "Price High to Low"
+                      : "Default"}
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu>
+                    <Dropdown.Item onClick={() => setSortOrder("default")}>
+                      Default
+                    </Dropdown.Item>
+                    <Dropdown.Item onClick={() => setSortOrder("asc")}>
+                      Price Low to High
+                    </Dropdown.Item>
+                    <Dropdown.Item onClick={() => setSortOrder("desc")}>
+                      Price High to Low
+                    </Dropdown.Item>
+                  </Dropdown.Menu>
+                </Dropdown>
+              </Col>
+            </Row>
             {loadingPackages ? (
               <p className="text-center">Loading packages...</p>
             ) : (
-              <Row className="package-row">
-                {filteredPackages.length > 0 ? (
-                  filteredPackages.map((pkg) => (
-                    <Col md={4} className="mb-4" key={pkg.packageId}>
-                      <Card
-                        className={`package-card ${
-                          selectedPackage?.packageId === pkg.packageId
-                            ? "selected"
-                            : ""
-                        }`}
-                        onClick={() => setSelectedPackage(pkg)}
-                      >
-                        <Card.Img variant="top" src={pkg.image} />
-                        <Card.Body className="package-card-body">
-                          <Card.Title>{pkg.packageName}</Card.Title>
-                          <Card.Text>{pkg.description}</Card.Text>
-                          <p>
-                            <strong>Price: </strong>
-                            {pkg.price.toLocaleString()} VND
-                          </p>
-                        </Card.Body>
-                      </Card>
-                    </Col>
-                  ))
-                ) : (
-                  <p className="text-center">No packages found.</p>
-                )}
-              </Row>
+              <>
+                <Row className="package-row">
+                  {paginatedPackages.length > 0 ? (
+                    paginatedPackages.map((pkg) => (
+                      <Col md={4} className="mb-4" key={pkg.packageId}>
+                        <Card
+                          className={`package-card ${
+                            selectedPackage?.packageId === pkg.packageId
+                              ? "selected"
+                              : ""
+                          }`}
+                          onClick={() => setSelectedPackage(pkg)}
+                        >
+                          <Card.Img variant="top" src={pkg.image} />
+                          <Card.Body className="package-card-body">
+                            <Card.Title>{pkg.packageName}</Card.Title>
+                            <Card.Text>{pkg.description}</Card.Text>
+                            <p>
+                              <strong>Price: </strong>
+                              {pkg.price.toLocaleString()} VND
+                            </p>
+                          </Card.Body>
+                        </Card>
+                      </Col>
+                    ))
+                  ) : (
+                    <p className="text-center">No packages found.</p>
+                  )}
+                </Row>
+                <div className="d-flex justify-content-center mt-4">
+                  <Pagination
+                    current={currentPackagePage}
+                    pageSize={pageSize}
+                    total={totalPackages}
+                    onChange={(page) => setCurrentPackagePage(page)}
+                    showSizeChanger={false}
+                  />
+                </div>
+              </>
             )}
           </div>
         )}
@@ -374,76 +718,147 @@ const DetailEventOrganizationPage = () => {
               Provide the details for your event below. All fields are required.
             </p>
             <Form>
-              <Row>
-                <Col md={6}>
-                  <Form.Group className="mb-3">
+              <Form.Group className="mb-3">
+                <Form.Label>Date Range</Form.Label>
+                <Row>
+                  <Col md={6}>
                     <Form.Label>Start Date</Form.Label>
                     <Form.Control
                       type="date"
-                      value={startDate}
+                      value={
+                        dateRange[0]
+                          ? dayjs(dateRange[0]).format("YYYY-MM-DD")
+                          : ""
+                      }
                       onChange={(e) => {
-                        setStartDate(e.target.value);
+                        const newStartDate = e.target.value
+                          ? dayjs(e.target.value)
+                          : null;
+                        const newDateRange = [newStartDate, dateRange[1]];
+                        if (
+                          newStartDate &&
+                          dateRange[1] &&
+                          newStartDate.isAfter(dateRange[1])
+                        ) {
+                          newDateRange[1] = null; // Reset end date if start date is after it
+                        }
+                        setDateRange(newDateRange);
+                        setTimeSlots({});
                         handleInputChange();
                       }}
-                      onFocus={(e) =>
-                        e.target.showPicker && e.target.showPicker()
-                      }
-                      className="custom-date-input"
+                      min={getMinStartDate()}
                       required
                     />
-                  </Form.Group>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Start Time</Form.Label>
-                    <Form.Control
-                      type="time"
-                      value={startTime}
-                      onChange={(e) => {
-                        setStartTime(e.target.value);
-                        handleInputChange();
-                      }}
-                      onFocus={(e) =>
-                        e.target.showPicker && e.target.showPicker()
-                      }
-                      className="custom-time-input"
-                      required
-                    />
-                  </Form.Group>
-                </Col>
-                <Col md={6}>
-                  <Form.Group className="mb-3">
+                  </Col>
+                  <Col md={6}>
                     <Form.Label>End Date</Form.Label>
                     <Form.Control
                       type="date"
-                      value={endDate}
+                      value={
+                        dateRange[1]
+                          ? dayjs(dateRange[1]).format("YYYY-MM-DD")
+                          : ""
+                      }
                       onChange={(e) => {
-                        setEndDate(e.target.value);
+                        const newEndDate = e.target.value
+                          ? dayjs(e.target.value)
+                          : null;
+                        setDateRange([dateRange[0], newEndDate]);
+                        setTimeSlots({});
                         handleInputChange();
                       }}
-                      onFocus={(e) =>
-                        e.target.showPicker && e.target.showPicker()
-                      }
-                      className="custom-time-input"
+                      min={getMinEndDate()}
+                      max={getMaxEndDate()}
                       required
+                      disabled={!dateRange[0]} // Disable until start date is selected
                     />
-                  </Form.Group>
-                  <Form.Group className="mb-3">
-                    <Form.Label>End Time</Form.Label>
-                    <Form.Control
-                      type="time"
-                      value={endTime}
-                      onChange={(e) => {
-                        setEndTime(e.target.value);
-                        handleInputChange();
-                      }}
-                      onFocus={(e) =>
-                        e.target.showPicker && e.target.showPicker()
-                      }
-                      className="custom-time-input"
-                      required
-                    />
-                  </Form.Group>
-                </Col>
-              </Row>
+                  </Col>
+                </Row>
+              </Form.Group>
+              {dateRange[0] && dateRange[1] && (
+                <Form.Group className="mb-3">
+                  <Form.Label>Time Slots (08:00–22:00)</Form.Label>
+                  {getDateList().map((date, index) => (
+                    <div key={date} className="mb-3">
+                      <h6>{dayjs(date).format("DD/MM/YYYY")}</h6>
+                      <Row className="align-items-center">
+                        <Col md={4}>
+                          <Form.Control
+                            type="time"
+                            value={
+                              timeSlots[date]?.[0]
+                                ? timeSlots[date][0].format("HH:mm")
+                                : ""
+                            }
+                            onChange={(e) => {
+                              const startTime = e.target.value
+                                ? dayjs(e.target.value, "HH:mm")
+                                : null;
+                              const endTime = timeSlots[date]?.[1] || null;
+                              if (startTime && endTime) {
+                                validateTimeSlot(date, startTime, endTime);
+                              }
+                              updateTimeSlot(date, [startTime, endTime]);
+                              handleInputChange();
+                            }}
+                            min="08:00"
+                            max="22:00"
+                            required
+                            placeholder="Start Time"
+                          />
+                        </Col>
+                        <Col md={4}>
+                          <Form.Control
+                            type="time"
+                            value={
+                              timeSlots[date]?.[1]
+                                ? timeSlots[date][1].format("HH:mm")
+                                : ""
+                            }
+                            onChange={(e) => {
+                              const endTime = e.target.value
+                                ? dayjs(e.target.value, "HH:mm")
+                                : null;
+                              const startTime = timeSlots[date]?.[0] || null;
+                              if (startTime && endTime) {
+                                validateTimeSlot(date, startTime, endTime);
+                              }
+                              updateTimeSlot(date, [startTime, endTime]);
+                              handleInputChange();
+                            }}
+                            min="08:00"
+                            max="22:00"
+                            required
+                            placeholder="End Time"
+                          />
+                        </Col>
+                        {index === 0 && totalDays > 1 && (
+                          <Col md={4} className="d-flex align-items-center">
+                            <Button
+                              variant="primary"
+                              onClick={applySameTimeToAll}
+                              disabled={
+                                !timeSlots[date]?.[0] ||
+                                !timeSlots[date]?.[1] ||
+                                !dayjs(timeSlots[date]?.[1]).isAfter(
+                                  dayjs(timeSlots[date]?.[0])
+                                )
+                              }
+                            >
+                              Same Time
+                            </Button>
+                          </Col>
+                        )}
+                      </Row>
+                    </div>
+                  ))}
+                </Form.Group>
+              )}
+              <i>
+                {" "}
+                ⚠️Date and Time cannot change after send request, because it
+                will be affect other task of cosplayers !
+              </i>
               <Form.Group className="mb-3">
                 <Form.Label>Location</Form.Label>
                 <Form.Control
@@ -480,8 +895,7 @@ const DetailEventOrganizationPage = () => {
           <div className="step-section fade-in">
             <h2 className="text-center mb-4">Select Characters</h2>
             <p className="text-center mb-4">
-              Choose characters for your event and specify quantities. You can
-              select multiple characters.
+              Choose characters for your event and specify quantities.
             </p>
             {loadingCharacters ? (
               <p className="text-center">Loading characters...</p>
@@ -500,13 +914,8 @@ const DetailEventOrganizationPage = () => {
                   </InputGroup>
                 </div>
                 <Row className="package-row">
-                  {characters
-                    .filter((char) =>
-                      char.characterName
-                        .toLowerCase()
-                        .includes(characterSearch.toLowerCase())
-                    )
-                    .map((character) => {
+                  {paginatedCharacters.length > 0 ? (
+                    paginatedCharacters.map((character) => {
                       const isSelected = selectedCharacters.some(
                         (sc) => sc.characterId === character.characterId
                       );
@@ -534,7 +943,15 @@ const DetailEventOrganizationPage = () => {
                               <Card.Text>{character.description}</Card.Text>
                               <p>
                                 <strong>Price: </strong>
-                                {character.price.toLocaleString()} VND
+                                {(
+                                  characterPrices[character.characterId] ||
+                                  character.price
+                                ).toLocaleString()}{" "}
+                                VND
+                              </p>
+                              <p>
+                                <strong>Quantity Available: </strong>
+                                {character.quantity.toLocaleString()}
                               </p>
                               {isSelected && (
                                 <>
@@ -578,8 +995,20 @@ const DetailEventOrganizationPage = () => {
                           </Card>
                         </Col>
                       );
-                    })}
+                    })
+                  ) : (
+                    <p className="text-center">No characters found.</p>
+                  )}
                 </Row>
+                <div className="d-flex justify-content-center mt-4">
+                  <Pagination
+                    current={currentCharacterPage}
+                    pageSize={pageSize}
+                    total={totalCharacters}
+                    onChange={(page) => setCurrentCharacterPage(page)}
+                    showSizeChanger={false}
+                  />
+                </div>
               </>
             )}
           </div>
@@ -591,44 +1020,215 @@ const DetailEventOrganizationPage = () => {
             <h2 className="text-center mb-4">Review Your Event</h2>
             <Card>
               <Card.Body>
-                <p>
-                  <strong>Selected Package:</strong>{" "}
-                  {selectedPackage?.packageName || "N/A"}
-                </p>
-                <p>
-                  <strong>Location:</strong> {location}
-                </p>
-                <p>
-                  <strong>Start:</strong>{" "}
-                  {getFormattedDateTime(startDate, startTime)}
-                </p>
-                <p>
-                  <strong>End:</strong> {getFormattedDateTime(endDate, endTime)}
-                </p>
-                <p>
-                  <strong>Description:</strong> {description}
-                </p>
-                <p>
-                  <strong>Selected Characters:</strong>{" "}
-                  {selectedCharacters.length > 0
-                    ? selectedCharacters
-                        .map(
-                          (sc) =>
-                            `${sc.characterName} (Quantity: ${
-                              sc.quantity || 1
-                            }, Note: ${sc.note || "None"})`
-                        )
-                        .join(", ")
-                    : "None"}
-                </p>
-                <p>
-                  <strong>Total Character Price: </strong>
-                  {calculateTotalPrice().toLocaleString()} VND
-                </p>
-                <p>
-                  <strong>Package Price: </strong>
-                  {selectedPackage?.price.toLocaleString() || "N/A"} VND
-                </p>
+                <Table bordered hover responsive>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <strong>Selected Package</strong>
+                      </td>
+                      <td>{selectedPackage?.packageName || "N/A"}</td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <strong>Location</strong>
+                      </td>
+                      <td>{location || "N/A"}</td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <strong>Start Date</strong>
+                      </td>
+                      <td>{formatDate(dateRange[0]) || "N/A"}</td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <strong>End Date</strong>
+                      </td>
+                      <td>{formatDate(dateRange[1]) || "N/A"}</td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <strong>Total Days</strong>
+                      </td>
+                      <td>{totalDays}</td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <strong>Description</strong>
+                      </td>
+                      <td>{description || "N/A"}</td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <strong>Selected Characters</strong>
+                      </td>
+                      <td>
+                        {selectedCharacters.length > 0 ? (
+                          <div>
+                            {selectedCharacters.map((sc) => {
+                              const eventData = getEventDataFromLocalStorage();
+                              const characterData =
+                                eventData?.listRequestCharactersCreateEvent.find(
+                                  (char) => char.characterId === sc.characterId
+                                );
+                              const isExpanded =
+                                expandedCharacters[sc.characterId];
+                              return (
+                                <div
+                                  key={sc.characterId}
+                                  style={{ marginBottom: "10px" }}
+                                >
+                                  <div
+                                    style={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      cursor: "pointer",
+                                    }}
+                                    onClick={() =>
+                                      toggleCharacterDates(sc.characterId)
+                                    }
+                                  >
+                                    {isExpanded ? (
+                                      <ChevronUp size={20} className="me-2" />
+                                    ) : (
+                                      <ChevronDown size={20} className="me-2" />
+                                    )}
+                                    {`${sc.characterName} (Quantity: ${
+                                      sc.quantity || 1
+                                    }, Note: ${sc.note || "None"})`}
+                                  </div>
+                                  {isExpanded &&
+                                    characterData?.listRequestDates && (
+                                      <Table
+                                        bordered
+                                        size="sm"
+                                        className="mt-2"
+                                        style={{ marginLeft: "30px" }}
+                                      >
+                                        <thead>
+                                          <tr>
+                                            <th>Start Time</th>
+                                            <th>End Time</th>
+                                          </tr>
+                                        </thead>
+                                        <tbody>
+                                          {characterData.listRequestDates.map(
+                                            (slot, index) => (
+                                              <tr key={index}>
+                                                <td>
+                                                  {slot.startDate || "N/A"}
+                                                </td>
+                                                <td>{slot.endDate || "N/A"}</td>
+                                              </tr>
+                                            )
+                                          )}
+                                        </tbody>
+                                      </Table>
+                                    )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          "None"
+                        )}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <strong>Pricing Details</strong>
+                      </td>
+                      <td>
+                        <Table bordered>
+                          <thead>
+                            <tr>
+                              <th>Character</th>
+                              <th>Price per Character</th>
+                              <th>Quantity</th>
+                              <th>Total</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {selectedCharacters.length > 0 ? (
+                              selectedCharacters.map((sc) => {
+                                const characterPrice =
+                                  characterPrices[sc.characterId] || 0;
+                                const totalCharacterPrice =
+                                  characterPrice * (sc.quantity || 1);
+                                return (
+                                  <tr key={sc.characterId}>
+                                    <td>{sc.characterName}</td>
+                                    <td>
+                                      {characterPrice.toLocaleString()} VND
+                                    </td>
+                                    <td>{sc.quantity || 1}</td>
+                                    <td>
+                                      {totalCharacterPrice.toLocaleString()} VND
+                                    </td>
+                                  </tr>
+                                );
+                              })
+                            ) : (
+                              <tr>
+                                <td colSpan={4} className="text-center">
+                                  No characters selected
+                                </td>
+                              </tr>
+                            )}
+                            <tr>
+                              <td colSpan={3} className="text-end">
+                                <strong>Total Character Price</strong>
+                              </td>
+                              <td>
+                                <strong>
+                                  {calculateTotalPrice().toLocaleString()} VND
+                                </strong>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td colSpan={3} className="text-end">
+                                <strong>Package Price</strong>
+                              </td>
+                              <td>
+                                <strong>
+                                  {(
+                                    selectedPackage?.price || 0
+                                  ).toLocaleString()}{" "}
+                                  VND
+                                </strong>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td colSpan={3} className="text-end">
+                                <strong>
+                                  Estimated price (excluding cosplayer) =
+                                  Package Price + Total Character Price * Total
+                                  Days
+                                </strong>
+                              </td>
+                              <td>
+                                <strong>
+                                  {(() => {
+                                    const eventData =
+                                      getEventDataFromLocalStorage();
+                                    const price = eventData?.price || 0;
+                                    return price
+                                      .toLocaleString("vi-VN", {
+                                        style: "currency",
+                                        currency: "VND",
+                                      })
+                                      .replace("₫", "VND");
+                                  })()}
+                                </strong>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </Table>
+                      </td>
+                    </tr>
+                  </tbody>
+                </Table>
+
                 <Button
                   variant="outline-secondary"
                   onClick={() => setShowTermsModal(true)}
@@ -666,19 +1266,28 @@ const DetailEventOrganizationPage = () => {
             >
               Save Draft
             </Button>
-            <Button
-              variant="primary"
-              onClick={handleNextStep}
-              disabled={(step === 4 && !termsAgreed) || isSubmitting}
-            >
-              {isSubmitting ? (
-                "Submitting..."
-              ) : (
-                <>
-                  {step === 4 ? "Finish" : "Next"} <ChevronRight size={20} />
-                </>
-              )}
-            </Button>
+            {isApiSuccess ? (
+              <Button
+                variant="primary"
+                onClick={() => navigate(`/my-event-organize/${getAccountId()}`)}
+              >
+                View My Event
+              </Button>
+            ) : (
+              <Button
+                variant="primary"
+                onClick={handleNextStep}
+                disabled={(step === 4 && !termsAgreed) || isSubmitting}
+              >
+                {isSubmitting ? (
+                  "Submitting..."
+                ) : (
+                  <>
+                    {step === 4 ? "Finish" : "Next"} <ChevronRight size={20} />
+                  </>
+                )}
+              </Button>
+            )}
           </div>
         </div>
       </Container>
@@ -710,35 +1319,35 @@ const DetailEventOrganizationPage = () => {
         </Modal.Footer>
       </Modal>
 
-      {/* <Modal
-        show={showSummaryModal}
-        onHide={() => setShowSummaryModal(false)}
-        size="lg"
+      <Modal
+        show={showConfirmModal}
+        onHide={() => setShowConfirmModal(false)}
         centered
-        className="summary-modal"
       >
         <Modal.Header closeButton>
-          <Modal.Title>Event Summary</Modal.Title>
+          <Modal.Title>Confirm Event Details</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <p>
-            <strong>Selected Package:</strong>{" "}
-            {selectedPackage?.packageName || "N/A"}
+            <strong>Package:</strong> {selectedPackage?.packageName || "N/A"}
           </p>
           <p>
             <strong>Location:</strong> {location}
           </p>
           <p>
-            <strong>Start:</strong> {getFormattedDateTime(startDate, startTime)}
+            <strong>Start Date:</strong> {formatDate(dateRange[0])}
           </p>
           <p>
-            <strong>End:</strong> {getFormattedDateTime(endDate, endTime)}
+            <strong>End Date:</strong> {formatDate(dateRange[1])}
+          </p>
+          <p>
+            <strong>Total Days:</strong> {totalDays}
           </p>
           <p>
             <strong>Description:</strong> {description}
           </p>
           <p>
-            <strong>Selected Characters:</strong>{" "}
+            <strong>Characters:</strong>{" "}
             {selectedCharacters.length > 0
               ? selectedCharacters
                   .map(
@@ -751,18 +1360,38 @@ const DetailEventOrganizationPage = () => {
               : "None"}
           </p>
           <p>
-            <strong>Total Character Price: </strong>
-            {calculateTotalPrice().toLocaleString()} VND
+            <strong>Total Price:</strong>{" "}
+            {(() => {
+              const eventData = getEventDataFromLocalStorage();
+              const price = eventData?.price || 0;
+              return price
+                .toLocaleString("vi-VN", {
+                  style: "currency",
+                  currency: "VND",
+                })
+                .replace("₫", "VND");
+            })()}
           </p>
-          <p>
-            <strong>Package Price: </strong>
-            {selectedPackage?.price.toLocaleString() || "N/A"} VND
-          </p>
-          <Button variant="primary" onClick={() => setShowSummaryModal(false)}>
-            Close
-          </Button>
         </Modal.Body>
-      </Modal> */}
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            onClick={() => setShowConfirmModal(false)}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            onClick={() => {
+              setShowConfirmModal(false);
+              handleSubmitEvent(saveEventToLocalStorage());
+            }}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Submitting..." : "Confirm"}
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
       {step === 3 && selectedCharacters.length > 0 && (
         <div
@@ -774,9 +1403,7 @@ const DetailEventOrganizationPage = () => {
           <h5>Selected Characters</h5>
           <ul className="selected-cosplayers-list">
             {selectedCharacters.map((sc) => {
-              const characterPrice =
-                characters.find((char) => char.characterId === sc.characterId)
-                  ?.price || 0;
+              const characterPrice = characterPrices[sc.characterId] || 0;
               return (
                 <li key={sc.characterId}>
                   {sc.characterName} - {characterPrice.toLocaleString()} VND x{" "}

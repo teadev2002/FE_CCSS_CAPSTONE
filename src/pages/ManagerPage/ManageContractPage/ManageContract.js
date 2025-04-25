@@ -1733,6 +1733,7 @@ import ManageContractService from "../../../services/ManageServicePages/ManageCo
 import "../../../styles/Manager/ManageContract.scss";
 import dayjs from "dayjs";
 import ManageContractRentalCostume from "./ManageContractRentalCostume";
+import ManageContractEventOrganzie from "./ManageContractEventOrganize.js";
 const { TextArea } = Input;
 
 function CustomTabPanel(props) {

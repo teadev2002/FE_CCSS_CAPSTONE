@@ -52,7 +52,7 @@ const ManageAssignTaskService = {
       );
     }
   },
-  getAccountNoTaskByCharacterName: async (characterId, startDate, endDate) => {
+  getAccountNoTaskByCharacterId: async (characterId, startDate, endDate) => {
     try {
       const response = await apiClient.get(
         `/api/Account/characterId?characterId=${characterId}&startDate=${startDate}&endDate=${endDate}`
@@ -83,6 +83,7 @@ const ManageAssignTaskService = {
   },
   assignTask: async (requestId, assignments) => {
     try {
+      // assignments phải là mảng [{ cosplayerId, requestCharacterId }, ...]
       const response = await apiClient.post(
         `/api/Task?requestId=${requestId}`,
         assignments
@@ -93,6 +94,7 @@ const ManageAssignTaskService = {
       throw new Error(error.response?.data?.message || "Lỗi khi gán task");
     }
   },
+
   getAllCosplayers: async () => {
     try {
       const response = await apiClient.get("/api/Account/roleId/R004");
@@ -103,6 +105,15 @@ const ManageAssignTaskService = {
       }));
     } catch (error) {
       console.error("Error fetching all cosplayers:", error);
+      throw error;
+    }
+  },
+  ChangeCosplayerFree: async (data) => {
+    try {
+      const response = await apiClient.post(`/api/Account/characterId`, data);
+      return response.data;
+    } catch (error) {
+      console.error("Error changing cosplayer:", error);
       throw error;
     }
   },
