@@ -68,10 +68,11 @@ const PaymentService = {
         // ticketQuantity,
         contractId,
         // orderpaymentId,
+        isWeb: true,
       };
 
       // Gửi yêu cầu POST tới endpoint /api/Momo
-      const response = await apiClient.post("/api/VNPay", requestBody);
+      const response = await apiClient.post("/api/Momo", requestBody);
 
       // Trả về URL thanh toán từ response
       return response.data;

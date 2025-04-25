@@ -5017,6 +5017,7 @@ const MyHistory = () => {
         ticketQuantity: "",
         contractId: depositData.contractId,
         orderpaymentId: "",
+        isWeb: true,
       };
 
       const paymentUrl = await PaymentService.DepositPayment(
@@ -5061,6 +5062,7 @@ const MyHistory = () => {
         ticketQuantity: "",
         contractId: completePaymentData.contractId,
         orderpaymentId: "",
+        isWeb: true,
       };
 
       const paymentUrl = await PaymentService.DepositPayment(

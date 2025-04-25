@@ -1798,6 +1798,7 @@ const MyRentalCostume = () => {
         purpose: 1,
         accountId: accountId,
         contractId: selectedContractId,
+        isWeb: true,
       };
 
       const paymentUrl = await PaymentService.DepositPayment(paymentData);
