@@ -72,7 +72,7 @@ const PaymentService = {
       };
 
       // Gửi yêu cầu POST tới endpoint /api/Momo
-      const response = await apiClient.post("/api/Momo", requestBody);
+      const response = await apiClient.post("/api/VNPay", requestBody);
 
       // Trả về URL thanh toán từ response
       return response.data;
