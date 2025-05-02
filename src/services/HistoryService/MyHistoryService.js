@@ -231,5 +231,59 @@ const MyHistoryService = {
       );
     }
   },
+  AddCosplayer: async (data) => {
+    try {
+      const response = await apiClient.post(`/api/RequestCharacter`, data);
+      return response.data;
+    } catch (error) {
+      console.error("Error adding cosplayer to request:", error);
+      throw new Error(
+        error.response?.data?.message || "Failed to add cosplayer to request"
+      );
+    }
+  },
+  getAllCharacters: async () => {
+    try {
+      const response = await apiClient.get("/api/Character");
+      return response.data;
+    } catch (error) {
+      throw new Error(
+        error.response?.data?.message || "Lỗi khi lấy danh sách characters"
+      );
+    }
+  },
+  getAccountByCharacterNameNDate: async (characterName, startDate, endDate) => {
+    try {
+      // Xây dựng URL với characterName trong path và start/end trong query string
+      const response = await apiClient.get(
+        `/api/Account/characterName/${characterName}?start=${encodeURIComponent(
+          startDate
+        )}&end=${encodeURIComponent(endDate)}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error(
+        "Error fetching accounts by character name and date:",
+        error
+      );
+      throw new Error(
+        error.response?.data?.message ||
+          "Lỗi khi lấy tài khoản theo tên nhân vật và ngày"
+      );
+    }
+  },
+  DeleteCosplayerInReq: async (requestCharacterId) => {
+    try {
+      const response = await apiClient.delete(
+        `/api/RequestCharacter?requestCharacterId=${requestCharacterId}`
+      );
+      return response.data; // Assuming the API returns a success message or empty response
+    } catch (error) {
+      throw new Error(
+        error.response?.data?.message ||
+          "Failed to delete cosplayer from request."
+      );
+    }
+  },
 };
 export default MyHistoryService;

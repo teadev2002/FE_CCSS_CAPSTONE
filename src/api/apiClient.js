@@ -1,27 +1,7 @@
-// import axios from "axios";
-
-// const apiClient = axios.create({
-//   baseURL: "https://localhost:7071/api",
-//   headers: {
-//     "Content-Type": "application/json",
-//   },
-// });
-// // Thêm interceptor để tự động thêm token
-// apiClient.interceptors.request.use((config) => {
-//   const token = localStorage.getItem("accessToken");
-//   if (token) {
-//     config.headers.Authorization = `Bearer ${token}`;
-//   }
-//   return config;
-// });
-// export default apiClient;
-
-// src/api/index.js
-
 import axios from "axios";
 
 const BASE_URL = "https://localhost:7071";
-// const BASE_URL = "http://192.168.1.6:5295";
+// const BASE_URL = "http://192.168.1.8:5295";
 
 // const BASE_URL =
 //   "https://beccss-brhnhugne7d5d3aj.southeastasia-01.azurewebsites.net";

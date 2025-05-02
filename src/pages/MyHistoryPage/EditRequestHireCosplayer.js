@@ -1,13 +1,13 @@
-// tính lại giá edit * thêm totalday
 import React, { useState, useEffect, useCallback } from "react";
-import { Form, Modal, Input, List, Button } from "antd";
-import { Edit } from "lucide-react";
+import { Form, Modal, Input, List, Button, Collapse, Popconfirm } from "antd";
+import { Edit, Plus, Delete } from "lucide-react";
 import dayjs from "dayjs";
 import MyHistoryService from "../../services/HistoryService/MyHistoryService";
-import RequestService from "../../services/ManageServicePages/ManageRequestService/RequestService.js";
 import { toast } from "react-toastify";
+import AddCosplayerInReq from "./AddCosplayerInReq";
 
 const { TextArea } = Input;
+const { Panel } = Collapse;
 
 const EditRequestHireCosplayer = ({
   visible,
@@ -17,6 +17,7 @@ const EditRequestHireCosplayer = ({
 }) => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const [requestData, setRequestData] = useState({
     name: "",
     description: "",
@@ -36,9 +37,12 @@ const EditRequestHireCosplayer = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [sortField, setSortField] = useState("averageStar");
   const [sortOrder, setSortOrder] = useState("descend");
+  const [characterPage, setCharacterPage] = useState(1);
+  const [addCosplayerVisible, setAddCosplayerVisible] = useState(false);
+  const charactersPerPage = 2;
   const rowsPerPage = 8;
 
-  // Hàm tính giá cho một cosplayer
+  // Calculate price for a single cosplayer
   const calculateCosplayerPrice = (
     salaryIndex,
     characterPrice,
@@ -49,7 +53,7 @@ const EditRequestHireCosplayer = ({
     return totalHours * salaryIndex + characterPrice * totalDays;
   };
 
-  // Hàm tính tổng giá cho tất cả cosplayer
+  // Calculate total price for all cosplayers
   const calculateTotalPrice = (characters) => {
     return characters.reduce((total, char) => {
       const totalHours = char.listUpdateRequestDates.reduce(
@@ -89,7 +93,7 @@ const EditRequestHireCosplayer = ({
     }, 0);
   };
 
-  // Tính lại totalPrice khi listUpdateRequestCharacters thay đổi
+  // Recalculate totalPrice when listUpdateRequestCharacters changes
   useEffect(() => {
     const price = calculateTotalPrice(requestData.listUpdateRequestCharacters);
     setTotalPrice(price);
@@ -285,38 +289,64 @@ const EditRequestHireCosplayer = ({
       };
       const available = await MyHistoryService.ChangeCosplayer(data);
 
-      const uniqueCosplayers = [];
+      // Deduplicate cosplayers by accountId
       const seenAccountIds = new Set();
-      await Promise.all(
-        available.map(async (cos) => {
-          if (
-            (cos.accountId === currentCosplayerId ||
-              !existingCosplayerIds.has(cos.accountId)) &&
-            !seenAccountIds.has(cos.accountId)
-          ) {
-            try {
-              const cosplayerData =
-                await MyHistoryService.gotoHistoryByAccountId(cos.accountId);
-              uniqueCosplayers.push({
-                name: cosplayerData.name || cos.name,
-                accountId: cosplayerData.accountId || cos.accountId,
-                averageStar: cosplayerData.averageStar || cos.averageStar || 0,
-                height: cosplayerData.height || cos.height || 0,
-                weight: cosplayerData.weight || cos.weight || 0,
-                salaryIndex: cosplayerData.salaryIndex || cos.salaryIndex || 0,
-              });
-              seenAccountIds.add(cos.accountId);
-            } catch (cosplayerError) {
-              console.warn(
-                `Failed to fetch cosplayer data for ID ${cos.accountId}:`,
-                cosplayerError
-              );
-            }
+      const uniqueAvailable = available.filter((cos) => {
+        const normalizedAccountId = cos.accountId?.toString().toLowerCase();
+        if (seenAccountIds.has(normalizedAccountId)) {
+          return false;
+        }
+        seenAccountIds.add(normalizedAccountId);
+        return (
+          cos.accountId === currentCosplayerId ||
+          !existingCosplayerIds.has(cos.accountId)
+        );
+      });
+
+      // Fetch details for unique cosplayers
+      const uniqueCosplayers = await Promise.all(
+        uniqueAvailable.map(async (cos) => {
+          try {
+            const cosplayerData = await MyHistoryService.gotoHistoryByAccountId(
+              cos.accountId
+            );
+            return {
+              name: cosplayerData.name || cos.name || "Unknown",
+              accountId: cosplayerData.accountId || cos.accountId,
+              averageStar: cosplayerData.averageStar || cos.averageStar || 0,
+              height: cosplayerData.height || cos.height || 0,
+              weight: cosplayerData.weight || cos.weight || 0,
+              salaryIndex: cosplayerData.salaryIndex || cos.salaryIndex || 0,
+            };
+          } catch (cosplayerError) {
+            console.warn(
+              `Failed to fetch cosplayer data for ID ${cos.accountId}:`,
+              cosplayerError
+            );
+            return null;
           }
         })
       );
 
-      setAvailableCosplayers(uniqueCosplayers);
+      // Filter out null entries and ensure no duplicates
+      const finalCosplayers = uniqueCosplayers
+        .filter((cosplayer) => cosplayer !== null)
+        .reduce((acc, cosplayer) => {
+          const normalizedAccountId = cosplayer.accountId
+            .toString()
+            .toLowerCase();
+          if (
+            !acc.some(
+              (c) =>
+                c.accountId.toString().toLowerCase() === normalizedAccountId
+            )
+          ) {
+            acc.push(cosplayer);
+          }
+          return acc;
+        }, []);
+
+      setAvailableCosplayers(finalCosplayers);
       setCurrentCharacterIndex(index);
       setChangeCosplayerVisible(true);
     } catch (error) {
@@ -360,6 +390,74 @@ const EditRequestHireCosplayer = ({
     }
   };
 
+  const handleAddCosplayer = () => {
+    setAddCosplayerVisible(true);
+  };
+
+  const handleAddCosplayerSuccess = async () => {
+    try {
+      await fetchRequestData();
+      if (requestData.listUpdateRequestCharacters.length === 0) {
+        toast.warn(
+          "No characters found after adding cosplayer. Please verify the request."
+        );
+      }
+      setAddCosplayerVisible(false);
+    } catch (error) {
+      toast.error("Failed to refresh request data after adding cosplayer.");
+      console.error("Error refreshing request data:", error);
+    }
+  };
+
+  const handleDeleteCosplayer = async (index) => {
+    // Validation: Prevent deletion if only one cosplayer remains
+    if (requestData.listUpdateRequestCharacters.length <= 1) {
+      toast.error(
+        "Cannot delete the last cosplayer. At least one cosplayer is required."
+      );
+      return;
+    }
+
+    const character = requestData.listUpdateRequestCharacters[index];
+    if (!character.requestCharacterId) {
+      toast.error("Invalid request character ID.");
+      return;
+    }
+
+    setDeleteLoading(true);
+    try {
+      await MyHistoryService.DeleteCosplayerInReq(character.requestCharacterId);
+      toast.success("Cosplayer deleted successfully!");
+
+      // Remove the cosplayer from existingCosplayerIds if present
+      if (character.cosplayerId) {
+        setExistingCosplayerIds((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(character.cosplayerId);
+          return newSet;
+        });
+      }
+
+      // Refresh request data
+      await fetchRequestData();
+
+      // Reset character page if necessary
+      if (
+        requestData.listUpdateRequestCharacters.length <=
+        (characterPage - 1) * charactersPerPage
+      ) {
+        setCharacterPage((prev) => Math.max(1, prev - 1));
+      }
+    } catch (error) {
+      toast.error(
+        error.message || "Failed to delete cosplayer. Please try again."
+      );
+      console.error("Error deleting cosplayer:", error);
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
   const handleSort = (field) => {
     setSortField(field);
     setSortOrder(sortOrder === "ascend" ? "descend" : "ascend");
@@ -384,6 +482,50 @@ const EditRequestHireCosplayer = ({
 
   const handlePageChange = (page) => {
     setCurrentPage(page < 1 ? 1 : page > totalPages ? totalPages : page);
+  };
+
+  const totalCharacterPages = Math.ceil(
+    requestData.listUpdateRequestCharacters.length / charactersPerPage
+  );
+  const paginatedCharacters = requestData.listUpdateRequestCharacters.slice(
+    (characterPage - 1) * charactersPerPage,
+    characterPage * charactersPerPage
+  );
+
+  const handleCharacterPageChange = (page) => {
+    setCharacterPage(
+      page < 1 ? 1 : page > totalCharacterPages ? totalCharacterPages : page
+    );
+  };
+
+  // Calculate individual cosplayer price for display
+  const getCosplayerPrice = (char) => {
+    const totalHours = char.listUpdateRequestDates.reduce(
+      (sum, date) => sum + (date.totalHour || 0),
+      0
+    );
+
+    let totalDays = 0;
+    if (char.listUpdateRequestDates.length > 0) {
+      const startDate = dayjs(
+        char.listUpdateRequestDates[0].startDate,
+        "HH:mm DD/MM/YYYY"
+      );
+      const endDate = dayjs(
+        char.listUpdateRequestDates.slice(-1)[0].endDate,
+        "HH:mm DD/MM/YYYY"
+      );
+      if (startDate.isValid() && endDate.isValid()) {
+        totalDays = endDate.diff(startDate, "day") + 1;
+      }
+    }
+
+    return calculateCosplayerPrice(
+      char.salaryIndex,
+      char.characterPrice || 0,
+      totalHours,
+      totalDays
+    );
   };
 
   return (
@@ -422,90 +564,183 @@ const EditRequestHireCosplayer = ({
               <Input placeholder="Enter location" />
             </Form.Item>
           </Form>
-          <h4>
-            List of Requested Characters (Total Price:{" "}
-            {totalPrice.toLocaleString()} VND)
-          </h4>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "16px",
+            }}
+          >
+            <h4>
+              List of Requested Characters (Total Price:{" "}
+              {totalPrice.toLocaleString()} VND)
+            </h4>
+            <Button
+              type="primary"
+              icon={<Plus size={16} />}
+              onClick={handleAddCosplayer}
+            >
+              Add Cosplayer
+            </Button>
+          </div>
           <i style={{ color: "gray" }}>
             *Note: Unit Price hire cosplayer = (Total Hours × Hourly Rate) +
             (Character Price × Total Days)
           </i>
-          <List
-            dataSource={requestData.listUpdateRequestCharacters}
-            renderItem={(item, index) => (
-              <List.Item key={index}>
-                <div style={{ width: "100%" }}>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      marginBottom: "10px",
-                    }}
-                  >
-                    <div style={{ flex: 1 }}>
-                      <p>
-                        <span>Cosplayer Name: </span>
-                        <strong>{item.cosplayerName}</strong>
-                        {item.averageStar && (
-                          <span> | Rating: {item.averageStar}/5</span>
-                        )}
-                        {item.height && <span> | Height: {item.height}cm</span>}
-                        {item.weight && <span> | Weight: {item.weight}kg</span>}
-                        {item.salaryIndex && (
-                          <span>
-                            {" "}
-                            | Hourly Rate: {item.salaryIndex.toLocaleString()}{" "}
-                            VND/h
-                          </span>
-                        )}
-                      </p>
-                      <p>
-                        Character <strong>{item.characterName}</strong> Price:{" "}
-                        {item.characterPrice.toLocaleString()} VND
-                      </p>
-                      <p>Quantity: {item.quantity}</p>
-                      <p>Description: {item.description}</p>
-                    </div>
-                    <Button
-                      onClick={() =>
-                        handleChangeCosplayer(
-                          item.characterId,
-                          item.cosplayerId,
-                          index
-                        )
-                      }
+          {paginatedCharacters.length === 0 ? (
+            <div className="text-center" style={{ marginTop: "16px" }}>
+              No characters available.
+            </div>
+          ) : (
+            <List
+              dataSource={paginatedCharacters}
+              renderItem={(item, index) => (
+                <List.Item key={index} style={{ padding: "16px 0" }}>
+                  <div style={{ width: "100%" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        marginBottom: "10px",
+                      }}
                     >
-                      Change Cosplayer
-                    </Button>
-                  </div>
-                  <h5 style={{ marginBottom: "5px" }}>Request Dates:</h5>
-                  <List
-                    dataSource={item.listUpdateRequestDates}
-                    renderItem={(date, dateIndex) => (
-                      <List.Item
-                        key={dateIndex}
-                        style={{ padding: "5px 0", borderBottom: "none" }}
-                      >
-                        <div
-                          style={{
-                            display: "flex",
-                            gap: "10px",
-                            alignItems: "center",
-                          }}
+                      <div style={{ flex: 1 }}>
+                        <p style={{ margin: 0 }}>
+                          <span>Cosplayer Name: </span>
+                          <strong>{item.cosplayerName}</strong>
+                          {item.averageStar && (
+                            <span> | Rating: {item.averageStar}/5</span>
+                          )}
+                          {item.height && (
+                            <span> | Height: {item.height}cm</span>
+                          )}
+                          {item.weight && (
+                            <span> | Weight: {item.weight}kg</span>
+                          )}
+                          {item.salaryIndex && (
+                            <span>
+                              {" "}
+                              | Hourly Rate: {item.salaryIndex.toLocaleString()}{" "}
+                              VND/h
+                            </span>
+                          )}
+                        </p>
+                        <p style={{ margin: "4px 0" }}>
+                          Character <strong>{item.characterName}</strong> Price:{" "}
+                          {item.characterPrice.toLocaleString()} VND
+                        </p>
+                        <p style={{ margin: "4px 0" }}>
+                          Quantity: {item.quantity}
+                        </p>
+                        <p style={{ margin: "4px 0" }}>
+                          Description: {item.description}
+                        </p>
+                        <p style={{ margin: "4px 0" }}>
+                          <strong>
+                            Price: {getCosplayerPrice(item).toLocaleString()}{" "}
+                            VND
+                          </strong>
+                        </p>
+                      </div>
+                      <div style={{ display: "flex", gap: "8px" }}>
+                        <Button
+                          onClick={() =>
+                            handleChangeCosplayer(
+                              item.characterId,
+                              item.cosplayerId,
+                              requestData.listUpdateRequestCharacters.indexOf(
+                                item
+                              )
+                            )
+                          }
                         >
-                          <span>
-                            {date.startDate} - {date.endDate} (Total Hours:{" "}
-                            {date.totalHour || 0})
-                          </span>
-                        </div>
-                      </List.Item>
-                    )}
-                    style={{ marginLeft: "20px" }}
-                  />
-                </div>
-              </List.Item>
-            )}
-          />
+                          Change Cosplayer
+                        </Button>
+                        <Popconfirm
+                          title="Are you sure you want to delete this cosplayer?"
+                          description={`This will remove ${item.cosplayerName} (${item.characterName}) from the request.`}
+                          onConfirm={() =>
+                            handleDeleteCosplayer(
+                              requestData.listUpdateRequestCharacters.indexOf(
+                                item
+                              )
+                            )
+                          }
+                          okText="Yes"
+                          cancelText="No"
+                          placement="topRight"
+                        >
+                          <Button
+                            danger
+                            icon={<Delete size={16} />}
+                            loading={deleteLoading}
+                          >
+                            Delete
+                          </Button>
+                        </Popconfirm>
+                      </div>
+                    </div>
+                    <Collapse
+                      defaultActiveKey={[]}
+                      style={{ marginTop: "8px" }}
+                      expandIconPosition="right"
+                    >
+                      <Panel header="Request Dates" key="1">
+                        <List
+                          dataSource={item.listUpdateRequestDates}
+                          renderItem={(date, dateIndex) => (
+                            <List.Item
+                              key={dateIndex}
+                              style={{ padding: "5px 0", borderBottom: "none" }}
+                            >
+                              <div
+                                style={{
+                                  display: "flex",
+                                  gap: "10px",
+                                  alignItems: "center",
+                                }}
+                              >
+                                <span>
+                                  {date.startDate} - {date.endDate} (Total
+                                  Hours: {date.totalHour || 0})
+                                </span>
+                              </div>
+                            </List.Item>
+                          )}
+                        />
+                      </Panel>
+                    </Collapse>
+                  </div>
+                </List.Item>
+              )}
+            />
+          )}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              gap: "16px",
+              marginTop: "16px",
+            }}
+          >
+            <Button
+              onClick={() => handleCharacterPageChange(characterPage - 1)}
+              disabled={characterPage === 1}
+            >
+              Previous
+            </Button>
+            <span>
+              Page {characterPage} of {totalCharacterPages}
+            </span>
+            <Button
+              onClick={() => handleCharacterPageChange(characterPage + 1)}
+              disabled={characterPage === totalCharacterPages}
+            >
+              Next
+            </Button>
+          </div>
           <Modal
             title="Change Cosplayer"
             open={changeCosplayerVisible}
@@ -552,20 +787,49 @@ const EditRequestHireCosplayer = ({
                 <List.Item
                   key={cosplayer.accountId}
                   onClick={() => handleCosplayerSelect(cosplayer.accountId)}
-                  style={{ cursor: "pointer" }}
+                  style={{
+                    cursor: "pointer",
+                    padding: "12px 16px",
+                    borderBottom: "1px solid #f0f0f0",
+                    transition: "background-color 0.2s",
+                    "&:hover": {
+                      backgroundColor: "#f5f5f5",
+                    },
+                  }}
                 >
-                  <span>{cosplayer.name}</span>
-                  <span> | ⭐ {cosplayer.averageStar}/5</span>
-                  <span> | 📏 {cosplayer.height}cm</span>
-                  <span> | ⚖️ {cosplayer.weight}kg</span>
-                  <span>
-                    {" "}
-                    | 🪙 {cosplayer.salaryIndex.toLocaleString()}VND/h
-                  </span>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr",
+                      gap: "16px",
+                      width: "100%",
+                      alignItems: "center",
+                    }}
+                  >
+                    <div
+                      style={{
+                        textOverflow: "ellipsis",
+                        overflow: "hidden",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {cosplayer.name}
+                    </div>
+                    <div>⭐ {cosplayer.averageStar}/5</div>
+                    <div>📏 {cosplayer.height}cm</div>
+                    <div>⚖️ {cosplayer.weight}kg</div>
+                    <div>💲 {cosplayer.salaryIndex.toLocaleString()} VND/h</div>
+                  </div>
                 </List.Item>
               )}
             />
           </Modal>
+          <AddCosplayerInReq
+            visible={addCosplayerVisible}
+            requestId={requestId}
+            onCancel={() => setAddCosplayerVisible(false)}
+            onSuccess={handleAddCosplayerSuccess}
+          />
         </>
       )}
     </Modal>

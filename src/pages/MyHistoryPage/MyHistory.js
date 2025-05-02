@@ -2775,7 +2775,7 @@ const MyHistory = () => {
               <Form.Label>
                 <strong>Purpose</strong>
               </Form.Label>
-              <Input value="Tiền cọc hợp đồng" readOnly />
+              <Input value="Contract Deposit" readOnly />
             </Form.Group>
           </Form>
         </Modal>
@@ -2818,7 +2818,7 @@ const MyHistory = () => {
               <Form.Label>
                 <strong>Purpose</strong>
               </Form.Label>
-              <Input value="Tất toán hợp đồng" readOnly />
+              <Input value="Contract settlement" readOnly />
             </Form.Group>
           </Form>
         </Modal>
