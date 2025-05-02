@@ -202,6 +202,7 @@ import ManageFeedback from "./pages/ManagerPage/ManageFeedbackPage/ManageFeedbac
 import ManageAllFestivals from "./pages/ManagerPage/ManageAllFestivalsPage/ManageAllFestivals.js"; // Thêm import
 import ManageTasKCosplayer from "./pages/ManagerPage/ManageTasKCosplayer/ManageTasKCosplayer.js"; // Thêm import
 import ManageActivities from "./pages/ManagerPage/ManageActivitiesPage/ManageActivities.js"; // Thêm import
+import ManageOrderProduct from "./pages/ManagerPage/ManageOrderProductPage/ManageOrderProduct.js";
 
 const AppLayout = ({ children }) => {
   const location = useLocation();
@@ -281,6 +282,7 @@ function App() {
           <Route path="/manage/festival" element={<ManageAllFestivals />} />{" "}
           {/* Thêm route mới */}
           <Route path="/manage/activity" element={<ManageActivities />} />
+          <Route path="/manage/order-product" element={<ManageOrderProduct />} />
           <Route path="/manage/ticket" element={<ManageTicket />} />
           <Route path="/manage/ticket-check" element={<TicketCheck />} />
           <Route path="/manage/feedback" element={<ManageFeedback />} />

@@ -325,6 +325,7 @@ import {
   CheckCircle,
   ListTodo,
   Activity,
+  ShoppingBag,
 } from "lucide-react";
 import { jwtDecode } from "jwt-decode";
 import { toast } from "react-toastify";
@@ -408,12 +409,12 @@ const SidebarManagement = () => {
       icon: <CalendarHeart size={20} />,
       allowedRoles: ["Manager"],
     },
-    {
-      path: "/manage/activity",
-      label: "Manage Activities",
-      icon: <Activity size={20} />,
-      allowedRoles: ["Manager"],
-    },
+    // {
+    //   path: "/manage/activity",
+    //   label: "Manage Activities",
+    //   icon: <Activity size={20} />,
+    //   allowedRoles: ["Manager"],
+    // },
     // {
     //   path: "/manage/ticket",
     //   label: "Manage Festival Tickets",
@@ -430,6 +431,12 @@ const SidebarManagement = () => {
       path: "/manage/souvenir",
       label: "Manage Souvenirs",
       icon: <Shapes size={20} />,
+      allowedRoles: ["Manager"],
+    },
+    {
+      path: "/manage/order-product",
+      label: "Manage Orders",
+      icon: <ShoppingBag size={20} />,
       allowedRoles: ["Manager"],
     },
     {
