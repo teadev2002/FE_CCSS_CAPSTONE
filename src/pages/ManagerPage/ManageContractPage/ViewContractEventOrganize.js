@@ -23,7 +23,7 @@ const formatDate = (date) => {
   const formats = ["HH:mm DD/MM/YYYY", "YYYY-MM-DD", "DD/MM/YYYY"];
   const parsedDate = dayjs(date, formats, true);
   return parsedDate.isValid()
-    ? parsedDate.format("DD/MM/YYYY HH:mm")
+    ? parsedDate.format("DD/MM/YYYY")
     : "Invalid Date";
 };
 
@@ -42,7 +42,7 @@ const getStatusBadge = (status) => {
   );
 };
 
-const ViewMyEventOrganize = ({ requestId }) => {
+const ViewContractEventOrganize = ({ requestId }) => {
   const [requestData, setRequestData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -52,7 +52,7 @@ const ViewMyEventOrganize = ({ requestId }) => {
   useEffect(() => {
     const fetchRequest = async () => {
       if (!requestId) {
-        toast.error("Invalid request ID");
+        console.log("Invalid request ID");
         return;
       }
       setLoading(true);
@@ -70,8 +70,8 @@ const ViewMyEventOrganize = ({ requestId }) => {
               requestDateResponses: (char.requestDateResponses || []).map(
                 (date) => ({
                   ...date,
-                  startDate: formatDate(date.startDate),
-                  endDate: formatDate(date.endDate),
+                  startDate: date.startDate,
+                  endDate: date.endDate,
                 })
               ),
             })
@@ -79,7 +79,7 @@ const ViewMyEventOrganize = ({ requestId }) => {
         });
       } catch (error) {
         setError(error.message || "Failed to fetch request details");
-        toast.error(error.message || "Failed to fetch request details");
+        console.log(error.message || "Failed to fetch request details");
       } finally {
         setLoading(false);
       }
@@ -310,4 +310,4 @@ const ViewMyEventOrganize = ({ requestId }) => {
   );
 };
 
-export default ViewMyEventOrganize;
+export default ViewContractEventOrganize;

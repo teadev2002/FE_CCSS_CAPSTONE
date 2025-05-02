@@ -13,6 +13,7 @@ const MyEventOrganizeService = {
       throw error;
     }
   },
+
   getRequestByRequestId: async (id) => {
     try {
       const response = await apiClient.get(`/api/Request/${id}`);
@@ -108,45 +109,7 @@ const MyEventOrganizeService = {
       throw error;
     }
   },
-  // updateEventOrganizationRequest: async (requestId, updateData) => {
-  //   try {
-  //     // Construct the full payload to match the API's expected structure
-  //     const payload = {
-  //       name: updateData.name,
-  //       description: updateData.description,
-  //       price: updateData.price,
-  //       startDate: updateData.startDate, // Expected format: DD/MM/YYYY (e.g., "26/04/2025")
-  //       endDate: updateData.endDate, // Expected format: DD/MM/YYYY (e.g., "27/04/2025")
-  //       location: updateData.location,
-  //       serviceId: updateData.serviceId || "S003", // Default to S003 if not provided
-  //       packageId: updateData.packageId,
-  //       listUpdateRequestCharacters: updateData.listUpdateRequestCharacters.map(
-  //         (item) => ({
-  //           characterId: item.characterId,
-  //           cosplayerId: item.cosplayerId || null,
-  //           description: item.description || "shared",
-  //           quantity: item.quantity || 1,
-  //           listUpdateRequestDates: item.listUpdateRequestDates.map((date) => ({
-  //             requestDateId: date.requestDateId || null,
-  //             startDate: date.startDate, // Expected format: HH:mm DD/MM/YYYY (e.g., "09:11 26/04/2025")
-  //             endDate: date.endDate, // Expected format: HH:mm DD/MM/YYYY (e.g., "18:11 26/04/2025")
-  //           })),
-  //         })
-  //       ),
-  //     };
 
-  //     const response = await apiClient.put(
-  //       `/api/Request?RequestId=${requestId}`,
-  //       payload
-  //     );
-  //     return response.data;
-  //   } catch (error) {
-  //     console.error("Error updating event organization request:", error);
-  //     throw new Error(
-  //       error.response?.data?.message || "Lỗi khi cập nhật request"
-  //     );
-  //   }
-  // },
   updateEventOrganizationRequest: async (requestId, updateData) => {
     try {
       // Construct the payload to match the API's expected structure
@@ -178,6 +141,167 @@ const MyEventOrganizeService = {
       console.error("Error updating event organization request:", error);
       throw new Error(
         error.response?.data?.message || "Lỗi khi cập nhật request"
+      );
+    }
+  },
+  getAllContractByAccountId: async (accountId) => {
+    try {
+      const response = await apiClient.get(
+        `/api/Contract/accountId/${accountId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching contract:", error);
+      throw error;
+    }
+  },
+  chooseDeposit: async (requestId, payload) => {
+    try {
+      const response = await apiClient.patch(
+        `/api/Request/UpdateDepositRequest?requestId=${requestId}`,
+        payload,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error choosing deposit amount:", error);
+      throw error;
+    }
+  },
+  DepositPayment: async ({
+    fullName,
+    orderInfo = "",
+    amount,
+    purpose = 1, // chọn cọc deposit
+    accountId,
+    contractId,
+  }) => {
+    try {
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        throw new Error("No access token found. Please log in again.");
+      }
+
+      // Tạo request body
+      const requestBody = {
+        fullName,
+        orderInfo,
+        amount,
+        purpose,
+        accountId,
+        contractId,
+        isWeb: true,
+      };
+
+      const response = await apiClient.post("/api/VNPay", requestBody);
+
+      return response.data;
+    } catch (error) {
+      if (error.response) {
+        if (error.response.status === 401) {
+          throw new Error(
+            "Unauthorized: Invalid or expired token. Please log in again."
+          );
+        }
+        console.error(
+          "API Error:",
+          error.response.data || error.response.statusText
+        );
+        throw new Error(
+          error.response.data?.message || "Failed to initiate payment."
+        );
+      } else if (error.request) {
+        console.error("Network Error:", error.request);
+        throw new Error(
+          "Network error: Unable to connect to the payment server."
+        );
+      } else {
+        console.error("Error in DepositPayment:", error.message);
+        throw error;
+      }
+    }
+  },
+  getContractCharacters: async (contractId) => {
+    try {
+      const response = await apiClient.get(
+        `/api/ContractCharacter?contractId=${contractId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching contract characters:", error);
+      throw error;
+    }
+  },
+  createFeedback: async (accountId, contractId, data) => {
+    try {
+      const response = await apiClient.post(
+        `/api/Feedback?accountId=${accountId}&contractId=${contractId}`,
+        data.feedbacks
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error creating feedback:", error);
+      throw error;
+    }
+  },
+  getFeedbackByContractId: async (accountId, contractId) => {
+    try {
+      // Kiểm tra đầu vào
+      if (!accountId) {
+        throw new Error("Account ID is required");
+      }
+      if (!contractId) {
+        throw new Error("Contract ID is required");
+      }
+
+      // Gọi API để lấy danh sách feedback của contractId
+      const feedbackResponse = await apiClient.get(
+        `/api/Feedback/contractId/${contractId}`
+      );
+
+      // Kiểm tra dữ liệu feedback
+      const feedbacks = Array.isArray(feedbackResponse.data)
+        ? feedbackResponse.data
+        : [];
+      if (feedbacks.length === 0) {
+        return { contractId, feedbacks: [] };
+      }
+
+      // Lấy tên cosplayer cho từng feedback
+      const namePromises = feedbacks.map(async (feedback) => {
+        try {
+          const cosplayerData = await apiClient.get(
+            `/api/Account/${feedback.accountId}`
+          );
+          return [feedback.accountId, cosplayerData?.data?.name || "Unknown"];
+        } catch (error) {
+          console.warn(
+            `Failed to fetch cosplayer data for ID ${feedback.accountId}:`,
+            error
+          );
+          return [feedback.accountId, "Unknown"];
+        }
+      });
+
+      const namesArray = await Promise.all(namePromises);
+      const cosplayerNames = Object.fromEntries(namesArray);
+
+      return {
+        contractId,
+        feedbacks,
+        cosplayerNames,
+      };
+    } catch (error) {
+      console.error(
+        `Error fetching feedback for contract ${contractId}:`,
+        error
+      );
+      throw new Error(
+        error.response?.data?.message || "Failed to fetch feedback for contract"
       );
     }
   },

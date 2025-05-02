@@ -23,7 +23,7 @@ const formatDate = (date) => {
   const formats = ["HH:mm DD/MM/YYYY", "YYYY-MM-DD", "DD/MM/YYYY"];
   const parsedDate = dayjs(date, formats, true);
   return parsedDate.isValid()
-    ? parsedDate.format("DD/MM/YYYY HH:mm")
+    ? parsedDate.format("DD/MM/YYYY")
     : "Invalid Date";
 };
 
@@ -70,8 +70,8 @@ const ViewManageEventOrganize = ({ requestId }) => {
               requestDateResponses: (char.requestDateResponses || []).map(
                 (date) => ({
                   ...date,
-                  startDate: formatDate(date.startDate),
-                  endDate: formatDate(date.endDate),
+                  startDate: date.startDate,
+                  endDate: date.endDate,
                 })
               ),
             })

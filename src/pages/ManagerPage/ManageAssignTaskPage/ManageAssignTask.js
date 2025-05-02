@@ -1128,8 +1128,6 @@ const ManageAssignTask = () => {
                     <Card.Body>
                       <Card.Title>Request: {request.name}</Card.Title>
                       <Card.Text>
-                        <strong>ID:</strong> {request.requestId}
-                        <br />
                         <strong>Status:</strong> {request.status}
                         <br />
                         <strong>Time:</strong> {formatDate(request.startDate)} -{" "}
@@ -1177,8 +1175,6 @@ const ManageAssignTask = () => {
                     <Card.Body>
                       <Card.Title>Request: {request.name}</Card.Title>
                       <Card.Text>
-                        <strong>ID:</strong> {request.requestId}
-                        <br />
                         <strong>Status:</strong> {request.status}
                         <br />
                         <strong>Time:</strong> {formatDate(request.startDate)} -{" "}
@@ -1271,8 +1267,7 @@ const ManageAssignTask = () => {
                       )}
                       <Card.Body>
                         <Card.Title>
-                          {character.characterName || "Unnamed Character"} (Cần:{" "}
-                          {quantity} cosplayer)
+                          {character.characterName || "Unnamed Character"}
                         </Card.Title>
                         <Card.Text>
                           <strong>Description:</strong>{" "}

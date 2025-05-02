@@ -1797,7 +1797,7 @@ const ManageContract = () => {
 
   const handleCompleteContract = async (contractId) => {
     if (!contractId) {
-      toast.error("Invalid contract ID.");
+      console.log("Invalid contract ID.");
       return;
     }
 
@@ -2708,11 +2708,7 @@ const ManageContract = () => {
                             {con.price ? con.price.toLocaleString() : "N/A"}
                           </td>
                           <td className="text-center">{con.status || "N/A"}</td>
-                          <td className="text-center">
-                            {con.createDate && dayjs(con.createDate).isValid()
-                              ? dayjs(con.createDate).format("HH:mm DD/MM/YYYY")
-                              : "N/A"}
-                          </td>
+                          <td className="text-center">{con.createDate}</td>
                           <td className="text-center">
                             {con.startDate &&
                             dayjs(con.startDate, "HH:mm DD/MM/YYYY").isValid()
@@ -3011,6 +3007,7 @@ const ManageContract = () => {
         )}
       </Modal>
       <ManageContractRentalCostume />
+      <ManageContractEventOrganzie />
     </div>
   );
 };

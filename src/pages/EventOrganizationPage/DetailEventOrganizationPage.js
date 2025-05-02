@@ -186,7 +186,7 @@ const DetailEventOrganizationPage = () => {
 
   const getMaxEndDate = () => {
     if (!dateRange[0]) return null;
-    return dayjs(dateRange[0]).add(5, "day").format("YYYY-MM-DD");
+    return dayjs(dateRange[0]).add(4, "day").format("YYYY-MM-DD");
   };
 
   // Generate list of dates between startDate and endDate

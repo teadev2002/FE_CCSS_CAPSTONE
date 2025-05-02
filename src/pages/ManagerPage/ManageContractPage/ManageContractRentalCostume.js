@@ -91,7 +91,7 @@ const ManageContractRentalCostume = () => {
 
   const handleCompleteContract = async (contractId) => {
     if (!contractId) {
-      toast.error("Invalid contract ID.");
+      console.log("Invalid contract ID.");
       return;
     }
 
@@ -159,12 +159,12 @@ const ManageContractRentalCostume = () => {
           if (isMounted) {
             setContracts(filteredContracts);
             if (filteredContracts.length === 0) {
-              toast.warn("No valid contracts found for Rental Costume.");
+              console.log("No valid contracts found for Rental Costume.");
             }
           }
         } catch (contractError) {
           console.error("Failed to fetch contracts:", contractError);
-          toast.warn(
+          console.log(
             "Could not fetch contracts: " +
               (contractError.response?.data?.message || contractError.message)
           );
@@ -213,7 +213,7 @@ const ManageContractRentalCostume = () => {
           if (isMounted) {
             setRequests(formattedData);
             if (formattedData.length === 0) {
-              toast.info(
+              console.log(
                 "No requests with status Browsed or Approved found for Rental Costume."
               );
             } else {
@@ -224,7 +224,7 @@ const ManageContractRentalCostume = () => {
           }
         } catch (requestError) {
           console.error("Failed to fetch requests:", requestError);
-          toast.error(
+          console.log(
             "Could not fetch requests: " +
               (requestError.response?.data?.message || requestError.message)
           );
@@ -232,7 +232,7 @@ const ManageContractRentalCostume = () => {
       } catch (error) {
         if (isMounted) {
           console.error("Unexpected error:", error);
-          toast.error("Unexpected error: " + error.message);
+          console.log("Unexpected error: " + error.message);
         }
       } finally {
         if (isMounted) {
@@ -378,7 +378,7 @@ const ManageContractRentalCostume = () => {
       });
     } else if (request) {
       if (request.contractId) {
-        toast.warn("This request already has an associated contract!");
+        //  toast.warn("This request already has an associated contract!");
         return;
       }
       setIsEditing(false);
@@ -415,7 +415,7 @@ const ManageContractRentalCostume = () => {
 
   const handleSubmit = async () => {
     if (!formData.requestId) {
-      toast.warn("Request ID is required to create a contract!");
+      //toast.warn("Request ID is required to create a contract!");
       return;
     }
 
@@ -442,10 +442,10 @@ const ManageContractRentalCostume = () => {
       window.location.reload();
       handleCloseModal();
     } catch (error) {
-      toast.error(
-        "Failed to create contract: " +
-          (error.response?.data?.message || error.message)
-      );
+      // toast.error(
+      //   "Failed to create contract: " +
+      //     (error.response?.data?.message || error.message)
+      // );
       console.error("Error creating contract:", error);
     }
   };
@@ -733,11 +733,7 @@ const ManageContractRentalCostume = () => {
                             {con.price ? con.price.toLocaleString() : "N/A"}
                           </td>
                           <td className="text-center">{con.status || "N/A"}</td>
-                          <td className="text-center">
-                            {con.createDate && dayjs(con.createDate).isValid()
-                              ? dayjs(con.createDate).format("HH:mm DD/MM/YYYY")
-                              : "N/A"}
-                          </td>
+                          <td className="text-center">{con.createDate}</td>
                           <td className="text-center">
                             {formatDate(con.startDate)}
                           </td>
