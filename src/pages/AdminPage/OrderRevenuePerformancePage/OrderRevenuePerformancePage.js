@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Card, Form, Table, Dropdown, Row, Col } from "react-bootstrap";
-import { DollarSign } from "lucide-react";
+import { DollarSign, Calendar, Filter } from "lucide-react";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import RevenueService from "../../../services/AdminService/RevenueService";
@@ -21,35 +21,23 @@ Chart.register(CategoryScale, LinearScale, PointElement, LineElement);
 
 const OrderRevenuePerformancePage = () => {
   // State cho bộ lọc
-  const [filterType, setFilterType] = useState(0); // Mặc định: Today
-  const [revenueSource, setRevenueSource] = useState(0); // Mặc định: Order
+  const [filterType, setFilterType] = useState(3); // Mặc định: This Year
+  const [revenueSource, setRevenueSource] = useState(3); // Mặc định: Total
+
   // State cho dữ liệu API revenue
   const [revenueData, setRevenueData] = useState({
     totalRevenue: 0,
     paymentResponse: [],
   });
+
   // State cho dữ liệu API biểu đồ
   const [chartData, setChartData] = useState({
     dailyRevenue: [],
     monthlyRevenue: [],
   });
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  // Các lựa chọn cho dropdown
-  const filterTypeOptions = [
-    { value: 0, label: "Today" },
-    { value: 1, label: "This Week" },
-    { value: 2, label: "This Month" },
-    { value: 3, label: "This Year" },
-  ];
-
-  const revenueSourceOptions = [
-    { value: 0, label: "Order" },
-    { value: 1, label: "Festival" },
-    { value: 2, label: "Service" },
-    { value: 3, label: "Total" },
-  ];
 
   // Hàm định dạng giá tiền VND
   const formatPrice = (price) => {
@@ -75,13 +63,13 @@ const OrderRevenuePerformancePage = () => {
   const getPurposeText = (purpose) => {
     switch (purpose) {
       case 0:
-        return "Order";
+        return "Buy tickets";
       case 1:
-        return "Festival";
+        return "Pay contract deposit";
       case 2:
-        return "Service";
+        return "Finalize the contract";
       case 3:
-        return "Total";
+        return "Buy product";
       default:
         return "Unknown";
     }
@@ -94,9 +82,10 @@ const OrderRevenuePerformancePage = () => {
       setError(null);
       try {
         const data = await RevenueService.getRevenue(filterType, revenueSource);
-        setRevenueData(data);
+        setRevenueData(data || { totalRevenue: 0, paymentResponse: [] });
       } catch (error) {
         setError(error.message);
+        setRevenueData({ totalRevenue: 0, paymentResponse: [] });
         toast.error(error.message);
       } finally {
         setIsLoading(false);
@@ -123,6 +112,7 @@ const OrderRevenuePerformancePage = () => {
         });
       } catch (error) {
         setError(error.message);
+        setChartData({ dailyRevenue: [], monthlyRevenue: [] });
         toast.error(error.message);
       } finally {
         setIsLoading(false);
@@ -130,6 +120,36 @@ const OrderRevenuePerformancePage = () => {
     };
     fetchChartData();
   }, [filterType, revenueSource]);
+
+  // Tính doanh thu chi tiết từng dịch vụ trên FE
+  const calculateRevenueByService = () => {
+    const payments = revenueData.paymentResponse || [];
+
+    // Khởi tạo doanh thu cho từng dịch vụ
+    let festivalTicketSales = 0;
+    let souvenirSales = 0;
+    let contractServicesTotal = 0;
+
+    // Tính tổng doanh thu theo purpose
+    payments.forEach((payment) => {
+      if (payment.purpose === 0) {
+        // Buy tickets → Festival Ticket Sales
+        festivalTicketSales += payment.amount;
+      } else if (payment.purpose === 3) {
+        // Buy product → Souvenir Sales
+        souvenirSales += payment.amount;
+      } else if (payment.purpose === 1 || payment.purpose === 2) {
+        // Pay contract deposit hoặc Finalize the contract → Contract Services
+        contractServicesTotal += payment.amount;
+      }
+    });
+
+    return [
+      { service: "Contract Services", revenue: contractServicesTotal },
+      { service: "Souvenir Sales", revenue: souvenirSales },
+      { service: "Festival Ticket Sales", revenue: festivalTicketSales },
+    ];
+  };
 
   // Chuẩn bị dữ liệu cho biểu đồ
   const prepareChartData = () => {
@@ -140,29 +160,29 @@ const OrderRevenuePerformancePage = () => {
       // This Week: Hiển thị 7 ngày gần nhất
       const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
       labels = days;
-      data = new Array(7).fill(0); // Khởi tạo mảng 0
+      data = new Array(7).fill(0);
       chartData.dailyRevenue.forEach((item) => {
         const date = new Date(item.date);
-        const dayIndex = date.getDay() === 0 ? 6 : date.getDay() - 1; // Chuyển Sunday (0) thành 6, Monday (1) thành 0, ...
+        const dayIndex = date.getDay() === 0 ? 6 : date.getDay() - 1;
         data[dayIndex] = item.totalRevenue || 0;
       });
     } else if (filterType === 2) {
       // This Month: Hiển thị ngày trong tháng
       const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
       labels = Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString());
-      data = new Array(daysInMonth).fill(0); // Khởi tạo mảng 0
+      data = new Array(daysInMonth).fill(0);
       chartData.dailyRevenue.forEach((item) => {
         const date = new Date(item.date);
-        const day = date.getDate() - 1; // Ngày bắt đầu từ 1
+        const day = date.getDate() - 1;
         data[day] = item.totalRevenue || 0;
       });
     } else if (filterType === 3) {
       // This Year: Hiển thị các tháng
       const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
       labels = months;
-      data = new Array(12).fill(0); // Khởi tạo mảng 0
+      data = new Array(12).fill(0);
       chartData.monthlyRevenue.forEach((item) => {
-        const monthIndex = item.month - 1; // Tháng bắt đầu từ 1
+        const monthIndex = item.month - 1;
         data[monthIndex] = item.totalRevenue || 0;
       });
     }
@@ -173,13 +193,21 @@ const OrderRevenuePerformancePage = () => {
         {
           label: "Revenue",
           data,
-          borderColor: "#3498db",
-          backgroundColor: "rgba(52, 152, 219, 0.1)",
+          borderColor: "rgb(52, 152, 219)",
+          backgroundColor: (context) => {
+            const ctx = context.chart.ctx;
+            const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+            gradient.addColorStop(0, "rgba(52, 152, 219, 0.3)");
+            gradient.addColorStop(1, "rgba(52, 152, 219, 0)");
+            return gradient;
+          },
           fill: true,
           tension: 0.4,
           pointBackgroundColor: "#fff",
-          pointBorderColor: "#3498db",
+          pointBorderColor: "rgb(52, 152, 219)",
           pointBorderWidth: 2,
+          pointRadius: 5,
+          pointHoverRadius: 7,
         },
       ],
     };
@@ -195,7 +223,7 @@ const OrderRevenuePerformancePage = () => {
           color: "rgba(0, 0, 0, 0.05)",
         },
         ticks: {
-          callback: (value) => formatPrice(value).replace(" VND", ""), // Định dạng trục Y
+          callback: (value) => formatPrice(value).replace(" VND", ""),
         },
       },
       x: {
@@ -210,56 +238,82 @@ const OrderRevenuePerformancePage = () => {
       },
       tooltip: {
         callbacks: {
-          label: (context) => `Revenue: ${formatPrice(context.raw)}`, // Định dạng tooltip
+          label: (context) => `Revenue: ${formatPrice(context.raw)}`,
         },
       },
     },
+    animation: {
+      duration: 1000,
+      easing: "easeInOutQuad",
+    },
   };
+
+  // Các lựa chọn cho dropdown
+  const filterTypeOptions = [
+    { value: 0, label: "Today" },
+    { value: 1, label: "This Week" },
+    { value: 2, label: "This Month" },
+    { value: 3, label: "This Year" },
+  ];
+
+  const revenueSourceOptions = [
+    { value: 0, label: "Order" },
+    { value: 1, label: "Festival" },
+    { value: 2, label: "Service" },
+    { value: 3, label: "Total" },
+  ];
+
+  // Lấy dữ liệu doanh thu chi tiết từng dịch vụ
+  const revenueByService = calculateRevenueByService();
 
   return (
     <div className="order-revenue">
       <h1>Order & Revenue Performance</h1>
 
       {/* Bộ lọc */}
-      <div className="filters">
-        <div className="filter-group">
-          <span>Time Range:</span>
-          <Dropdown
-            onSelect={(value) => setFilterType(Number(value))}
-            className="d-inline-block"
-          >
-            <Dropdown.Toggle variant="secondary" id="dropdown-filter-type">
-              {filterTypeOptions.find((opt) => opt.value === filterType)?.label}
-            </Dropdown.Toggle>
-            <Dropdown.Menu>
-              {filterTypeOptions.map((option) => (
-                <Dropdown.Item key={option.value} eventKey={option.value}>
-                  {option.label}
-                </Dropdown.Item>
-              ))}
-            </Dropdown.Menu>
-          </Dropdown>
-        </div>
+      <Row className="mb-4">
+        <Col md={6}>
+          <Form.Group>
+            <Form.Label className="filter-label">
+              <Calendar size={18} className="me-2" />
+              Time Period
+            </Form.Label>
+            <Dropdown onSelect={(value) => setFilterType(Number(value))}>
+              <Dropdown.Toggle variant="outline-primary" id="dropdown-filter-type">
+                {filterTypeOptions.find((opt) => opt.value === filterType)?.label}
+              </Dropdown.Toggle>
+              <Dropdown.Menu>
+                {filterTypeOptions.map((option) => (
+                  <Dropdown.Item key={option.value} eventKey={option.value}>
+                    {option.label}
+                  </Dropdown.Item>
+                ))}
+              </Dropdown.Menu>
+            </Dropdown>
+          </Form.Group>
+        </Col>
 
-        <div className="filter-group">
-          <span>Revenue Source:</span>
-          <Dropdown
-            onSelect={(value) => setRevenueSource(Number(value))}
-            className="d-inline-block"
-          >
-            <Dropdown.Toggle variant="secondary" id="dropdown-revenue-source">
-              {revenueSourceOptions.find((opt) => opt.value === revenueSource)?.label}
-            </Dropdown.Toggle>
-            <Dropdown.Menu>
-              {revenueSourceOptions.map((option) => (
-                <Dropdown.Item key={option.value} eventKey={option.value}>
-                  {option.label}
-                </Dropdown.Item>
-              ))}
-            </Dropdown.Menu>
-          </Dropdown>
-        </div>
-      </div>
+        <Col md={6}>
+          <Form.Group>
+            <Form.Label className="filter-label">
+              <Filter size={18} className="me-2" />
+              Revenue Source
+            </Form.Label>
+            <Dropdown onSelect={(value) => setRevenueSource(Number(value))}>
+              <Dropdown.Toggle variant="outline-primary" id="dropdown-revenue-source">
+                {revenueSourceOptions.find((opt) => opt.value === revenueSource)?.label}
+              </Dropdown.Toggle>
+              <Dropdown.Menu>
+                {revenueSourceOptions.map((option) => (
+                  <Dropdown.Item key={option.value} eventKey={option.value}>
+                    {option.label}
+                  </Dropdown.Item>
+                ))}
+              </Dropdown.Menu>
+            </Dropdown>
+          </Form.Group>
+        </Col>
+      </Row>
 
       {/* Hiển thị loading hoặc lỗi */}
       {isLoading && (
@@ -271,17 +325,17 @@ const OrderRevenuePerformancePage = () => {
 
       {!isLoading && !error && (
         <>
-          {/* Tổng doanh thu và biểu đồ */}
-          <Row>
+          {/* Tổng doanh thu và doanh thu từng dịch vụ */}
+          <Row className="mb-4">
             <Col md={12} lg={4}>
               <Card className="total-revenue-card mb-4">
-                <Card.Body>
-                  <div className="d-flex align-items-center">
-                    <DollarSign size={48} className="text-success me-3" />
-                    <div>
-                      <h2>{formatPrice(revenueData.totalRevenue)}</h2>
-                      <p className="mb-0">Total Revenue</p>
-                    </div>
+                <Card.Body className="d-flex align-items-center">
+                  <div className="revenue-icon">
+                    <DollarSign size={48} />
+                  </div>
+                  <div className="ms-4">
+                    <h3>Total Revenue</h3>
+                    <h2>{formatPrice(revenueData.totalRevenue)}</h2>
                   </div>
                 </Card.Body>
               </Card>
@@ -290,18 +344,50 @@ const OrderRevenuePerformancePage = () => {
             <Col md={12} lg={8}>
               <Card className="mb-4">
                 <Card.Header>
-                  <h5>Revenue Trend</h5>
+                  <h5>Revenue by Service</h5>
                 </Card.Header>
-                <Card.Body style={{ height: "300px" }}>
-                  {filterType === 0 || (filterType === 1 && chartData.dailyRevenue.length === 0) || (filterType === 2 && chartData.dailyRevenue.length === 0) || (filterType === 3 && chartData.monthlyRevenue.length === 0) ? (
-                    <p className="text-muted text-center">No data available for the selected period.</p>
+                <Card.Body>
+                  {revenueByService.length === 0 ? (
+                    <p className="text-muted">No revenue data available.</p>
                   ) : (
-                    <Line data={prepareChartData()} options={chartOptions} />
+                    <Table responsive hover>
+                      <thead>
+                        <tr>
+                          <th>Service</th>
+                          <th>Revenue</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {revenueByService.map((item, index) => (
+                          <tr key={index}>
+                            <td>{item.service}</td>
+                            <td>{formatPrice(item.revenue)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </Table>
                   )}
                 </Card.Body>
               </Card>
             </Col>
           </Row>
+
+          {/* Biểu đồ xu hướng doanh thu */}
+          <Card className="mb-4">
+            <Card.Header>
+              <h5>Revenue Trend</h5>
+            </Card.Header>
+            <Card.Body style={{ height: "400px" }}>
+              {filterType === 0 ||
+              (filterType === 1 && chartData.dailyRevenue.length === 0) ||
+              (filterType === 2 && chartData.dailyRevenue.length === 0) ||
+              (filterType === 3 && chartData.monthlyRevenue.length === 0) ? (
+                <p className="text-muted text-center">No data available for the selected period.</p>
+              ) : (
+                <Line data={prepareChartData()} options={chartOptions} />
+              )}
+            </Card.Body>
+          </Card>
 
           {/* Danh sách giao dịch */}
           <Card className="mb-4">
@@ -326,11 +412,25 @@ const OrderRevenuePerformancePage = () => {
                     {revenueData.paymentResponse.map((payment) => (
                       <tr key={payment.paymentId}>
                         <td className="text-center">{payment.paymentId}</td>
-                        <td className="text-center">{getStatusText(payment.status)}</td>
+                        <td className="text-center">
+                          <span
+                            className={
+                              getStatusText(payment.status).toLowerCase() === "completed"
+                                ? "status-completed"
+                                : getStatusText(payment.status).toLowerCase() === "canceled"
+                                ? "status-cancel"
+                                : ""
+                            }
+                          >
+                            {getStatusText(payment.status)}
+                          </span>
+                        </td>
                         <td className="text-center">{getPurposeText(payment.purpose)}</td>
                         <td className="text-center">{formatPrice(payment.amount)}</td>
                         <td className="text-center">
-                          {new Date(payment.creatAt).toLocaleString("en-US")}
+                          {payment.creatAt && !isNaN(new Date(payment.creatAt))
+                            ? new Date(payment.creatAt).toLocaleString("en-US")
+                            : "Invalid Date"}
                         </td>
                       </tr>
                     ))}
