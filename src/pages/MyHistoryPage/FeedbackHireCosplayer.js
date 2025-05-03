@@ -74,11 +74,11 @@ const FeedbackHireCosplayer = ({
     // Nếu có cosplayer chưa được feedback, yêu cầu confirm
     if (missingFeedbacks.length > 0) {
       Modal.confirm({
-        title: "Xác nhận gửi Feedback",
+        title: "Confirm sending Feedback",
         content: (
           <div>
             <p>
-              Bạn chưa đánh giá các cosplayer sau:{" "}
+              You have not rated the following cosplayers:{" "}
               {missingFeedbacks
                 .map(
                   (char) => cosplayerNames[char.cosplayerId] || char.cosplayerId
@@ -87,13 +87,13 @@ const FeedbackHireCosplayer = ({
               .
             </p>
             <p>
-              Hệ thống sẽ tự động gán 5 sao cho các cosplayer này. Bạn có chắc
-              chắn muốn tiếp tục?
+              The system will automatically assign 5 stars to these cosplayers.
+              Are you sure you want to continue?
             </p>
           </div>
         ),
-        okText: "Xác nhận",
-        cancelText: "Hủy",
+        okText: "Confirm",
+        cancelText: "Cancel",
         onOk: async () => {
           await submitFeedback(missingFeedbacks);
         },
@@ -122,17 +122,19 @@ const FeedbackHireCosplayer = ({
         feedbacks: feedbackData,
       });
 
-      toast.success("Gửi feedback thành công!");
+      toast.success("Feedback sent successfully!!");
       form.resetFields();
       setFeedbacks({});
       onCancel(); // Đóng modal
-      window.location.reload();
+      setTimeout(() => {
+        window.location.reload();
+      }, 2500);
     } catch (error) {
       console.error(
         "Error submitting Feedback:",
         error.response?.data || error.message
       );
-      toast.error("Gửi feedback thất bại!");
+      toast.error("Send feedback failed!");
     } finally {
       setLoading(false);
     }
@@ -140,7 +142,7 @@ const FeedbackHireCosplayer = ({
 
   return (
     <div>
-      <h3>Feedback cho tất cả Cosplayer</h3>
+      <h3>Feedback for all Cosplayers</h3>
       {contractCharacters.map((char) => (
         <div
           key={char.cosplayerId}
@@ -152,7 +154,7 @@ const FeedbackHireCosplayer = ({
           }}
         >
           <h4>{cosplayerNames[char.cosplayerId] || char.cosplayerId}</h4>
-          <Form.Item label="Đánh giá">
+          <Form.Item label="Rate">
             <Rate
               value={feedbacks[char.cosplayerId]?.star || 0}
               onChange={(value) =>
@@ -161,7 +163,7 @@ const FeedbackHireCosplayer = ({
               allowClear={false}
             />
           </Form.Item>
-          <Form.Item label="Mô tả">
+          <Form.Item label="Description">
             <TextArea
               rows={4}
               value={feedbacks[char.cosplayerId]?.description || ""}
@@ -172,7 +174,7 @@ const FeedbackHireCosplayer = ({
                   e.target.value
                 )
               }
-              placeholder="Nhập mô tả feedback của bạn"
+              placeholder="Enter your feedback description"
             />
           </Form.Item>
         </div>
@@ -181,7 +183,7 @@ const FeedbackHireCosplayer = ({
       <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
         <Button onClick={onCancel}>Hủy</Button>
         <Button type="primary" onClick={handleSubmit} loading={loading}>
-          Gửi Feedback
+          Send Feedback
         </Button>
       </div>
     </div>
