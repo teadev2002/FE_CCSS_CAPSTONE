@@ -93,6 +93,11 @@
           background-color: #1b506e;
           border-color: #1b506e;
         }
+        /* In MyHistory.scss or a relevant stylesheet */
+.btn-view, .btn-action {
+  z-index: 1000;
+  pointer-events: auto !important;
+}
       }
 
       &.btn-deposit {

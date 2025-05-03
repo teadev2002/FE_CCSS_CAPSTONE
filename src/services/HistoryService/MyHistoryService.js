@@ -266,5 +266,33 @@ const MyHistoryService = {
       );
     }
   },
+  getContractByContractId: async (contractId) => {
+    try {
+      const response = await apiClient.get(
+        `/api/Contract/contractId/${contractId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error(
+        "Error fetching contract by contract ID:",
+        error.response?.data || error.message
+      );
+      throw error;
+    }
+  },
+  getTaskByCosplayerIdInContract: async (cosplayerId) => {
+    try {
+      const response = await apiClient.get(
+        `/api/Task/accountId/${cosplayerId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error(
+        "Error fetching task by cosplayer ID in contract:",
+        error.response?.data || error.message
+      );
+      throw error;
+    }
+  },
 };
 export default MyHistoryService;

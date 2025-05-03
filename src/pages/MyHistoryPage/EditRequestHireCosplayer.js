@@ -1,13 +1,41 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { Form, Modal, Input, List, Button, Collapse, Popconfirm } from "antd";
-import { Edit, Plus, Delete } from "lucide-react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { Form, Modal, Input, List, Button, Popconfirm } from "antd";
+import { Edit, Plus, Delete, ChevronDown, ChevronUp } from "lucide-react";
 import dayjs from "dayjs";
 import MyHistoryService from "../../services/HistoryService/MyHistoryService";
 import { toast } from "react-toastify";
 import AddCosplayerInReq from "./AddCosplayerInReq";
+import debounce from "lodash/debounce";
 
 const { TextArea } = Input;
-const { Panel } = Collapse;
+
+// Error Boundary Component
+class ErrorBoundary extends React.Component {
+  state = { hasError: false, error: null };
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("Error caught in ErrorBoundary:", error, errorInfo);
+    if (error.message.includes("ResizeObserver")) {
+      console.warn("ResizeObserver error detected:", error);
+    }
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div>
+          Something went wrong: {this.state.error?.message || "Unknown error"}.
+          Please try again.
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 const EditRequestHireCosplayer = ({
   visible,
@@ -39,8 +67,27 @@ const EditRequestHireCosplayer = ({
   const [sortOrder, setSortOrder] = useState("descend");
   const [characterPage, setCharacterPage] = useState(1);
   const [addCosplayerVisible, setAddCosplayerVisible] = useState(false);
+  const [deletingItems, setDeletingItems] = useState(new Set()); // New state for items being deleted
+  const [expandedDates, setExpandedDates] = useState(new Set()); // For custom toggle
   const charactersPerPage = 2;
   const rowsPerPage = 8;
+  const modalContentRef = useRef(null);
+
+  // Custom ResizeObserver with debounce
+  useEffect(() => {
+    if (!modalContentRef.current) return;
+
+    const debouncedResizeHandler = debounce(() => {
+      // Minimal resize handling
+    }, 200);
+
+    const resizeObserver = new ResizeObserver(debouncedResizeHandler);
+    resizeObserver.observe(modalContentRef.current);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [visible]);
 
   // Calculate price for a single cosplayer
   const calculateCosplayerPrice = (
@@ -93,7 +140,7 @@ const EditRequestHireCosplayer = ({
     }, 0);
   };
 
-  // Recalculate totalPrice when listUpdateRequestCharacters changes
+  // Recalculate totalPrice
   useEffect(() => {
     const price = calculateTotalPrice(requestData.listUpdateRequestCharacters);
     setTotalPrice(price);
@@ -289,7 +336,6 @@ const EditRequestHireCosplayer = ({
       };
       const available = await MyHistoryService.ChangeCosplayer(data);
 
-      // Deduplicate cosplayers by accountId
       const seenAccountIds = new Set();
       const uniqueAvailable = available.filter((cos) => {
         const normalizedAccountId = cos.accountId?.toString().toLowerCase();
@@ -303,7 +349,6 @@ const EditRequestHireCosplayer = ({
         );
       });
 
-      // Fetch details for unique cosplayers
       const uniqueCosplayers = await Promise.all(
         uniqueAvailable.map(async (cos) => {
           try {
@@ -328,7 +373,6 @@ const EditRequestHireCosplayer = ({
         })
       );
 
-      // Filter out null entries and ensure no duplicates
       const finalCosplayers = uniqueCosplayers
         .filter((cosplayer) => cosplayer !== null)
         .reduce((acc, cosplayer) => {
@@ -409,8 +453,54 @@ const EditRequestHireCosplayer = ({
     }
   };
 
-  const handleDeleteCosplayer = async (index) => {
-    // Validation: Prevent deletion if only one cosplayer remains
+  // Debounced delete handler
+  const performDelete = useCallback(
+    debounce(async (index, character) => {
+      setDeleteLoading(true);
+      try {
+        await MyHistoryService.DeleteCosplayerInReq(
+          character.requestCharacterId
+        );
+        toast.success("Cosplayer deleted successfully!");
+
+        if (character.cosplayerId) {
+          setExistingCosplayerIds((prev) => {
+            const newSet = new Set(prev);
+            newSet.delete(character.cosplayerId);
+            return newSet;
+          });
+        }
+
+        await fetchRequestData();
+
+        setCharacterPage((prev) => {
+          const newTotalPages = Math.ceil(
+            requestData.listUpdateRequestCharacters.length / charactersPerPage
+          );
+          return prev > newTotalPages ? Math.max(1, newTotalPages) : prev;
+        });
+      } catch (error) {
+        toast.error(
+          error.message || "Failed to delete cosplayer. Please try again."
+        );
+        console.error("Error deleting cosplayer:", error);
+      } finally {
+        setDeleteLoading(false);
+        setDeletingItems((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(character.requestCharacterId);
+          return newSet;
+        });
+      }
+    }, 300),
+    [
+      fetchRequestData,
+      requestData.listUpdateRequestCharacters,
+      charactersPerPage,
+    ]
+  );
+
+  const handleDeleteCosplayer = (index) => {
     if (requestData.listUpdateRequestCharacters.length <= 1) {
       toast.error(
         "Cannot delete the last cosplayer. At least one cosplayer is required."
@@ -424,38 +514,17 @@ const EditRequestHireCosplayer = ({
       return;
     }
 
-    setDeleteLoading(true);
-    try {
-      await MyHistoryService.DeleteCosplayerInReq(character.requestCharacterId);
-      toast.success("Cosplayer deleted successfully!");
+    // Mark item as deleting for fade-out effect
+    setDeletingItems((prev) => {
+      const newSet = new Set(prev);
+      newSet.add(character.requestCharacterId);
+      return newSet;
+    });
 
-      // Remove the cosplayer from existingCosplayerIds if present
-      if (character.cosplayerId) {
-        setExistingCosplayerIds((prev) => {
-          const newSet = new Set(prev);
-          newSet.delete(character.cosplayerId);
-          return newSet;
-        });
-      }
-
-      // Refresh request data
-      await fetchRequestData();
-
-      // Reset character page if necessary
-      if (
-        requestData.listUpdateRequestCharacters.length <=
-        (characterPage - 1) * charactersPerPage
-      ) {
-        setCharacterPage((prev) => Math.max(1, prev - 1));
-      }
-    } catch (error) {
-      toast.error(
-        error.message || "Failed to delete cosplayer. Please try again."
-      );
-      console.error("Error deleting cosplayer:", error);
-    } finally {
-      setDeleteLoading(false);
-    }
+    // Delay actual deletion to allow animation
+    setTimeout(() => {
+      performDelete(index, character);
+    }, 300);
   };
 
   const handleSort = (field) => {
@@ -498,7 +567,6 @@ const EditRequestHireCosplayer = ({
     );
   };
 
-  // Calculate individual cosplayer price for display
   const getCosplayerPrice = (char) => {
     const totalHours = char.listUpdateRequestDates.reduce(
       (sum, date) => sum + (date.totalHour || 0),
@@ -528,311 +596,377 @@ const EditRequestHireCosplayer = ({
     );
   };
 
+  const toggleDates = (requestCharacterId) => {
+    setExpandedDates((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(requestCharacterId)) {
+        newSet.delete(requestCharacterId);
+      } else {
+        newSet.add(requestCharacterId);
+      }
+      return newSet;
+    });
+  };
+
   return (
-    <Modal
-      title="Edit Request for Hiring Cosplayer"
-      open={visible}
-      onOk={handleSubmit}
-      onCancel={onCancel}
-      okText="Save Changes"
-      cancelText="Cancel"
-      confirmLoading={loading}
-      width={1000}
-    >
-      {loading ? (
-        <div className="text-center">Loading...</div>
-      ) : (
-        <>
-          <Form form={form} layout="vertical">
-            <Form.Item
-              name="name"
-              label="Name"
-              rules={[
-                { required: true, message: "Please enter the request name" },
-              ]}
-            >
-              <Input placeholder="Enter request name" />
-            </Form.Item>
-            <Form.Item name="description" label="Description">
-              <TextArea rows={4} placeholder="Enter request description" />
-            </Form.Item>
-            <Form.Item
-              name="location"
-              label="Location"
-              rules={[{ required: true, message: "Please enter the location" }]}
-            >
-              <Input placeholder="Enter location" />
-            </Form.Item>
-          </Form>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "16px",
-            }}
-          >
-            <h4>
-              List of Requested Characters (Total Price:{" "}
-              {totalPrice.toLocaleString()} VND)
-            </h4>
-            <Button
-              type="primary"
-              icon={<Plus size={16} />}
-              onClick={handleAddCosplayer}
-            >
-              Add Cosplayer
-            </Button>
-          </div>
-          <i style={{ color: "gray" }}>
-            *Note: Unit Price hire cosplayer = (Total Hours × Hourly Rate) +
-            (Character Price × Total Days)
-          </i>
-          {paginatedCharacters.length === 0 ? (
-            <div className="text-center" style={{ marginTop: "16px" }}>
-              No characters available.
-            </div>
+    <ErrorBoundary>
+      <Modal
+        title="Edit Request for Hiring Cosplayer"
+        open={visible}
+        onOk={handleSubmit}
+        onCancel={onCancel}
+        okText="Save Changes"
+        cancelText="Cancel"
+        confirmLoading={loading}
+        width={1000}
+      >
+        <div ref={modalContentRef}>
+          {loading ? (
+            <div className="text-center">Loading...</div>
           ) : (
-            <List
-              dataSource={paginatedCharacters}
-              renderItem={(item, index) => (
-                <List.Item key={index} style={{ padding: "16px 0" }}>
-                  <div style={{ width: "100%" }}>
-                    <div
+            <>
+              <Form form={form} layout="vertical">
+                <Form.Item
+                  name="name"
+                  label="Name"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Please enter the request name",
+                    },
+                  ]}
+                >
+                  <Input placeholder="Enter request name" />
+                </Form.Item>
+                <Form.Item name="description" label="Description">
+                  <TextArea rows={4} placeholder="Enter request description" />
+                </Form.Item>
+                <Form.Item
+                  name="location"
+                  label="Location"
+                  rules={[
+                    { required: true, message: "Please enter the location" },
+                  ]}
+                >
+                  <Input placeholder="Enter location" />
+                </Form.Item>
+              </Form>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: "16px",
+                }}
+              >
+                <h4>
+                  List of Requested Characters (Total Price:{" "}
+                  {totalPrice.toLocaleString()} VND)
+                </h4>
+                <Button
+                  type="primary"
+                  icon={<Plus size={16} />}
+                  onClick={handleAddCosplayer}
+                >
+                  Add Cosplayer
+                </Button>
+              </div>
+              <i style={{ color: "gray" }}>
+                *Note: Unit Price hire cosplayer = (Total Hours × Hourly Rate) +
+                (Character Price × Total Days)
+              </i>
+              {paginatedCharacters.length === 0 ? (
+                <div className="text-center" style={{ marginTop: "16px" }}>
+                  No characters available.
+                </div>
+              ) : (
+                <List
+                  dataSource={paginatedCharacters}
+                  renderItem={(item, index) => (
+                    <List.Item
+                      key={item.requestCharacterId || `character-${index}`}
                       style={{
-                        display: "flex",
-                        alignItems: "center",
-                        marginBottom: "10px",
+                        padding: "16px 0",
+                        opacity: deletingItems.has(item.requestCharacterId)
+                          ? 0.3
+                          : 1,
+                        transition: "opacity 0.3s ease",
                       }}
                     >
-                      <div style={{ flex: 1 }}>
-                        <p style={{ margin: 0 }}>
-                          <span>Cosplayer Name: </span>
-                          <strong>{item.cosplayerName}</strong>
-                          {item.averageStar && (
-                            <span> | Rating: {item.averageStar}/5</span>
-                          )}
-                          {item.height && (
-                            <span> | Height: {item.height}cm</span>
-                          )}
-                          {item.weight && (
-                            <span> | Weight: {item.weight}kg</span>
-                          )}
-                          {item.salaryIndex && (
-                            <span>
-                              {" "}
-                              | Hourly Rate: {item.salaryIndex.toLocaleString()}{" "}
-                              VND/h
-                            </span>
-                          )}
-                        </p>
-                        <p style={{ margin: "4px 0" }}>
-                          Character <strong>{item.characterName}</strong> Price:{" "}
-                          {item.characterPrice.toLocaleString()} VND
-                        </p>
-                        <p style={{ margin: "4px 0" }}>
-                          Quantity: {item.quantity}
-                        </p>
-                        <p style={{ margin: "4px 0" }}>
-                          Description: {item.description}
-                        </p>
-                        <p style={{ margin: "4px 0" }}>
-                          <strong>
-                            Price: {getCosplayerPrice(item).toLocaleString()}{" "}
-                            VND
-                          </strong>
-                        </p>
-                      </div>
-                      <div style={{ display: "flex", gap: "8px" }}>
-                        <Button
-                          onClick={() =>
-                            handleChangeCosplayer(
-                              item.characterId,
-                              item.cosplayerId,
-                              requestData.listUpdateRequestCharacters.indexOf(
-                                item
-                              )
-                            )
-                          }
+                      <div style={{ width: "100%" }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            marginBottom: "10px",
+                          }}
                         >
-                          Change Cosplayer
-                        </Button>
-                        <Popconfirm
-                          title="Are you sure you want to delete this cosplayer?"
-                          description={`This will remove ${item.cosplayerName} (${item.characterName}) from the request.`}
-                          onConfirm={() =>
-                            handleDeleteCosplayer(
-                              requestData.listUpdateRequestCharacters.indexOf(
-                                item
-                              )
-                            )
-                          }
-                          okText="Yes"
-                          cancelText="No"
-                          placement="topRight"
+                          <div style={{ flex: 1 }}>
+                            <p style={{ margin: 0 }}>
+                              <span>Cosplayer Name: </span>
+                              <strong>{item.cosplayerName}</strong>
+                              {item.averageStar && (
+                                <span> | Rating: {item.averageStar}/5</span>
+                              )}
+                              {item.height && (
+                                <span> | Height: {item.height}cm</span>
+                              )}
+                              {item.weight && (
+                                <span> | Weight: {item.weight}kg</span>
+                              )}
+                              {item.salaryIndex && (
+                                <span>
+                                  {" "}
+                                  | Hourly Rate:{" "}
+                                  {item.salaryIndex.toLocaleString()} VND/h
+                                </span>
+                              )}
+                            </p>
+                            <p style={{ margin: "4px 0" }}>
+                              Character <strong>{item.characterName}</strong>{" "}
+                              Price: {item.characterPrice.toLocaleString()} VND
+                            </p>
+                            <p style={{ margin: "4px 0" }}>
+                              Quantity: {item.quantity}
+                            </p>
+                            <p style={{ margin: "4px 0" }}>
+                              Description: {item.description}
+                            </p>
+                            <p style={{ margin: "4px 0" }}>
+                              <strong>
+                                Price:{" "}
+                                {getCosplayerPrice(item).toLocaleString()} VND
+                              </strong>
+                            </p>
+                          </div>
+                          <div style={{ display: "flex", gap: "8px" }}>
+                            <Button
+                              onClick={() =>
+                                handleChangeCosplayer(
+                                  item.characterId,
+                                  item.cosplayerId,
+                                  requestData.listUpdateRequestCharacters.indexOf(
+                                    item
+                                  )
+                                )
+                              }
+                              disabled={deletingItems.has(
+                                item.requestCharacterId
+                              )}
+                            >
+                              Change Cosplayer
+                            </Button>
+                            <Popconfirm
+                              title="Are you sure you want to delete this cosplayer?"
+                              description={`This will remove ${item.cosplayerName} (${item.characterName}) from the request.`}
+                              onConfirm={() =>
+                                handleDeleteCosplayer(
+                                  requestData.listUpdateRequestCharacters.indexOf(
+                                    item
+                                  )
+                                )
+                              }
+                              okText="Yes"
+                              cancelText="No"
+                              placement="topRight"
+                            >
+                              <Button
+                                danger
+                                icon={<Delete size={16} />}
+                                loading={
+                                  deleteLoading &&
+                                  deletingItems.has(item.requestCharacterId)
+                                }
+                                disabled={deletingItems.has(
+                                  item.requestCharacterId
+                                )}
+                              >
+                                Delete
+                              </Button>
+                            </Popconfirm>
+                          </div>
+                        </div>
+                        <div
+                          style={{
+                            marginTop: "8px",
+                            border: "1px solid #f0f0f0",
+                            borderRadius: "4px",
+                          }}
                         >
                           <Button
-                            danger
-                            icon={<Delete size={16} />}
-                            loading={deleteLoading}
+                            type="link"
+                            onClick={() => toggleDates(item.requestCharacterId)}
+                            style={{
+                              width: "100%",
+                              textAlign: "left",
+                              padding: "8px 16px",
+                            }}
                           >
-                            Delete
+                            Request Dates
+                            {expandedDates.has(item.requestCharacterId) ? (
+                              <ChevronUp size={16} style={{ float: "right" }} />
+                            ) : (
+                              <ChevronDown
+                                size={16}
+                                style={{ float: "right" }}
+                              />
+                            )}
                           </Button>
-                        </Popconfirm>
-                      </div>
-                    </div>
-                    <Collapse
-                      defaultActiveKey={[]}
-                      style={{ marginTop: "8px" }}
-                      expandIconPosition="right"
-                    >
-                      <Panel header="Request Dates" key="1">
-                        <List
-                          dataSource={item.listUpdateRequestDates}
-                          renderItem={(date, dateIndex) => (
-                            <List.Item
-                              key={dateIndex}
-                              style={{ padding: "5px 0", borderBottom: "none" }}
-                            >
-                              <div
-                                style={{
-                                  display: "flex",
-                                  gap: "10px",
-                                  alignItems: "center",
-                                }}
-                              >
-                                <span>
-                                  {date.startDate} - {date.endDate} (Total
-                                  Hours: {date.totalHour || 0})
-                                </span>
-                              </div>
-                            </List.Item>
+                          {expandedDates.has(item.requestCharacterId) && (
+                            <List
+                              dataSource={item.listUpdateRequestDates}
+                              renderItem={(date, dateIndex) => (
+                                <List.Item
+                                  key={
+                                    date.requestDateId || `date-${dateIndex}`
+                                  }
+                                  style={{
+                                    padding: "5px 16px",
+                                    borderBottom: "none",
+                                  }}
+                                >
+                                  <div
+                                    style={{
+                                      display: "flex",
+                                      gap: "10px",
+                                      alignItems: "center",
+                                    }}
+                                  >
+                                    <span>
+                                      {date.startDate} - {date.endDate} (Total
+                                      Hours: {date.totalHour || 0})
+                                    </span>
+                                  </div>
+                                </List.Item>
+                              )}
+                            />
                           )}
-                        />
-                      </Panel>
-                    </Collapse>
-                  </div>
-                </List.Item>
+                        </div>
+                      </div>
+                    </List.Item>
+                  )}
+                />
               )}
-            />
-          )}
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              gap: "16px",
-              marginTop: "16px",
-            }}
-          >
-            <Button
-              onClick={() => handleCharacterPageChange(characterPage - 1)}
-              disabled={characterPage === 1}
-            >
-              Previous
-            </Button>
-            <span>
-              Page {characterPage} of {totalCharacterPages}
-            </span>
-            <Button
-              onClick={() => handleCharacterPageChange(characterPage + 1)}
-              disabled={characterPage === totalCharacterPages}
-            >
-              Next
-            </Button>
-          </div>
-          <Modal
-            title="Change Cosplayer"
-            open={changeCosplayerVisible}
-            onOk={() => setChangeCosplayerVisible(false)}
-            onCancel={() => setChangeCosplayerVisible(false)}
-            okText="Close"
-            cancelText="Cancel"
-            footer={
-              <>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  gap: "16px",
+                  marginTop: "16px",
+                }}
+              >
                 <Button
-                  onClick={() =>
-                    handlePageChange(currentPage > 1 ? currentPage - 1 : 1)
-                  }
+                  onClick={() => handleCharacterPageChange(characterPage - 1)}
+                  disabled={characterPage === 1}
                 >
                   Previous
                 </Button>
                 <span>
-                  Page {currentPage} of {totalPages}
+                  Page {characterPage} of {totalCharacterPages}
                 </span>
                 <Button
-                  onClick={() =>
-                    handlePageChange(
-                      currentPage < totalPages ? currentPage + 1 : totalPages
-                    )
-                  }
+                  onClick={() => handleCharacterPageChange(characterPage + 1)}
+                  disabled={characterPage === totalCharacterPages}
                 >
                   Next
                 </Button>
-                <Button
-                  className="btn btn-outline-danger"
-                  onClick={() => handleSort("salaryIndex")}
-                  style={{ marginBottom: "5px" }}
-                >
-                  Hourly Salary{" "}
-                  {sortField === "salaryIndex" &&
-                    (sortOrder === "ascend" ? "↑" : "↓")}
-                </Button>
-              </>
-            }
-          >
-            <List
-              dataSource={paginatedCosplayers}
-              renderItem={(cosplayer) => (
-                <List.Item
-                  key={cosplayer.accountId}
-                  onClick={() => handleCosplayerSelect(cosplayer.accountId)}
-                  style={{
-                    cursor: "pointer",
-                    padding: "12px 16px",
-                    borderBottom: "1px solid #f0f0f0",
-                    transition: "background-color 0.2s",
-                    "&:hover": {
-                      backgroundColor: "#f5f5f5",
-                    },
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr",
-                      gap: "16px",
-                      width: "100%",
-                      alignItems: "center",
-                    }}
-                  >
-                    <div
+              </div>
+              <Modal
+                title="Change Cosplayer"
+                open={changeCosplayerVisible}
+                onOk={() => setChangeCosplayerVisible(false)}
+                onCancel={() => setChangeCosplayerVisible(false)}
+                okText="Close"
+                cancelText="Cancel"
+                footer={
+                  <>
+                    <Button
+                      onClick={() =>
+                        handlePageChange(currentPage > 1 ? currentPage - 1 : 1)
+                      }
+                    >
+                      Previous
+                    </Button>
+                    <span>
+                      Page {currentPage} of {totalPages}
+                    </span>
+                    <Button
+                      onClick={() =>
+                        handlePageChange(
+                          currentPage < totalPages
+                            ? currentPage + 1
+                            : totalPages
+                        )
+                      }
+                    >
+                      Next
+                    </Button>
+                    <Button
+                      className="btn btn-outline-danger"
+                      onClick={() => handleSort("salaryIndex")}
+                      style={{ marginBottom: "5px" }}
+                    >
+                      Hourly Salary{" "}
+                      {sortField === "salaryIndex" &&
+                        (sortOrder === "ascend" ? "↑" : "↓")}
+                    </Button>
+                  </>
+                }
+              >
+                <List
+                  dataSource={paginatedCosplayers}
+                  renderItem={(cosplayer) => (
+                    <List.Item
+                      key={cosplayer.accountId}
+                      onClick={() => handleCosplayerSelect(cosplayer.accountId)}
                       style={{
-                        textOverflow: "ellipsis",
-                        overflow: "hidden",
-                        whiteSpace: "nowrap",
+                        cursor: "pointer",
+                        padding: "12px 16px",
+                        borderBottom: "1px solid #f0f0f0",
+                        transition: "background-color 0.2s",
                       }}
                     >
-                      {cosplayer.name}
-                    </div>
-                    <div>⭐ {cosplayer.averageStar}/5</div>
-                    <div>📏 {cosplayer.height}cm</div>
-                    <div>⚖️ {cosplayer.weight}kg</div>
-                    <div>💲 {cosplayer.salaryIndex.toLocaleString()} VND/h</div>
-                  </div>
-                </List.Item>
-              )}
-            />
-          </Modal>
-          <AddCosplayerInReq
-            visible={addCosplayerVisible}
-            requestId={requestId}
-            onCancel={() => setAddCosplayerVisible(false)}
-            onSuccess={handleAddCosplayerSuccess}
-          />
-        </>
-      )}
-    </Modal>
+                      <div
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr",
+                          gap: "16px",
+                          width: "100%",
+                          alignItems: "center",
+                        }}
+                      >
+                        <div
+                          style={{
+                            textOverflow: "ellipsis",
+                            overflow: "hidden",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {cosplayer.name}
+                        </div>
+                        <div>⭐ {cosplayer.averageStar}/5</div>
+                        <div>📏 {cosplayer.height}cm</div>
+                        <div>⚖️ {cosplayer.weight}kg</div>
+                        <div>
+                          💲 {cosplayer.salaryIndex.toLocaleString()} VND/h
+                        </div>
+                      </div>
+                    </List.Item>
+                  )}
+                />
+              </Modal>
+              <AddCosplayerInReq
+                visible={addCosplayerVisible}
+                requestId={requestId}
+                onCancel={() => setAddCosplayerVisible(false)}
+                onSuccess={handleAddCosplayerSuccess}
+              />
+            </>
+          )}
+        </div>
+      </Modal>
+    </ErrorBoundary>
   );
 };
 
