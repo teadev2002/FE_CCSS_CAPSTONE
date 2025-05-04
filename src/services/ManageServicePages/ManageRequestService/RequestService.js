@@ -1,6 +1,3 @@
-// File này chứa các API liên quan đến quản lý yêu cầu (Request) trong ứng dụng
-// Các API này bao gồm việc lấy danh sách yêu cầu, lấy thông tin chi tiết của yêu cầu,
-// update thêm api update status request
 import { apiClient } from "../../../api/apiClient.js";
 
 const RequestService = {
@@ -64,16 +61,6 @@ const RequestService = {
       throw error;
     }
   },
-
-  // DeleteRequestByRequestId: async (id) => {
-  //   try {
-  //     const response = await apiClient.delete(`/api/Request?requestId=${id}`);
-  //     return response.data;
-  //   } catch (error) {
-  //     console.error("Error deleting request:", error);
-  //     throw error;
-  //   }
-  // },
 
   DeleteRequestByRequestId: async (id, reason = "") => {
     try {
@@ -153,58 +140,25 @@ const RequestService = {
         throw new Error("Reason is required when canceling a request");
       }
 
-      // Gọi API CheckRequestCharacter
-      const checkResponse = await apiClient.get(
-        `/api/RequestCharacter/CheckRequestCharacter?requestId=${requestId}`
+      // Gọi API UpdateRequestStatusById trực tiếp, bỏ kiểm tra RequestCharacter
+      const updateResponse = await RequestService.UpdateRequestStatusById(
+        requestId,
+        requestStatus,
+        reason
       );
 
-      // Xử lý phản hồi từ API
-      const responseMessage = checkResponse.data;
-      if (responseMessage === "This request can change status") {
-        // Nếu hợp lệ, gọi API UpdateRequestStatusById cho mọi trạng thái
-        const updateResponse = await RequestService.UpdateRequestStatusById(
-          requestId,
-          requestStatus,
-          reason
-        );
-        return {
-          success: true,
-          message: "Request status updated successfully",
-          data: updateResponse,
-        };
-      } else if (
-        responseMessage ===
-        "This request has a requestCharacter busy, need to wait customer change requestCharacter"
-      ) {
-        // Nếu requestCharacter bận, chỉ cho phép Cancel (requestStatus = 2)
-        if (requestStatus === 2) {
-          const updateResponse = await RequestService.UpdateRequestStatusById(
-            requestId,
-            requestStatus,
-            reason
-          );
-          return {
-            success: true,
-            message: "Request canceled successfully",
-            data: updateResponse,
-          };
-        } else {
-          // Trả về thông báo lỗi nếu cố gắng cập nhật trạng thái khác Cancel
-          return {
-            success: false,
-            message:
-              "This request has a busy requestCharacter. Only cancellation is allowed.",
-          };
-        }
-      } else {
-        // Xử lý trường hợp phản hồi không mong đợi
-        throw new Error("Unexpected response from CheckRequestCharacter API");
-      }
+      return {
+        success: true,
+        message:
+          requestStatus === 2
+            ? "Request canceled successfully"
+            : "Request status updated successfully",
+        data: updateResponse,
+      };
     } catch (error) {
-      console.error("Error checking or updating request status:", error);
+      console.error("Error updating request status:", error);
       throw new Error(
-        error.response?.data?.message ||
-          "Failed to check or update request status"
+        error.response?.data?.message || "Failed to update request status"
       );
     }
   },
