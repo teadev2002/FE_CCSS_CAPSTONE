@@ -264,39 +264,42 @@ const ManageRequest = () => {
       return;
     }
     try {
-      // Gọi API getRequestByRequestId để kiểm tra charactersListResponse
-      const requestData = await RequestService.getRequestByRequestId(
-        currentItem.id
-      );
-      const charactersList = requestData.charactersListResponse || [];
+      // Chỉ kiểm tra charactersListResponse nếu serviceId là S002
+      if (currentItem.serviceId === "S002") {
+        // Gọi API getRequestByRequestId để kiểm tra charactersListResponse
+        const requestData = await RequestService.getRequestByRequestId(
+          currentItem.id
+        );
+        const charactersList = requestData.charactersListResponse || [];
 
-      // Kiểm tra trạng thái của các character và lấy tên cosplayer
-      const nonAcceptedCharacters = [];
-      for (const char of charactersList) {
-        if (char.status !== "Accept") {
-          // Gọi API để lấy tên cosplayer
-          const cosplayerData =
-            await RequestService.getNameCosplayerInRequestByCosplayerId(
-              char.cosplayerId
-            );
-          nonAcceptedCharacters.push({
-            name: cosplayerData.name || char.characterName, // Dùng fullName nếu có, nếu không dùng characterName
+        // Kiểm tra trạng thái của các character và lấy tên cosplayer
+        const nonAcceptedCharacters = [];
+        for (const char of charactersList) {
+          if (char.status !== "Accept") {
+            // Gọi API để lấy tên cosplayer
+            const cosplayerData =
+              await RequestService.getNameCosplayerInRequestByCosplayerId(
+                char.cosplayerId
+              );
+            nonAcceptedCharacters.push({
+              name: cosplayerData.name || char.characterName, // Dùng name nếu có, nếu không dùng characterName
+            });
+          }
+        }
+
+        if (nonAcceptedCharacters.length > 0) {
+          // Hiển thị toast lỗi với tên các cosplayer chưa chấp nhận
+          const cosplayerNames = nonAcceptedCharacters
+            .map((char) => char.name)
+            .join(", ");
+          toast.error(`Cosplayer ${cosplayerNames} still not Accept Request`, {
+            autoClose: 5000,
           });
+          return;
         }
       }
 
-      if (nonAcceptedCharacters.length > 0) {
-        // Hiển thị toast lỗi với tên các cosplayer chưa chấp nhận
-        const cosplayerNames = nonAcceptedCharacters
-          .map((char) => char.name)
-          .join(", ");
-        toast.error(`Cosplayer ${cosplayerNames} still not Accept Request`, {
-          autoClose: 5000,
-        });
-        return;
-      }
-
-      // Nếu tất cả cosplayer đã chấp nhận, tiếp tục cập nhật trạng thái
+      // Nếu serviceId không phải S002 hoặc tất cả cosplayer đã chấp nhận, tiếp tục cập nhật trạng thái
       const result = await RequestService.checkAndUpdateRequestStatus(
         currentItem.id,
         requestStatus,
@@ -331,7 +334,6 @@ const ManageRequest = () => {
       console.error("Lỗi API:", error);
     }
   };
-
   const handleDelete = async () => {
     if (!deleteReason.trim()) {
       toast.error("Reason is required when deleting a request");
