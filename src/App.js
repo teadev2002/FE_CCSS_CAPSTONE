@@ -172,8 +172,8 @@ import CosplayerPage from "./pages/CosplayersPage/CosplayersPage.js";
 import EventOrganizePage from "./pages/EventOrganizationPage/EventOrganizationPage.js";
 import DetailEventOrganizePage from "./pages/EventOrganizationPage/DetailEventOrganizationPage.js";
 import ProfilePage from "./pages/ProfilePage/ProfilePage.js";
-import DashboardPage from "./pages/AdminPage/DashboardPage/DashboardPage.js";
-import UserPerformancePage from "./pages/AdminPage/UserPerformancePage/UserPerformancePage.js";
+import AdminOverviewPage from "./pages/AdminPage/AdminOverviewPage/AdminOverviewPage.js";
+import UserAnalyticsPage from "./pages/AdminPage/UserAnalyticsPage/UserAnalyticsPage.js";
 import OrderRevenuePerformancePage from "./pages/AdminPage/OrderRevenuePerformancePage/OrderRevenuePerformancePage.js";
 import UserStatisticsPage from "./pages/AdminPage/UserStatisticsPage/UserStatisticsPage.js";
 import SystemManagementPage from "./pages/AdminPage/SystemManagementPage/SystemManagementPage.js";
@@ -262,10 +262,10 @@ function App() {
           />
           <Route path="/success-payment" element={<SuccessPayment />} />
           <Route path="/fail-payment" element={<FailPayment />} />
-          <Route path="/admin/dashboard" element={<DashboardPage />} />
+          <Route path="/admin/admin-overview" element={<AdminOverviewPage />} />
           <Route
-            path="/admin/user-performance"
-            element={<UserPerformancePage />}
+            path="/admin/user-analytics"
+            element={<UserAnalyticsPage />}
           />
           <Route
             path="/admin/order-revenue-performance"

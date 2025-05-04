@@ -28,23 +28,23 @@ const Sidebar = () => {
 
       <nav className="sidebar-nav">
         <NavLink
-          to="/admin/dashboard"
+          to="/admin/admin-overview"
           className={({ isActive }) =>
             isActive ? "nav-link active" : "nav-link"
           }
         >
           <LayoutDashboard size={20} />
-          <span>Dashboard</span>
+          <span>Admin Overview</span>
         </NavLink>
 
         <NavLink
-          to="/admin/user-performance"
+          to="/admin/user-analytics"
           className={({ isActive }) =>
             isActive ? "nav-link active" : "nav-link"
           }
         >
           <Users size={20} />
-          <span>User Performance</span>
+          <span>User Analytics</span>
         </NavLink>
 
         <NavLink
@@ -57,7 +57,7 @@ const Sidebar = () => {
           <span>Order & Revenue</span>
         </NavLink>
 
-        <NavLink
+        {/* <NavLink
           to="/admin/user-statistics"
           className={({ isActive }) =>
             isActive ? "nav-link active" : "nav-link"
@@ -75,7 +75,7 @@ const Sidebar = () => {
         >
           <Settings size={20} />
           <span>System & Management</span>
-        </NavLink>
+        </NavLink> */}
       </nav>
     </div>
   );
