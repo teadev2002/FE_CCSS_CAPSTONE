@@ -591,44 +591,40 @@ const MyTask = () => {
               <Modal.Title>{selectedTask.taskName}</Modal.Title>
             </Modal.Header>
             <Modal.Body className="modal-body">
-              <div className="detail-item">
-                <User size={20} className="icon" />
-                <div>
-                  <strong>Account Name</strong>
-                  <p>{isLoadingAccount ? "Loading..." : accountName}</p>
+              <div className="Acc-task d-flex align-items-center">
+                <div className="detail-item">
+                  <Tag size={20} className="icon" />
+                  <div>
+                    <strong>Task Name</strong>
+                    <p>{selectedTask.taskName || "N/A"}</p>
+                  </div>
+                </div>{" "}
+                &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp;
+                &nbsp; &nbsp; &nbsp;
+                <div className="detail-item">
+                  <User size={20} className="icon" />
+                  <div>
+                    <strong>Cosplayer Name</strong>
+                    <p>{isLoadingAccount ? "Loading..." : accountName}</p>
+                  </div>
                 </div>
               </div>
+
               <div className="detail-item">
-                <Tag size={20} className="icon" />
-                <div>
-                  <strong>Task Name</strong>
-                  <p>{selectedTask.taskName || "N/A"}</p>
-                </div>
-              </div>
-              <div className="detail-item">
-                <MapPin size={20} className="icon" />
-                <div>
-                  <strong>Location</strong>
-                  <p>{selectedTask.location || "N/A"}</p>
-                </div>
-              </div>
-              <div className="detail-item">
-                <Calendar size={20} className="icon" />
-                <div>
-                  <strong>Date & Time</strong>
+                <div className="date-time d-flex align-items-center">
                   <div className="mt-2">
+                    <Calendar size={20} className="icon" />
                     <p>
-                      <strong>Start Date:</strong>{" "}
+                      <strong> Date:</strong> <br />
                       {parseDateTime(selectedTask.startDate).date}
                     </p>
-                    <p>
-                      <strong>End Date:</strong>{" "}
-                      {parseDateTime(selectedTask.endDate).date}
-                    </p>
-                  </div>
+                  </div>{" "}
+                  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp;
+                  &nbsp; &nbsp; &nbsp;
                   <div className="mt-2">
+                    <Clock size={20} className="icon" />
                     <p>
-                      <strong>Time: </strong>
+                      <strong>Time: </strong> <br />
                       {parseDateTime(selectedTask.startDate).time}{" "}
                       <strong>To</strong>{" "}
                       {parseDateTime(selectedTask.endDate).time}
@@ -636,38 +632,39 @@ const MyTask = () => {
                   </div>
                 </div>
               </div>
-              <div className="detail-item">
-                <FileText size={20} className="icon" />
-                <div>
-                  <strong>Description</strong>
-                  <p>{selectedTask.description || "N/A"}</p>
+              <div className="loc-des d-flex align-items-center">
+                <div className="detail-item">
+                  <MapPin size={20} className="icon" />
+                  <div>
+                    <strong>Location</strong>
+                    <p>{selectedTask.location || "N/A"}</p>
+                  </div>
+                </div>{" "}
+                &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp;
+                &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+                <div className="detail-item">
+                  <FileText size={20} className="icon" />
+                  <div>
+                    <strong>Description</strong>
+                    <p>{selectedTask.description || "N/A"}</p>
+                  </div>
                 </div>
               </div>
               <hr className="divider" />
-              <div className="detail-grid">
+              <div className="d-flex  align-items-center detail-grid">
                 <div className="detail-item">
                   <Clock size={20} className="icon" />
                   <div>
                     <strong>Created</strong>
                     <p>{formatDate(selectedTask.createDate)}</p>
                   </div>
-                </div>
+                </div>{" "}
+                &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp;
                 <div className="detail-item">
                   <Clock size={20} className="icon" />
                   <div>
                     <strong>Updated</strong>
                     <p>{formatDate(selectedTask.updateDate)}</p>
-                  </div>
-                </div>
-                <div className="detail-item">
-                  {selectedTask.isActive ? (
-                    <CheckCircle size={20} className="icon-success" />
-                  ) : (
-                    <XCircle size={20} className="icon-error" />
-                  )}
-                  <div>
-                    <strong>Status</strong>
-                    <p>{selectedTask.isActive ? "Active" : "Inactive"}</p>
                   </div>
                 </div>
               </div>

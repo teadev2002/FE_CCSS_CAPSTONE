@@ -329,7 +329,7 @@ const RequestCharacter = () => {
                             <div className="d-flex gap-3 align-items-start justify-content-md-end flex-column flex-md-row">
                               <div className="text-muted small text-md-end">
                                 <div>
-                                  <strong>Character Price:</strong>{" "}
+                                  <strong> Total remuneration:</strong>{" "}
                                   {request.totalPrice.toLocaleString()} VND
                                 </div>
                                 <div>
@@ -382,86 +382,102 @@ const RequestCharacter = () => {
               <Modal.Title>{selectedRequest.characterName}</Modal.Title>
             </Modal.Header>
             <Modal.Body className="modal-body">
-              <div className="detail-item">
-                <Tag size={20} className="icon" />
-                <div>
-                  <strong>Character Name</strong>
-                  <p>{selectedRequest.characterName || "N/A"}</p>
+              <div className="char-cos d-flex ">
+                <div className="detail-item">
+                  <Tag size={20} className="icon" />
+                  <div>
+                    <strong>Character Name</strong>
+                    <p>{selectedRequest.characterName || "N/A"}</p>
+                  </div>
+                </div>{" "}
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+                &nbsp; &nbsp;
+                <div className="detail-item">
+                  <User size={20} className="icon" />
+                  <div>
+                    <strong>Cosplayer Name</strong>
+                    <p>{selectedRequest.cosplayerName || "N/A"}</p>
+                  </div>
                 </div>
               </div>
-              <div className="detail-item">
-                <User size={20} className="icon" />
-                <div>
-                  <strong>Cosplayer Name</strong>
-                  <p>{selectedRequest.cosplayerName || "N/A"}</p>
-                </div>
-              </div>
-              <div className="detail-item">
-                <FileText size={20} className="icon" />
-                <div>
-                  <strong>Description</strong>
-                  <p>{selectedRequest.description || "No description"}</p>
-                </div>
-              </div>
+
               <div className="detail-item">
                 <Calendar size={20} className="icon" />
                 <div>
                   <strong>Request Dates</strong>
                   {selectedRequest.requestDateInCharacterResponses.map(
                     (date, index) => (
-                      <div key={date.requestDateId} className="mt-2">
+                      <div
+                        key={date.requestDateId}
+                        className="mt-2  d-flex  align-items-center"
+                      >
                         <p>
-                          <strong>Date {index + 1}:</strong>{" "}
-                          {parseDateTime(date.startDate).date}
+                          <strong>Date {index + 1}: </strong>
+                          <br />
+                          {parseDateTime(date.startDate).date}&nbsp;&nbsp;
                         </p>
+                        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp;
+                        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
                         <p>
-                          <strong>Time:</strong>{" "}
+                          <strong>Time:</strong> <br />
                           {parseDateTime(date.startDate).time} to{" "}
                           {parseDateTime(date.endDate).time} ({date.totalHour}{" "}
                           hours)
                         </p>
-                        <p>
+                        {/* <p>
                           <strong>Status:</strong> {getStatusLabel(date.status)}
-                        </p>
+                        </p> */}
                       </div>
                     )
                   )}
                 </div>
+                <div className="rem-des d-flex">
+                  <div className="detail-item">
+                    <Tag size={20} className="icon" />
+                    <div>
+                      <strong>Total remuneration</strong>
+                      <p>{selectedRequest.totalPrice.toLocaleString()} VND</p>
+                    </div>
+                  </div>
+                  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+                  <div className="detail-item">
+                    <FileText size={20} className="icon" />
+                    <div>
+                      <strong>Description</strong>
+                      <p>{selectedRequest.description || "No description"}</p>
+                    </div>
+                  </div>
+                </div>
               </div>
               <hr className="divider" />
               <div className="detail-grid">
-                <div className="detail-item">
-                  <Clock size={20} className="icon" />
-                  <div>
-                    <strong>Created</strong>
-                    <p>{selectedRequest.createDate || "N/A"}</p>
-                  </div>
-                </div>
-                <div className="detail-item">
-                  <Clock size={20} className="icon" />
-                  <div>
-                    <strong>Updated</strong>
-                    <p>{selectedRequest.updateDate || "N/A"}</p>
-                  </div>
-                </div>
-                <div className="detail-item">
-                  {selectedRequest.status === 2 ? (
-                    <CheckCircle size={20} className="icon-success" />
-                  ) : selectedRequest.status === 4 ? (
-                    <XCircle size={20} className="icon-error" />
-                  ) : (
-                    <Tag size={20} className="icon" />
-                  )}
-                  <div>
-                    <strong>Status</strong>
-                    <p>{getStatusLabel(selectedRequest.status)}</p>
-                  </div>
-                </div>
-                <div className="detail-item">
-                  <Tag size={20} className="icon" />
-                  <div>
-                    <strong>Character Price</strong>
-                    <p>{selectedRequest.totalPrice.toLocaleString()} VND</p>
+                <div className="date  d-flex justify-content-between align-items-center">
+                  <div className="detail-item">
+                    <Clock size={20} className="icon" />
+                    <div>
+                      <strong>Created</strong>
+                      <p>{selectedRequest.createDate || "N/A"}</p>
+                    </div>
+                  </div>{" "}
+                  <div className="detail-item">
+                    <Clock size={20} className="icon" />
+                    <div>
+                      <strong>Updated</strong>
+                      <p>{selectedRequest.updateDate || "N/A"}</p>
+                    </div>
+                  </div>{" "}
+                  <div className="detail-item">
+                    {selectedRequest.status === 2 ? (
+                      <CheckCircle size={20} className="icon-success" />
+                    ) : selectedRequest.status === 4 ? (
+                      <XCircle size={20} className="icon-error" />
+                    ) : (
+                      <Tag size={20} className="icon" />
+                    )}
+                    <div>
+                      <strong>Status</strong>
+                      <p>{getStatusLabel(selectedRequest.status)}</p>
+                    </div>
                   </div>
                 </div>
               </div>
