@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, Row, Col, Table, ProgressBar, Dropdown } from "react-bootstrap";
 import { Line } from "react-chartjs-2";
 import {
@@ -9,29 +9,40 @@ import {
   LineElement,
 } from "chart.js";
 import { Star, Award, Users as UsersIcon } from "lucide-react";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "../../../styles/Admin/UserAnalyticsPage.scss";
+import UserAnalyticsService from "../../../services/AdminService/UserAnalyticsService"; // Đường dẫn tới service
 
 Chart.register(CategoryScale, LinearScale, PointElement, LineElement);
 
 const UserAnalyticsPage = () => {
-  // Tổng số tài khoản
-  const totalAccounts = {
-    total: 2500,
-    customers: 1500,
-    cosplayers: 500,
-    consultants: 200,
-    managers: 50,
-    admins: 250,
-  };
+  // State cho dữ liệu tài khoản
+  const [totalAccounts, setTotalAccounts] = useState({
+    total: 0,
+    customers: 0,
+    cosplayers: 0,
+    consultants: 0,
+    managers: 0,
+    admins: 0,
+  });
+  const [averageCosplayerRating, setAverageCosplayerRating] = useState(0);
+  const [accounts, setAccounts] = useState({
+    customers: [],
+    cosplayers: [],
+    consultants: [],
+    managers: [],
+    admins: [],
+  });
 
-  // Thống kê tương tác người dùng
+  // Thống kê tương tác người dùng (giả lập - chưa có API)
   const userEngagement = {
     activeUsers: 1800,
     newSignUps: 385,
     avgSessionTime: "15 mins",
   };
 
-  // Top 5 khách hàng sử dụng dịch vụ nhiều nhất
+  // Top 5 khách hàng sử dụng dịch vụ nhiều nhất (giả lập - chưa có API)
   const topCustomersByUsage = [
     {
       id: 1,
@@ -95,7 +106,7 @@ const UserAnalyticsPage = () => {
     },
   ];
 
-  // Top 5 cosplayer có số sao feedback cao nhất
+  // Top 5 cosplayer có số sao feedback cao nhất (giả lập - chưa có API)
   const topCosplayersByRating = [
     { id: 1, name: "Alex Mercer", rating: 4.9, bookings: 89 },
     { id: 2, name: "Nương Phạm", rating: 4.8, bookings: 82 },
@@ -104,7 +115,7 @@ const UserAnalyticsPage = () => {
     { id: 5, name: "James Carter", rating: 4.5, bookings: 65 },
   ];
 
-  // Top 5 cosplayer được yêu thích nhất (book nhiều nhất)
+  // Top 5 cosplayer được yêu thích nhất (book nhiều nhất) (giả lập - chưa có API)
   const topCosplayersByBookings = [
     { id: 1, name: "Alex Mercer", bookings: 89, rating: 4.9 },
     { id: 2, name: "Nương Phạm", bookings: 82, rating: 4.8 },
@@ -113,12 +124,7 @@ const UserAnalyticsPage = () => {
     { id: 5, name: "James Carter", bookings: 65, rating: 4.5 },
   ];
 
-  // Thống kê
-  const stats = {
-    averageCosplayerRating: 4.6,
-  };
-
-  // Sử dụng dịch vụ theo khách hàng
+  // Sử dụng dịch vụ theo khách hàng (giả lập - chưa có API)
   const serviceUsage = {
     customers: {
       costumeRental: 400,
@@ -136,7 +142,7 @@ const UserAnalyticsPage = () => {
     },
   };
 
-  // Biểu đồ xu hướng sử dụng dịch vụ
+  // Biểu đồ xu hướng sử dụng dịch vụ (giả lập - chưa có API)
   const [usageFilter, setUsageFilter] = useState("today");
   const usageChartData = {
     today: {
@@ -276,31 +282,6 @@ const UserAnalyticsPage = () => {
     },
   };
 
-  // Danh sách tài khoản
-  const accounts = {
-    customers: [
-      { id: 1, name: "Sarah Chen", email: "sarah.chen@example.com", status: "Active" },
-      { id: 2, name: "Viết Quốc", email: "viet.quoc@example.com", status: "Active" },
-      { id: 3, name: "Emily Watson", email: "emily.watson@example.com", status: "Inactive" },
-    ],
-    cosplayers: [
-      { id: 1, name: "Alex Mercer", email: "alex.mercer@example.com", status: "Active" },
-      { id: 2, name: "Nương Phạm", email: "nuong.pham@example.com", status: "Active" },
-      { id: 3, name: "Katie Bell", email: "katie.bell@example.com", status: "Inactive" },
-    ],
-    consultants: [
-      { id: 1, name: "John Doe", email: "john.doe@example.com", status: "Active" },
-      { id: 2, name: "Hà Linh", email: "ha.linh@example.com", status: "Active" },
-    ],
-    managers: [
-      { id: 1, name: "Michael Brown", email: "michael.brown@example.com", status: "Active" },
-    ],
-    admins: [
-      { id: 1, name: "Admin User", email: "admin@example.com", status: "Active" },
-      { id: 2, name: "Super Admin", email: "super.admin@example.com", status: "Active" },
-    ],
-  };
-
   // Tùy chọn biểu đồ
   const chartOptions = {
     maintainAspectRatio: false,
@@ -339,6 +320,82 @@ const UserAnalyticsPage = () => {
     { value: "year", label: "This Year" },
   ];
 
+  // Role ID mapping
+  const roleMapping = {
+    R001: "admins",
+    R002: "managers",
+    R003: "consultants",
+    R004: "cosplayers",
+    R005: "customers",
+  };
+
+  // Lấy dữ liệu tài khoản khi component mount
+  useEffect(() => {
+    const fetchAccounts = async () => {
+      try {
+        const roles = ["R001", "R002", "R003", "R004", "R005"];
+        const fetchedAccounts = {
+          admins: [],
+          managers: [],
+          consultants: [],
+          cosplayers: [],
+          customers: [],
+        };
+        const counts = {
+          admins: 0,
+          managers: 0,
+          consultants: 0,
+          cosplayers: 0,
+          customers: 0,
+        };
+
+        // Gọi API cho từng vai trò
+        for (const roleId of roles) {
+          const data = await UserAnalyticsService.getAccountsByRole(roleId);
+          const roleKey = roleMapping[roleId];
+          fetchedAccounts[roleKey] = Array.isArray(data) ? data : [data];
+          counts[roleKey] = fetchedAccounts[roleKey].length;
+        }
+
+        // Tính tổng số tài khoản
+        const total = Object.values(counts).reduce((sum, count) => sum + count, 0);
+
+        // Tính trung bình sao của cosplayer
+        const cosplayerRatings = fetchedAccounts.cosplayers
+          .filter((cosplayer) => cosplayer.averageStar !== null)
+          .map((cosplayer) => cosplayer.averageStar);
+        const avgRating =
+          cosplayerRatings.length > 0
+            ? cosplayerRatings.reduce((sum, rating) => sum + rating, 0) / cosplayerRatings.length
+            : 0;
+
+        setTotalAccounts({
+          total,
+          customers: counts.customers,
+          cosplayers: counts.cosplayers,
+          consultants: counts.consultants,
+          managers: counts.managers,
+          admins: counts.admins,
+        });
+        setAverageCosplayerRating(avgRating.toFixed(1));
+        setAccounts(fetchedAccounts);
+      } catch (error) {
+        toast.error(error.message || "Failed to load account data");
+      }
+    };
+
+    fetchAccounts();
+  }, []);
+
+  // Hàm lấy URL hình ảnh avatar
+  const getAvatarUrl = (images) => {
+    if (!images || images.length === 0) {
+      return "https://via.placeholder.com/40?text=No+Image";
+    }
+    const avatarImage = images.find((img) => img.isAvatar) || images[0];
+    return avatarImage.urlImage;
+  };
+
   return (
     <div className="user-analytics">
       <h1>User Analytics</h1>
@@ -367,14 +424,14 @@ const UserAnalyticsPage = () => {
             </div>
             <h3>Average Cosplayer Rating</h3>
             <div className="rating-display">
-              <h2>{stats.averageCosplayerRating}</h2>
+              <h2>{averageCosplayerRating}</h2>
               <div className="stars">
                 {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
                     size={16}
                     className={
-                      i < Math.round(stats.averageCosplayerRating)
+                      i < Math.round(averageCosplayerRating)
                         ? "star-filled"
                         : "star-empty"
                     }
@@ -610,16 +667,29 @@ const UserAnalyticsPage = () => {
                     <th>ID</th>
                     <th>Name</th>
                     <th>Email</th>
+                    <th>Avatar</th>
                     <th>Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   {accounts.customers.map((account) => (
-                    <tr key={account.id}>
-                      <td>{account.id}</td>
+                    <tr key={account.accountId}>
+                      <td>{account.accountId}</td>
                       <td>{account.name}</td>
                       <td>{account.email}</td>
-                      <td>{account.status}</td>
+                      <td>
+                        <img
+                          src={getAvatarUrl(account.images)}
+                          alt={`${account.name}'s avatar`}
+                          style={{
+                            width: "40px",
+                            height: "40px",
+                            borderRadius: "50%",
+                            objectFit: "cover",
+                          }}
+                        />
+                      </td>
+                      <td>{account.isActive ? "Active" : "Inactive"}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -634,24 +704,46 @@ const UserAnalyticsPage = () => {
               <h5>Cosplayer Accounts</h5>
             </Card.Header>
             <Card.Body>
-েছে
-
               <Table responsive>
                 <thead>
                   <tr>
                     <th>ID</th>
                     <th>Name</th>
                     <th>Email</th>
+                    <th>Average Star</th>
+                    <th>Avatar</th>
                     <th>Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   {accounts.cosplayers.map((account) => (
-                    <tr key={account.id}>
-                      <td>{account.id}</td>
+                    <tr key={account.accountId}>
+                      <td>{account.accountId}</td>
                       <td>{account.name}</td>
                       <td>{account.email}</td>
-                      <td>{account.status}</td>
+                      <td>
+                        {account.averageStar ? (
+                          <div className="rating-cell">
+                            {account.averageStar}
+                            <Star size={14} className="star-filled ms-1" />
+                          </div>
+                        ) : (
+                          "N/A"
+                        )}
+                      </td>
+                      <td>
+                        <img
+                          src={getAvatarUrl(account.images)}
+                          alt={`${account.name}'s avatar`}
+                          style={{
+                            width: "40px",
+                            height: "40px",
+                            borderRadius: "50%",
+                            objectFit: "cover",
+                          }}
+                        />
+                      </td>
+                      <td>{account.isActive ? "Active" : "Inactive"}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -672,16 +764,29 @@ const UserAnalyticsPage = () => {
                     <th>ID</th>
                     <th>Name</th>
                     <th>Email</th>
+                    <th>Avatar</th>
                     <th>Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   {accounts.consultants.map((account) => (
-                    <tr key={account.id}>
-                      <td>{account.id}</td>
+                    <tr key={account.accountId}>
+                      <td>{account.accountId}</td>
                       <td>{account.name}</td>
                       <td>{account.email}</td>
-                      <td>{account.status}</td>
+                      <td>
+                        <img
+                          src={getAvatarUrl(account.images)}
+                          alt={`${account.name}'s avatar`}
+                          style={{
+                            width: "40px",
+                            height: "40px",
+                            borderRadius: "50%",
+                            objectFit: "cover",
+                          }}
+                        />
+                      </td>
+                      <td>{account.isActive ? "Active" : "Inactive"}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -702,16 +807,29 @@ const UserAnalyticsPage = () => {
                     <th>ID</th>
                     <th>Name</th>
                     <th>Email</th>
+                    <th>Avatar</th>
                     <th>Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   {accounts.managers.map((account) => (
-                    <tr key={account.id}>
-                      <td>{account.id}</td>
+                    <tr key={account.accountId}>
+                      <td>{account.accountId}</td>
                       <td>{account.name}</td>
                       <td>{account.email}</td>
-                      <td>{account.status}</td>
+                      <td>
+                        <img
+                          src={getAvatarUrl(account.images)}
+                          alt={`${account.name}'s avatar`}
+                          style={{
+                            width: "40px",
+                            height: "40px",
+                            borderRadius: "50%",
+                            objectFit: "cover",
+                          }}
+                        />
+                      </td>
+                      <td>{account.isActive ? "Active" : "Inactive"}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -732,16 +850,29 @@ const UserAnalyticsPage = () => {
                     <th>ID</th>
                     <th>Name</th>
                     <th>Email</th>
+                    <th>Avatar</th>
                     <th>Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   {accounts.admins.map((account) => (
-                    <tr key={account.id}>
-                      <td>{account.id}</td>
+                    <tr key={account.accountId}>
+                      <td>{account.accountId}</td>
                       <td>{account.name}</td>
                       <td>{account.email}</td>
-                      <td>{account.status}</td>
+                      <td>
+                        <img
+                          src={getAvatarUrl(account.images)}
+                          alt={`${account.name}'s avatar`}
+                          style={{
+                            width: "40px",
+                            height: "40px",
+                            borderRadius: "50%",
+                            objectFit: "cover",
+                          }}
+                        />
+                      </td>
+                      <td>{account.isActive ? "Active" : "Inactive"}</td>
                     </tr>
                   ))}
                 </tbody>
