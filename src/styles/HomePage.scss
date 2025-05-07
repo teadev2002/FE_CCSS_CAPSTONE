@@ -18,9 +18,11 @@
       0% {
         background-position: 0% 50%;
       }
+
       50% {
         background-position: 100% 50%;
       }
+
       100% {
         background-position: 0% 50%;
       }
@@ -326,11 +328,9 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: linear-gradient(
-          135deg,
-          rgba(81, 5, 69, 0.1),
-          rgba(34, 102, 138, 0.1)
-        );
+        background: linear-gradient(135deg,
+            rgba(81, 5, 69, 0.1),
+            rgba(34, 102, 138, 0.1));
         opacity: 0;
         transition: opacity 0.3s ease;
       }
@@ -520,5 +520,225 @@
       width: 200px; // Giảm kích thước thẻ trên mobile
       height: 300px;
     }
+  }
+
+  /* Search and Filter Container */
+  .search-filter-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    background: #f8f9fa;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+
+    &:hover {
+      transform: translateY(-5px);
+    }
+  }
+
+  /* Search and Filter Container */
+  .search-filter-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    background: #f8f9fa;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+
+    &:hover {
+      transform: translateY(-5px);
+    }
+  }
+
+  /* Search and Filter Container */
+  .search-filter-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    background: #f8f9fa;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+
+    &:hover {
+      transform: translateY(-5px);
+    }
+  }
+
+  /* Search and Filter Form */
+  .search-filter-form {
+    .form-label {
+      font-weight: 600;
+      color: #510545;
+      margin-bottom: 0.5rem;
+    }
+
+    .search-input {
+      border: 1px solid #ced4da;
+      border-radius: 8px;
+      padding: 0.75rem;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+
+      &:focus {
+        border-color: #22668a;
+        box-shadow: 0 0 8px rgba(34, 102, 138, 0.3);
+      }
+    }
+
+    .range-track {
+      height: 8px;
+      border-radius: 5px;
+      background: linear-gradient(90deg, #f85caa, #965ec7);
+      max-width: 300px;
+      /* Shorten range sliders */
+      margin: 0 auto;
+      /* Center the range sliders */
+    }
+
+    .range-thumb {
+      height: 20px;
+      width: 20px;
+      background-color: #510545;
+      border-radius: 50%;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+      transition: transform 0.3s ease;
+
+      &:hover {
+        transform: scale(1.2);
+      }
+    }
+
+    .range-values {
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      color: #666;
+      text-align: center;
+    }
+
+    .search-button {
+      background: linear-gradient(135deg, #510545, #22668a);
+      border: none;
+      padding: 0.75rem 2rem;
+      font-weight: 600;
+      border-radius: 8px;
+      color: white;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+      &:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 15px rgba(81, 5, 69, 0.4);
+      }
+    }
+
+    .cancel-button {
+      background: linear-gradient(135deg, #6b7280, #4b5563);
+      border: none;
+      padding: 0.75rem 2rem;
+      font-weight: 600;
+      border-radius: 8px;
+      color: white;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+      &:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 15px rgba(107, 114, 128, 0.4);
+      }
+    }
+  }
+
+  /* Character Card Content */
+  .card-content {
+    .character-description {
+      font-size: 0.9rem;
+      color: #fff;
+      /* Change to white for better visibility */
+      margin-bottom: 0.5rem;
+      max-height: 60px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+    }
+
+    .character-height,
+    .character-weight {
+      font-size: 0.85rem;
+      color: #fff;
+      /* Change to white for better visibility */
+      margin-bottom: 0.5rem;
+    }
+
+    .category-badge {
+      display: inline-block;
+      background-color: #f85caa;
+      color: white;
+      padding: 0.3rem 0.8rem;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-top: 0.5rem;
+    }
+  }
+
+  /* Pagination Controls */
+  .pagination-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+
+    .pagination-arrow {
+      background: linear-gradient(135deg, #510545, #22668a);
+      border: none;
+      padding: 0.5rem 1rem;
+      font-size: 1.2rem;
+      border-radius: 8px;
+      color: white;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+      &:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 15px rgba(81, 5, 69, 0.4);
+      }
+
+      &:disabled {
+        background: #d3d3d3;
+        cursor: not-allowed;
+        box-shadow: none;
+      }
+    }
+
+    .pagination-number {
+      background: #f8f9fa;
+      border: 1px solid #ced4da;
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      border-radius: 8px;
+      color: #510545;
+      transition: background 0.3s ease, color 0.3s ease;
+
+      &:hover {
+        background: #510545;
+        color: white;
+      }
+
+      &.active {
+        background: linear-gradient(135deg, #510545, #22668a);
+        color: white;
+        border: none;
+      }
+    }
+  }
+
+  /* Ensure category badge handles long prices */
+  .category-badge {
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }

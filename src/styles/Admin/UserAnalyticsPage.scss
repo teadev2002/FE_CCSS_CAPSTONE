@@ -129,6 +129,16 @@
         .stars {
           display: flex;
           gap: 4px;
+
+          .star-filled {
+            color: #f1c40f;
+            fill: #f1c40f;
+          }
+
+          .star-empty {
+            color: #e4e4e4;
+            fill: #e4e4e4;
+          }
         }
       }
 
@@ -225,6 +235,21 @@
             margin: 0;
             font-size: 0.9rem;
           }
+
+          // Style cho hình ảnh avatar trong bảng
+          img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid #e0e0e0;
+            transition: all 0.3s ease;
+
+            &:hover {
+              transform: scale(1.1);
+              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            }
+          }
         }
 
         .rating-cell {
@@ -234,6 +259,11 @@
           color: #f1c40f;
           font-weight: 600;
           gap: 0.25rem;
+
+          .star-filled {
+            color: #f1c40f;
+            fill: #f1c40f;
+          }
         }
       }
 

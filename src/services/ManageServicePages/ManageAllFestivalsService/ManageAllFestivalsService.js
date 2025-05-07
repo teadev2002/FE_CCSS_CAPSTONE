@@ -121,7 +121,7 @@ const ManageAllFestivalsService = {
         accountId: null,
       };
       console.log("GetAvailableCosplayers payload:", JSON.stringify(payload, null, 2));
-      const response = await apiClient.post("/api/Account/characterId", payload);
+      const response = await apiClient.post("/api/Account/GetAccountByCharacterAndDateForCreateEvent", payload);
       console.log("GetAvailableCosplayers response:", response.data);
       return response.data;
     } catch (error) {
