@@ -51,19 +51,6 @@ const MyRentalCostumeService = {
       throw error;
     }
   },
-  UpdateRequest: async (id, data) => {
-    try {
-      const response = await apiClient.put(
-        `/api/Request?RequestId=${id}`,
-        data
-      );
-      return response.data;
-    } catch (error) {
-      console.error("Error updating request:", error);
-      throw error;
-    }
-  },
-
   getAllContractByAccountId: async (accountId) => {
     try {
       const response = await apiClient.get(
@@ -96,6 +83,45 @@ const MyRentalCostumeService = {
       throw new Error(
         error.response?.data?.message || "Lỗi khi thêm contract costume"
       );
+    }
+  },
+  editRequest: async (requestId, data) => {
+    try {
+      const response = await apiClient.put(
+        `/api/Request?RequestId=${requestId}`,
+        data
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error updating request:", error);
+      throw error;
+    }
+  },
+  getAllCharacters: async () => {
+    try {
+      const response = await apiClient.get("/api/Character");
+      return response.data;
+    } catch (error) {
+      throw new Error(
+        error.response?.data?.message || "Lỗi khi lấy danh sách characters"
+      );
+    }
+  },
+  chooseDeposit: async (requestId, payload) => {
+    try {
+      const response = await apiClient.patch(
+        `/api/Request/UpdateDepositRequest?requestId=${requestId}`,
+        payload,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error choosing deposit amount:", error);
+      throw error;
     }
   },
 };
