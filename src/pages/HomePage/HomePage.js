@@ -1,3 +1,4 @@
+// fix
 import React, { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Carousel, Row, Col, Form, Button } from "react-bootstrap";
@@ -11,128 +12,145 @@ import "../../styles/HomePage.scss";
 import CharacterService from "../../services/HomePageService/CharacterService";
 
 const HomePage = () => {
-  // State for storing characters from API
   const [characters, setCharacters] = useState([]);
-  // State for filtered characters (after search/filter)
   const [filteredCharacters, setFilteredCharacters] = useState([]);
-  // State for current page in pagination
   const [currentPage, setCurrentPage] = useState(1);
-  // State to track if user has manually selected a page
   const [isPageManuallySelected, setIsPageManuallySelected] = useState(false);
-  // Default filter values
+  const [characterImages, setCharacterImages] = useState({});
   const defaultSearchParams = {
     characterName: "",
-    price: [0, 1000000], // Range for price (0 to 1,000,000 VND)
-    height: [100, 200], // Range for height (100cm to 200cm)
-    weight: [20, 100], // Range for weight (20kg to 100kg)
+    price: [0, 1000000],
+    height: [100, 200],
+    weight: [20, 100],
   };
-  // State for search and filter parameters
   const [searchParams, setSearchParams] = useState(defaultSearchParams);
-  // Number of characters per page
   const charactersPerPage = 8;
 
-  // Format price to VND
   const formatPrice = (price) => {
     return `${price.toLocaleString("vi-VN")} VND`;
   };
 
-  // Fetch characters from API
+  const indexOfLastCharacter = currentPage * charactersPerPage;
+  const indexOfFirstCharacter = indexOfLastCharacter - charactersPerPage;
+  const currentCharacters = filteredCharacters.slice(
+    indexOfFirstCharacter,
+    indexOfLastCharacter
+  );
+  const totalPages = Math.ceil(filteredCharacters.length / charactersPerPage);
+
   const fetchCharacters = useCallback(async () => {
     try {
       const data = await CharacterService.getAllCharacters();
       setCharacters(data);
-      setFilteredCharacters(data); // Initially display all characters
+      setFilteredCharacters(data);
     } catch (error) {
-      toast.error(error.message); // Show error if API fails
+      toast.error(error.message);
     }
   }, []);
 
-  // Call API when component mounts
+  const fetchCharacterImage = async (characterId) => {
+    if (characterImages[characterId]) return;
+    try {
+      const characterData = await CharacterService.getCharacterById(
+        characterId
+      );
+      setCharacterImages((prev) => ({
+        ...prev,
+        [characterId]:
+          characterData.images?.[0]?.urlImage ||
+          "https://via.placeholder.com/250x350?text=No+Image",
+      }));
+    } catch (error) {
+      console.error(
+        `Error fetching image for character ${characterId}:`,
+        error
+      );
+      setCharacterImages((prev) => ({
+        ...prev,
+        [characterId]: "https://via.placeholder.com/250x350?text=No+Image",
+      }));
+      toast.error(error.message);
+    }
+  };
+
   useEffect(() => {
     fetchCharacters();
   }, [fetchCharacters]);
 
-  // Auto-rotate pages with dynamic timing
   useEffect(() => {
-    // Use 30s if user has manually selected a page, otherwise 8s
+    currentCharacters.forEach((character) => {
+      fetchCharacterImage(character.characterId);
+    });
+  }, [currentCharacters]);
+
+  useEffect(() => {
     const intervalTime = isPageManuallySelected ? 30000 : 8000;
     const timer = setInterval(() => {
       setCurrentPage((prev) => {
-        const maxPage = Math.ceil(filteredCharacters.length / charactersPerPage);
-        return prev >= maxPage ? 1 : prev + 1; // Return to page 1 if end reached
+        const maxPage = Math.ceil(
+          filteredCharacters.length / charactersPerPage
+        );
+        return prev >= maxPage ? 1 : prev + 1;
       });
     }, intervalTime);
-    return () => clearInterval(timer); // Clear timer on component unmount
+    return () => clearInterval(timer);
   }, [filteredCharacters, isPageManuallySelected]);
 
-  // Handle search and filter
   const handleSearch = () => {
     const filtered = characters.filter((char) => {
-      // Search by characterName (case-insensitive)
       const nameMatch = searchParams.characterName
         ? char.characterName
             .toLowerCase()
             .includes(searchParams.characterName.toLowerCase())
         : true;
-      // Filter by price range
       const priceMatch =
         char.price >= searchParams.price[0] &&
         char.price <= searchParams.price[1];
-      // Filter by height range (minHeight and maxHeight must fall within range)
       const heightMatch =
         char.minHeight >= searchParams.height[0] &&
         char.maxHeight <= searchParams.height[1];
-      // Filter by weight range (minWeight and maxWeight must fall within range)
       const weightMatch =
         char.minWeight >= searchParams.weight[0] &&
         char.maxWeight <= searchParams.weight[1];
-      // All conditions must be true
       return nameMatch && priceMatch && heightMatch && weightMatch;
     });
     setFilteredCharacters(filtered);
-    setCurrentPage(1); // Reset to page 1 after search/filter
-    setIsPageManuallySelected(false); // Reset manual selection state
+    setCurrentPage(1);
+    setIsPageManuallySelected(false);
   };
 
-  // Handle input changes for search
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setSearchParams((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Handle range slider changes
   const handleRangeChange = (name, values) => {
     setSearchParams((prev) => ({ ...prev, [name]: values }));
   };
 
-  // Handle cancel search and filter
   const handleCancel = () => {
     setSearchParams(defaultSearchParams);
-    setFilteredCharacters(characters); // Reset to all characters
-    setCurrentPage(1); // Reset to page 1
-    setIsPageManuallySelected(false); // Reset manual selection state
+    setFilteredCharacters(characters);
+    setCurrentPage(1);
+    setIsPageManuallySelected(false);
   };
 
-  // Handle page navigation
   const handlePageChange = (page) => {
     setCurrentPage(page);
-    setIsPageManuallySelected(true); // Mark as manually selected
+    setIsPageManuallySelected(true);
   };
 
-  // Handle previous page
   const handlePrevious = () => {
     setCurrentPage((prev) => (prev > 1 ? prev - 1 : prev));
-    setIsPageManuallySelected(true); // Mark as manually selected
+    setIsPageManuallySelected(true);
   };
 
-  // Handle next page
   const handleNext = () => {
     const maxPage = Math.ceil(filteredCharacters.length / charactersPerPage);
     setCurrentPage((prev) => (prev < maxPage ? prev + 1 : prev));
-    setIsPageManuallySelected(true); // Mark as manually selected
+    setIsPageManuallySelected(true);
   };
 
-  // Decode JWT and show welcome message
   useEffect(() => {
     const accessToken = localStorage.getItem("accessToken");
     if (!accessToken) return;
@@ -147,19 +165,9 @@ const HomePage = () => {
     }
   }, []);
 
-  // Pagination logic for Character List
-  const indexOfLastCharacter = currentPage * charactersPerPage;
-  const indexOfFirstCharacter = indexOfLastCharacter - charactersPerPage;
-  const currentCharacters = filteredCharacters.slice(
-    indexOfFirstCharacter,
-    indexOfLastCharacter
-  );
-  const totalPages = Math.ceil(filteredCharacters.length / charactersPerPage);
-
   return (
     <div className="homepage">
       <ToastContainer />
-      {/* Carousel remains unchanged */}
       <Carousel fade>
         {carouselItems.map((item, index) => (
           <Carousel.Item key={index}>
@@ -177,14 +185,11 @@ const HomePage = () => {
         ))}
       </Carousel>
 
-      {/* Character List section replacing Highlight Cosplayers */}
       <div className="custom-section featured-characters py-5">
         <h2 className="text-center fw-bold mb-5">Character List</h2>
 
-        {/* Search and Filter Bar */}
         <div className="search-filter-container mb-5">
           <Form className="search-filter-form">
-            {/* Top Row: Search and Price Range */}
             <Row className="g-4 justify-content-center mb-4">
               <Col md={6}>
                 <Form.Group>
@@ -253,7 +258,6 @@ const HomePage = () => {
                 </Form.Group>
               </Col>
             </Row>
-            {/* Bottom Row: Height and Weight Range */}
             <Row className="g-4 justify-content-center mb-4">
               <Col md={6}>
                 <Form.Group>
@@ -360,7 +364,6 @@ const HomePage = () => {
                 </Form.Group>
               </Col>
             </Row>
-            {/* Buttons */}
             <Row className="g-4 justify-content-center">
               <Col md={6} className="text-center">
                 <Button className="search-button" onClick={handleSearch}>
@@ -376,7 +379,6 @@ const HomePage = () => {
           </Form>
         </div>
 
-        {/* Character Grid */}
         <ul className="card-list">
           {currentCharacters.map((character) => (
             <li className="character-card" key={character.characterId}>
@@ -384,8 +386,8 @@ const HomePage = () => {
                 <div className="card-front">
                   <img
                     src={
-                      character.images?.[0] ||
-                      "https://via.placeholder.com/250x350?text=No+Image"
+                      characterImages[character.characterId] ||
+                      "https://via.placeholder.com/250x350?text=Loading..."
                     }
                     alt={character.characterName}
                     className="card-img-top"
@@ -411,7 +413,6 @@ const HomePage = () => {
           ))}
         </ul>
 
-        {/* Pagination Controls */}
         <div className="pagination-controls text-center mt-4">
           <Button
             className="pagination-arrow"
@@ -449,7 +450,6 @@ const HomePage = () => {
         </div>
       </div>
 
-      {/* About Us section remains unchanged */}
       <div className="custom-section about-us py-5">
         <Row className="align-items-center">
           <Col md={12}>
@@ -457,10 +457,10 @@ const HomePage = () => {
           </Col>
           <Col md={6}>
             <p className="text-muted mb-4 text-center">
-              Welcome to CCSS – your one-stop destination for all things cosplay!
-              Our passionate team brings creativity, authenticity, and excitement
-              to every event, costume, and experience. Explore our world of
-              cosplay and let’s make your fandom dreams come true!
+              Welcome to CCSS – your one-stop destination for all things
+              cosplay! Our passionate team brings creativity, authenticity, and
+              excitement to every event, costume, and experience. Explore our
+              world of cosplay and let’s make your fandom dreams come true!
             </p>
           </Col>
           <Col md={6}>
@@ -475,7 +475,6 @@ const HomePage = () => {
         </Row>
       </div>
 
-      {/* Featured Services section remains unchanged */}
       <div className="custom-section featured-services py-5">
         <h2 className="text-center mb-5">Featured Services</h2>
         <Row className="justify-content-center">
@@ -499,7 +498,6 @@ const HomePage = () => {
   );
 };
 
-// Carousel and services data remain unchanged
 const carouselItems = [
   {
     image: "https://images6.alphacoders.com/138/1382889.png",
