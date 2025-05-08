@@ -1,12 +1,13 @@
 .order-revenue {
-  padding: 2rem 3rem;
+  padding: 1.5rem; // Giảm padding từ 2rem 3rem để cân đối
   background: #f8f9fa;
   min-height: 100vh;
   animation: fadeIn 0.5s ease-in;
-  margin: 0 30vh;
+  margin-left: 70px; // Thay margin: 0 30vh thành margin-left: 70px
+  margin-right: 0; // Loại bỏ margin phải để tận dụng không gian
 
   h1 {
-    margin-bottom: 2.5rem;
+    margin-bottom: 2rem; // Giảm từ 2.5rem để gọn hơn
     color: #1a1a2e;
     font-weight: 700;
     font-size: 2.25rem;
@@ -97,7 +98,7 @@
     }
 
     .card-body {
-      padding: 2rem;
+      padding: 1.5rem; // Giảm từ 2rem để cân đối
       display: flex;
       align-items: center;
     }
@@ -145,12 +146,12 @@
     border-radius: 16px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
     background: white;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem; // Giảm từ 2rem để gọn hơn
 
     .card-header {
       background: #fff;
       border-bottom: none;
-      padding: 1.5rem;
+      padding: 1.25rem; // Giảm từ 1.5rem để cân đối
 
       h5 {
         color: #1a1a2e;
@@ -160,7 +161,7 @@
     }
 
     .card-body {
-      padding: 2rem;
+      padding: 1.5rem; // Giảm từ 2rem để cân đối
 
       .text-muted {
         text-align: center;
@@ -174,7 +175,7 @@
         th,
         td {
           vertical-align: middle;
-          padding: 1rem;
+          padding: 0.75rem; // Giảm từ 1rem để bảng gọn hơn
           text-align: center;
           transition: all 0.3s ease;
         }
@@ -217,32 +218,42 @@
   }
 
   @media (max-width: 768px) {
-    .order-revenue {
-      padding: 1.5rem;
-      margin: 0 1rem;
+    padding: 1rem; // Giảm từ 1.5rem để phù hợp mobile
+    margin-left: 70px; // Giữ margin-left: 70px trên mobile
+    margin-right: 0; // Loại bỏ margin phải
 
-      h1 {
-        font-size: 1.75rem;
-      }
+    h1 {
+      font-size: 1.75rem;
+    }
 
-      .total-revenue-card {
-        .card-body {
-          flex-direction: column;
-          align-items: flex-start;
-          text-align: center;
+    .total-revenue-card {
+      .card-body {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: center;
 
-          .revenue-icon {
-            margin-bottom: 1rem;
-          }
+        .revenue-icon {
+          margin-bottom: 1rem;
+        }
 
-          .ms-4 {
-            margin-left: 0 !important;
-          }
+        .ms-4 {
+          margin-left: 0 !important;
         }
       }
+    }
 
-      .card-body {
-        padding: 1.5rem;
+    .card-body {
+      padding: 1rem; // Giảm từ 1.5rem để gọn hơn trên mobile
+    }
+
+    .card {
+      margin-bottom: 1rem; // Giảm từ 1.5rem để tiết kiệm không gian
+    }
+
+    .table {
+      th,
+      td {
+        padding: 0.5rem; // Giảm thêm trên mobile
       }
     }
   }
