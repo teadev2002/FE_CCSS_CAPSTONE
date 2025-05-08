@@ -109,6 +109,60 @@ const ManageContractService = {
       throw error;
     }
   },
+  // Lấy danh sách hình ảnh hợp đồng theo contractId và status
+  getContractImageAndStatus: async (contractId, status) => {
+    try {
+      const response = await apiClient.get(
+        `/api/ContractImage?contractId=${contractId}&status=${status}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching contract images:", {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+      });
+      throw error;
+    }
+  },
+  // Cập nhật hợp đồng giao hàng với trạng thái và hình ảnh
+  updateDeliveryContract: async (contractId, status, images, reason = "") => {
+    try {
+      // Tạo FormData để gửi dữ liệu multipart/form-data
+      const formData = new FormData();
+
+      // Thêm lý do (nếu có) vào FormData
+      if (reason) {
+        formData.append("Reason", reason);
+      }
+
+      // Thêm danh sách hình ảnh vào FormData
+      if (images && images.length > 0) {
+        images.forEach((image, index) => {
+          formData.append(`Images`, image, image.name);
+        });
+      }
+
+      // Gửi yêu cầu PUT với query parameters và FormData
+      const response = await apiClient.put(
+        `/api/Contract/UpdateDeliveryContract?ContractId=${contractId}&Status=${status}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error updating delivery contract:", {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+      });
+      throw error;
+    }
+  },
 };
 
 export default ManageContractService;

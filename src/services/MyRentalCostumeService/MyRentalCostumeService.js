@@ -124,5 +124,21 @@ const MyRentalCostumeService = {
       throw error;
     }
   },
+  // Lấy danh sách hình ảnh hợp đồng theo contractId và status
+  getContractImageAndStatus: async (contractId, status) => {
+    try {
+      const response = await apiClient.get(
+        `/api/ContractImage?contractId=${contractId}&status=${status}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching contract images:", {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+      });
+      throw error;
+    }
+  },
 };
 export default MyRentalCostumeService;

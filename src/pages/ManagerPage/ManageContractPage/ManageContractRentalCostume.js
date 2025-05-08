@@ -19,6 +19,7 @@ import LinearProgress from "@mui/material/LinearProgress";
 import ManageContractService from "../../../services/ManageServicePages/ManageContractService/ManageContractService.js";
 import ViewApprovedContractRentalCostume from "./ViewApprovedContractRentalCostume";
 import "../../../styles/Manager/ManageContract.scss";
+import ManageDeliveryRentalCostume from "./ManageDeliveryRentalCostume";
 import dayjs from "dayjs";
 
 const { TextArea } = Input;
@@ -76,7 +77,20 @@ const ManageContractRentalCostume = () => {
   const [currentPageRequest, setCurrentPageRequest] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const rowsPerPageOptions = [10, 15, 30];
+  const [deliveryModalVisible, setDeliveryModalVisible] = useState(false); // Thêm state cho modal Manage Delivery
+  const [selectedContractId, setSelectedContractId] = useState(null); // State để lưu contractId
 
+  // Hàm mở modal Manage Delivery
+  const handleShowDeliveryModal = (contractId) => {
+    setSelectedContractId(contractId);
+    setDeliveryModalVisible(true);
+  };
+
+  // Hàm đóng modal Manage Delivery
+  const handleCloseDeliveryModal = () => {
+    setDeliveryModalVisible(false);
+    setSelectedContractId(null);
+  };
   // Date formatting function
   const formatDate = (date) => {
     if (
@@ -750,6 +764,15 @@ const ManageContractRentalCostume = () => {
                             >
                               View Detail
                             </Button>
+                            <Button
+                              type="default"
+                              size="small"
+                              onClick={() =>
+                                handleShowDeliveryModal(con.contractId)
+                              } // Gọi hàm mở modal
+                            >
+                              Manage Delivery
+                            </Button>
                           </td>
                           <td className="text-center">
                             {con.contractId &&
@@ -834,6 +857,13 @@ const ManageContractRentalCostume = () => {
         onCancel={handleCloseViewModal}
         requestId={selectedRequestId}
         getRequestByRequestId={ManageContractService.getRequestByRequestId}
+      />
+
+      {/* Thêm modal ManageDeliveryRentalCostume */}
+      <ManageDeliveryRentalCostume
+        visible={deliveryModalVisible}
+        onCancel={handleCloseDeliveryModal}
+        contractId={selectedContractId}
       />
     </div>
   );
