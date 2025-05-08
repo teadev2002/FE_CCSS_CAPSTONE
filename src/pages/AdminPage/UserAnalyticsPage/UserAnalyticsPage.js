@@ -11,8 +11,9 @@ import {
 import { Star, Award, Users as UsersIcon } from "lucide-react";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { Image } from "antd";
 import "../../../styles/Admin/UserAnalyticsPage.scss";
-import UserAnalyticsService from "../../../services/AdminService/UserAnalyticsService"; // Đường dẫn tới service
+import UserAnalyticsService from "../../../services/AdminService/UserAnalyticsService";
 
 Chart.register(CategoryScale, LinearScale, PointElement, LineElement);
 
@@ -34,6 +35,10 @@ const UserAnalyticsPage = () => {
     managers: [],
     admins: [],
   });
+
+  // State cho Top 5 Cosplayers by Rating
+  const [topCosplayersByRating, setTopCosplayersByRating] = useState([]);
+  const [ratingFilter, setRatingFilter] = useState(0); // 0: Today, 1: This week, 2: This month, 3: This year
 
   // Thống kê tương tác người dùng (giả lập - chưa có API)
   const userEngagement = {
@@ -104,15 +109,6 @@ const UserAnalyticsPage = () => {
       },
       membership: "Standard",
     },
-  ];
-
-  // Top 5 cosplayer có số sao feedback cao nhất (giả lập - chưa có API)
-  const topCosplayersByRating = [
-    { id: 1, name: "Alex Mercer", rating: 4.9, bookings: 89 },
-    { id: 2, name: "Nương Phạm", rating: 4.8, bookings: 82 },
-    { id: 3, name: "Katie Bell", rating: 4.7, bookings: 75 },
-    { id: 4, name: "Minh Anh", rating: 4.6, bookings: 70 },
-    { id: 5, name: "James Carter", rating: 4.5, bookings: 65 },
   ];
 
   // Top 5 cosplayer được yêu thích nhất (book nhiều nhất) (giả lập - chưa có API)
@@ -320,6 +316,14 @@ const UserAnalyticsPage = () => {
     { value: "year", label: "This Year" },
   ];
 
+  // Filter thời gian cho Top 5 Cosplayers by Rating
+  const ratingFilterOptions = [
+    { value: 0, label: "Today" },
+    { value: 1, label: "This Week" },
+    { value: 2, label: "This Month" },
+    { value: 3, label: "This Year" },
+  ];
+
   // Role ID mapping
   const roleMapping = {
     R001: "admins",
@@ -387,13 +391,44 @@ const UserAnalyticsPage = () => {
     fetchAccounts();
   }, []);
 
-  // Hàm lấy URL hình ảnh avatar
+  // Lấy dữ liệu Top 5 Cosplayers by Rating
+  useEffect(() => {
+    const fetchTopCosplayersByRating = async () => {
+      try {
+        const data = await UserAnalyticsService.getTop5PopularCosplayers(ratingFilter);
+        // Sắp xếp theo averageStar giảm dần và giới hạn 5 cosplayer
+        const sortedCosplayers = Array.isArray(data)
+          ? data.sort((a, b) => b.averageStar - a.averageStar).slice(0, 5)
+          : [];
+        setTopCosplayersByRating(sortedCosplayers);
+      } catch (error) {
+        toast.error(error.message || "Failed to load top cosplayers by rating");
+      }
+    };
+
+    fetchTopCosplayersByRating();
+  }, [ratingFilter]);
+
+  // Hàm format giá thuê cosplayer
+  const formatHourlyRate = (rate) => {
+    return `${rate.toLocaleString("vi-VN")}/h VND`;
+  };
+
+  // Hàm lấy URL hình ảnh avatar và danh sách hình ảnh cho preview
   const getAvatarUrl = (images) => {
     if (!images || images.length === 0) {
       return "https://via.placeholder.com/40?text=No+Image";
     }
     const avatarImage = images.find((img) => img.isAvatar) || images[0];
     return avatarImage.urlImage;
+  };
+
+  // Hàm lấy danh sách hình ảnh để preview
+  const getImageList = (images) => {
+    if (!images || images.length === 0) {
+      return ["https://via.placeholder.com/40?text=No+Image"];
+    }
+    return images.map((img) => img.urlImage);
   };
 
   return (
@@ -457,7 +492,99 @@ const UserAnalyticsPage = () => {
 
       {/* Top 5 */}
       <Row>
-        <Col lg={4}>
+        <Col lg={6}>
+          <Card className="mb-4">
+            <Card.Header className="d-flex justify-content-between align-items-center">
+              <h5>Top 5 Cosplayers by Rating</h5>
+              <Dropdown onSelect={(value) => setRatingFilter(Number(value))}>
+                <Dropdown.Toggle variant="secondary" id="dropdown-rating-filter">
+                  {ratingFilterOptions.find((opt) => opt.value === ratingFilter)?.label}
+                </Dropdown.Toggle>
+                <Dropdown.Menu>
+                  {ratingFilterOptions.map((option) => (
+                    <Dropdown.Item key={option.value} eventKey={option.value}>
+                      {option.label}
+                    </Dropdown.Item>
+                  ))}
+                </Dropdown.Menu>
+              </Dropdown>
+            </Card.Header>
+            <Card.Body>
+              <Table responsive>
+                <thead>
+                  <tr>
+                    <th>Rank</th>
+                    <th>Name</th>
+                    <th>Rating</th>
+                    <th>Email</th>
+                    <th>Height</th>
+                    <th>Weight</th>
+                    <th>Hourly Rate</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {topCosplayersByRating.map((cosplayer, index) => (
+                    <tr key={cosplayer.accountId}>
+                      <td>#{index + 1}</td>
+                      <td>{cosplayer.name}</td>
+                      <td>
+                        <div className="rating-cell">
+                          {cosplayer.averageStar || "N/A"}
+                          {cosplayer.averageStar && (
+                            <Star size={14} className="star-filled ms-1" />
+                          )}
+                        </div>
+                      </td>
+                      <td>{cosplayer.email}</td>
+                      <td>{cosplayer.height} cm</td>
+                      <td>{cosplayer.weight} kg</td>
+                      <td>{formatHourlyRate(cosplayer.salaryIndex)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            </Card.Body>
+          </Card>
+        </Col>
+
+        <Col lg={6}>
+          <Card className="mb-4">
+            <Card.Header>
+              <h5>Top 5 Cosplayers by Bookings</h5>
+            </Card.Header>
+            <Card.Body>
+              <Table responsive>
+                <thead>
+                  <tr>
+                    <th>Rank</th>
+                    <th>Name</th>
+                    <th>Bookings</th>
+                    <th>Rating</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {topCosplayersByBookings.map((cosplayer, index) => (
+                    <tr key={cosplayer.id}>
+                      <td>#{index + 1}</td>
+                      <td>{cosplayer.name}</td>
+                      <td>{cosplayer.bookings}</td>
+                      <td>
+                        <div className="rating-cell">
+                          {cosplayer.rating}
+                          <Star size={14} className="star-filled ms-1" />
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+
+      <Row>
+        <Col lg={12}>
           <Card className="mb-4">
             <Card.Header>
               <h5>Top 5 Customers by Service Usage</h5>
@@ -485,76 +612,6 @@ const UserAnalyticsPage = () => {
                         <p>Buy Festival Tickets: {customer.servicesUsed.buyFestivalTickets}</p>
                       </td>
                       <td>{customer.membership}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </Table>
-            </Card.Body>
-          </Card>
-        </Col>
-
-        <Col lg={4}>
-          <Card className="mb-4">
-            <Card.Header>
-              <h5>Top 5 Cosplayers by Rating</h5>
-            </Card.Header>
-            <Card.Body>
-              <Table responsive>
-                <thead>
-                  <tr>
-                    <th>Rank</th>
-                    <th>Name</th>
-                    <th>Rating</th>
-                    <th>Bookings</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {topCosplayersByRating.map((cosplayer, index) => (
-                    <tr key={cosplayer.id}>
-                      <td>#{index + 1}</td>
-                      <td>{cosplayer.name}</td>
-                      <td>
-                        <div className="rating-cell">
-                          {cosplayer.rating}
-                          <Star size={14} className="star-filled ms-1" />
-                        </div>
-                      </td>
-                      <td>{cosplayer.bookings}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </Table>
-            </Card.Body>
-          </Card>
-        </Col>
-
-        <Col lg={4}>
-          <Card className="mb-4">
-            <Card.Header>
-              <h5>Top 5 Cosplayers by Bookings</h5>
-            </Card.Header>
-            <Card.Body>
-              <Table responsive>
-                <thead>
-                  <tr>
-                    <th>Rank</th>
-                    <th>Name</th>
-                    <th>Bookings</th>
-                    <th>Rating</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {topCosplayersByBookings.map((cosplayer, index) => (
-                    <tr key={cosplayer.id}>
-                      <td>#{index + 1}</td>
-                      <td>{cosplayer.name}</td>
-                      <td>{cosplayer.bookings}</td>
-                      <td>
-                        <div className="rating-cell">
-                          {cosplayer.rating}
-                          <Star size={14} className="star-filled ms-1" />
-                        </div>
-                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -678,14 +735,19 @@ const UserAnalyticsPage = () => {
                       <td>{account.name}</td>
                       <td>{account.email}</td>
                       <td>
-                        <img
+                        <Image
                           src={getAvatarUrl(account.images)}
                           alt={`${account.name}'s avatar`}
+                          width={40}
+                          height={40}
                           style={{
-                            width: "40px",
-                            height: "40px",
                             borderRadius: "50%",
                             objectFit: "cover",
+                            cursor: "pointer",
+                          }}
+                          preview={{
+                            src: getAvatarUrl(account.images),
+                            srcList: getImageList(account.images),
                           }}
                         />
                       </td>
@@ -732,14 +794,19 @@ const UserAnalyticsPage = () => {
                         )}
                       </td>
                       <td>
-                        <img
+                        <Image
                           src={getAvatarUrl(account.images)}
                           alt={`${account.name}'s avatar`}
+                          width={40}
+                          height={40}
                           style={{
-                            width: "40px",
-                            height: "40px",
                             borderRadius: "50%",
                             objectFit: "cover",
+                            cursor: "pointer",
+                          }}
+                          preview={{
+                            src: getAvatarUrl(account.images),
+                            srcList: getImageList(account.images),
                           }}
                         />
                       </td>
@@ -775,14 +842,19 @@ const UserAnalyticsPage = () => {
                       <td>{account.name}</td>
                       <td>{account.email}</td>
                       <td>
-                        <img
+                        <Image
                           src={getAvatarUrl(account.images)}
                           alt={`${account.name}'s avatar`}
+                          width={40}
+                          height={40}
                           style={{
-                            width: "40px",
-                            height: "40px",
                             borderRadius: "50%",
                             objectFit: "cover",
+                            cursor: "pointer",
+                          }}
+                          preview={{
+                            src: getAvatarUrl(account.images),
+                            srcList: getImageList(account.images),
                           }}
                         />
                       </td>
@@ -818,14 +890,19 @@ const UserAnalyticsPage = () => {
                       <td>{account.name}</td>
                       <td>{account.email}</td>
                       <td>
-                        <img
+                        <Image
                           src={getAvatarUrl(account.images)}
                           alt={`${account.name}'s avatar`}
+                          width={40}
+                          height={40}
                           style={{
-                            width: "40px",
-                            height: "40px",
                             borderRadius: "50%",
                             objectFit: "cover",
+                            cursor: "pointer",
+                          }}
+                          preview={{
+                            src: getAvatarUrl(account.images),
+                            srcList: getImageList(account.images),
                           }}
                         />
                       </td>
@@ -861,14 +938,19 @@ const UserAnalyticsPage = () => {
                       <td>{account.name}</td>
                       <td>{account.email}</td>
                       <td>
-                        <img
+                        <Image
                           src={getAvatarUrl(account.images)}
                           alt={`${account.name}'s avatar`}
+                          width={40}
+                          height={40}
                           style={{
-                            width: "40px",
-                            height: "40px",
                             borderRadius: "50%",
                             objectFit: "cover",
+                            cursor: "pointer",
+                          }}
+                          preview={{
+                            src: getAvatarUrl(account.images),
+                            srcList: getImageList(account.images),
                           }}
                         />
                       </td>

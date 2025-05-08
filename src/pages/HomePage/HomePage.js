@@ -789,6 +789,13 @@ const HomePage = () => {
                         <p className="character-height">Height: {cosplayer.height}cm</p>
                         <p className="character-weight">Weight: {cosplayer.weight}kg</p>
                         <span className="category-badge">{formatHourlyRate(cosplayer.salaryIndex)}</span>
+                        <Link
+                          to={`/user-profile/${cosplayer.accountId}`}
+                          className="see-profile-button"
+                          aria-label={`View profile of ${cosplayer.name}`}
+                        >
+                          See Profile
+                        </Link>
                       </div>
                     </div>
                   </div>

@@ -1,4 +1,3 @@
-// UserAnalyticsService.js
 import { apiClient } from "../../api/apiClient.js";
 
 const UserAnalyticsService = {
@@ -16,6 +15,25 @@ const UserAnalyticsService = {
         error.response?.data?.notification ||
         error.response?.data?.message ||
         `Failed to fetch accounts for role ${roleId}`;
+      throw new Error(errorMessage);
+    }
+  },
+
+  // Thêm hàm gọi API Top 5 Cosplayers by Rating
+  getTop5PopularCosplayers: async (filterType) => {
+    try {
+      console.log(`Fetching top 5 popular cosplayers with filterType=${filterType}...`);
+      const response = await apiClient.get("/api/DashBoard/top5-Popular-cosplayer", {
+        params: { filterType },
+      });
+      console.log(`Top 5 Popular Cosplayers response:`, response.data);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching top 5 popular cosplayers:`, error.response?.data || error);
+      const errorMessage =
+        error.response?.data?.notification ||
+        error.response?.data?.message ||
+        "Failed to fetch top 5 popular cosplayers";
       throw new Error(errorMessage);
     }
   },
