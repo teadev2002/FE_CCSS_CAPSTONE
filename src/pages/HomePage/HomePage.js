@@ -1,8 +1,7 @@
-// fix
 import React, { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Carousel, Row, Col, Form, Button } from "react-bootstrap";
-import { Shirt, CalendarDays, Users, ShoppingBag, Ticket } from "lucide-react";
+import { Shirt, CalendarDays, Users, ShoppingBag, Ticket, Star } from "lucide-react";
 import { toast, ToastContainer } from "react-toastify";
 import { jwtDecode } from "jwt-decode";
 import { Range } from "react-range";
@@ -10,34 +9,70 @@ import "react-toastify/dist/ReactToastify.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../../styles/HomePage.scss";
 import CharacterService from "../../services/HomePageService/CharacterService";
+import CosplayerService from "../../services/HomePageService/CosplayerService";
 
 const HomePage = () => {
+  // State cho Character List
   const [characters, setCharacters] = useState([]);
   const [filteredCharacters, setFilteredCharacters] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [isPageManuallySelected, setIsPageManuallySelected] = useState(false);
+  const [currentPageCharacters, setCurrentPageCharacters] = useState(1);
+  const [isPageManuallySelectedCharacters, setIsPageManuallySelectedCharacters] = useState(false);
   const [characterImages, setCharacterImages] = useState({});
-  const defaultSearchParams = {
+  const defaultCharacterSearchParams = {
     characterName: "",
     price: [0, 1000000],
     height: [100, 200],
     weight: [20, 100],
   };
-  const [searchParams, setSearchParams] = useState(defaultSearchParams);
+  const [characterSearchParams, setCharacterSearchParams] = useState(defaultCharacterSearchParams);
   const charactersPerPage = 8;
 
+  // State cho Cosplayer List
+  const [cosplayers, setCosplayers] = useState([]);
+  const [filteredCosplayers, setFilteredCosplayers] = useState([]);
+  const [currentPageCosplayers, setCurrentPageCosplayers] = useState(1);
+  const [isPageManuallySelectedCosplayers, setIsPageManuallySelectedCosplayers] = useState(false);
+  const [cosplayerImages, setCosplayerImages] = useState({});
+  const defaultCosplayerSearchParams = {
+    averageStar: [0, 5],
+    height: [100, 200],
+    weight: [20, 100],
+    hourlyRate: [0, 100000],
+  };
+  const [cosplayerSearchParams, setCosplayerSearchParams] = useState(defaultCosplayerSearchParams);
+  const cosplayersPerPage = 8;
+
+  // State cho About Us image carousel
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const aboutUsImages = [
+    "https://c4.wallpaperflare.com/wallpaper/721/4/835/cosplay-nier-automata-2b-no-2-yorha-wallpaper-preview.jpg",
+    "https://a-static.besthdwallpaper.com/war-devil-chainsaw-man-cosplay-wallpaper-3554x1999-106179_53.jpg",
+    "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjBoUf4Egm_PQxM-WvR-WtIJyl-Y5mdeIRyjKifGY28VO7_2JQ5ckEYXpYdLYB-ieyphOMmDAxsaue0Rcsiai8EAIUgrJFNL83uEKJ7waO4XXQymj1t7gLLo7XjCIkKZ924rczPtuVCJ7LP/w919/cyberpunk-2077-girl-cosplay-uhdpaper.com-4K-8.2173-wp.thumbnail.jpg",
+  ];
+
+  // Format giá tiền VND
   const formatPrice = (price) => {
     return `${price.toLocaleString("vi-VN")} VND`;
   };
 
-  const indexOfLastCharacter = currentPage * charactersPerPage;
-  const indexOfFirstCharacter = indexOfLastCharacter - charactersPerPage;
-  const currentCharacters = filteredCharacters.slice(
-    indexOfFirstCharacter,
-    indexOfLastCharacter
-  );
-  const totalPages = Math.ceil(filteredCharacters.length / charactersPerPage);
+  // Format giá tiền thuê cosplayer (per hour) - Thêm VND
+  const formatHourlyRate = (rate) => {
+    return `${rate.toLocaleString("vi-VN")}/h VND`;
+  };
 
+  // Phân trang cho Character List
+  const indexOfLastCharacter = currentPageCharacters * charactersPerPage;
+  const indexOfFirstCharacter = indexOfLastCharacter - charactersPerPage;
+  const currentCharacters = filteredCharacters.slice(indexOfFirstCharacter, indexOfLastCharacter);
+  const totalPagesCharacters = Math.ceil(filteredCharacters.length / charactersPerPage);
+
+  // Phân trang cho Cosplayer List
+  const indexOfLastCosplayer = currentPageCosplayers * cosplayersPerPage;
+  const indexOfFirstCosplayer = indexOfLastCosplayer - cosplayersPerPage;
+  const currentCosplayers = filteredCosplayers.slice(indexOfFirstCosplayer, indexOfLastCosplayer);
+  const totalPagesCosplayers = Math.ceil(filteredCosplayers.length / cosplayersPerPage);
+
+  // Lấy danh sách nhân vật
   const fetchCharacters = useCallback(async () => {
     try {
       const data = await CharacterService.getAllCharacters();
@@ -48,107 +83,198 @@ const HomePage = () => {
     }
   }, []);
 
+  // Lấy hình ảnh nhân vật
   const fetchCharacterImage = async (characterId) => {
     if (characterImages[characterId]) return;
     try {
-      const characterData = await CharacterService.getCharacterById(
-        characterId
-      );
+      const characterData = await CharacterService.getCharacterById(characterId);
       setCharacterImages((prev) => ({
         ...prev,
         [characterId]:
-          characterData.images?.[0]?.urlImage ||
-          "https://via.placeholder.com/250x350?text=No+Image",
+          characterData.images?.[0]?.urlImage || "https://via.placeholder.com/200x300?text=No+Image",
       }));
     } catch (error) {
-      console.error(
-        `Error fetching image for character ${characterId}:`,
-        error
-      );
+      console.error(`Error fetching image for character ${characterId}:`, error);
       setCharacterImages((prev) => ({
         ...prev,
-        [characterId]: "https://via.placeholder.com/250x350?text=No+Image",
+        [characterId]: "https://via.placeholder.com/200x300?text=No+Image",
       }));
       toast.error(error.message);
     }
   };
 
+  // Lấy danh sách cosplayer
+  const fetchCosplayers = useCallback(async () => {
+    try {
+      const data = await CosplayerService.getAllCosplayers();
+      const cosplayersArray = Array.isArray(data) ? data : [data];
+      setCosplayers(cosplayersArray);
+      setFilteredCosplayers(cosplayersArray);
+    } catch (error) {
+      toast.error(error.message);
+    }
+  }, []);
+
+  // Lấy hình ảnh cosplayer
+  const fetchCosplayerImage = (cosplayer) => {
+    if (cosplayerImages[cosplayer.accountId]) return;
+    const imageUrl =
+      cosplayer.images?.[0]?.urlImage || "https://via.placeholder.com/200x300?text=No+Image";
+    setCosplayerImages((prev) => ({
+      ...prev,
+      [cosplayer.accountId]: imageUrl,
+    }));
+  };
+
+  // Gọi API khi component mount
   useEffect(() => {
     fetchCharacters();
-  }, [fetchCharacters]);
+    fetchCosplayers();
+  }, [fetchCharacters, fetchCosplayers]);
 
+  // Lấy hình ảnh cho các nhân vật/cosplayer hiện tại
   useEffect(() => {
     currentCharacters.forEach((character) => {
       fetchCharacterImage(character.characterId);
     });
-  }, [currentCharacters]);
+    currentCosplayers.forEach((cosplayer) => {
+      fetchCosplayerImage(cosplayer);
+    });
+  }, [currentCharacters, currentCosplayers]);
 
+  // Tự động chuyển trang cho Character List
   useEffect(() => {
-    const intervalTime = isPageManuallySelected ? 30000 : 8000;
+    const intervalTime = isPageManuallySelectedCharacters ? 30000 : 8000;
     const timer = setInterval(() => {
-      setCurrentPage((prev) => {
-        const maxPage = Math.ceil(
-          filteredCharacters.length / charactersPerPage
-        );
+      setCurrentPageCharacters((prev) => {
+        const maxPage = Math.ceil(filteredCharacters.length / charactersPerPage);
         return prev >= maxPage ? 1 : prev + 1;
       });
     }, intervalTime);
     return () => clearInterval(timer);
-  }, [filteredCharacters, isPageManuallySelected]);
+  }, [filteredCharacters, isPageManuallySelectedCharacters]);
 
-  const handleSearch = () => {
+  // Tự động chuyển trang cho Cosplayer List
+  useEffect(() => {
+    const intervalTime = isPageManuallySelectedCosplayers ? 30000 : 8000;
+    const timer = setInterval(() => {
+      setCurrentPageCosplayers((prev) => {
+        const maxPage = Math.ceil(filteredCosplayers.length / cosplayersPerPage);
+        return prev >= maxPage ? 1 : prev + 1;
+      });
+    }, intervalTime);
+    return () => clearInterval(timer);
+  }, [filteredCosplayers, isPageManuallySelectedCosplayers]);
+
+  // Tự động chuyển hình cho About Us
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % aboutUsImages.length);
+    }, 7000); // Chuyển hình sau 7 giây
+    return () => clearInterval(timer);
+  }, [aboutUsImages.length]);
+
+  // Xử lý tìm kiếm và lọc cho Character List
+  const handleCharacterSearch = () => {
     const filtered = characters.filter((char) => {
-      const nameMatch = searchParams.characterName
-        ? char.characterName
-            .toLowerCase()
-            .includes(searchParams.characterName.toLowerCase())
+      const nameMatch = characterSearchParams.characterName
+        ? char.characterName.toLowerCase().includes(characterSearchParams.characterName.toLowerCase())
         : true;
       const priceMatch =
-        char.price >= searchParams.price[0] &&
-        char.price <= searchParams.price[1];
+        char.price >= characterSearchParams.price[0] &&
+        char.price <= characterSearchParams.price[1];
       const heightMatch =
-        char.minHeight >= searchParams.height[0] &&
-        char.maxHeight <= searchParams.height[1];
+        char.minHeight >= characterSearchParams.height[0] &&
+        char.maxHeight <= characterSearchParams.height[1];
       const weightMatch =
-        char.minWeight >= searchParams.weight[0] &&
-        char.maxWeight <= searchParams.weight[1];
+        char.minWeight >= characterSearchParams.weight[0] &&
+        char.maxWeight <= characterSearchParams.weight[1];
       return nameMatch && priceMatch && heightMatch && weightMatch;
     });
     setFilteredCharacters(filtered);
-    setCurrentPage(1);
-    setIsPageManuallySelected(false);
+    setCurrentPageCharacters(1);
+    setIsPageManuallySelectedCharacters(false);
   };
 
-  const handleInputChange = (e) => {
+  // Xử lý tìm kiếm và lọc cho Cosplayer List
+  const handleCosplayerSearch = () => {
+    const filtered = cosplayers.filter((cosplayer) => {
+      const starMatch =
+        cosplayer.averageStar >= cosplayerSearchParams.averageStar[0] &&
+        cosplayer.averageStar <= cosplayerSearchParams.averageStar[1];
+      const heightMatch =
+        cosplayer.height >= cosplayerSearchParams.height[0] &&
+        cosplayer.height <= cosplayerSearchParams.height[1];
+      const weightMatch =
+        cosplayer.weight >= cosplayerSearchParams.weight[0] &&
+        cosplayer.weight <= cosplayerSearchParams.weight[1];
+      const rateMatch =
+        cosplayer.salaryIndex >= cosplayerSearchParams.hourlyRate[0] &&
+        cosplayer.salaryIndex <= cosplayerSearchParams.hourlyRate[1];
+      return starMatch && heightMatch && weightMatch && rateMatch;
+    });
+    setFilteredCosplayers(filtered);
+    setCurrentPageCosplayers(1);
+    setIsPageManuallySelectedCosplayers(false);
+  };
+
+  const handleCharacterInputChange = (e) => {
     const { name, value } = e.target;
-    setSearchParams((prev) => ({ ...prev, [name]: value }));
+    setCharacterSearchParams((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleRangeChange = (name, values) => {
-    setSearchParams((prev) => ({ ...prev, [name]: values }));
+  const handleCharacterRangeChange = (name, values) => {
+    setCharacterSearchParams((prev) => ({ ...prev, [name]: values }));
   };
 
-  const handleCancel = () => {
-    setSearchParams(defaultSearchParams);
+  const handleCosplayerRangeChange = (name, values) => {
+    setCosplayerSearchParams((prev) => ({ ...prev, [name]: values }));
+  };
+
+  const handleCharacterCancel = () => {
+    setCharacterSearchParams(defaultCharacterSearchParams);
     setFilteredCharacters(characters);
-    setCurrentPage(1);
-    setIsPageManuallySelected(false);
+    setCurrentPageCharacters(1);
+    setIsPageManuallySelectedCharacters(false);
   };
 
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-    setIsPageManuallySelected(true);
+  const handleCosplayerCancel = () => {
+    setCosplayerSearchParams(defaultCosplayerSearchParams);
+    setFilteredCosplayers(cosplayers);
+    setCurrentPageCosplayers(1);
+    setIsPageManuallySelectedCosplayers(false);
   };
 
-  const handlePrevious = () => {
-    setCurrentPage((prev) => (prev > 1 ? prev - 1 : prev));
-    setIsPageManuallySelected(true);
+  const handleCharacterPageChange = (page) => {
+    setCurrentPageCharacters(page);
+    setIsPageManuallySelectedCharacters(true);
   };
 
-  const handleNext = () => {
+  const handleCosplayerPageChange = (page) => {
+    setCurrentPageCosplayers(page);
+    setIsPageManuallySelectedCosplayers(true);
+  };
+
+  const handleCharacterPrevious = () => {
+    setCurrentPageCharacters((prev) => (prev > 1 ? prev - 1 : prev));
+    setIsPageManuallySelectedCharacters(true);
+  };
+
+  const handleCosplayerPrevious = () => {
+    setCurrentPageCosplayers((prev) => (prev > 1 ? prev - 1 : prev));
+    setIsPageManuallySelectedCosplayers(true);
+  };
+
+  const handleCharacterNext = () => {
     const maxPage = Math.ceil(filteredCharacters.length / charactersPerPage);
-    setCurrentPage((prev) => (prev < maxPage ? prev + 1 : prev));
-    setIsPageManuallySelected(true);
+    setCurrentPageCharacters((prev) => (prev < maxPage ? prev + 1 : prev));
+    setIsPageManuallySelectedCharacters(true);
+  };
+
+  const handleCosplayerNext = () => {
+    const maxPage = Math.ceil(filteredCosplayers.length / cosplayersPerPage);
+    setCurrentPageCosplayers((prev) => (prev < maxPage ? prev + 1 : prev));
+    setIsPageManuallySelectedCosplayers(true);
   };
 
   useEffect(() => {
@@ -164,6 +290,16 @@ const HomePage = () => {
       console.error("Invalid token", error);
     }
   }, []);
+
+  // Tính toán chỉ số hình ảnh cho About Us
+  const getImageIndices = () => {
+    const length = aboutUsImages.length;
+    const prevIndex = (currentImageIndex - 1 + length) % length; // Hình bên trái
+    const nextIndex = (currentImageIndex + 1) % length; // Hình bên phải
+    return { prevIndex, currentIndex: currentImageIndex, nextIndex };
+  };
+
+  const { prevIndex, currentIndex, nextIndex } = getImageIndices();
 
   return (
     <div className="homepage">
@@ -185,262 +321,507 @@ const HomePage = () => {
         ))}
       </Carousel>
 
+      {/* Character List */}
       <div className="custom-section featured-characters py-5">
         <h2 className="text-center fw-bold mb-5">Character List</h2>
 
-        <div className="search-filter-container mb-5">
-          <Form className="search-filter-form">
-            <Row className="g-4 justify-content-center mb-4">
-              <Col md={6}>
-                <Form.Group>
-                  <Form.Label>Character Name</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="characterName"
-                    value={searchParams.characterName}
-                    onChange={handleInputChange}
-                    placeholder="Enter character name"
-                    className="search-input"
-                  />
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group>
-                  <Form.Label>Price Range (VND)</Form.Label>
-                  <Range
-                    step={1000}
-                    min={0}
-                    max={1000000}
-                    values={searchParams.price}
-                    onChange={(values) => handleRangeChange("price", values)}
-                    renderTrack={({ props, children }) => (
-                      <div
-                        {...props}
-                        className="range-track"
-                        style={{
-                          ...props.style,
-                          height: "8px",
-                          width: "100%",
-                          background: `linear-gradient(to right, #f85caa 0%, #f85caa ${
-                            ((searchParams.price[0] - 0) / 1000000) * 100
-                          }%, #d3d3d3 ${
-                            ((searchParams.price[0] - 0) / 1000000) * 100
-                          }%, #d3d3d3 ${
-                            ((searchParams.price[1] - 0) / 1000000) * 100
-                          }%, #f85caa ${
-                            ((searchParams.price[1] - 0) / 1000000) * 100
+        <div className="character-list-container">
+          <div className="search-filter-sidebar">
+            <Form className="search-filter-form">
+              <Form.Group className="mb-4">
+                <Form.Label>Character Name</Form.Label>
+                <Form.Control
+                  type="text"
+                  name="characterName"
+                  value={characterSearchParams.characterName}
+                  onChange={handleCharacterInputChange}
+                  placeholder="Enter character name"
+                  className="search-input"
+                />
+              </Form.Group>
+
+              <Form.Group className="mb-4">
+                <Form.Label>Price Range (VND)</Form.Label>
+                <Range
+                  step={1000}
+                  min={0}
+                  max={1000000}
+                  values={characterSearchParams.price}
+                  onChange={(values) => handleCharacterRangeChange("price", values)}
+                  renderTrack={({ props, children }) => (
+                    <div
+                      {...props}
+                      className="range-track"
+                      style={{
+                        ...props.style,
+                        height: "8px",
+                        width: "100%",
+                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${((characterSearchParams.price[0] - 0) / 1000000) * 100
+                          }%, #d3d3d3 ${((characterSearchParams.price[0] - 0) / 1000000) * 100
+                          }%, #d3d3d3 ${((characterSearchParams.price[1] - 0) / 1000000) * 100
+                          }%, #f85caa ${((characterSearchParams.price[1] - 0) / 1000000) * 100
                           }%, #f85caa 100%)`,
-                          borderRadius: "5px",
-                        }}
-                      >
-                        {children}
-                      </div>
-                    )}
-                    renderThumb={({ props }) => (
-                      <div
-                        {...props}
-                        className="range-thumb"
-                        style={{
-                          ...props.style,
-                          height: "20px",
-                          width: "20px",
-                          backgroundColor: "#510545",
-                          borderRadius: "50%",
-                          boxShadow: "0 2px 6px rgba(0, 0, 0, 0.2)",
-                        }}
-                      />
-                    )}
-                  />
-                  <div className="range-values">
-                    {formatPrice(searchParams.price[0])} -{" "}
-                    {formatPrice(searchParams.price[1])}
-                  </div>
-                </Form.Group>
-              </Col>
-            </Row>
-            <Row className="g-4 justify-content-center mb-4">
-              <Col md={6}>
-                <Form.Group>
-                  <Form.Label>Height Range (cm)</Form.Label>
-                  <Range
-                    step={1}
-                    min={100}
-                    max={200}
-                    values={searchParams.height}
-                    onChange={(values) => handleRangeChange("height", values)}
-                    renderTrack={({ props, children }) => (
-                      <div
-                        {...props}
-                        className="range-track"
-                        style={{
-                          ...props.style,
-                          height: "8px",
-                          width: "100%",
-                          background: `linear-gradient(to right, #f85caa 0%, #f85caa ${
-                            ((searchParams.height[0] - 100) / 100) * 100
-                          }%, #d3d3d3 ${
-                            ((searchParams.height[0] - 100) / 100) * 100
-                          }%, #d3d3d3 ${
-                            ((searchParams.height[1] - 100) / 100) * 100
-                          }%, #f85caa ${
-                            ((searchParams.height[1] - 100) / 100) * 100
+                        borderRadius: "5px",
+                      }}
+                    >
+                      {children}
+                    </div>
+                  )}
+                  renderThumb={({ props }) => (
+                    <div
+                      {...props}
+                      className="range-thumb"
+                      style={{
+                        ...props.style,
+                        height: "20px",
+                        width: "20px",
+                        backgroundColor: "#510545",
+                        borderRadius: "50%",
+                        boxShadow: "0 2px 6px rgba(0, 0, 0, 0.2)",
+                      }}
+                    />
+                  )}
+                />
+                <div className="range-values">
+                  {formatPrice(characterSearchParams.price[0])} -{" "}
+                  {formatPrice(characterSearchParams.price[1])}
+                </div>
+              </Form.Group>
+
+              <Form.Group className="mb-4">
+                <Form.Label>Height Range (cm)</Form.Label>
+                <Range
+                  step={1}
+                  min={100}
+                  max={200}
+                  values={characterSearchParams.height}
+                  onChange={(values) => handleCharacterRangeChange("height", values)}
+                  renderTrack={({ props, children }) => (
+                    <div
+                      {...props}
+                      className="range-track"
+                      style={{
+                        ...props.style,
+                        height: "8px",
+                        width: "100%",
+                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${((characterSearchParams.height[0] - 100) / 100) * 100
+                          }%, #d3d3d3 ${((characterSearchParams.height[0] - 100) / 100) * 100
+                          }%, #d3d3d3 ${((characterSearchParams.height[1] - 100) / 100) * 100
+                          }%, #f85caa ${((characterSearchParams.height[1] - 100) / 100) * 100
                           }%, #f85caa 100%)`,
-                          borderRadius: "5px",
-                        }}
-                      >
-                        {children}
-                      </div>
-                    )}
-                    renderThumb={({ props }) => (
-                      <div
-                        {...props}
-                        className="range-thumb"
-                        style={{
-                          ...props.style,
-                          height: "20px",
-                          width: "20px",
-                          backgroundColor: "#510545",
-                          borderRadius: "50%",
-                          boxShadow: "0 2px 6px rgba(0, 0, 0, 0.2)",
-                        }}
-                      />
-                    )}
-                  />
-                  <div className="range-values">
-                    {searchParams.height[0]} cm - {searchParams.height[1]} cm
-                  </div>
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group>
-                  <Form.Label>Weight Range (kg)</Form.Label>
-                  <Range
-                    step={1}
-                    min={20}
-                    max={100}
-                    values={searchParams.weight}
-                    onChange={(values) => handleRangeChange("weight", values)}
-                    renderTrack={({ props, children }) => (
-                      <div
-                        {...props}
-                        className="range-track"
-                        style={{
-                          ...props.style,
-                          height: "8px",
-                          width: "100%",
-                          background: `linear-gradient(to right, #f85caa 0%, #f85caa ${
-                            ((searchParams.weight[0] - 20) / 80) * 100
-                          }%, #d3d3d3 ${
-                            ((searchParams.weight[0] - 20) / 80) * 100
-                          }%, #d3d3d3 ${
-                            ((searchParams.weight[1] - 20) / 80) * 100
-                          }%, #f85caa ${
-                            ((searchParams.weight[1] - 20) / 80) * 100
+                        borderRadius: "5px",
+                      }}
+                    >
+                      {children}
+                    </div>
+                  )}
+                  renderThumb={({ props }) => (
+                    <div
+                      {...props}
+                      className="range-thumb"
+                      style={{
+                        ...props.style,
+                        height: "20px",
+                        width: "20px",
+                        backgroundColor: "#510545",
+                        borderRadius: "50%",
+                        boxShadow: "0 2px 6px rgba(0, 0, 0, 0.2)",
+                      }}
+                    />
+                  )}
+                />
+                <div className="range-values">
+                  {characterSearchParams.height[0]} cm - {characterSearchParams.height[1]} cm
+                </div>
+              </Form.Group>
+
+              <Form.Group className="mb-4">
+                <Form.Label>Weight Range (kg)</Form.Label>
+                <Range
+                  step={1}
+                  min={20}
+                  max={100}
+                  values={characterSearchParams.weight}
+                  onChange={(values) => handleCharacterRangeChange("weight", values)}
+                  renderTrack={({ props, children }) => (
+                    <div
+                      {...props}
+                      className="range-track"
+                      style={{
+                        ...props.style,
+                        height: "8px",
+                        width: "100%",
+                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${((characterSearchParams.weight[0] - 20) / 80) * 100
+                          }%, #d3d3d3 ${((characterSearchParams.weight[0] - 20) / 80) * 100
+                          }%, #d3d3d3 ${((characterSearchParams.weight[1] - 20) / 80) * 100
+                          }%, #f85caa ${((characterSearchParams.weight[1] - 20) / 80) * 100
                           }%, #f85caa 100%)`,
-                          borderRadius: "5px",
-                        }}
-                      >
-                        {children}
-                      </div>
-                    )}
-                    renderThumb={({ props }) => (
-                      <div
-                        {...props}
-                        className="range-thumb"
-                        style={{
-                          ...props.style,
-                          height: "20px",
-                          width: "20px",
-                          backgroundColor: "#510545",
-                          borderRadius: "50%",
-                          boxShadow: "0 2px 6px rgba(0, 0, 0, 0.2)",
-                        }}
-                      />
-                    )}
-                  />
-                  <div className="range-values">
-                    {searchParams.weight[0]} kg - {searchParams.weight[1]} kg
-                  </div>
-                </Form.Group>
-              </Col>
-            </Row>
-            <Row className="g-4 justify-content-center">
-              <Col md={6} className="text-center">
-                <Button className="search-button" onClick={handleSearch}>
+                        borderRadius: "5px",
+                      }}
+                    >
+                      {children}
+                    </div>
+                  )}
+                  renderThumb={({ props }) => (
+                    <div
+                      {...props}
+                      className="range-thumb"
+                      style={{
+                        ...props.style,
+                        height: "20px",
+                        width: "20px",
+                        backgroundColor: "#510545",
+                        borderRadius: "50%",
+                        boxShadow: "0 2px 6px rgba(0, 0, 0, 0.2)",
+                      }}
+                    />
+                  )}
+                />
+                <div className="range-values">
+                  {characterSearchParams.weight[0]} kg - {characterSearchParams.weight[1]} kg
+                </div>
+              </Form.Group>
+
+              <div className="filter-buttons">
+                <Button className="search-button mb-2 w-100" onClick={handleCharacterSearch}>
                   Apply Filters
                 </Button>
-              </Col>
-              <Col md={6} className="text-center">
-                <Button className="cancel-button" onClick={handleCancel}>
+                <Button className="cancel-button w-100" onClick={handleCharacterCancel}>
                   Cancel
                 </Button>
-              </Col>
-            </Row>
-          </Form>
-        </div>
-
-        <ul className="card-list">
-          {currentCharacters.map((character) => (
-            <li className="character-card" key={character.characterId}>
-              <div className="card-inner">
-                <div className="card-front">
-                  <img
-                    src={
-                      characterImages[character.characterId] ||
-                      "https://via.placeholder.com/250x350?text=Loading..."
-                    }
-                    alt={character.characterName}
-                    className="card-img-top"
-                  />
-                  <div className="card-content">
-                    <h3>{character.characterName}</h3>
-                    <p className="character-description">
-                      {character.description}
-                    </p>
-                    <p className="character-height">
-                      Height: {character.minHeight}cm - {character.maxHeight}cm
-                    </p>
-                    <p className="character-weight">
-                      Weight: {character.minWeight}kg - {character.maxWeight}kg
-                    </p>
-                    <span className="category-badge">
-                      {formatPrice(character.price)}
-                    </span>
-                  </div>
-                </div>
               </div>
-            </li>
-          ))}
-        </ul>
+            </Form>
+          </div>
 
-        <div className="pagination-controls text-center mt-4">
-          <Button
-            className="pagination-arrow"
-            onClick={handlePrevious}
-            disabled={currentPage === 1}
-          >
-            &lt;
-          </Button>
-          {Array.from({ length: totalPages }, (_, index) => index + 1).map(
-            (page) => (
+          <div className="character-grid">
+            <ul className="card-list">
+              {currentCharacters.map((character) => (
+                <li className="character-card" key={character.characterId}>
+                  <div className="card-inner">
+                    <div className="card-front">
+                      <img
+                        src={
+                          characterImages[character.characterId] ||
+                          "https://via.placeholder.com/200x300?text=Loading..."
+                        }
+                        alt={character.characterName}
+                        className="card-img-top"
+                      />
+                      <div className="card-content">
+                        <h3>{character.characterName}</h3>
+                        <p className="character-description">{character.description}</p>
+                        <p className="character-height">
+                          Height: {character.minHeight}cm - {character.maxHeight}cm
+                        </p>
+                        <p className="character-weight">
+                          Weight: {character.minWeight}kg - {character.maxWeight}kg
+                        </p>
+                        <span className="category-badge">{formatPrice(character.price)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+
+            <div className="pagination-controls text-center mt-4">
               <Button
-                key={page}
-                className={`pagination-number ${
-                  currentPage === page ? "active" : ""
-                }`}
-                onClick={() => handlePageChange(page)}
+                className="pagination-arrow"
+                onClick={handleCharacterPrevious}
+                disabled={currentPageCharacters === 1}
               >
-                {page}
+                {"<"}
               </Button>
-            )
-          )}
-          <Button
-            className="pagination-arrow"
-            onClick={handleNext}
-            disabled={currentPage === totalPages}
-          >
-            &gt;
-          </Button>
+              {Array.from({ length: totalPagesCharacters }, (_, index) => index + 1).map((page) => (
+                <Button
+                  key={page}
+                  className={`pagination-number ${currentPageCharacters === page ? "active" : ""}`}
+                  onClick={() => handleCharacterPageChange(page)}
+                >
+                  {page}
+                </Button>
+              ))}
+              <Button
+                className="pagination-arrow"
+                onClick={handleCharacterNext}
+                disabled={currentPageCharacters === totalPagesCharacters}
+              >
+                {">"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Cosplayer List */}
+      <div className="custom-section featured-cosplayers py-5">
+        <h2 className="text-center fw-bold mb-5">Cosplayer List</h2>
+
+        <div className="character-list-container">
+          <div className="search-filter-sidebar">
+            <Form className="search-filter-form">
+              <Form.Group className="mb-4">
+                <Form.Label>Average Star</Form.Label>
+                <Range
+                  step={0.1}
+                  min={0}
+                  max={5}
+                  values={cosplayerSearchParams.averageStar}
+                  onChange={(values) => handleCosplayerRangeChange("averageStar", values)}
+                  renderTrack={({ props, children }) => (
+                    <div
+                      {...props}
+                      className="range-track"
+                      style={{
+                        ...props.style,
+                        height: "8px",
+                        width: "100%",
+                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${((cosplayerSearchParams.averageStar[0] - 0) / 5) * 100
+                          }%, #d3d3d3 ${((cosplayerSearchParams.averageStar[0] - 0) / 5) * 100
+                          }%, #d3d3d3 ${((cosplayerSearchParams.averageStar[1] - 0) / 5) * 100
+                          }%, #f85caa ${((cosplayerSearchParams.averageStar[1] - 0) / 5) * 100
+                          }%, #f85caa 100%)`,
+                        borderRadius: "5px",
+                      }}
+                    >
+                      {children}
+                    </div>
+                  )}
+                  renderThumb={({ props }) => (
+                    <div
+                      {...props}
+                      className="range-thumb"
+                      style={{
+                        ...props.style,
+                        height: "20px",
+                        width: "20px",
+                        backgroundColor: "#510545",
+                        borderRadius: "50%",
+                        boxShadow: "0 2px 6px rgba(0, 0, 0, 0.2)",
+                      }}
+                    />
+                  )}
+                />
+                <div className="range-values">
+                  {cosplayerSearchParams.averageStar[0]} <Star size={14} className="star-filled" /> -{" "}
+                  {cosplayerSearchParams.averageStar[1]} <Star size={14} className="star-filled" />
+                </div>
+              </Form.Group>
+
+              <Form.Group className="mb-4">
+                <Form.Label>Height Range (cm)</Form.Label>
+                <Range
+                  step={1}
+                  min={100}
+                  max={200}
+                  values={cosplayerSearchParams.height}
+                  onChange={(values) => handleCosplayerRangeChange("height", values)}
+                  renderTrack={({ props, children }) => (
+                    <div
+                      {...props}
+                      className="range-track"
+                      style={{
+                        ...props.style,
+                        height: "8px",
+                        width: "100%",
+                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${((cosplayerSearchParams.height[0] - 100) / 100) * 100
+                          }%, #d3d3d3 ${((cosplayerSearchParams.height[0] - 100) / 100) * 100
+                          }%, #d3d3d3 ${((cosplayerSearchParams.height[1] - 100) / 100) * 100
+                          }%, #f85caa ${((cosplayerSearchParams.height[1] - 100) / 100) * 100
+                          }%, #f85caa 100%)`,
+                        borderRadius: "5px",
+                      }}
+                    >
+                      {children}
+                    </div>
+                  )}
+                  renderThumb={({ props }) => (
+                    <div
+                      {...props}
+                      className="range-thumb"
+                      style={{
+                        ...props.style,
+                        height: "20px",
+                        width: "20px",
+                        backgroundColor: "#510545",
+                        borderRadius: "50%",
+                        boxShadow: "0 2px 6px rgba(0, 0, 0, 0.2)",
+                      }}
+                    />
+                  )}
+                />
+                <div className="range-values">
+                  {cosplayerSearchParams.height[0]} cm - {cosplayerSearchParams.height[1]} cm
+                </div>
+              </Form.Group>
+
+              <Form.Group className="mb-4">
+                <Form.Label>Weight Range (kg)</Form.Label>
+                <Range
+                  step={1}
+                  min={20}
+                  max={100}
+                  values={cosplayerSearchParams.weight}
+                  onChange={(values) => handleCosplayerRangeChange("weight", values)}
+                  renderTrack={({ props, children }) => (
+                    <div
+                      {...props}
+                      className="range-track"
+                      style={{
+                        ...props.style,
+                        height: "8px",
+                        width: "100%",
+                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${((cosplayerSearchParams.weight[0] - 20) / 80) * 100
+                          }%, #d3d3d3 ${((cosplayerSearchParams.weight[0] - 20) / 80) * 100
+                          }%, #d3d3d3 ${((cosplayerSearchParams.weight[1] - 20) / 80) * 100
+                          }%, #f85caa ${((cosplayerSearchParams.weight[1] - 20) / 80) * 100
+                          }%, #f85caa 100%)`,
+                        borderRadius: "5px",
+                      }}
+                    >
+                      {children}
+                    </div>
+                  )}
+                  renderThumb={({ props }) => (
+                    <div
+                      {...props}
+                      className="range-thumb"
+                      style={{
+                        ...props.style,
+                        height: "20px",
+                        width: "20px",
+                        backgroundColor: "#510545",
+                        borderRadius: "50%",
+                        boxShadow: "0 2px 6px rgba(0, 0, 0, 0.2)",
+                      }}
+                    />
+                  )}
+                />
+                <div className="range-values">
+                  {cosplayerSearchParams.weight[0]} kg - {cosplayerSearchParams.weight[1]} kg
+                </div>
+              </Form.Group>
+
+              <Form.Group className="mb-4">
+                <Form.Label>Hourly Rate (VND)</Form.Label>
+                <Range
+                  step={1000}
+                  min={0}
+                  max={100000}
+                  values={cosplayerSearchParams.hourlyRate}
+                  onChange={(values) => handleCosplayerRangeChange("hourlyRate", values)}
+                  renderTrack={({ props, children }) => (
+                    <div
+                      {...props}
+                      className="range-track"
+                      style={{
+                        ...props.style,
+                        height: "8px",
+                        width: "100%",
+                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${((cosplayerSearchParams.hourlyRate[0] - 0) / 100000) * 100
+                          }%, #d3d3d3 ${((cosplayerSearchParams.hourlyRate[0] - 0) / 100000) * 100
+                          }%, #d3d3d3 ${((cosplayerSearchParams.hourlyRate[1] - 0) / 100000) * 100
+                          }%, #f85caa ${((cosplayerSearchParams.hourlyRate[1] - 0) / 100000) * 100
+                          }%, #f85caa 100%)`,
+                        borderRadius: "5px",
+                      }}
+                    >
+                      {children}
+                    </div>
+                  )}
+                  renderThumb={({ props }) => (
+                    <div
+                      {...props}
+                      className="range-thumb"
+                      style={{
+                        ...props.style,
+                        height: "20px",
+                        width: "20px",
+                        backgroundColor: "#510545",
+                        borderRadius: "50%",
+                        boxShadow: "0 2px 6px rgba(0, 0, 0, 0.2)",
+                      }}
+                    />
+                  )}
+                />
+                <div className="range-values">
+                  {formatPrice(cosplayerSearchParams.hourlyRate[0])} -{" "}
+                  {formatPrice(cosplayerSearchParams.hourlyRate[1])}
+                </div>
+              </Form.Group>
+
+              <div className="filter-buttons">
+                <Button className="search-button mb-2 w-100" onClick={handleCosplayerSearch}>
+                  Apply Filters
+                </Button>
+                <Button className="cancel-button w-100" onClick={handleCosplayerCancel}>
+                  Cancel
+                </Button>
+              </div>
+            </Form>
+          </div>
+
+          <div className="character-grid">
+            <ul className="card-list">
+              {currentCosplayers.map((cosplayer) => (
+                <li className="character-card" key={cosplayer.accountId}>
+                  <div className="card-inner">
+                    <div className="card-front">
+                      <img
+                        src={
+                          cosplayerImages[cosplayer.accountId] ||
+                          "https://via.placeholder.com/200x300?text=Loading..."
+                        }
+                        alt={cosplayer.name}
+                        className="card-img-top"
+                      />
+                      <div className="card-content">
+                        <h3>{cosplayer.name}</h3>
+                        <p className="character-description">
+                          {cosplayer.averageStar ? (
+                            <>
+                              {cosplayer.averageStar} <Star size={14} className="star-filled" />
+                            </>
+                          ) : (
+                            "N/A"
+                          )}
+                        </p>
+                        <p className="character-height">Height: {cosplayer.height}cm</p>
+                        <p className="character-weight">Weight: {cosplayer.weight}kg</p>
+                        <span className="category-badge">{formatHourlyRate(cosplayer.salaryIndex)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+
+            <div className="pagination-controls text-center mt-4">
+              <Button
+                className="pagination-arrow"
+                onClick={handleCosplayerPrevious}
+                disabled={currentPageCosplayers === 1}
+              >
+                {"<"}
+              </Button>
+              {Array.from({ length: totalPagesCosplayers }, (_, index) => index + 1).map((page) => (
+                <Button
+                  key={page}
+                  className={`pagination-number ${currentPageCosplayers === page ? "active" : ""}`}
+                  onClick={() => handleCosplayerPageChange(page)}
+                >
+                  {page}
+                </Button>
+              ))}
+              <Button
+                className="pagination-arrow"
+                onClick={handleCosplayerNext}
+                disabled={currentPageCosplayers === totalPagesCosplayers}
+              >
+                {">"}
+              </Button>
+            </div>
+          </div>
         </div>
 
         <div className="text-center mt-4">
@@ -450,6 +831,7 @@ const HomePage = () => {
         </div>
       </div>
 
+      {/* About Us */}
       <div className="custom-section about-us py-5">
         <Row className="align-items-center">
           <Col md={12}>
@@ -457,19 +839,64 @@ const HomePage = () => {
           </Col>
           <Col md={6}>
             <p className="text-muted mb-4 text-center">
-              Welcome to CCSS – your one-stop destination for all things
-              cosplay! Our passionate team brings creativity, authenticity, and
-              excitement to every event, costume, and experience. Explore our
-              world of cosplay and let’s make your fandom dreams come true!
+              Welcome to CCSS – your one-stop destination for all things cosplay! Our passionate
+              team brings creativity, authenticity, and excitement to every event, costume, and
+              experience. Explore our world of cosplay and let’s make your fandom dreams come true!
             </p>
           </Col>
           <Col md={6}>
-            <div className="about-us-image-wrapper">
-              <img
-                src="https://c4.wallpaperflare.com/wallpaper/721/4/835/cosplay-nier-automata-2b-no-2-yorha-wallpaper-preview.jpg"
-                alt="About Us"
-                className="img-fluid rounded shadow about-us-image"
-              />
+            <div className="about-us-image-carousel">
+              <div className="carousel-image-container">
+                <div
+                  className="image-wrapper side-image left-image"
+                  onClick={() =>
+                    setCurrentImageIndex((prev) => (prev - 1 + aboutUsImages.length) % aboutUsImages.length)
+                  }
+                  style={{ transform: `translateX(-100%)` }}
+                >
+                  <img src={aboutUsImages[prevIndex]} alt="About Us Side Left" />
+                </div>
+                <div
+                  className="image-wrapper main-image"
+                  style={{ transform: `translateX(0)` }}
+                >
+                  <img src={aboutUsImages[currentIndex]} alt="About Us Main" />
+                </div>
+                <div
+                  className="image-wrapper side-image right-image"
+                  onClick={() => setCurrentImageIndex((prev) => (prev + 1) % aboutUsImages.length)}
+                  style={{ transform: `translateX(100%)` }}
+                >
+                  <img src={aboutUsImages[nextIndex]} alt="About Us Side Right" />
+                </div>
+              </div>
+
+              {/* Controls: Mũi tên và dấu chấm nằm bên dưới */}
+              <div className="carousel-controls">
+                <button
+                  className="carousel-arrow left-arrow"
+                  onClick={() =>
+                    setCurrentImageIndex((prev) => (prev - 1 + aboutUsImages.length) % aboutUsImages.length)
+                  }
+                >
+                  {"<"}
+                </button>
+                <div className="carousel-dots">
+                  {aboutUsImages.map((_, index) => (
+                    <span
+                      key={index}
+                      className={`dot ${currentImageIndex === index ? "active" : ""}`}
+                      onClick={() => setCurrentImageIndex(index)}
+                    />
+                  ))}
+                </div>
+                <button
+                  className="carousel-arrow right-arrow"
+                  onClick={() => setCurrentImageIndex((prev) => (prev + 1) % aboutUsImages.length)}
+                >
+                  {">"}
+                </button>
+              </div>
             </div>
           </Col>
         </Row>
@@ -507,30 +934,25 @@ const carouselItems = [
   {
     image: "https://i.redd.it/6c8eg4156bi61.jpg",
     title: "Hire Cosplayers",
-    description:
-      "Connect with professional cosplayers for events, promotions, or photoshoots",
+    description: "Connect with professional cosplayers for events, promotions, or photoshoots",
   },
   {
-    image:
-      "https://pbs.twimg.com/media/C7cepMUVwAACO-C?format=jpg&name=4096x4096",
+    image: "https://pbs.twimg.com/media/C7cepMUVwAACO-C?format=jpg&name=4096x4096",
     title: "Event Organization",
     description: "Making Your Cosplay Events Unforgettable",
   },
   {
-    image:
-      "https://neotokyoproject.com/wp-content/uploads/2022/11/IMG_20221125_140104.jpg",
+    image: "https://neotokyoproject.com/wp-content/uploads/2022/11/IMG_20221125_140104.jpg",
     title: "Event Registration",
     description: "Buy a ticket now to meet your idol!",
   },
   {
-    image:
-      "https://i.redd.it/my-2b-cosplay-photoart-kmitenkova-small-medium-biped-3d-v0-os0y07ka9g1d1.jpg?width=1920&format=pjpg&auto=webp&s=6c962da48b1e7b0807c7f147a30238a47e89cab4",
+    image: "https://i.redd.it/my-2b-cosplay-photoart-kmitenkova-small-medium-biped-3d-v0-os0y07ka9g1d1.jpg?width=1920&format=pjpg&auto=webp&s=6c962da48b1e7b0807c7f147a30238a47e89cab4",
     title: "Professional Costume Rentals",
     description: "High-Quality Costumes for Every Character",
   },
   {
-    image:
-      "https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/ab0b473b-3434-4d5b-ac4b-82407c923ef4/dduw89a-c9e95780-4262-4318-add1-c059e13742c9.jpg/v1/fill/w_1920,h_640,q_75,strp/my_sh_figuarts_dragon_ball_collection_by_anubis_007_dduw89a-fullview.jpg?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7ImhlaWdodCI6Ijw9NjQwIiwicGF0aCI6IlwvZlwvYWIwYjQ3M2ItMzQzNC00ZDViLWFjNGItODI0MDdjOTIzZWY0XC9kZHV3ODlhLWM5ZTk1NzgwLTQyNjItNDMxOC1hZGQxLWMwNTllMTM3NDJjOS5qcGciLCJ3aWR0aCI6Ijw9MTkyMCJ9XV0sImF1ZCI6WyJ1cm46c2VydmljZTppbWFnZS5vcGVyYXRpb25zIl19.vrrjAksbryuw9s7HQ11Jv_JJhtn85pImQer7lXOj_aQ",
+    image: "https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/ab0b473b-3434-4d5b-ac4b-82407c923ef4/dduw89a-c9e95780-4262-4318-add1-c059e13742c9.jpg/v1/fill/w_1920,h_640,q_75,strp/my_sh_figuarts_dragon_ball_collection_by_anubis_007_dduw89a-fullview.jpg?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7ImhlaWdodCI6Ijw9NjQwIiwicGF0aCI6IlwvZlwvYWIwYjQ3M2ItMzQzNC00ZDViLWFjNGItODI0MDdjOTIzZWY0XC9kZHV3ODlhLWM5ZTk1NzgwLTQyNjItNDMxOC1hZGQxLWMwNTllMTM3NDJjOS5qcGciLCJ3aWR0aCI6Ijw9MTkyMCJ9XV0sImF1ZCI6WyJ1cm46c2VydmljZTppbWFnZS5vcGVyYXRpb25zIl19.vrrjAksbryuw9s7HQ11Jv_JJhtn85pImQer7lXOj_aQ",
     title: "Buy Souvenirs",
     description: "Find unique and memorable gifts for any occasion",
   },
@@ -539,20 +961,17 @@ const carouselItems = [
 const services = [
   {
     title: "Costume Rental",
-    description:
-      "High-quality costumes for your favorite characters, ensuring perfect fit and authentic details.",
+    description: "High-quality costumes for your favorite characters, ensuring perfect fit and authentic details.",
     icon: <Shirt size={40} className="service-icon" />,
   },
   {
     title: "Event Planning",
-    description:
-      "Professional event organization services to bring your cosplay vision to life.",
+    description: "Professional event organization services to bring your cosplay vision to life.",
     icon: <CalendarDays size={40} className="service-icon" />,
   },
   {
     title: "Hire Cosplayers",
-    description:
-      "Connect with talented cosplayers for your events and photoshoots.",
+    description: "Connect with talented cosplayers for your events and photoshoots.",
     icon: <Users size={40} className="service-icon" />,
   },
   {

@@ -44,7 +44,7 @@ const LoginPage = () => {
         console.error("Lỗi khi giải mã token:", decodeError);
       }
 
-      toast.success("Đăng nhập thành công!");
+      toast.success("You have successfully logged in!");
 
       if (userRole === "Cosplayer" && decoded) {
         const userId = decoded.Id;
