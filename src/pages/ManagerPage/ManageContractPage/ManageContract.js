@@ -1505,12 +1505,12 @@ const ManageContract = () => {
           if (isMounted) {
             setContracts(filteredContracts);
             if (filteredContracts.length === 0) {
-              toast.warn("No valid contracts found for Hire Cosplayer.");
+              console.log("No valid contracts found for Hire Cosplayer.");
             }
           }
         } catch (contractError) {
           console.error("Failed to fetch contracts:", contractError);
-          toast.warn(
+          console.log(
             "Could not fetch contracts: " +
               (contractError.response?.data?.message || contractError.message)
           );
@@ -1556,18 +1556,18 @@ const ManageContract = () => {
           if (isMounted) {
             setRequests(formattedData);
             if (formattedData.length === 0) {
-              toast.info(
+              console.log(
                 "No requests with status Browsed or Approved found for Hire Cosplayer."
               );
             } else {
-              toast.success(
+              console.log(
                 `Fetched ${formattedData.length} requests for Hire Cosplayer.`
               );
             }
           }
         } catch (requestError) {
           console.error("Failed to fetch requests:", requestError);
-          toast.error(
+          console.log(
             "Could not fetch requests: " +
               (requestError.response?.data?.message || requestError.message)
           );
@@ -1575,7 +1575,7 @@ const ManageContract = () => {
       } catch (error) {
         if (isMounted) {
           console.error("Unexpected error:", error);
-          toast.error("Unexpected error: " + error.message);
+          console.log("Unexpected error: " + error.message);
         }
       } finally {
         if (isMounted) {
@@ -1722,7 +1722,7 @@ const ManageContract = () => {
       });
     } else if (request) {
       if (request.contractId) {
-        toast.warn("This request already has an associated contract!");
+        console.log("This request already has an associated contract!");
         return;
       }
       setIsEditing(false);
@@ -1759,7 +1759,7 @@ const ManageContract = () => {
 
   const handleSubmit = async () => {
     if (!formData.requestId) {
-      toast.warn("Request ID is required to create a contract!");
+      console.log("Request ID is required to create a contract!");
       return;
     }
 
@@ -1786,7 +1786,7 @@ const ManageContract = () => {
       window.location.reload();
       handleCloseModal();
     } catch (error) {
-      toast.error(
+      console.log(
         "Failed to create contract: " +
           (error.response?.data?.message || error.message)
       );

@@ -381,7 +381,7 @@ const AddCosplayerInReq = ({ visible, requestId, onCancel, onSuccess }) => {
                 initialValue={1}
                 rules={[{ required: true, message: "Please enter quantity" }]}
               >
-                <Input type="number" min={1} />
+                <Input type="number" disabled min={1} />
               </Form.Item>
               <Form.Item name="description" label="Description">
                 <TextArea rows={4} placeholder="Enter description" />

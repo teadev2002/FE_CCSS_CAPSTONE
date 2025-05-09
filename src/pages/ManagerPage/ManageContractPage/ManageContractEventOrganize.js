@@ -1959,19 +1959,18 @@ const ManageContractEventOrganize = () => {
           if (formattedData.length === 0) {
             // toast.info("No requests found.");
           } else {
-            toast.success(
+            console.log(
               `Fetched ${formattedData.length} requests for Event Organize.`
             );
           }
         }
       } catch (requestError) {
         console.error("Failed to fetch requests:", requestError);
-        // toast.error("Could not fetch requests.");
       }
     } catch (error) {
       if (isMounted) {
         console.error("Unexpected error:", error);
-        toast.error("Unexpected error: " + error.message);
+        console.log("Unexpected error: " + error.message);
       }
     } finally {
       if (isMounted) {
@@ -2108,7 +2107,7 @@ const ManageContractEventOrganize = () => {
       });
     } else if (request) {
       if (request.contractId) {
-        toast.warn("This request already has an associated contract!");
+        console.log("This request already has an associated contract!");
         return;
       }
       setIsEditing(false);
@@ -2145,11 +2144,11 @@ const ManageContractEventOrganize = () => {
 
   const handleSubmit = async () => {
     if (!formData.requestId) {
-      toast.warn("Request ID is required to create a contract!");
+      console.log("Request ID is required to create a contract!");
       return;
     }
     if (!formData.deposit || isNaN(parseFloat(formData.deposit))) {
-      toast.warn("Valid deposit amount is required!");
+      console.log("Valid deposit amount is required!");
       return;
     }
     try {
@@ -2181,7 +2180,7 @@ const ManageContractEventOrganize = () => {
       await fetchData();
     } catch (error) {
       console.error("Error creating contract:", error);
-      toast.error(
+      console.log(
         "Failed to create contract: " +
           (error.response?.data?.message || error.message)
       );

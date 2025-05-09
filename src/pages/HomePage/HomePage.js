@@ -1,7 +1,14 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Carousel, Row, Col, Form, Button } from "react-bootstrap";
-import { Shirt, CalendarDays, Users, ShoppingBag, Ticket, Star } from "lucide-react";
+import {
+  Shirt,
+  CalendarDays,
+  Users,
+  ShoppingBag,
+  Ticket,
+  Star,
+} from "lucide-react";
 import { toast, ToastContainer } from "react-toastify";
 import { jwtDecode } from "jwt-decode";
 import { Range } from "react-range";
@@ -16,7 +23,10 @@ const HomePage = () => {
   const [characters, setCharacters] = useState([]);
   const [filteredCharacters, setFilteredCharacters] = useState([]);
   const [currentPageCharacters, setCurrentPageCharacters] = useState(1);
-  const [isPageManuallySelectedCharacters, setIsPageManuallySelectedCharacters] = useState(false);
+  const [
+    isPageManuallySelectedCharacters,
+    setIsPageManuallySelectedCharacters,
+  ] = useState(false);
   const [characterImages, setCharacterImages] = useState({});
   const defaultCharacterSearchParams = {
     characterName: "",
@@ -24,14 +34,19 @@ const HomePage = () => {
     height: [100, 200],
     weight: [20, 100],
   };
-  const [characterSearchParams, setCharacterSearchParams] = useState(defaultCharacterSearchParams);
+  const [characterSearchParams, setCharacterSearchParams] = useState(
+    defaultCharacterSearchParams
+  );
   const charactersPerPage = 8;
 
   // State cho Cosplayer List
   const [cosplayers, setCosplayers] = useState([]);
   const [filteredCosplayers, setFilteredCosplayers] = useState([]);
   const [currentPageCosplayers, setCurrentPageCosplayers] = useState(1);
-  const [isPageManuallySelectedCosplayers, setIsPageManuallySelectedCosplayers] = useState(false);
+  const [
+    isPageManuallySelectedCosplayers,
+    setIsPageManuallySelectedCosplayers,
+  ] = useState(false);
   const [cosplayerImages, setCosplayerImages] = useState({});
   const defaultCosplayerSearchParams = {
     averageStar: [0, 5],
@@ -39,7 +54,9 @@ const HomePage = () => {
     weight: [20, 100],
     hourlyRate: [0, 100000],
   };
-  const [cosplayerSearchParams, setCosplayerSearchParams] = useState(defaultCosplayerSearchParams);
+  const [cosplayerSearchParams, setCosplayerSearchParams] = useState(
+    defaultCosplayerSearchParams
+  );
   const cosplayersPerPage = 8;
 
   // State cho About Us image carousel
@@ -63,14 +80,24 @@ const HomePage = () => {
   // Phân trang cho Character List
   const indexOfLastCharacter = currentPageCharacters * charactersPerPage;
   const indexOfFirstCharacter = indexOfLastCharacter - charactersPerPage;
-  const currentCharacters = filteredCharacters.slice(indexOfFirstCharacter, indexOfLastCharacter);
-  const totalPagesCharacters = Math.ceil(filteredCharacters.length / charactersPerPage);
+  const currentCharacters = filteredCharacters.slice(
+    indexOfFirstCharacter,
+    indexOfLastCharacter
+  );
+  const totalPagesCharacters = Math.ceil(
+    filteredCharacters.length / charactersPerPage
+  );
 
   // Phân trang cho Cosplayer List
   const indexOfLastCosplayer = currentPageCosplayers * cosplayersPerPage;
   const indexOfFirstCosplayer = indexOfLastCosplayer - cosplayersPerPage;
-  const currentCosplayers = filteredCosplayers.slice(indexOfFirstCosplayer, indexOfLastCosplayer);
-  const totalPagesCosplayers = Math.ceil(filteredCosplayers.length / cosplayersPerPage);
+  const currentCosplayers = filteredCosplayers.slice(
+    indexOfFirstCosplayer,
+    indexOfLastCosplayer
+  );
+  const totalPagesCosplayers = Math.ceil(
+    filteredCosplayers.length / cosplayersPerPage
+  );
 
   // Lấy danh sách nhân vật
   const fetchCharacters = useCallback(async () => {
@@ -87,14 +114,20 @@ const HomePage = () => {
   const fetchCharacterImage = async (characterId) => {
     if (characterImages[characterId]) return;
     try {
-      const characterData = await CharacterService.getCharacterById(characterId);
+      const characterData = await CharacterService.getCharacterById(
+        characterId
+      );
       setCharacterImages((prev) => ({
         ...prev,
         [characterId]:
-          characterData.images?.[0]?.urlImage || "https://via.placeholder.com/200x300?text=No+Image",
+          characterData.images?.[0]?.urlImage ||
+          "https://via.placeholder.com/200x300?text=No+Image",
       }));
     } catch (error) {
-      console.error(`Error fetching image for character ${characterId}:`, error);
+      console.error(
+        `Error fetching image for character ${characterId}:`,
+        error
+      );
       setCharacterImages((prev) => ({
         ...prev,
         [characterId]: "https://via.placeholder.com/200x300?text=No+Image",
@@ -119,7 +152,8 @@ const HomePage = () => {
   const fetchCosplayerImage = (cosplayer) => {
     if (cosplayerImages[cosplayer.accountId]) return;
     const imageUrl =
-      cosplayer.images?.[0]?.urlImage || "https://via.placeholder.com/200x300?text=No+Image";
+      cosplayer.images?.[0]?.urlImage ||
+      "https://via.placeholder.com/200x300?text=No+Image";
     setCosplayerImages((prev) => ({
       ...prev,
       [cosplayer.accountId]: imageUrl,
@@ -147,7 +181,9 @@ const HomePage = () => {
     const intervalTime = isPageManuallySelectedCharacters ? 30000 : 8000;
     const timer = setInterval(() => {
       setCurrentPageCharacters((prev) => {
-        const maxPage = Math.ceil(filteredCharacters.length / charactersPerPage);
+        const maxPage = Math.ceil(
+          filteredCharacters.length / charactersPerPage
+        );
         return prev >= maxPage ? 1 : prev + 1;
       });
     }, intervalTime);
@@ -159,7 +195,9 @@ const HomePage = () => {
     const intervalTime = isPageManuallySelectedCosplayers ? 30000 : 8000;
     const timer = setInterval(() => {
       setCurrentPageCosplayers((prev) => {
-        const maxPage = Math.ceil(filteredCosplayers.length / cosplayersPerPage);
+        const maxPage = Math.ceil(
+          filteredCosplayers.length / cosplayersPerPage
+        );
         return prev >= maxPage ? 1 : prev + 1;
       });
     }, intervalTime);
@@ -178,7 +216,9 @@ const HomePage = () => {
   const handleCharacterSearch = () => {
     const filtered = characters.filter((char) => {
       const nameMatch = characterSearchParams.characterName
-        ? char.characterName.toLowerCase().includes(characterSearchParams.characterName.toLowerCase())
+        ? char.characterName
+            .toLowerCase()
+            .includes(characterSearchParams.characterName.toLowerCase())
         : true;
       const priceMatch =
         char.price >= characterSearchParams.price[0] &&
@@ -303,7 +343,6 @@ const HomePage = () => {
 
   return (
     <div className="homepage">
-      <ToastContainer />
       <Carousel fade>
         {carouselItems.map((item, index) => (
           <Carousel.Item key={index}>
@@ -347,7 +386,9 @@ const HomePage = () => {
                   min={0}
                   max={1000000}
                   values={characterSearchParams.price}
-                  onChange={(values) => handleCharacterRangeChange("price", values)}
+                  onChange={(values) =>
+                    handleCharacterRangeChange("price", values)
+                  }
                   renderTrack={({ props, children }) => (
                     <div
                       {...props}
@@ -356,11 +397,15 @@ const HomePage = () => {
                         ...props.style,
                         height: "8px",
                         width: "100%",
-                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${((characterSearchParams.price[0] - 0) / 1000000) * 100
-                          }%, #d3d3d3 ${((characterSearchParams.price[0] - 0) / 1000000) * 100
-                          }%, #d3d3d3 ${((characterSearchParams.price[1] - 0) / 1000000) * 100
-                          }%, #f85caa ${((characterSearchParams.price[1] - 0) / 1000000) * 100
-                          }%, #f85caa 100%)`,
+                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${
+                          ((characterSearchParams.price[0] - 0) / 1000000) * 100
+                        }%, #d3d3d3 ${
+                          ((characterSearchParams.price[0] - 0) / 1000000) * 100
+                        }%, #d3d3d3 ${
+                          ((characterSearchParams.price[1] - 0) / 1000000) * 100
+                        }%, #f85caa ${
+                          ((characterSearchParams.price[1] - 0) / 1000000) * 100
+                        }%, #f85caa 100%)`,
                         borderRadius: "5px",
                       }}
                     >
@@ -395,7 +440,9 @@ const HomePage = () => {
                   min={100}
                   max={200}
                   values={characterSearchParams.height}
-                  onChange={(values) => handleCharacterRangeChange("height", values)}
+                  onChange={(values) =>
+                    handleCharacterRangeChange("height", values)
+                  }
                   renderTrack={({ props, children }) => (
                     <div
                       {...props}
@@ -404,11 +451,15 @@ const HomePage = () => {
                         ...props.style,
                         height: "8px",
                         width: "100%",
-                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${((characterSearchParams.height[0] - 100) / 100) * 100
-                          }%, #d3d3d3 ${((characterSearchParams.height[0] - 100) / 100) * 100
-                          }%, #d3d3d3 ${((characterSearchParams.height[1] - 100) / 100) * 100
-                          }%, #f85caa ${((characterSearchParams.height[1] - 100) / 100) * 100
-                          }%, #f85caa 100%)`,
+                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${
+                          ((characterSearchParams.height[0] - 100) / 100) * 100
+                        }%, #d3d3d3 ${
+                          ((characterSearchParams.height[0] - 100) / 100) * 100
+                        }%, #d3d3d3 ${
+                          ((characterSearchParams.height[1] - 100) / 100) * 100
+                        }%, #f85caa ${
+                          ((characterSearchParams.height[1] - 100) / 100) * 100
+                        }%, #f85caa 100%)`,
                         borderRadius: "5px",
                       }}
                     >
@@ -431,7 +482,8 @@ const HomePage = () => {
                   )}
                 />
                 <div className="range-values">
-                  {characterSearchParams.height[0]} cm - {characterSearchParams.height[1]} cm
+                  {characterSearchParams.height[0]} cm -{" "}
+                  {characterSearchParams.height[1]} cm
                 </div>
               </Form.Group>
 
@@ -442,7 +494,9 @@ const HomePage = () => {
                   min={20}
                   max={100}
                   values={characterSearchParams.weight}
-                  onChange={(values) => handleCharacterRangeChange("weight", values)}
+                  onChange={(values) =>
+                    handleCharacterRangeChange("weight", values)
+                  }
                   renderTrack={({ props, children }) => (
                     <div
                       {...props}
@@ -451,11 +505,15 @@ const HomePage = () => {
                         ...props.style,
                         height: "8px",
                         width: "100%",
-                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${((characterSearchParams.weight[0] - 20) / 80) * 100
-                          }%, #d3d3d3 ${((characterSearchParams.weight[0] - 20) / 80) * 100
-                          }%, #d3d3d3 ${((characterSearchParams.weight[1] - 20) / 80) * 100
-                          }%, #f85caa ${((characterSearchParams.weight[1] - 20) / 80) * 100
-                          }%, #f85caa 100%)`,
+                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${
+                          ((characterSearchParams.weight[0] - 20) / 80) * 100
+                        }%, #d3d3d3 ${
+                          ((characterSearchParams.weight[0] - 20) / 80) * 100
+                        }%, #d3d3d3 ${
+                          ((characterSearchParams.weight[1] - 20) / 80) * 100
+                        }%, #f85caa ${
+                          ((characterSearchParams.weight[1] - 20) / 80) * 100
+                        }%, #f85caa 100%)`,
                         borderRadius: "5px",
                       }}
                     >
@@ -478,15 +536,22 @@ const HomePage = () => {
                   )}
                 />
                 <div className="range-values">
-                  {characterSearchParams.weight[0]} kg - {characterSearchParams.weight[1]} kg
+                  {characterSearchParams.weight[0]} kg -{" "}
+                  {characterSearchParams.weight[1]} kg
                 </div>
               </Form.Group>
 
               <div className="filter-buttons">
-                <Button className="search-button mb-2 w-100" onClick={handleCharacterSearch}>
+                <Button
+                  className="search-button mb-2 w-100"
+                  onClick={handleCharacterSearch}
+                >
                   Apply Filters
                 </Button>
-                <Button className="cancel-button w-100" onClick={handleCharacterCancel}>
+                <Button
+                  className="cancel-button w-100"
+                  onClick={handleCharacterCancel}
+                >
                   Cancel
                 </Button>
               </div>
@@ -509,14 +574,20 @@ const HomePage = () => {
                       />
                       <div className="card-content">
                         <h3>{character.characterName}</h3>
-                        <p className="character-description">{character.description}</p>
+                        <p className="character-description">
+                          {character.description}
+                        </p>
                         <p className="character-height">
-                          Height: {character.minHeight}cm - {character.maxHeight}cm
+                          Height: {character.minHeight}cm -{" "}
+                          {character.maxHeight}cm
                         </p>
                         <p className="character-weight">
-                          Weight: {character.minWeight}kg - {character.maxWeight}kg
+                          Weight: {character.minWeight}kg -{" "}
+                          {character.maxWeight}kg
                         </p>
-                        <span className="category-badge">{formatPrice(character.price)}</span>
+                        <span className="category-badge">
+                          {formatPrice(character.price)}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -532,10 +603,15 @@ const HomePage = () => {
               >
                 {"<"}
               </Button>
-              {Array.from({ length: totalPagesCharacters }, (_, index) => index + 1).map((page) => (
+              {Array.from(
+                { length: totalPagesCharacters },
+                (_, index) => index + 1
+              ).map((page) => (
                 <Button
                   key={page}
-                  className={`pagination-number ${currentPageCharacters === page ? "active" : ""}`}
+                  className={`pagination-number ${
+                    currentPageCharacters === page ? "active" : ""
+                  }`}
                   onClick={() => handleCharacterPageChange(page)}
                 >
                   {page}
@@ -567,7 +643,9 @@ const HomePage = () => {
                   min={0}
                   max={5}
                   values={cosplayerSearchParams.averageStar}
-                  onChange={(values) => handleCosplayerRangeChange("averageStar", values)}
+                  onChange={(values) =>
+                    handleCosplayerRangeChange("averageStar", values)
+                  }
                   renderTrack={({ props, children }) => (
                     <div
                       {...props}
@@ -576,11 +654,15 @@ const HomePage = () => {
                         ...props.style,
                         height: "8px",
                         width: "100%",
-                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${((cosplayerSearchParams.averageStar[0] - 0) / 5) * 100
-                          }%, #d3d3d3 ${((cosplayerSearchParams.averageStar[0] - 0) / 5) * 100
-                          }%, #d3d3d3 ${((cosplayerSearchParams.averageStar[1] - 0) / 5) * 100
-                          }%, #f85caa ${((cosplayerSearchParams.averageStar[1] - 0) / 5) * 100
-                          }%, #f85caa 100%)`,
+                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${
+                          ((cosplayerSearchParams.averageStar[0] - 0) / 5) * 100
+                        }%, #d3d3d3 ${
+                          ((cosplayerSearchParams.averageStar[0] - 0) / 5) * 100
+                        }%, #d3d3d3 ${
+                          ((cosplayerSearchParams.averageStar[1] - 0) / 5) * 100
+                        }%, #f85caa ${
+                          ((cosplayerSearchParams.averageStar[1] - 0) / 5) * 100
+                        }%, #f85caa 100%)`,
                         borderRadius: "5px",
                       }}
                     >
@@ -603,8 +685,10 @@ const HomePage = () => {
                   )}
                 />
                 <div className="range-values">
-                  {cosplayerSearchParams.averageStar[0]} <Star size={14} className="star-filled" /> -{" "}
-                  {cosplayerSearchParams.averageStar[1]} <Star size={14} className="star-filled" />
+                  {cosplayerSearchParams.averageStar[0]}{" "}
+                  <Star size={14} className="star-filled" /> -{" "}
+                  {cosplayerSearchParams.averageStar[1]}{" "}
+                  <Star size={14} className="star-filled" />
                 </div>
               </Form.Group>
 
@@ -615,7 +699,9 @@ const HomePage = () => {
                   min={100}
                   max={200}
                   values={cosplayerSearchParams.height}
-                  onChange={(values) => handleCosplayerRangeChange("height", values)}
+                  onChange={(values) =>
+                    handleCosplayerRangeChange("height", values)
+                  }
                   renderTrack={({ props, children }) => (
                     <div
                       {...props}
@@ -624,11 +710,15 @@ const HomePage = () => {
                         ...props.style,
                         height: "8px",
                         width: "100%",
-                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${((cosplayerSearchParams.height[0] - 100) / 100) * 100
-                          }%, #d3d3d3 ${((cosplayerSearchParams.height[0] - 100) / 100) * 100
-                          }%, #d3d3d3 ${((cosplayerSearchParams.height[1] - 100) / 100) * 100
-                          }%, #f85caa ${((cosplayerSearchParams.height[1] - 100) / 100) * 100
-                          }%, #f85caa 100%)`,
+                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${
+                          ((cosplayerSearchParams.height[0] - 100) / 100) * 100
+                        }%, #d3d3d3 ${
+                          ((cosplayerSearchParams.height[0] - 100) / 100) * 100
+                        }%, #d3d3d3 ${
+                          ((cosplayerSearchParams.height[1] - 100) / 100) * 100
+                        }%, #f85caa ${
+                          ((cosplayerSearchParams.height[1] - 100) / 100) * 100
+                        }%, #f85caa 100%)`,
                         borderRadius: "5px",
                       }}
                     >
@@ -651,7 +741,8 @@ const HomePage = () => {
                   )}
                 />
                 <div className="range-values">
-                  {cosplayerSearchParams.height[0]} cm - {cosplayerSearchParams.height[1]} cm
+                  {cosplayerSearchParams.height[0]} cm -{" "}
+                  {cosplayerSearchParams.height[1]} cm
                 </div>
               </Form.Group>
 
@@ -662,7 +753,9 @@ const HomePage = () => {
                   min={20}
                   max={100}
                   values={cosplayerSearchParams.weight}
-                  onChange={(values) => handleCosplayerRangeChange("weight", values)}
+                  onChange={(values) =>
+                    handleCosplayerRangeChange("weight", values)
+                  }
                   renderTrack={({ props, children }) => (
                     <div
                       {...props}
@@ -671,11 +764,15 @@ const HomePage = () => {
                         ...props.style,
                         height: "8px",
                         width: "100%",
-                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${((cosplayerSearchParams.weight[0] - 20) / 80) * 100
-                          }%, #d3d3d3 ${((cosplayerSearchParams.weight[0] - 20) / 80) * 100
-                          }%, #d3d3d3 ${((cosplayerSearchParams.weight[1] - 20) / 80) * 100
-                          }%, #f85caa ${((cosplayerSearchParams.weight[1] - 20) / 80) * 100
-                          }%, #f85caa 100%)`,
+                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${
+                          ((cosplayerSearchParams.weight[0] - 20) / 80) * 100
+                        }%, #d3d3d3 ${
+                          ((cosplayerSearchParams.weight[0] - 20) / 80) * 100
+                        }%, #d3d3d3 ${
+                          ((cosplayerSearchParams.weight[1] - 20) / 80) * 100
+                        }%, #f85caa ${
+                          ((cosplayerSearchParams.weight[1] - 20) / 80) * 100
+                        }%, #f85caa 100%)`,
                         borderRadius: "5px",
                       }}
                     >
@@ -698,7 +795,8 @@ const HomePage = () => {
                   )}
                 />
                 <div className="range-values">
-                  {cosplayerSearchParams.weight[0]} kg - {cosplayerSearchParams.weight[1]} kg
+                  {cosplayerSearchParams.weight[0]} kg -{" "}
+                  {cosplayerSearchParams.weight[1]} kg
                 </div>
               </Form.Group>
 
@@ -709,7 +807,9 @@ const HomePage = () => {
                   min={0}
                   max={100000}
                   values={cosplayerSearchParams.hourlyRate}
-                  onChange={(values) => handleCosplayerRangeChange("hourlyRate", values)}
+                  onChange={(values) =>
+                    handleCosplayerRangeChange("hourlyRate", values)
+                  }
                   renderTrack={({ props, children }) => (
                     <div
                       {...props}
@@ -718,11 +818,19 @@ const HomePage = () => {
                         ...props.style,
                         height: "8px",
                         width: "100%",
-                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${((cosplayerSearchParams.hourlyRate[0] - 0) / 100000) * 100
-                          }%, #d3d3d3 ${((cosplayerSearchParams.hourlyRate[0] - 0) / 100000) * 100
-                          }%, #d3d3d3 ${((cosplayerSearchParams.hourlyRate[1] - 0) / 100000) * 100
-                          }%, #f85caa ${((cosplayerSearchParams.hourlyRate[1] - 0) / 100000) * 100
-                          }%, #f85caa 100%)`,
+                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${
+                          ((cosplayerSearchParams.hourlyRate[0] - 0) / 100000) *
+                          100
+                        }%, #d3d3d3 ${
+                          ((cosplayerSearchParams.hourlyRate[0] - 0) / 100000) *
+                          100
+                        }%, #d3d3d3 ${
+                          ((cosplayerSearchParams.hourlyRate[1] - 0) / 100000) *
+                          100
+                        }%, #f85caa ${
+                          ((cosplayerSearchParams.hourlyRate[1] - 0) / 100000) *
+                          100
+                        }%, #f85caa 100%)`,
                         borderRadius: "5px",
                       }}
                     >
@@ -751,10 +859,16 @@ const HomePage = () => {
               </Form.Group>
 
               <div className="filter-buttons">
-                <Button className="search-button mb-2 w-100" onClick={handleCosplayerSearch}>
+                <Button
+                  className="search-button mb-2 w-100"
+                  onClick={handleCosplayerSearch}
+                >
                   Apply Filters
                 </Button>
-                <Button className="cancel-button w-100" onClick={handleCosplayerCancel}>
+                <Button
+                  className="cancel-button w-100"
+                  onClick={handleCosplayerCancel}
+                >
                   Cancel
                 </Button>
               </div>
@@ -780,15 +894,22 @@ const HomePage = () => {
                         <p className="character-description">
                           {cosplayer.averageStar ? (
                             <>
-                              {cosplayer.averageStar} <Star size={14} className="star-filled" />
+                              {cosplayer.averageStar}{" "}
+                              <Star size={14} className="star-filled" />
                             </>
                           ) : (
                             "N/A"
                           )}
                         </p>
-                        <p className="character-height">Height: {cosplayer.height}cm</p>
-                        <p className="character-weight">Weight: {cosplayer.weight}kg</p>
-                        <span className="category-badge">{formatHourlyRate(cosplayer.salaryIndex)}</span>
+                        <p className="character-height">
+                          Height: {cosplayer.height}cm
+                        </p>
+                        <p className="character-weight">
+                          Weight: {cosplayer.weight}kg
+                        </p>
+                        <span className="category-badge">
+                          {formatHourlyRate(cosplayer.salaryIndex)}
+                        </span>
                         <Link
                           to={`/user-profile/${cosplayer.accountId}`}
                           className="see-profile-button"
@@ -811,10 +932,15 @@ const HomePage = () => {
               >
                 {"<"}
               </Button>
-              {Array.from({ length: totalPagesCosplayers }, (_, index) => index + 1).map((page) => (
+              {Array.from(
+                { length: totalPagesCosplayers },
+                (_, index) => index + 1
+              ).map((page) => (
                 <Button
                   key={page}
-                  className={`pagination-number ${currentPageCosplayers === page ? "active" : ""}`}
+                  className={`pagination-number ${
+                    currentPageCosplayers === page ? "active" : ""
+                  }`}
                   onClick={() => handleCosplayerPageChange(page)}
                 >
                   {page}
@@ -846,9 +972,10 @@ const HomePage = () => {
           </Col>
           <Col md={6}>
             <p className="text-muted mb-4 text-center">
-              Welcome to CCSS – your one-stop destination for all things cosplay! Our passionate
-              team brings creativity, authenticity, and excitement to every event, costume, and
-              experience. Explore our world of cosplay and let’s make your fandom dreams come true!
+              Welcome to CCSS – your one-stop destination for all things
+              cosplay! Our passionate team brings creativity, authenticity, and
+              excitement to every event, costume, and experience. Explore our
+              world of cosplay and let’s make your fandom dreams come true!
             </p>
           </Col>
           <Col md={6}>
@@ -857,11 +984,17 @@ const HomePage = () => {
                 <div
                   className="image-wrapper side-image left-image"
                   onClick={() =>
-                    setCurrentImageIndex((prev) => (prev - 1 + aboutUsImages.length) % aboutUsImages.length)
+                    setCurrentImageIndex(
+                      (prev) =>
+                        (prev - 1 + aboutUsImages.length) % aboutUsImages.length
+                    )
                   }
                   style={{ transform: `translateX(-100%)` }}
                 >
-                  <img src={aboutUsImages[prevIndex]} alt="About Us Side Left" />
+                  <img
+                    src={aboutUsImages[prevIndex]}
+                    alt="About Us Side Left"
+                  />
                 </div>
                 <div
                   className="image-wrapper main-image"
@@ -871,10 +1004,17 @@ const HomePage = () => {
                 </div>
                 <div
                   className="image-wrapper side-image right-image"
-                  onClick={() => setCurrentImageIndex((prev) => (prev + 1) % aboutUsImages.length)}
+                  onClick={() =>
+                    setCurrentImageIndex(
+                      (prev) => (prev + 1) % aboutUsImages.length
+                    )
+                  }
                   style={{ transform: `translateX(100%)` }}
                 >
-                  <img src={aboutUsImages[nextIndex]} alt="About Us Side Right" />
+                  <img
+                    src={aboutUsImages[nextIndex]}
+                    alt="About Us Side Right"
+                  />
                 </div>
               </div>
 
@@ -883,7 +1023,10 @@ const HomePage = () => {
                 <button
                   className="carousel-arrow left-arrow"
                   onClick={() =>
-                    setCurrentImageIndex((prev) => (prev - 1 + aboutUsImages.length) % aboutUsImages.length)
+                    setCurrentImageIndex(
+                      (prev) =>
+                        (prev - 1 + aboutUsImages.length) % aboutUsImages.length
+                    )
                   }
                 >
                   {"<"}
@@ -892,14 +1035,20 @@ const HomePage = () => {
                   {aboutUsImages.map((_, index) => (
                     <span
                       key={index}
-                      className={`dot ${currentImageIndex === index ? "active" : ""}`}
+                      className={`dot ${
+                        currentImageIndex === index ? "active" : ""
+                      }`}
                       onClick={() => setCurrentImageIndex(index)}
                     />
                   ))}
                 </div>
                 <button
                   className="carousel-arrow right-arrow"
-                  onClick={() => setCurrentImageIndex((prev) => (prev + 1) % aboutUsImages.length)}
+                  onClick={() =>
+                    setCurrentImageIndex(
+                      (prev) => (prev + 1) % aboutUsImages.length
+                    )
+                  }
                 >
                   {">"}
                 </button>
@@ -941,25 +1090,30 @@ const carouselItems = [
   {
     image: "https://i.redd.it/6c8eg4156bi61.jpg",
     title: "Hire Cosplayers",
-    description: "Connect with professional cosplayers for events, promotions, or photoshoots",
+    description:
+      "Connect with professional cosplayers for events, promotions, or photoshoots",
   },
   {
-    image: "https://pbs.twimg.com/media/C7cepMUVwAACO-C?format=jpg&name=4096x4096",
+    image:
+      "https://pbs.twimg.com/media/C7cepMUVwAACO-C?format=jpg&name=4096x4096",
     title: "Event Organization",
     description: "Making Your Cosplay Events Unforgettable",
   },
   {
-    image: "https://neotokyoproject.com/wp-content/uploads/2022/11/IMG_20221125_140104.jpg",
+    image:
+      "https://neotokyoproject.com/wp-content/uploads/2022/11/IMG_20221125_140104.jpg",
     title: "Event Registration",
     description: "Buy a ticket now to meet your idol!",
   },
   {
-    image: "https://i.redd.it/my-2b-cosplay-photoart-kmitenkova-small-medium-biped-3d-v0-os0y07ka9g1d1.jpg?width=1920&format=pjpg&auto=webp&s=6c962da48b1e7b0807c7f147a30238a47e89cab4",
+    image:
+      "https://i.redd.it/my-2b-cosplay-photoart-kmitenkova-small-medium-biped-3d-v0-os0y07ka9g1d1.jpg?width=1920&format=pjpg&auto=webp&s=6c962da48b1e7b0807c7f147a30238a47e89cab4",
     title: "Professional Costume Rentals",
     description: "High-Quality Costumes for Every Character",
   },
   {
-    image: "https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/ab0b473b-3434-4d5b-ac4b-82407c923ef4/dduw89a-c9e95780-4262-4318-add1-c059e13742c9.jpg/v1/fill/w_1920,h_640,q_75,strp/my_sh_figuarts_dragon_ball_collection_by_anubis_007_dduw89a-fullview.jpg?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7ImhlaWdodCI6Ijw9NjQwIiwicGF0aCI6IlwvZlwvYWIwYjQ3M2ItMzQzNC00ZDViLWFjNGItODI0MDdjOTIzZWY0XC9kZHV3ODlhLWM5ZTk1NzgwLTQyNjItNDMxOC1hZGQxLWMwNTllMTM3NDJjOS5qcGciLCJ3aWR0aCI6Ijw9MTkyMCJ9XV0sImF1ZCI6WyJ1cm46c2VydmljZTppbWFnZS5vcGVyYXRpb25zIl19.vrrjAksbryuw9s7HQ11Jv_JJhtn85pImQer7lXOj_aQ",
+    image:
+      "https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/ab0b473b-3434-4d5b-ac4b-82407c923ef4/dduw89a-c9e95780-4262-4318-add1-c059e13742c9.jpg/v1/fill/w_1920,h_640,q_75,strp/my_sh_figuarts_dragon_ball_collection_by_anubis_007_dduw89a-fullview.jpg?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7ImhlaWdodCI6Ijw9NjQwIiwicGF0aCI6IlwvZlwvYWIwYjQ3M2ItMzQzNC00ZDViLWFjNGItODI0MDdjOTIzZWY0XC9kZHV3ODlhLWM5ZTk1NzgwLTQyNjItNDMxOC1hZGQxLWMwNTllMTM3NDJjOS5qcGciLCJ3aWR0aCI6Ijw9MTkyMCJ9XV0sImF1ZCI6WyJ1cm46c2VydmljZTppbWFnZS5vcGVyYXRpb25zIl19.vrrjAksbryuw9s7HQ11Jv_JJhtn85pImQer7lXOj_aQ",
     title: "Buy Souvenirs",
     description: "Find unique and memorable gifts for any occasion",
   },
@@ -968,17 +1122,20 @@ const carouselItems = [
 const services = [
   {
     title: "Costume Rental",
-    description: "High-quality costumes for your favorite characters, ensuring perfect fit and authentic details.",
+    description:
+      "High-quality costumes for your favorite characters, ensuring perfect fit and authentic details.",
     icon: <Shirt size={40} className="service-icon" />,
   },
   {
     title: "Event Planning",
-    description: "Professional event organization services to bring your cosplay vision to life.",
+    description:
+      "Professional event organization services to bring your cosplay vision to life.",
     icon: <CalendarDays size={40} className="service-icon" />,
   },
   {
     title: "Hire Cosplayers",
-    description: "Connect with talented cosplayers for your events and photoshoots.",
+    description:
+      "Connect with talented cosplayers for your events and photoshoots.",
     icon: <Users size={40} className="service-icon" />,
   },
   {

@@ -231,7 +231,7 @@ const ManageContractRentalCostume = () => {
                 "No requests with status Browsed or Approved found for Rental Costume."
               );
             } else {
-              toast.success(
+              console.log(
                 `Fetched ${formattedData.length} requests for Rental Costume.`
               );
             }

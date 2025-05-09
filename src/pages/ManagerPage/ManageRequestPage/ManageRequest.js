@@ -76,14 +76,20 @@ const ManageRequest = () => {
         }
 
         const formattedData = data.map((req) => {
-          const { startDate, endDate } = req.charactersListResponse
+          const hasValidRequestDates = req.charactersListResponse?.some(
+            (char) => char.requestDateResponses?.length > 0
+          );
+
+          const { startDate, endDate } = hasValidRequestDates
             ? getRequestDateRange(req.charactersListResponse)
             : {
                 startDate: req.startDate
-                  ? dayjs(req.startDate).format("DD/MM/YYYY")
+                  ? dayjs(req.startDate, "HH:mm DD/MM/YYYY").format(
+                      "DD/MM/YYYY"
+                    )
                   : null,
                 endDate: req.endDate
-                  ? dayjs(req.endDate).format("DD/MM/YYYY")
+                  ? dayjs(req.endDate, "HH:mm DD/MM/YYYY").format("DD/MM/YYYY")
                   : null,
               };
 
@@ -293,7 +299,7 @@ const ManageRequest = () => {
             .map((char) => char.name)
             .join(", ");
           toast.error(`Cosplayer ${cosplayerNames} still not Accept Request`, {
-            autoClose: 5000,
+            autoClose: 2000,
           });
           return;
         }
@@ -585,8 +591,8 @@ const ManageRequest = () => {
               required
             >
               <option value="">Select Status</option>
-              <option value="Browsed">Browsed ✅</option>
-              <option value="Cancel">Cancel ❌</option>
+              <option value="Browsed">Browsed </option>
+              <option value="Cancel">Cancel </option>
             </Form.Select>
           </Form.Group>
           {formData.status === "Cancel" && (
