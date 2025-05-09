@@ -34,6 +34,22 @@ const ManageRequestCustomerCharacter = () => {
   const [accounts, setAccounts] = useState({});
   const [submitting, setSubmitting] = useState(false); // State để kiểm soát trạng thái submit
 
+  const isEditButtonDisabled = (item) => {
+    return item.status === "Reject" || item.status === "Completed";
+  };
+  // Hàm lấy danh sách status cho dropdown dựa trên trạng thái hiện tại
+  const getStatusOptions = (currentStatus) => {
+    if (currentStatus === "Pending") {
+      return [
+        { value: "Accept", label: "Accept" },
+        { value: "Reject", label: "Reject" },
+      ];
+    }
+    if (currentStatus === "Accept") {
+      return [{ value: "Completed", label: "Completed" }];
+    }
+    return []; // Trường hợp không hợp lệ, không hiển thị option
+  };
   // Fetch data từ API khi component mount
   useEffect(() => {
     const fetchData = async () => {
@@ -122,12 +138,13 @@ const ManageRequestCustomerCharacter = () => {
     setCurrentPage(1);
   };
 
+  // Sửa hàm handleShowEditModal để đảm bảo price được lấy đúng
   const handleShowEditModal = (item) => {
     setCurrentItem(item);
     setFormData({
       status: item.status,
       reason: item.reason || "",
-      price: item.price || "",
+      price: item.price ? String(item.price) : "", // Chuyển price thành string để hiển thị trong input
     });
     setShowEditModal(true);
   };
@@ -162,6 +179,7 @@ const ManageRequestCustomerCharacter = () => {
     setFormData({ ...formData, [name]: value });
   };
 
+  // Sửa hàm handleSubmit để cập nhật logic
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -173,7 +191,7 @@ const ManageRequestCustomerCharacter = () => {
 
     if (
       formData.status === "Accept" &&
-      (!formData.price || formData.price <= 0)
+      (!formData.price || Number(formData.price) <= 0)
     ) {
       toast.error(
         "Price is required and must be greater than 0 when status is Accept."
@@ -188,26 +206,38 @@ const ManageRequestCustomerCharacter = () => {
 
     setSubmitting(true);
     try {
-      // Gọi API updateCustomerCharacterStatus
-      await RequestCustomerCharacterService.updateCustomerCharacterStatus({
+      const updatedData = {
         customerCharacterId: currentItem.customerCharacterId,
         status: formData.status,
-        reason: formData.reason || undefined, // Gửi undefined nếu không có reason
-        price: formData.price ? Number(formData.price) : undefined, // Gửi undefined nếu không có price
-      });
+        reason: formData.reason || undefined,
+        price: formData.price ? Number(formData.price) : undefined,
+      };
+
+      // Gọi API update
+      await RequestCustomerCharacterService.updateCustomerCharacterStatus(
+        updatedData
+      );
 
       // Cập nhật state characters
       const updatedCharacters = characters.map((char) =>
         char.customerCharacterId === currentItem.customerCharacterId
           ? {
-            ...char,
-            status: formData.status,
-            reason: formData.reason,
-            price: formData.price,
-          }
+              ...char,
+              status: formData.status,
+              reason: formData.reason || char.reason,
+              price: formData.price ? Number(formData.price) : char.price, // Giữ price cũ nếu không thay đổi
+            }
           : char
       );
       setCharacters(updatedCharacters);
+
+      // Cập nhật currentItem để phản ánh giá trị mới
+      setCurrentItem({
+        ...currentItem,
+        status: formData.status,
+        reason: formData.reason || currentItem.reason,
+        price: formData.price ? Number(formData.price) : currentItem.price,
+      });
 
       toast.success("Customer character updated successfully!");
       handleCloseEditModal();
@@ -319,6 +349,7 @@ const ManageRequestCustomerCharacter = () => {
                             <ArrowDown size={16} />
                           ))}
                       </th>
+                      <th>Costume Name</th>
                       <th onClick={() => handleSort("categoryId")}>
                         Category Name{" "}
                         {sortCharacter.field === "categoryId" &&
@@ -357,6 +388,7 @@ const ManageRequestCustomerCharacter = () => {
                             {item.customerCharacterId}
                           </td>
                           <td>{getAccountNameById(item.createBy)}</td>
+                          <td>{item.name}</td>
                           <td>{getCategoryNameById(item.categoryId)}</td>
                           <td>{item.createDate}</td>
                           <td>{item.status}</td>
@@ -366,6 +398,7 @@ const ManageRequestCustomerCharacter = () => {
                               size="small"
                               onClick={() => handleShowEditModal(item)}
                               style={{ marginRight: "8px" }}
+                              disabled={isEditButtonDisabled(item)} // Disable button Edit
                             >
                               Edit
                             </Button>
@@ -416,7 +449,6 @@ const ManageRequestCustomerCharacter = () => {
         </Card>
       </div>
 
-      {/* Modal chỉnh sửa */}
       <Modal
         title="Edit Character Request"
         open={showEditModal}
@@ -450,47 +482,45 @@ const ManageRequestCustomerCharacter = () => {
               required
             >
               <option value="">Select Status</option>
-              <option value="Pending">Pending 🔃</option>
-              <option value="Accept">Accept ✅</option>
-              <option value="Reject">Reject ❌</option>
-              <option value="Completed">Completed 🎉</option>
+              {getStatusOptions(currentItem?.status).map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </Form.Select>
           </Form.Group>
-          <Form.Group className="mb-2">
-            <Form.Label>
-              Reason{" "}
-              {formData.status === "Reject" && (
-                <span style={{ color: "red" }}>*</span>
-              )}
-            </Form.Label>
-            <Form.Control
-              as="textarea"
-              rows={3}
-              name="reason"
-              value={formData.reason || ""}
-              onChange={handleInputChange}
-              required={formData.status === "Reject"}
-            />
-          </Form.Group>
-          <Form.Group className="mb-2">
-            <Form.Label>
-              Price (VND){" "}
-              {formData.status === "Accept" && (
-                <span style={{ color: "red" }}>*</span>
-              )}
-            </Form.Label>
-            <Form.Control
-              type="number"
-              name="price"
-              value={formData.price || ""}
-              onChange={handleInputChange}
-              required={formData.status === "Accept"}
-              min="0"
-            />
-          </Form.Group>
+          {formData.status === "Reject" && (
+            <Form.Group className="mb-2">
+              <Form.Label>
+                Reason <span style={{ color: "red" }}>*</span>
+              </Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={3}
+                name="reason"
+                value={formData.reason || ""}
+                onChange={handleInputChange}
+                required
+              />
+            </Form.Group>
+          )}
+          {formData.status === "Accept" && (
+            <Form.Group className="mb-2">
+              <Form.Label>
+                Price (VND) <span style={{ color: "red" }}>*</span>
+              </Form.Label>
+              <Form.Control
+                type="number"
+                name="price"
+                value={formData.price || ""}
+                onChange={handleInputChange}
+                required
+                min="0"
+              />
+            </Form.Group>
+          )}
         </Form>
       </Modal>
-
       {/* Modal xem chi tiết */}
       <Modal
         title="Character Request Details"
@@ -550,7 +580,7 @@ const ManageRequestCustomerCharacter = () => {
               <strong>Images:</strong>
             </p>
             {currentItem.customerCharacterImageResponses &&
-              currentItem.customerCharacterImageResponses.length > 0 ? (
+            currentItem.customerCharacterImageResponses.length > 0 ? (
               <div>
                 {currentItem.customerCharacterImageResponses.map((img) => (
                   <div key={img.customerCharacterImageId}>
