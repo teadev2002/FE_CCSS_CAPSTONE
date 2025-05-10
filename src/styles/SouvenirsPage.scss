@@ -17,9 +17,11 @@
       0% {
         background-position: 0% 50%;
       }
+
       50% {
         background-position: 100% 50%;
       }
+
       100% {
         background-position: 0% 50%;
       }
@@ -135,6 +137,7 @@
 
         &:hover {
           border-color: #510545;
+
           a {
             color: #510545;
           }
@@ -363,6 +366,71 @@
 
             strong {
               color: #22668a;
+            }
+          }
+        }
+
+        /* Thêm vào SouvenirsPage.scss */
+        .fest-purchase-form.summary-modal {
+          background: white;
+          border-radius: 0.5rem;
+          padding: 2rem;
+          box-shadow: 0 4px 20px rgba(81, 5, 69, 0.15);
+          transition: transform 0.3s ease;
+
+          h5 {
+            color: #510545;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+          }
+
+          .summary-details {
+            margin-bottom: 2rem;
+
+            p {
+              display: flex;
+              justify-content: space-between;
+              color: #4a4a4a;
+              margin-bottom: 0.75rem;
+              font-size: 1.1rem;
+
+              strong {
+                color: #22668a;
+                font-weight: 600;
+              }
+            }
+          }
+
+          .summary-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+
+            .fest-buy-ticket-btn {
+              background: linear-gradient(135deg, #510545, #22668a);
+              border: none;
+              padding: 0.75rem 2rem;
+              font-weight: 600;
+              transition: all 0.3s ease;
+
+              &:hover {
+                background: linear-gradient(135deg, #22668a, #510545);
+                transform: translateY(-2px);
+              }
+            }
+
+            .btn-secondary {
+              background: #e0e0e0;
+              color: #4a4a4a;
+              border: none;
+              padding: 0.75rem 2rem;
+              transition: all 0.3s ease;
+
+              &:hover {
+                background: #d0d0d0;
+                transform: translateY(-2px);
+              }
             }
           }
         }
