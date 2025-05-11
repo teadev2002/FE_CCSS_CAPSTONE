@@ -4,6 +4,7 @@ import { Modal, Button, Form, Carousel } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import "../../styles/SouvenirsPage.scss";
 import ProductService from "../../services/ProductService/ProductService";
+import ProductDeliveryService from "../../services/ProductDeliveryService/ProductDeliveryService";
 import CartService from "../../services/CartService/CartService";
 import PaymentService from "../../services/PaymentService/PaymentService";
 import { apiClient } from "../../api/apiClient.js";
@@ -22,14 +23,26 @@ const SouvenirsPage = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showDeliveryModal, setShowDeliveryModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showSummaryModal, setShowSummaryModal] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState(null);
   const [accountId, setAccountId] = useState(null);
   const [accountName, setAccountName] = useState(null);
   const [cartId, setCartId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(8);
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const [provinces, setProvinces] = useState([]);
+  const [districts, setDistricts] = useState([]);
+  const [wards, setWards] = useState([]);
+  const [selectedProvince, setSelectedProvince] = useState("");
+  const [selectedDistrict, setSelectedDistrict] = useState("");
+  const [selectedWard, setSelectedWard] = useState("");
+  const [toDistrictId, setToDistrictId] = useState("");
+  const [toWardCode, setToWardCode] = useState("");
+
   const navigate = useNavigate();
 
   const formatPrice = (price) => {
@@ -64,6 +77,46 @@ const SouvenirsPage = () => {
     }
   };
 
+  const fetchProvinces = async () => {
+    try {
+      const provincesData = await ProductDeliveryService.getProvinces();
+      setProvinces(provincesData);
+      console.log("Provinces fetched:", provincesData); // Debug
+    } catch (error) {
+      toast.error(error.message);
+      console.error("Fetch provinces error:", error);
+    }
+  };
+
+  const fetchDistricts = async (provinceId) => {
+    try {
+      const districtsData = await ProductDeliveryService.getDistricts(provinceId);
+      setDistricts(districtsData);
+      setWards([]);
+      setSelectedDistrict("");
+      setSelectedWard("");
+      setToDistrictId("");
+      setToWardCode("");
+      console.log("Districts fetched for provinceId", provinceId, ":", districtsData); // Debug
+    } catch (error) {
+      toast.error(error.message);
+      console.error("Fetch districts error:", error);
+    }
+  };
+
+  const fetchWards = async (districtId) => {
+    try {
+      const wardsData = await ProductDeliveryService.getWards(districtId);
+      setWards(wardsData);
+      setSelectedWard("");
+      setToWardCode("");
+      console.log("Wards fetched for districtId", districtId, ":", wardsData); // Debug
+    } catch (error) {
+      toast.error(error.message);
+      console.error("Fetch wards error:", error);
+    }
+  };
+
   useEffect(() => {
     const accountInfo = getAccountInfoFromToken();
     if (accountInfo) {
@@ -78,6 +131,7 @@ const SouvenirsPage = () => {
     }
 
     fetchProducts();
+    fetchProvinces();
 
     window.addEventListener("storageUpdate", fetchProducts);
     return () => {
@@ -88,15 +142,27 @@ const SouvenirsPage = () => {
   const handleSouvenirShow = (souvenir) => {
     setSelectedSouvenir(souvenir);
     setShowSouvenirModal(true);
+    console.log("Opening souvenir modal for:", souvenir.name); // Debug
   };
 
   const handleSouvenirClose = () => {
     setShowSouvenirModal(false);
     setSelectedSouvenir(null);
     setQuantity(1);
+    setShowDeliveryModal(false);
     setShowPaymentModal(false);
-    setShowConfirmModal(false);
+    setShowSummaryModal(false);
     setPaymentMethod(null);
+    setPhone("");
+    setAddress("");
+    setSelectedProvince("");
+    setSelectedDistrict("");
+    setSelectedWard("");
+    setToDistrictId("");
+    setToWardCode("");
+    setDistricts([]);
+    setWards([]);
+    console.log("Closing souvenir modal"); // Debug
   };
 
   const handleIncrease = () => {
@@ -110,7 +176,8 @@ const SouvenirsPage = () => {
   const handleDecrease = () => setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
 
   const handleBuyNow = () => {
-    setShowPaymentModal(true);
+    setShowDeliveryModal(true);
+    console.log("Opening delivery modal"); // Debug
   };
 
   const handleAddToCart = async () => {
@@ -126,7 +193,54 @@ const SouvenirsPage = () => {
       handleSouvenirClose();
     } catch (error) {
       toast.error(error.message);
+      console.error("Add to cart error:", error);
     }
+  };
+
+  const handleDeliveryConfirm = () => {
+    console.log("Delivery info check:", {
+      phone,
+      address,
+      selectedProvince,
+      selectedDistrict,
+      selectedWard,
+      toDistrictId,
+      toWardCode,
+    });
+
+    if (!phone || !address || !selectedProvince || !selectedDistrict || !selectedWard || !toWardCode) {
+      toast.error("Please fill in all delivery information, including ward!");
+      console.error("Missing fields:", {
+        phone: !phone,
+        address: !address,
+        selectedProvince: !selectedProvince,
+        selectedDistrict: !selectedDistrict,
+        selectedWard: !selectedWard,
+        toWardCode: !toWardCode,
+      });
+      return;
+    }
+
+    if (!/^\d{10}$/.test(phone)) {
+      toast.error("Phone number must be 10 digits!");
+      console.error("Invalid phone:", phone);
+      return;
+    }
+
+    console.log("Delivery confirmed:", {
+      phone,
+      address,
+      toDistrictId,
+      toWardCode,
+    });
+    setShowPaymentModal(true);
+    // Cuộn đến modal thanh toán
+    setTimeout(() => {
+      const paymentModal = document.getElementById("payment-modal");
+      if (paymentModal) {
+        paymentModal.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 100);
   };
 
   const handleConfirmPurchase = () => {
@@ -134,14 +248,26 @@ const SouvenirsPage = () => {
       toast.error("Please select a payment method!");
       return;
     }
+    console.log("Payment method selected:", paymentMethod); // Debug
     setShowPaymentModal(false);
-    setShowConfirmModal(true);
+    setShowSummaryModal(true);
+    // Cuộn đến pop-up tóm tắt
+    setTimeout(() => {
+      const summaryModal = document.getElementById("summary-modal");
+      if (summaryModal) {
+        summaryModal.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 100);
   };
 
   const createOrder = async () => {
     try {
       const orderData = {
         accountId: accountId,
+        address: address,
+        phone: phone,
+        to_district_id: toDistrictId,
+        to_ward_code: toWardCode,
         orderProducts: [
           {
             productId: selectedSouvenir.id,
@@ -150,72 +276,80 @@ const SouvenirsPage = () => {
           },
         ],
       };
+      console.log("Order payload:", orderData); // Debug
       const response = await apiClient.post("/api/Order", orderData);
+      console.log("Order response:", response.data); // Debug
       return response.data;
     } catch (error) {
-      throw new Error(error.response?.data?.message || "Failed to create order");
+      console.error("Create order error:", error.response?.data || error.message);
+      toast.error(error.response?.data?.message || "Failed to create order");
+      throw error;
     }
   };
 
   const handleFinalConfirm = async () => {
     const totalAmount = selectedSouvenir.price * quantity;
-  
+
     if (!accountId) {
       toast.error("Please log in to proceed with payment!");
       return;
     }
-  
+
     try {
       const orderpaymentId = await createOrder();
-  
+      console.log("OrderpaymentId:", orderpaymentId); // Debug
+
+      const paymentData = {
+        fullName: accountName || "Unknown",
+        orderInfo: `Purchase ${quantity} ${selectedSouvenir.name}(s)`,
+        amount: totalAmount,
+        purpose: 3,
+        accountId: accountId,
+        accountCouponId: null,
+        ticketId: null,
+        ticketQuantity: null,
+        contractId: null,
+        orderpaymentId: orderpaymentId,
+        isWeb: true,
+      };
+      console.log("Payment payload:", paymentData); // Debug
+
+      let paymentUrl;
       if (paymentMethod === "Momo") {
-        const paymentData = {
-          fullName: accountName || "Unknown",
-          orderInfo: `Purchase ${quantity} ${selectedSouvenir.name}(s)`,
-          amount: totalAmount,
-          purpose: 3,
-          accountId: accountId,
-          accountCouponId: null,
-          ticketId: null,
-          ticketQuantity: null,
-          contractId: null,
-          orderpaymentId: orderpaymentId,
-          isWeb: true,
-        };
-  
-        const paymentUrl = await PaymentService.createMomoPayment(paymentData);
-        toast.success("Redirecting to MoMo payment...");
-        localStorage.setItem("paymentSource", "souvenirs");
-        window.location.href = paymentUrl;
+        paymentUrl = await PaymentService.createMomoPayment(paymentData);
+        console.log("Momo payment URL:", paymentUrl); // Debug
       } else if (paymentMethod === "VNPay") {
-        const paymentData = {
-          fullName: accountName || "Unknown",
-          orderInfo: `Purchase ${quantity} ${selectedSouvenir.name}(s)`,
-          amount: totalAmount,
-          purpose: 3,
-          accountId: accountId,
-          accountCouponId: null,
-          ticketId: null,
-          ticketQuantity: null,
-          contractId: null,
-          orderpaymentId: orderpaymentId,
-          isWeb: true,
-        };
-  
-        const paymentUrl = await PaymentService.createVnpayPayment(paymentData);
-        toast.success("Redirecting to VNPay payment...");
+        paymentUrl = await PaymentService.createVnpayPayment(paymentData);
+        console.log("VNPay payment URL:", paymentUrl); // Debug
+      }
+
+      toast.success(`Redirecting to ${paymentMethod} payment...`);
+      setTimeout(() => {
         localStorage.setItem("paymentSource", "souvenirs");
         window.location.href = paymentUrl;
-      }
+      }, 3000); // Chờ 3 giây để xem log
     } catch (error) {
+      console.error("Payment error:", error.response?.data || error.message);
       toast.error(error.message);
-      setShowConfirmModal(false);
+      setShowSummaryModal(false);
     }
   };
 
   const handleBackToPayment = () => {
-    setShowConfirmModal(false);
+    setShowSummaryModal(false);
     setShowPaymentModal(true);
+    console.log("Back to payment modal"); // Debug
+    setTimeout(() => {
+      const paymentModal = document.getElementById("payment-modal");
+      if (paymentModal) {
+        paymentModal.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 100);
+  };
+
+  const handleBackToDelivery = () => {
+    setShowPaymentModal(false);
+    console.log("Back to delivery modal"); // Debug
   };
 
   const filteredSouvenirs = products.filter((souvenir) =>
@@ -229,6 +363,25 @@ const SouvenirsPage = () => {
   const handlePageChange = (page, pageSize) => {
     setCurrentPage(page);
     setPageSize(pageSize);
+  };
+
+  // Hàm lấy tên tỉnh, quận, phường
+  const getProvinceName = (provinceId) => {
+    const province = provinces.find((p) => String(p.provinceId) === String(provinceId));
+    console.log("getProvinceName:", { provinceId, provinceIdType: typeof provinceId, province }); // Debug
+    return province ? province.provinceName : "N/A";
+  };
+
+  const getDistrictName = (districtId) => {
+    const district = districts.find((d) => String(d.districtId) === String(districtId));
+    console.log("getDistrictName:", { districtId, districtIdType: typeof districtId, district }); // Debug
+    return district ? district.districtName : "N/A";
+  };
+
+  const getWardName = (wardCode) => {
+    const ward = wards.find((w) => String(w.wardCode) === String(wardCode));
+    console.log("getWardName:", { wardCode, wardCodeType: typeof wardCode, ward }); // Debug
+    return ward ? ward.wardName : "N/A";
   };
 
   if (loading) {
@@ -398,7 +551,10 @@ const SouvenirsPage = () => {
                     </Button>
                     <Button
                       className="fest-buy-ticket-btn"
-                      style={{ background: "linear-gradient(135deg,rgb(131, 34, 82),rgb(128, 81, 170))" }}
+                      style={{
+                        background:
+                          "linear-gradient(135deg,rgb(131, 34, 82),rgb(128, 81, 170))",
+                      }}
                       onClick={handleAddToCart}
                     >
                       Add to Cart
@@ -406,8 +562,151 @@ const SouvenirsPage = () => {
                   </div>
                 </div>
 
-                {showPaymentModal && (
+                {showDeliveryModal && (
                   <div className="fest-purchase-form mt-4">
+                    <h5>Delivery Information</h5>
+                    <Form>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Phone Number</Form.Label>
+                        <Form.Control
+                          type="text"
+                          placeholder="Enter phone number (10 digits)"
+                          value={phone}
+                          onChange={(e) => {
+                            setPhone(e.target.value);
+                            console.log("Phone updated:", e.target.value); // Debug
+                          }}
+                        />
+                      </Form.Group>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Address (Street, House Number)</Form.Label>
+                        <Form.Control
+                          type="text"
+                          placeholder="Enter street and house number"
+                          value={address}
+                          onChange={(e) => {
+                            setAddress(e.target.value);
+                            console.log("Address updated:", e.target.value); // Debug
+                          }}
+                        />
+                      </Form.Group>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Province/City</Form.Label>
+                        <Form.Select
+                          value={selectedProvince}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setSelectedProvince(value);
+                            if (value) {
+                              fetchDistricts(value);
+                            } else {
+                              setDistricts([]);
+                              setWards([]);
+                              setSelectedDistrict("");
+                              setSelectedWard("");
+                              setToDistrictId("");
+                              setToWardCode("");
+                            }
+                            console.log("Selected province:", value); // Debug
+                          }}
+                        >
+                          <option value="">Select Province/City</option>
+                          {provinces.map((province) => (
+                            <option
+                              key={province.provinceId}
+                              value={province.provinceId}
+                            >
+                              {province.provinceName}
+                            </option>
+                          ))}
+                        </Form.Select>
+                      </Form.Group>
+                      <Form.Group className="mb-3">
+                        <Form.Label>District</Form.Label>
+                        <Form.Select
+                          value={selectedDistrict}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setSelectedDistrict(value);
+                            const selected = districts.find(
+                              (d) => d.districtId === parseInt(value)
+                            );
+                            const districtId = selected
+                              ? selected.districtId.toString()
+                              : "";
+                            setToDistrictId(districtId);
+                            if (value) {
+                              fetchWards(value);
+                            } else {
+                              setWards([]);
+                              setSelectedWard("");
+                              setToWardCode("");
+                            }
+                            console.log("Selected district:", {
+                              districtId: value,
+                              toDistrictId: districtId,
+                            }); // Debug
+                          }}
+                          disabled={!selectedProvince}
+                        >
+                          <option value="">Select District</option>
+                          {districts.map((district) => (
+                            <option
+                              key={district.districtId}
+                              value={district.districtId}
+                            >
+                              {district.districtName}
+                            </option>
+                          ))}
+                        </Form.Select>
+                      </Form.Group>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Ward</Form.Label>
+                        <Form.Select
+                          value={selectedWard}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setSelectedWard(value);
+                            const selected = wards.find(
+                              (w) => String(w.wardCode) === String(value)
+                            );
+                            const wardCode = selected ? String(selected.wardCode) : String(value);
+                            setToWardCode(wardCode);
+                            console.log("Selected ward:", {
+                              value,
+                              valueType: typeof value,
+                              wards: wards.map((w) => ({
+                                wardCode: w.wardCode,
+                                wardCodeType: typeof w.wardCode,
+                              })),
+                              selected,
+                              selectedWard: value,
+                              toWardCode: wardCode,
+                            }); // Debug
+                          }}
+                          disabled={!selectedDistrict}
+                        >
+                          <option value="">Select Ward</option>
+                          {wards.map((ward) => (
+                            <option key={ward.wardCode} value={ward.wardCode}>
+                              {ward.wardName}
+                            </option>
+                          ))}
+                        </Form.Select>
+                      </Form.Group>
+                      <Button
+                        variant="primary"
+                        onClick={handleDeliveryConfirm}
+                        className="mt-3 fest-buy-ticket-btn"
+                      >
+                        Proceed to Payment
+                      </Button>
+                    </Form>
+                  </div>
+                )}
+
+                {showPaymentModal && (
+                  <div className="fest-purchase-form mt-4" id="payment-modal">
                     <h5>Select Payment Method</h5>
                     <Form>
                       <Form.Check
@@ -427,32 +726,66 @@ const SouvenirsPage = () => {
                       <Button
                         variant="primary"
                         onClick={handleConfirmPurchase}
+                        className="me-2 mt-3 fest-buy-ticket-btn"
+                      >
+                        Review Order
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        onClick={handleBackToDelivery}
                         className="mt-3"
                       >
-                        Confirm Purchase
+                        Back
                       </Button>
                     </Form>
                   </div>
                 )}
 
-                {showConfirmModal && (
-                  <div className="fest-purchase-form mt-4">
-                    <h5>Confirm Payment</h5>
-                    <p>
-                      Are you sure you want to pay{" "}
-                      {formatPrice(selectedSouvenir.price * quantity)} for {quantity}{" "}
-                      {selectedSouvenir.name}(s) with {paymentMethod}?
-                    </p>
-                    <Button
-                      variant="success"
-                      onClick={handleFinalConfirm}
-                      className="me-2"
-                    >
-                      Yes
-                    </Button>
-                    <Button variant="secondary" onClick={handleBackToPayment}>
-                      No
-                    </Button>
+                {showSummaryModal && (
+                  <div className="fest-purchase-form mt-4 summary-modal" id="summary-modal">
+                    <h5>Order Summary</h5>
+                    <div className="summary-details">
+                      <p>
+                        <strong>Product:</strong> {selectedSouvenir.name} x {quantity}
+                      </p>
+                      <p>
+                        <strong>Total:</strong> {formatPrice(selectedSouvenir.price * quantity)}
+                      </p>
+                      <p>
+                        <strong>Phone:</strong> {phone}
+                      </p>
+                      <p>
+                        <strong>Address:</strong> {address}
+                      </p>
+                      <p>
+                        <strong>Province:</strong> {getProvinceName(selectedProvince)}
+                      </p>
+                      <p>
+                        <strong>District:</strong> {getDistrictName(selectedDistrict)}
+                      </p>
+                      <p>
+                        <strong>Ward:</strong> {getWardName(selectedWard)}
+                      </p>
+                      <p>
+                        <strong>Payment Method:</strong> {paymentMethod}
+                      </p>
+                    </div>
+                    <div className="summary-actions">
+                      <Button
+                        variant="success"
+                        onClick={handleFinalConfirm}
+                        className="me-2 fest-buy-ticket-btn"
+                      >
+                        Confirm Purchase
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        onClick={handleBackToPayment}
+                        className="me-2"
+                      >
+                        Back
+                      </Button>
+                    </div>
                   </div>
                 )}
               </div>

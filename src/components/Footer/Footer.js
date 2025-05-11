@@ -38,14 +38,14 @@ export function Footer() {
               </div>
               <div className="info-item">
                 <Mail size={18} />
-                <span>contact@cosplayverse.com</span>
+                <span>CCSS@gmail.com</span>
               </div>
             </div>
           </div>
         </div>
       </div>
       <div className="copyright">
-        &copy; 2025 CosplayVerse. All rights reserved.
+        &copy; 2025 CosplayCompanionServiceSystem. All rights reserved.
       </div>
     </footer>
   );
