@@ -1,401 +1,17 @@
-// import React, { useState, useEffect, useMemo } from "react";
-// import { Row, Col, Card as BootstrapCard } from "react-bootstrap";
-// import { Card, Table, Badge, Spin, Button } from "antd";
-// import { toast, ToastContainer } from "react-toastify";
-// import "react-toastify/dist/ReactToastify.css";
-// import "antd/dist/reset.css";
-// import "../../../styles/MyEventOrganize.scss";
-// import MyEventOrganizeService from "../../../services/MyEventOrganizeService/MyEventOrganizeService";
-// import {
-//   FileText,
-//   Calendar,
-//   MapPin,
-//   DollarSign,
-//   ChevronDown,
-//   ChevronUp,
-// } from "lucide-react";
-// import dayjs from "dayjs";
-
-// const STATUS_CONFIG = {
-//   Pending: { color: "primary", text: "Pending" },
-//   Browsed: { color: "success", text: "Browsed" },
-//   Active: { color: "warning", text: "Active" },
-//   Completed: { color: "success", text: "Completed" },
-// };
-
-// const formatDate = (date) => {
-//   if (!date || date === "null" || date === "undefined" || date === "") {
-//     return "N/A";
-//   }
-//   const formats = ["HH:mm DD/MM/YYYY", "YYYY-MM-DD", "DD/MM/YYYY"];
-//   const parsedDate = dayjs(date, formats, true);
-//   return parsedDate.isValid()
-//     ? parsedDate.format("DD/MM/YYYY")
-//     : "Invalid Date";
-// };
-
-// const getStatusBadge = (status) => {
-//   const config = STATUS_CONFIG[status] || {
-//     color: "secondary",
-//     text: "Unknown",
-//   };
-//   return <Badge color={config.color} text={config.text} />;
-// };
-
-// const ViewContractEventOrganize = ({ requestId }) => {
-//   const [requestData, setRequestData] = useState(null);
-//   const [packageData, setPackageData] = useState(null);
-//   const [cosplayerNames, setCosplayerNames] = useState({});
-//   const [loading, setLoading] = useState(false);
-//   const [error, setError] = useState(null);
-//   const [expandedCharacters, setExpandedCharacters] = useState({});
-//   const [expandedDates, setExpandedDates] = useState({});
-
-//   // Memoize formatted data at the component level
-//   const formattedData = useMemo(() => {
-//     if (!requestData) return null;
-//     return {
-//       ...requestData,
-//       startDate: formatDate(requestData.startDate),
-//       endDate: formatDate(requestData.endDate),
-//       charactersListResponse: (requestData.charactersListResponse || []).map(
-//         (char) => ({
-//           ...char,
-//           requestDateResponses: (char.requestDateResponses || []).map(
-//             (date) => ({
-//               ...date,
-//               startDate: formatDate(date.startDate),
-//               endDate: formatDate(date.endDate),
-//             })
-//           ),
-//         })
-//       ),
-//     };
-//   }, [requestData]);
-
-//   useEffect(() => {
-//     const fetchRequestAndPackage = async () => {
-//       if (!requestId) {
-//         toast.error("Invalid request ID");
-//         return;
-//       }
-//       setLoading(true);
-//       try {
-//         // Fetch request data
-//         const data = await MyEventOrganizeService.getRequestByRequestId(
-//           requestId
-//         );
-//         setRequestData(data);
-
-//         // Fetch cosplayer names for characters with non-null cosplayerId
-//         const cosplayerPromises = (data.charactersListResponse || [])
-//           .filter(
-//             (char) => char.cosplayerId !== null && char.cosplayerId !== ""
-//           )
-//           .map(async (char) => {
-//             try {
-//               const cosplayerData =
-//                 await MyEventOrganizeService.getNameCosplayerInRequestByCosplayerId(
-//                   char.cosplayerId
-//                 );
-//               return {
-//                 cosplayerId: char.cosplayerId,
-//                 name: cosplayerData.name,
-//               };
-//             } catch (error) {
-//               console.error(
-//                 `Failed to fetch cosplayer name for ID ${char.cosplayerId}:`,
-//                 error
-//               );
-//               return { cosplayerId: char.cosplayerId, name: "Unknown" };
-//             }
-//           });
-
-//         const cosplayerResults = await Promise.all(cosplayerPromises);
-//         const cosplayerNameMap = cosplayerResults.reduce(
-//           (acc, { cosplayerId, name }) => {
-//             acc[cosplayerId] = name;
-//             return acc;
-//           },
-//           {}
-//         );
-//         setCosplayerNames(cosplayerNameMap);
-
-//         // Fetch package data with validation
-//         if (
-//           data.packageId &&
-//           typeof data.packageId === "string" &&
-//           data.packageId.trim() !== ""
-//         ) {
-//           try {
-//             const packageDetails = await MyEventOrganizeService.getPackageById(
-//               data.packageId
-//             );
-//             setPackageData(packageDetails);
-//           } catch (packageError) {
-//             console.error("Failed to fetch package details:", packageError);
-//             toast.error("Failed to fetch package details");
-//             setPackageData(null);
-//           }
-//         } else {
-//           console.warn("No valid packageId provided");
-//           setPackageData(null);
-//         }
-//       } catch (error) {
-//         setError(error.message || "Failed to fetch request details");
-//         toast.error(error.message || "Failed to fetch request details");
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-//     fetchRequestAndPackage();
-//   }, [requestId]);
-
-//   const toggleCharacter = (requestCharacterId) => {
-//     setExpandedCharacters((prev) => ({
-//       ...prev,
-//       [requestCharacterId]: !prev[requestCharacterId],
-//     }));
-//   };
-
-//   const toggleDates = (requestCharacterId) => {
-//     setExpandedDates((prev) => ({
-//       ...prev,
-//       [requestCharacterId]: !prev[requestCharacterId],
-//     }));
-//   };
-
-//   const dateColumns = [
-//     {
-//       title: "Start Date",
-//       dataIndex: "startDate",
-//       key: "startDate",
-//       render: (date) => formatDate(date),
-//     },
-//     {
-//       title: "End Date",
-//       dataIndex: "endDate",
-//       key: "endDate",
-//       render: (date) => formatDate(date),
-//     },
-//     {
-//       title: "Total Hours",
-//       dataIndex: "totalHour",
-//       key: "totalHour",
-//     },
-//     {
-//       title: "Status",
-//       dataIndex: "status",
-//       key: "status",
-//       render: (status) => {
-//         const statusText =
-//           status === 0 ? "Pending" : status === 1 ? "Confirmed" : "Unknown";
-//         return statusText;
-//       },
-//     },
-//   ];
-
-//   if (loading) {
-//     return <Spin size="large" />;
-//   }
-
-//   if (error || !formattedData) {
-//     return <p className="text-danger">{error || "No data available"}</p>;
-//   }
-
-//   return (
-//     <div className="view-my-event-organize">
-//       <h2 className="mb-4 fw-bold">Event Details: {formattedData.name}</h2>
-//       {/* Summary Section */}
-//       <BootstrapCard className="shadow mb-4">
-//         <BootstrapCard.Body>
-//           <Row className="g-4">
-//             <Col xs={12}>
-//               <div className="d-flex align-items-center gap-3">
-//                 <FileText size={24} />
-//                 <h3 className="mb-0">{formattedData.name}</h3>
-//                 {getStatusBadge(formattedData.status)}
-//               </div>
-//             </Col>
-//             <Col md={6}>
-//               <p className="mb-2">
-//                 <strong>Description:</strong>{" "}
-//                 {formattedData.description || "N/A"}
-//               </p>
-//               <p className="mb-2">
-//                 <strong>Price:</strong>{" "}
-//                 {(formattedData.price || 0).toLocaleString()} VND
-//               </p>
-//               <p className="mb-2">
-//                 <strong>Location:</strong> {formattedData.location || "N/A"}
-//               </p>
-//               <p className="mb-2">
-//                 <strong>Package:</strong>{" "}
-//                 {packageData
-//                   ? `${
-//                       packageData.packageName
-//                     } (${packageData.price.toLocaleString()} VND)`
-//                   : "N/A"}
-//               </p>
-//             </Col>
-//             <Col md={6}>
-//               <p className="mb-2">
-//                 <Calendar size={16} className="me-1" />
-//                 <strong>Start Date:</strong> {formattedData.startDate}
-//               </p>
-//               <p className="mb-2">
-//                 <Calendar size={16} className="me-1" />
-//                 <strong>End Date:</strong> {formattedData.endDate}
-//               </p>
-//               <p className="mb-2">
-//                 <strong>Total Days:</strong> {formattedData.totalDate || "N/A"}
-//               </p>
-//               <p className="mb-2">
-//                 <strong>Deposit:</strong>{" "}
-//                 {formattedData.deposit
-//                   ? `${formattedData.deposit}%`
-//                   : "You need to choose deposit"}
-//               </p>
-//             </Col>
-//           </Row>
-//         </BootstrapCard.Body>
-//       </BootstrapCard>
-
-//       {/* Characters Section */}
-//       <h3 className="mb-3">Requested Characters</h3>
-//       {formattedData.charactersListResponse.length > 0 ? (
-//         <Row className="g-4">
-//           {formattedData.charactersListResponse.map((character) => (
-//             <Col xs={12} key={character.requestCharacterId}>
-//               <Card
-//                 className="shadow"
-//                 title={
-//                   <div
-//                     className="d-flex align-items-center gap-2"
-//                     style={{ cursor: "pointer" }}
-//                     onClick={() =>
-//                       toggleCharacter(character.requestCharacterId)
-//                     }
-//                     aria-expanded={
-//                       expandedCharacters[character.requestCharacterId]
-//                     }
-//                     aria-controls={`character-${character.requestCharacterId}`}
-//                   >
-//                     {expandedCharacters[character.requestCharacterId] ? (
-//                       <ChevronUp size={20} />
-//                     ) : (
-//                       <ChevronDown size={20} />
-//                     )}
-//                     <span>
-//                       Character Name: {character.characterName} (Quantity:{" "}
-//                       {character.quantity})
-//                     </span>
-//                   </div>
-//                 }
-//               >
-//                 {expandedCharacters[character.requestCharacterId] && (
-//                   <div
-//                     id={`character-${character.requestCharacterId}`}
-//                     className="p-3"
-//                   >
-//                     <Row className="g-3">
-//                       <Col md={6}>
-//                         <p className="mb-2">
-//                           <strong>Cosplayer:</strong>{" "}
-//                           {character.cosplayerId
-//                             ? cosplayerNames[character.cosplayerId] ||
-//                               "Loading..."
-//                             : "Not Assign"}
-//                         </p>
-//                         <p className="mb-2">
-//                           <strong>Description:</strong>{" "}
-//                           {character.description || "N/A"}
-//                         </p>
-//                         <p className="mb-2">
-//                           <strong>Status:</strong> {character.status || "N/A"}
-//                         </p>
-//                         <p className="mb-2">
-//                           <strong>Height Range:</strong> {character.minHeight}-
-//                           {character.maxHeight} cm
-//                         </p>
-//                         <p className="mb-2">
-//                           <strong>Weight Range:</strong> {character.minWeight}-
-//                           {character.maxWeight} kg
-//                         </p>
-//                       </Col>
-//                       <Col md={6}>
-//                         {character.characterImages.length > 0 && (
-//                           <img
-//                             src={character.characterImages[0].urlImage}
-//                             alt={`Image of ${character.characterName}`}
-//                             style={{
-//                               maxWidth: "100%",
-//                               height: "auto",
-//                               borderRadius: "8px",
-//                             }}
-//                           />
-//                         )}
-//                       </Col>
-//                     </Row>
-
-//                     <div className="mt-3">
-//                       <Button
-//                         type="link"
-//                         onClick={() =>
-//                           toggleDates(character.requestCharacterId)
-//                         }
-//                         aria-expanded={
-//                           expandedDates[character.requestCharacterId]
-//                         }
-//                         aria-controls={`dates-${character.requestCharacterId}`}
-//                         aria-label={`Toggle time slots for ${character.characterName}`}
-//                       >
-//                         {expandedDates[character.requestCharacterId] ? (
-//                           <>
-//                             <ChevronUp size={16} /> Hide Time Slots
-//                           </>
-//                         ) : (
-//                           <>
-//                             <ChevronDown size={16} /> Show Time Slots
-//                           </>
-//                         )}
-//                       </Button>
-//                       {expandedDates[character.requestCharacterId] && (
-//                         <Table
-//                           id={`dates-${character.requestCharacterId}`}
-//                           columns={dateColumns}
-//                           dataSource={character.requestDateResponses}
-//                           rowKey="requestDateId"
-//                           pagination={false}
-//                           size="small"
-//                           className="mt-2"
-//                           scroll={{ x: "max-content" }}
-//                         />
-//                       )}
-//                     </div>
-//                   </div>
-//                 )}
-//               </Card>
-//             </Col>
-//           ))}
-//         </Row>
-//       ) : (
-//         <p>No characters requested.</p>
-//       )}
-
-//       <ToastContainer />
-//     </div>
-//   );
-// };
-
-// export default ViewContractEventOrganize;
-
-// đổi mới ================================================
-
-// them gia
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Row, Col, Card as BootstrapCard } from "react-bootstrap";
-import { Card, Table, Badge, Spin, Button, Switch, Steps, Popover } from "antd";
+import {
+  Card,
+  Table,
+  Badge,
+  Spin,
+  Button,
+  Switch,
+  Steps,
+  Popover,
+  Tooltip,
+  Pagination,
+} from "antd";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "antd/dist/reset.css";
@@ -410,7 +26,7 @@ import {
   ChevronUp,
 } from "lucide-react";
 import dayjs from "dayjs";
-import _ from "lodash"; // For debouncing
+import _ from "lodash";
 
 const STATUS_CONFIG = {
   Pending: { color: "primary", text: "Pending" },
@@ -449,7 +65,7 @@ const ViewContractEventOrganize = ({ requestId }) => {
   const [requestData, setRequestData] = useState(null);
   const [packageData, setPackageData] = useState(null);
   const [cosplayerDetails, setCosplayerDetails] = useState({});
-  const [characterPrices, setCharacterPrices] = useState({}); // New state for character prices
+  const [characterPrices, setCharacterPrices] = useState({});
   const [contractData, setContractData] = useState(null);
   const [cosplayerTasks, setCosplayerTasks] = useState({});
   const [cosplayerToggles, setCosplayerToggles] = useState({});
@@ -458,8 +74,9 @@ const ViewContractEventOrganize = ({ requestId }) => {
   const [error, setError] = useState(null);
   const [expandedCharacters, setExpandedCharacters] = useState({});
   const [expandedDates, setExpandedDates] = useState({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(3);
 
-  // Memoize formatted data
   const formattedData = useMemo(() => {
     if (!requestData) return null;
     return {
@@ -475,7 +92,13 @@ const ViewContractEventOrganize = ({ requestId }) => {
     };
   }, [requestData]);
 
-  // Function to calculate total hours from requestDateResponses
+  const paginatedCharacters = useMemo(() => {
+    if (!formattedData?.charactersListResponse) return [];
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    return formattedData.charactersListResponse.slice(startIndex, endIndex);
+  }, [formattedData, currentPage, pageSize]);
+
   const calculateTotalHours = (requestDateResponses) => {
     if (!requestDateResponses || !Array.isArray(requestDateResponses)) return 0;
     return requestDateResponses.reduce((total, date) => {
@@ -484,7 +107,6 @@ const ViewContractEventOrganize = ({ requestId }) => {
     }, 0);
   };
 
-  // Fetch tasks for a cosplayer
   const fetchTasksForCosplayer = async (cosplayerId, contractId) => {
     setTaskLoading((prev) => ({ ...prev, [cosplayerId]: true }));
     try {
@@ -509,7 +131,6 @@ const ViewContractEventOrganize = ({ requestId }) => {
     }
   };
 
-  // Handle toggle for task progression
   const handleToggleStatusProgression = async (
     cosplayerId,
     contractId,
@@ -521,7 +142,6 @@ const ViewContractEventOrganize = ({ requestId }) => {
     }
   };
 
-  // Memoize task status progression logic
   const getStatusProgression = useMemo(
     () => (cosplayerId, contractId) => {
       const tasks = cosplayerTasks[cosplayerId] || [];
@@ -608,13 +228,11 @@ const ViewContractEventOrganize = ({ requestId }) => {
       }
       setLoading(true);
       try {
-        // Fetch request data
         const data = await MyEventOrganizeService.getRequestByRequestId(
           requestId
         );
         setRequestData(data);
 
-        // Fetch cosplayer details and character prices
         const cosplayerPromises = (data.charactersListResponse || [])
           .filter(
             (char) => char.cosplayerId !== null && char.cosplayerId !== ""
@@ -629,6 +247,9 @@ const ViewContractEventOrganize = ({ requestId }) => {
                 cosplayerId: char.cosplayerId,
                 name: cosplayerData.name || "Unknown",
                 salaryIndex: cosplayerData.salaryIndex || 0,
+                averageStar: cosplayerData.averageStar || 0,
+                height: cosplayerData.height || 0,
+                weight: cosplayerData.weight || 0,
               };
             } catch (error) {
               console.error(
@@ -639,11 +260,13 @@ const ViewContractEventOrganize = ({ requestId }) => {
                 cosplayerId: char.cosplayerId,
                 name: "Unknown",
                 salaryIndex: 0,
+                averageStar: 0,
+                height: 0,
+                weight: 0,
               };
             }
           });
 
-        // Fetch character prices
         const characterPricePromises = (data.charactersListResponse || [])
           .filter((char) => char.characterId)
           .map(async (char) => {
@@ -672,10 +295,22 @@ const ViewContractEventOrganize = ({ requestId }) => {
         ]);
 
         setCosplayerDetails(
-          cosplayerResults.reduce((acc, { cosplayerId, name, salaryIndex }) => {
-            acc[cosplayerId] = { name, salaryIndex };
-            return acc;
-          }, {})
+          cosplayerResults.reduce(
+            (
+              acc,
+              { cosplayerId, name, salaryIndex, averageStar, height, weight }
+            ) => {
+              acc[cosplayerId] = {
+                name,
+                salaryIndex,
+                averageStar,
+                height,
+                weight,
+              };
+              return acc;
+            },
+            {}
+          )
         );
 
         setCharacterPrices(
@@ -685,7 +320,6 @@ const ViewContractEventOrganize = ({ requestId }) => {
           }, {})
         );
 
-        // Fetch package data
         if (
           data.packageId &&
           typeof data.packageId === "string" &&
@@ -706,7 +340,6 @@ const ViewContractEventOrganize = ({ requestId }) => {
           setPackageData(null);
         }
 
-        // Fetch contract data
         if (data.accountId) {
           try {
             const contracts =
@@ -740,7 +373,6 @@ const ViewContractEventOrganize = ({ requestId }) => {
     fetchRequestAndPackage();
   }, [requestId]);
 
-  // Debounced toggle functions
   const toggleCharacter = useCallback(
     _.debounce((requestCharacterId) => {
       setExpandedCharacters((prev) => ({
@@ -761,7 +393,18 @@ const ViewContractEventOrganize = ({ requestId }) => {
     []
   );
 
-  // Memoize dateColumns to prevent redefinition
+  const handlePageChange = useCallback(
+    (page, newPageSize) => {
+      setCurrentPage(page);
+      if (newPageSize !== pageSize) {
+        setPageSize(newPageSize);
+        setCurrentPage(1);
+      }
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    },
+    [pageSize]
+  );
+
   const dateColumns = useMemo(
     () => [
       {
@@ -803,7 +446,6 @@ const ViewContractEventOrganize = ({ requestId }) => {
   return (
     <div className="view-my-event-organize">
       <h2 className="mb-4 fw-bold">Event Details: {formattedData.name}</h2>
-      {/* Summary Section */}
       <BootstrapCard className="shadow mb-4">
         <BootstrapCard.Body>
           <Row className="g-4">
@@ -858,236 +500,294 @@ const ViewContractEventOrganize = ({ requestId }) => {
         </BootstrapCard.Body>
       </BootstrapCard>
 
-      {/* Characters Section */}
       <h3 className="mb-3">Requested Characters</h3>
       {formattedData.charactersListResponse.length > 0 ? (
-        <Row className="g-4">
-          {formattedData.charactersListResponse.map((character) => {
-            const showToggle =
-              contractData &&
-              character.cosplayerId &&
-              character.cosplayerId !== "Not Assign";
-            const {
-              currentStatusIndex,
-              isCancelled,
-              filteredStepsItems,
-              dailyProgress,
-            } = showToggle
-              ? getStatusProgression(
-                  character.cosplayerId,
-                  contractData?.contractId
-                )
-              : {
-                  currentStatusIndex: -1,
-                  isCancelled: false,
-                  filteredStepsItems: [],
-                  dailyProgress: [],
-                };
+        <>
+          <Row className="g-4">
+            {paginatedCharacters.map((character) => {
+              const showToggle =
+                contractData &&
+                character.cosplayerId &&
+                character.cosplayerId !== "Not Assign";
+              const {
+                currentStatusIndex,
+                isCancelled,
+                filteredStepsItems,
+                dailyProgress,
+              } = showToggle
+                ? getStatusProgression(
+                    character.cosplayerId,
+                    contractData?.contractId
+                  )
+                : {
+                    currentStatusIndex: -1,
+                    isCancelled: false,
+                    filteredStepsItems: [],
+                    dailyProgress: [],
+                  };
 
-            const customDot = (dot, { status, index }) => (
-              <Popover
-                content={
-                  <span>
-                    Day {index + 1} status: {status} <br />
-                    Details:{" "}
-                    {dailyProgress[index]?.details || "No details available"}
-                  </span>
-                }
-              >
-                {dot}
-              </Popover>
-            );
-
-            // Calculate cosplayer hiring cost
-            const cosplayerInfo = cosplayerDetails[character.cosplayerId] || {
-              name: "Loading...",
-              salaryIndex: 0,
-            };
-            const totalHours = calculateTotalHours(
-              character.requestDateResponses
-            );
-            const cosplayerCost = cosplayerInfo.salaryIndex * totalHours;
-
-            return (
-              <Col xs={12} key={character.requestCharacterId}>
-                <Card
-                  className="shadow"
-                  title={
-                    <div
-                      className="d-flex align-items-center gap-2"
-                      style={{ cursor: "pointer" }}
-                      onClick={() =>
-                        toggleCharacter(character.requestCharacterId)
-                      }
-                      aria-expanded={
-                        expandedCharacters[character.requestCharacterId]
-                      }
-                      aria-controls={`character-${character.requestCharacterId}`}
-                    >
-                      {expandedCharacters[character.requestCharacterId] ? (
-                        <ChevronUp size={20} />
-                      ) : (
-                        <ChevronDown size={20} />
-                      )}
-                      <span>
-                        Character Name: {character.characterName} (Quantity:{" "}
-                        {character.quantity})
-                      </span>
-                    </div>
+              const customDot = (dot, { status, index }) => (
+                <Popover
+                  content={
+                    <span>
+                      Day {index + 1} status: {status} <br />
+                      Details:{" "}
+                      {dailyProgress[index]?.details || "No details available"}
+                    </span>
                   }
                 >
-                  {expandedCharacters[character.requestCharacterId] && (
-                    <div
-                      id={`character-${character.requestCharacterId}`}
-                      className="p-3"
-                    >
-                      <Row className="g-3">
-                        <Col md={6}>
-                          <p className="mb-2">
-                            <strong>Cosplayer:</strong>{" "}
-                            {character.cosplayerId
-                              ? cosplayerInfo.name
-                              : "Not Assign"}
-                          </p>
-                          {character.cosplayerId && (
+                  {dot}
+                </Popover>
+              );
+
+              const cosplayerInfo = cosplayerDetails[character.cosplayerId] || {
+                name: "Loading...",
+                salaryIndex: 0,
+                averageStar: 0,
+                height: 0,
+                weight: 0,
+              };
+              const totalHours = calculateTotalHours(
+                character.requestDateResponses
+              );
+              const cosplayerCost = cosplayerInfo.salaryIndex * totalHours;
+
+              return (
+                <Col xs={12} key={character.requestCharacterId}>
+                  <Card
+                    className="shadow"
+                    title={
+                      <div
+                        className="d-flex align-items-center gap-2"
+                        style={{ cursor: "pointer" }}
+                        onClick={() =>
+                          toggleCharacter(character.requestCharacterId)
+                        }
+                        aria-expanded={
+                          expandedCharacters[character.requestCharacterId]
+                        }
+                        aria-controls={`character-${character.requestCharacterId}`}
+                      >
+                        {expandedCharacters[character.requestCharacterId] ? (
+                          <ChevronUp size={20} />
+                        ) : (
+                          <ChevronDown size={20} />
+                        )}
+                        <span>
+                          Character Name: {character.characterName} (Quantity:{" "}
+                          {character.quantity})
+                        </span>
+                      </div>
+                    }
+                  >
+                    {expandedCharacters[character.requestCharacterId] && (
+                      <div
+                        id={`character-${character.requestCharacterId}`}
+                        className="p-3"
+                      >
+                        <Row className="g-3">
+                          <Col md={6}>
+                            <div className="cosplayer-inline mb-2">
+                              <strong className="cosplayer-label">
+                                Cosplayer:{" "}
+                              </strong>
+                              {character.cosplayerId ? (
+                                <Tooltip
+                                  title={
+                                    <div className="cosplayer-tooltip">
+                                      <p>
+                                        <strong>Name:</strong>{" "}
+                                        {cosplayerInfo.name}
+                                      </p>
+                                      <p>
+                                        <strong>Average Star:</strong>{" "}
+                                        {cosplayerInfo.averageStar
+                                          ? cosplayerInfo.averageStar.toFixed(1)
+                                          : "N/A"}
+                                      </p>
+                                      <p>
+                                        <strong>Salary Index:</strong>{" "}
+                                        {cosplayerInfo.salaryIndex
+                                          ? `${cosplayerInfo.salaryIndex.toLocaleString()} VND/h`
+                                          : "N/A"}
+                                      </p>
+                                      <p>
+                                        <strong>Height & weight:</strong>{" "}
+                                        {cosplayerInfo.height
+                                          ? `${cosplayerInfo.height}cm`
+                                          : "N/A"}{" "}
+                                        -{" "}
+                                        {cosplayerInfo.weight
+                                          ? `${cosplayerInfo.weight}kg`
+                                          : "N/A"}
+                                      </p>
+                                      <a
+                                        target="_blank"
+                                        href={`/user-profile/${character.cosplayerId}`}
+                                      >
+                                        See Profile
+                                      </a>
+                                    </div>
+                                  }
+                                >
+                                  {cosplayerInfo.name}
+                                </Tooltip>
+                              ) : (
+                                <span className="cosplayer-value">
+                                  Not Assign
+                                </span>
+                              )}
+                            </div>
+                            {character.cosplayerId && (
+                              <p className="mb-2">
+                                <strong>
+                                  Cosplayer Hiring Cost x TotalHours:
+                                </strong>{" "}
+                                {cosplayerInfo.name === "Loading..."
+                                  ? "Loading..."
+                                  : cosplayerCost > 0
+                                  ? `${cosplayerCost.toLocaleString()} VND`
+                                  : "N/A"}
+                              </p>
+                            )}
                             <p className="mb-2">
-                              <strong>
-                                Cosplayer Hiring Cost x TotalHours:
-                              </strong>{" "}
-                              {cosplayerInfo.name === "Loading..."
-                                ? "Loading..."
-                                : cosplayerCost > 0
-                                ? `${cosplayerCost.toLocaleString()} VND`
+                              <strong>Unit Price Character:</strong>{" "}
+                              {characterPrices[character.requestCharacterId]
+                                ? `${characterPrices[
+                                    character.requestCharacterId
+                                  ].toLocaleString()} VND/day`
                                 : "N/A"}
                             </p>
-                          )}
-                          <p className="mb-2">
-                            <strong>Unit Price Character :</strong>{" "}
-                            {characterPrices[character.requestCharacterId]
-                              ? `${characterPrices[
-                                  character.requestCharacterId
-                                ].toLocaleString()} VND/day`
-                              : "N/A"}
-                          </p>
-                          <p className="mb-2">
-                            <strong>Description:</strong>{" "}
-                            {character.description || "N/A"}
-                          </p>
-                          <p className="mb-2">
-                            <strong>Status:</strong> {character.status || "N/A"}
-                          </p>
-                          <p className="mb-2">
-                            <strong>Height Range:</strong> {character.minHeight}
-                            -{character.maxHeight} cm
-                          </p>
-                          <p className="mb-2">
-                            <strong>Weight Range:</strong> {character.minWeight}
-                            -{character.maxWeight} kg
-                          </p>
-                        </Col>
-                        <Col md={6}>
-                          {character.characterImages?.length > 0 && (
-                            <img
-                              src={character.characterImages[0].urlImage}
-                              alt={`Image of ${character.characterName}`}
-                              style={{
-                                maxWidth: "100%",
-                                height: "auto",
-                                borderRadius: "8px",
-                              }}
+                            <p className="mb-2">
+                              <strong>Description:</strong>{" "}
+                              {character.description || "N/A"}
+                            </p>
+                            <p className="mb-2">
+                              <strong>Status:</strong>{" "}
+                              {character.status || "N/A"}
+                            </p>
+                            <p className="mb-2">
+                              <strong>Height Range:</strong>{" "}
+                              {character.minHeight}-{character.maxHeight} cm
+                            </p>
+                            <p className="mb-2">
+                              <strong>Weight Range:</strong>{" "}
+                              {character.minWeight}-{character.maxWeight} kg
+                            </p>
+                          </Col>
+                          <Col md={6}>
+                            {character.characterImages?.length > 0 && (
+                              <img
+                                src={character.characterImages[0].urlImage}
+                                alt={`Image of ${character.characterName}`}
+                                style={{
+                                  maxWidth: "100%",
+                                  height: "auto",
+                                  borderRadius: "8px",
+                                }}
+                              />
+                            )}
+                          </Col>
+                        </Row>
+
+                        <div className="mt-3">
+                          <Button
+                            type="link"
+                            onClick={() =>
+                              toggleDates(character.requestCharacterId)
+                            }
+                            aria-expanded={
+                              expandedDates[character.requestCharacterId]
+                            }
+                            aria-controls={`dates-${character.requestCharacterId}`}
+                            aria-label={`Toggle time slots for ${character.characterName}`}
+                          >
+                            {expandedDates[character.requestCharacterId] ? (
+                              <>
+                                <ChevronUp size={16} /> Hide Time Slots
+                              </>
+                            ) : (
+                              <>
+                                <ChevronDown size={16} /> Show Time Slots
+                              </>
+                            )}
+                          </Button>
+                          {expandedDates[character.requestCharacterId] && (
+                            <Table
+                              id={`dates-${character.requestCharacterId}`}
+                              columns={dateColumns}
+                              dataSource={character.requestDateResponses}
+                              rowKey="requestDateId"
+                              pagination={false}
+                              size="small"
+                              className="mt-2"
+                              scroll={{ x: "max-content" }}
                             />
                           )}
-                        </Col>
-                      </Row>
-
-                      <div className="mt-3">
-                        <Button
-                          type="link"
-                          onClick={() =>
-                            toggleDates(character.requestCharacterId)
-                          }
-                          aria-expanded={
-                            expandedDates[character.requestCharacterId]
-                          }
-                          aria-controls={`dates-${character.requestCharacterId}`}
-                          aria-label={`Toggle time slots for ${character.characterName}`}
-                        >
-                          {expandedDates[character.requestCharacterId] ? (
-                            <>
-                              <ChevronUp size={16} /> Hide Time Slots
-                            </>
-                          ) : (
-                            <>
-                              <ChevronDown size={16} /> Show Time Slots
-                            </>
-                          )}
-                        </Button>
-                        {expandedDates[character.requestCharacterId] && (
-                          <Table
-                            id={`dates-${character.requestCharacterId}`}
-                            columns={dateColumns}
-                            dataSource={character.requestDateResponses}
-                            rowKey="requestDateId"
-                            pagination={false}
-                            size="small"
-                            className="mt-2"
-                            scroll={{ x: "max-content" }}
-                          />
-                        )}
-                      </div>
-
-                      {showToggle && (
-                        <div className="mt-3">
-                          <Switch
-                            checked={
-                              cosplayerToggles[character.cosplayerId] || false
-                            }
-                            onChange={(checked) =>
-                              handleToggleStatusProgression(
-                                character.cosplayerId,
-                                contractData.contractId,
-                                checked
-                              )
-                            }
-                            checkedChildren="Hide Task Progression"
-                            unCheckedChildren="Show Task Progression"
-                          />
                         </div>
-                      )}
 
-                      {showToggle &&
-                        cosplayerToggles[character.cosplayerId] && (
+                        {showToggle && (
                           <div className="mt-3">
-                            <h5>
-                              Task Status Progression for {cosplayerInfo.name}
-                            </h5>
-                            {taskLoading[character.cosplayerId] ? (
-                              <Spin />
-                            ) : cosplayerTasks[character.cosplayerId]?.length >
-                              0 ? (
-                              <Steps
-                                current={currentStatusIndex}
-                                progressDot={customDot}
-                                items={filteredStepsItems}
-                                style={{ marginBottom: "20px" }}
-                              />
-                            ) : (
-                              <p>No tasks found for this cosplayer.</p>
-                            )}
+                            <Switch
+                              checked={
+                                cosplayerToggles[character.cosplayerId] || false
+                              }
+                              onChange={(checked) =>
+                                handleToggleStatusProgression(
+                                  character.cosplayerId,
+                                  contractData.contractId,
+                                  checked
+                                )
+                              }
+                              checkedChildren="Hide Task Progression"
+                              unCheckedChildren="Show Task Progression"
+                            />
                           </div>
                         )}
-                    </div>
-                  )}
-                </Card>
-              </Col>
-            );
-          })}
-        </Row>
+
+                        {showToggle &&
+                          cosplayerToggles[character.cosplayerId] && (
+                            <div className="mt-3">
+                              <h5>
+                                Task Status Progression for {cosplayerInfo.name}
+                              </h5>
+                              {taskLoading[character.cosplayerId] ? (
+                                <Spin />
+                              ) : cosplayerTasks[character.cosplayerId]
+                                  ?.length > 0 ? (
+                                <Steps
+                                  current={currentStatusIndex}
+                                  progressDot={customDot}
+                                  items={filteredStepsItems}
+                                  style={{ marginBottom: "20px" }}
+                                />
+                              ) : (
+                                <p>No tasks found for this cosplayer.</p>
+                              )}
+                            </div>
+                          )}
+                      </div>
+                    )}
+                  </Card>
+                </Col>
+              );
+            })}
+          </Row>
+          {formattedData.charactersListResponse.length > pageSize && (
+            <div className="mt-4 text-center">
+              <Pagination
+                aria-label="Pagination for requested characters"
+                current={currentPage}
+                pageSize={pageSize}
+                total={formattedData.charactersListResponse.length}
+                onChange={handlePageChange}
+              />
+            </div>
+          )}
+        </>
       ) : (
         <p>No characters requested.</p>
       )}
-
-      <ToastContainer />
     </div>
   );
 };

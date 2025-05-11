@@ -10,8 +10,9 @@ import {
   Steps,
   Popover,
   Tooltip,
+  Pagination, // Import Pagination from Ant Design
 } from "antd";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "antd/dist/reset.css";
 import "../../styles/MyEventOrganize.scss";
@@ -72,6 +73,8 @@ const ViewMyEventOrganize = ({ requestId }) => {
   const [error, setError] = useState(null);
   const [expandedCharacters, setExpandedCharacters] = useState({});
   const [expandedDates, setExpandedDates] = useState({});
+  const [currentPage, setCurrentPage] = useState(1); // State for current page
+  const pageSize = 3; // Number of characters per page
 
   const formattedData = useMemo(() => {
     if (!requestData) return null;
@@ -82,13 +85,21 @@ const ViewMyEventOrganize = ({ requestId }) => {
       charactersListResponse: (requestData.charactersListResponse || []).map(
         (char) => ({
           ...char,
-          requestDateResponses: char.requestDateResponses || [], // Keep original startDate and endDate
+          requestDateResponses: char.requestDateResponses || [],
         })
       ),
     };
   }, [requestData]);
 
-  // Function to calculate total hours from requestDateResponses
+  // Calculate paginated characters
+  const paginatedCharacters = useMemo(() => {
+    if (!formattedData?.charactersListResponse) return [];
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    return formattedData.charactersListResponse.slice(startIndex, endIndex);
+  }, [formattedData, currentPage, pageSize]);
+
+  // Calculate total hours from requestDateResponses
   const calculateTotalHours = (requestDateResponses) => {
     if (!requestDateResponses || !Array.isArray(requestDateResponses)) return 0;
     return requestDateResponses.reduce((total, date) => {
@@ -110,7 +121,6 @@ const ViewMyEventOrganize = ({ requestId }) => {
         );
         setRequestData(data);
 
-        // Fetch cosplayer details
         const cosplayerPromises = (data.charactersListResponse || [])
           .filter((char) => char.cosplayerId)
           .map(async (char) => {
@@ -143,7 +153,6 @@ const ViewMyEventOrganize = ({ requestId }) => {
             }
           });
 
-        // Fetch character prices
         const characterPricePromises = (data.charactersListResponse || [])
           .filter((char) => char.characterId)
           .map(async (char) => {
@@ -391,12 +400,20 @@ const ViewMyEventOrganize = ({ requestId }) => {
     },
   ];
 
+  // Handle page change
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
   if (loading) return <Spin size="large" />;
   if (error || !formattedData)
     return <p className="text-danger">{error || "No data available"}</p>;
 
   return (
-    <div className="view-my-event-organize" style={{ overflowX: "hidden" }}>
+    <div
+      className="view-my-event-organize"
+      style={{ overflowX: "hidden", overflowY: "hidden" }}
+    >
       <h2 className="mb-4 fw-bold">Event Details: {formattedData.name}</h2>
 
       <BootstrapCard className="shadow mb-4">
@@ -455,264 +472,281 @@ const ViewMyEventOrganize = ({ requestId }) => {
 
       <h3 className="mb-3">Requested Characters</h3>
       {formattedData.charactersListResponse.length > 0 ? (
-        <Row className="g-4">
-          {formattedData.charactersListResponse.map((character) => {
-            const showToggle =
-              contractData &&
-              character.cosplayerId &&
-              character.cosplayerId !== "Not Assign";
-            const {
-              currentStatusIndex,
-              isCancelled,
-              filteredStepsItems,
-              dailyProgress,
-            } = showToggle
-              ? getStatusProgression(
-                  character.cosplayerId,
-                  contractData?.contractId
-                )
-              : {
-                  currentStatusIndex: -1,
-                  isCancelled: false,
-                  filteredStepsItems: [],
-                  dailyProgress: [],
-                };
+        <>
+          <Row className="g-4">
+            {paginatedCharacters.map((character) => {
+              const showToggle =
+                contractData &&
+                character.cosplayerId &&
+                character.cosplayerId !== "Not Assign";
+              const {
+                currentStatusIndex,
+                isCancelled,
+                filteredStepsItems,
+                dailyProgress,
+              } = showToggle
+                ? getStatusProgression(
+                    character.cosplayerId,
+                    contractData?.contractId
+                  )
+                : {
+                    currentStatusIndex: -1,
+                    isCancelled: false,
+                    filteredStepsItems: [],
+                    dailyProgress: [],
+                  };
 
-            const customDot = (dot, { status, index }) => (
-              <Popover
-                content={
-                  <span>
-                    Day {index + 1} status: {status} <br />
-                    Details:{" "}
-                    {dailyProgress[index]?.details || "No details available"}
-                  </span>
-                }
-              >
-                {dot}
-              </Popover>
-            );
-
-            const cosplayerInfo = cosplayerDetails[character.cosplayerId] || {
-              name: "Loading...",
-              averageStar: 0,
-              salaryIndex: 0,
-              height: 0,
-              weight: 0,
-            };
-
-            // Calculate cosplayer hiring cost
-            const totalHours = calculateTotalHours(
-              character.requestDateResponses
-            );
-            const cosplayerCost = cosplayerInfo.salaryIndex * totalHours;
-
-            return (
-              <Col xs={12} key={character.requestCharacterId}>
-                <Card
-                  className="shadow"
-                  title={
-                    <div
-                      className="d-flex align-items-center gap-2"
-                      style={{ cursor: "pointer" }}
-                      onClick={() =>
-                        toggleCharacter(character.requestCharacterId)
-                      }
-                      aria-expanded={
-                        expandedCharacters[character.requestCharacterId]
-                      }
-                      aria-controls={`character-${character.requestCharacterId}`}
-                    >
-                      {expandedCharacters[character.requestCharacterId] ? (
-                        <ChevronUp size={20} />
-                      ) : (
-                        <ChevronDown size={20} />
-                      )}
-                      <span>
-                        Character Name: {character.characterName} (Quantity:{" "}
-                        {character.quantity})
-                      </span>
-                    </div>
+              const customDot = (dot, { status, index }) => (
+                <Popover
+                  content={
+                    <span>
+                      Day {index + 1} status: {status} <br />
+                      Details:{" "}
+                      {dailyProgress[index]?.details || "No details available"}
+                    </span>
                   }
                 >
-                  {expandedCharacters[character.requestCharacterId] && (
-                    <div
-                      id={`character-${character.requestCharacterId}`}
-                      className="p-3"
-                    >
-                      <Row className="g-3">
-                        <Col md={6}>
-                          <p className="mb-2">
-                            <strong>Cosplayer:</strong>{" "}
-                            {character.cosplayerId ? (
-                              <Tooltip
-                                title={
-                                  <div>
-                                    <p>
-                                      <strong>Name:</strong>{" "}
-                                      {cosplayerInfo.name}
-                                    </p>
-                                    <p>
-                                      <strong>Average Star:</strong>{" "}
-                                      {cosplayerInfo.averageStar.toFixed(1)}
-                                    </p>
-                                    <p>
-                                      <strong>Salary Index:</strong>{" "}
-                                      {cosplayerInfo.salaryIndex.toLocaleString()}{" "}
-                                      VND/h
-                                    </p>
-                                    <p>
-                                      <strong>Height & weight:</strong>{" "}
-                                      {cosplayerInfo.height}cm -{" "}
-                                      {cosplayerInfo.weight} kg
-                                    </p>
-                                    <a
-                                      target="_blank"
-                                      href={`/user-profile/${character.cosplayerId}`}
-                                    >
-                                      See Profile
-                                    </a>
-                                  </div>
-                                }
-                              >
-                                <span
-                                  style={{ cursor: "pointer", color: "black" }}
-                                >
-                                  {cosplayerInfo.name}
-                                </span>
-                              </Tooltip>
-                            ) : (
-                              "Not Assign"
-                            )}
-                          </p>
-                          {character.cosplayerId && (
+                  {dot}
+                </Popover>
+              );
+
+              const cosplayerInfo = cosplayerDetails[character.cosplayerId] || {
+                name: "Loading...",
+                averageStar: 0,
+                salaryIndex: 0,
+                height: 0,
+                weight: 0,
+              };
+
+              const totalHours = calculateTotalHours(
+                character.requestDateResponses
+              );
+              const cosplayerCost = cosplayerInfo.salaryIndex * totalHours;
+
+              return (
+                <Col xs={12} key={character.requestCharacterId}>
+                  <Card
+                    className="shadow"
+                    title={
+                      <div
+                        className="d-flex align-items-center gap-2"
+                        style={{ cursor: "pointer" }}
+                        onClick={() =>
+                          toggleCharacter(character.requestCharacterId)
+                        }
+                        aria-expanded={
+                          expandedCharacters[character.requestCharacterId]
+                        }
+                        aria-controls={`character-${character.requestCharacterId}`}
+                      >
+                        {expandedCharacters[character.requestCharacterId] ? (
+                          <ChevronUp size={20} />
+                        ) : (
+                          <ChevronDown size={20} />
+                        )}
+                        <span>
+                          Character Name: {character.characterName} (Quantity:{" "}
+                          {character.quantity})
+                        </span>
+                      </div>
+                    }
+                  >
+                    {expandedCharacters[character.requestCharacterId] && (
+                      <div
+                        id={`character-${character.requestCharacterId}`}
+                        className="p-3"
+                      >
+                        <Row className="g-3">
+                          <Col md={6}>
                             <p className="mb-2">
-                              <strong>
-                                Cosplayer Hiring Cost x TotalHours:
-                              </strong>{" "}
-                              {cosplayerCost > 0
-                                ? `${cosplayerCost.toLocaleString()} VND`
+                              <strong>Cosplayer:</strong>{" "}
+                              {character.cosplayerId ? (
+                                <Tooltip
+                                  title={
+                                    <div>
+                                      <p>
+                                        <strong>Name:</strong>{" "}
+                                        {cosplayerInfo.name}
+                                      </p>
+                                      <p>
+                                        <strong>Average Star:</strong>{" "}
+                                        {cosplayerInfo.averageStar.toFixed(1)}
+                                      </p>
+                                      <p>
+                                        <strong>Salary Index:</strong>{" "}
+                                        {cosplayerInfo.salaryIndex.toLocaleString()}{" "}
+                                        VND/h
+                                      </p>
+                                      <p>
+                                        <strong>Height & weight:</strong>{" "}
+                                        {cosplayerInfo.height}cm -{" "}
+                                        {cosplayerInfo.weight} kg
+                                      </p>
+                                      <a
+                                        target="_blank"
+                                        href={`/user-profile/${character.cosplayerId}`}
+                                      >
+                                        See Profile
+                                      </a>
+                                    </div>
+                                  }
+                                >
+                                  <span
+                                    style={{
+                                      cursor: "pointer",
+                                      color: "black",
+                                    }}
+                                  >
+                                    {cosplayerInfo.name}
+                                  </span>
+                                </Tooltip>
+                              ) : (
+                                "Not Assign"
+                              )}
+                            </p>
+                            {character.cosplayerId && (
+                              <p className="mb-2">
+                                <strong>
+                                  Cosplayer Hiring Cost x TotalHours:
+                                </strong>{" "}
+                                {cosplayerCost > 0
+                                  ? `${cosplayerCost.toLocaleString()} VND`
+                                  : "N/A"}
+                              </p>
+                            )}
+                            <p className="mb-2">
+                              <strong>Description:</strong>{" "}
+                              {character.description || "No description"}
+                            </p>
+                            <p className="mb-2">
+                              <strong>Status Cosplayer:</strong>{" "}
+                              {character.status || "Not Update"}
+                            </p>
+                            <p className="mb-2">
+                              <strong>Height Range:</strong>{" "}
+                              {character.minHeight}-{character.maxHeight} cm
+                            </p>
+                            <p className="mb-2">
+                              <strong>Weight Range:</strong>{" "}
+                              {character.minWeight}-{character.maxWeight} kg
+                            </p>
+                            <p className="mb-2">
+                              <strong>Unit Price character:</strong>{" "}
+                              {characterPrices[character.requestCharacterId]
+                                ? `${characterPrices[
+                                    character.requestCharacterId
+                                  ].toLocaleString()} VND/day`
                                 : "N/A"}
                             </p>
-                          )}
-                          <p className="mb-2">
-                            <strong>Description:</strong>{" "}
-                            {character.description || "N/A"}
-                          </p>
-                          <p className="mb-2">
-                            <strong>Height Range:</strong> {character.minHeight}
-                            -{character.maxHeight} cm
-                          </p>
-                          <p className="mb-2">
-                            <strong>Weight Range:</strong> {character.minWeight}
-                            -{character.maxWeight} kg
-                          </p>
-                          <p className="mb-2">
-                            <strong>Unit Price character:</strong>{" "}
-                            {characterPrices[character.requestCharacterId]
-                              ? `${characterPrices[
-                                  character.requestCharacterId
-                                ].toLocaleString()} VND/day`
-                              : "N/A"}
-                          </p>
-                        </Col>
-                        <Col md={6}>
-                          {character.characterImages?.length > 0 && (
-                            <img
-                              src={character.characterImages[0].urlImage}
-                              alt={`Image of ${character.characterName}`}
-                              style={{
-                                maxWidth: "100%",
-                                height: "auto",
-                                borderRadius: "8px",
-                              }}
+                          </Col>
+                          <Col md={6}>
+                            {character.characterImages?.length > 0 && (
+                              <img
+                                src={character.characterImages[0].urlImage}
+                                alt={`Image of ${character.characterName}`}
+                                style={{
+                                  maxWidth: "100%",
+                                  height: "auto",
+                                  borderRadius: "8px",
+                                }}
+                              />
+                            )}
+                          </Col>
+                        </Row>
+
+                        <div className="mt-3">
+                          <Button
+                            type="link"
+                            onClick={() =>
+                              toggleDates(character.requestCharacterId)
+                            }
+                            aria-expanded={
+                              expandedDates[character.requestCharacterId]
+                            }
+                            aria-controls={`dates-${character.requestCharacterId}`}
+                            aria-label={`Toggle time slots for ${character.characterName}`}
+                          >
+                            {expandedDates[character.requestCharacterId] ? (
+                              <>
+                                <ChevronUp size={16} /> Hide Time Slots
+                              </>
+                            ) : (
+                              <>
+                                <ChevronDown size={16} /> Show Time Slots
+                              </>
+                            )}
+                          </Button>
+                          {expandedDates[character.requestCharacterId] && (
+                            <Table
+                              id={`dates-${character.requestCharacterId}`}
+                              columns={dateColumns}
+                              dataSource={character.requestDateResponses}
+                              rowKey="requestDateId"
+                              pagination={false}
+                              size="small"
+                              className="mt-2"
+                              scroll={{ x: "max-content" }}
                             />
                           )}
-                        </Col>
-                      </Row>
-
-                      <div className="mt-3">
-                        <Button
-                          type="link"
-                          onClick={() =>
-                            toggleDates(character.requestCharacterId)
-                          }
-                          aria-expanded={
-                            expandedDates[character.requestCharacterId]
-                          }
-                          aria-controls={`dates-${character.requestCharacterId}`}
-                          aria-label={`Toggle time slots for ${character.characterName}`}
-                        >
-                          {expandedDates[character.requestCharacterId] ? (
-                            <>
-                              <ChevronUp size={16} /> Hide Time Slots
-                            </>
-                          ) : (
-                            <>
-                              <ChevronDown size={16} /> Show Time Slots
-                            </>
-                          )}
-                        </Button>
-                        {expandedDates[character.requestCharacterId] && (
-                          <Table
-                            id={`dates-${character.requestCharacterId}`}
-                            columns={dateColumns}
-                            dataSource={character.requestDateResponses}
-                            rowKey="requestDateId"
-                            pagination={false}
-                            size="small"
-                            className="mt-2"
-                            scroll={{ x: "max-content" }}
-                          />
-                        )}
-                      </div>
-
-                      {showToggle && (
-                        <div className="mt-3">
-                          <Switch
-                            checked={
-                              cosplayerToggles[character.cosplayerId] || false
-                            }
-                            onChange={(checked) =>
-                              handleToggleStatusProgression(
-                                character.cosplayerId,
-                                contractData.contractId,
-                                checked
-                              )
-                            }
-                            checkedChildren="Hide Task Progression"
-                            unCheckedChildren="Show Task Progression"
-                          />
                         </div>
-                      )}
 
-                      {showToggle &&
-                        cosplayerToggles[character.cosplayerId] && (
+                        {showToggle && (
                           <div className="mt-3">
-                            <h5>
-                              Task Status Progression for {cosplayerInfo.name}
-                            </h5>
-                            {taskLoading[character.cosplayerId] ? (
-                              <Spin />
-                            ) : cosplayerTasks[character.cosplayerId]?.length >
-                              0 ? (
-                              <Steps
-                                current={currentStatusIndex}
-                                progressDot={customDot}
-                                items={filteredStepsItems}
-                                style={{ marginBottom: "20px" }}
-                              />
-                            ) : (
-                              <p>No tasks found for this cosplayer.</p>
-                            )}
+                            <Switch
+                              checked={
+                                cosplayerToggles[character.cosplayerId] || false
+                              }
+                              onChange={(checked) =>
+                                handleToggleStatusProgression(
+                                  character.cosplayerId,
+                                  contractData.contractId,
+                                  checked
+                                )
+                              }
+                              checkedChildren="Hide Task Progression"
+                              unCheckedChildren="Show Task Progression"
+                            />
                           </div>
                         )}
-                    </div>
-                  )}
-                </Card>
-              </Col>
-            );
-          })}
-        </Row>
+
+                        {showToggle &&
+                          cosplayerToggles[character.cosplayerId] && (
+                            <div className="mt-3">
+                              <h5>
+                                Task Status Progression for {cosplayerInfo.name}
+                              </h5>
+                              {taskLoading[character.cosplayerId] ? (
+                                <Spin />
+                              ) : cosplayerTasks[character.cosplayerId]
+                                  ?.length > 0 ? (
+                                <Steps
+                                  current={currentStatusIndex}
+                                  progressDot={customDot}
+                                  items={filteredStepsItems}
+                                  style={{ marginBottom: "20px" }}
+                                />
+                              ) : (
+                                <p>No tasks found for this cosplayer.</p>
+                              )}
+                            </div>
+                          )}
+                      </div>
+                    )}
+                  </Card>
+                </Col>
+              );
+            })}
+          </Row>
+          <div className="mt-4 d-flex justify-content-center">
+            <Pagination
+              current={currentPage}
+              pageSize={pageSize}
+              total={formattedData.charactersListResponse.length}
+              onChange={handlePageChange}
+              showSizeChanger={false} // Hide page size changer
+            />
+          </div>
+        </>
       ) : (
         <p>No characters requested.</p>
       )}

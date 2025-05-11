@@ -41,7 +41,7 @@ const formatDate = (date) => {
   ];
   const parsedDate = dayjs(date, formats, true);
   return parsedDate.isValid()
-    ? parsedDate.format("HH:mm DD/MM/YYYY")
+    ? parsedDate.format("DD/MM/YYYY")
     : "Invalid Date";
 };
 
@@ -104,7 +104,7 @@ const ManageAssignTask = () => {
         setAssignedRequests(assignedRequests);
         setCurrentPage(1);
       } catch (error) {
-        setError("Lỗi khi tải danh sách request.");
+        setError("Error loading list request.");
         console.error("Error fetching requests:", error);
       } finally {
         setIsLoading(false);
@@ -142,7 +142,7 @@ const ManageAssignTask = () => {
         await ManageAssignTaskService.getRequestByRequestId(request.requestId);
 
       if (!requestDetails.charactersListResponse?.length) {
-        setError("Request không có nhân vật nào.");
+        setError("Request don't have any character.");
         setIsLoading(false);
         return;
       }
@@ -163,7 +163,7 @@ const ManageAssignTask = () => {
 
         if (dates.length === 0) {
           setError(
-            `Không tìm thấy ngày yêu cầu cho nhân vật ${
+            `Requested date not found for character ${
               character.characterName || character.characterId
             }`
           );
@@ -224,7 +224,7 @@ const ManageAssignTask = () => {
           cosplayersMap[character.requestCharacterId] = cosplayers;
         } catch (error) {
           console.error(
-            `Lỗi khi lấy cosplayer cho ${character.characterId}:`,
+            `Error when getting cosplayer ${character.characterId}:`,
             error
           );
           cosplayersMap[character.requestCharacterId] = [];
@@ -239,14 +239,18 @@ const ManageAssignTask = () => {
           (c) => c.cosplayerId !== null
         )
       ) {
-        setError("Tất cả nhân vật trong yêu cầu này đã được gán cosplayer.");
+        setError(
+          "All characters in this request have been assigned cosplayers."
+        );
       } else if (!hasAvailableCosplayers) {
-        setError("Không có cosplayer nào khả dụng cho các nhân vật chưa gán.");
+        setError(
+          "There are no cosplayers available for unassigned characters."
+        );
       }
     } catch (error) {
       setError(
         error.response?.data?.message ||
-          "Lỗi khi tải cosplayer hoặc chi tiết request."
+          "Error loading cosplayer or request details."
       );
       console.error("Error in handleAssignTaskClick:", error);
     } finally {
@@ -403,8 +407,9 @@ const ManageAssignTask = () => {
       setIsViewingAssigned(false);
     } catch (error) {
       notification.error({
-        message: "Lỗi",
-        description: error.response?.data?.message || "Lỗi khi phân công task",
+        message: "error",
+        description:
+          error.response?.data?.message || "Error in task assignment",
       });
       console.error("Error in handleSubmit:", error);
     } finally {
@@ -676,8 +681,7 @@ const ManageAssignTask = () => {
                           <strong>Dates:</strong>{" "}
                           {character.requestDateResponses.map((date) => (
                             <div key={date.requestDateId}>
-                              {formatDate(date.startDate)} -{" "}
-                              {formatDate(date.endDate)}
+                              {date.startDate} - {date.endDate}
                             </div>
                           ))}
                         </Card.Text>

@@ -2460,109 +2460,6 @@ const MyEventOrganize = () => {
     setIsViewDetailsModalVisible(true);
   };
 
-  const handleAddCharacter = () =>
-    setModalData({
-      ...modalData,
-      listCharacters: [
-        ...modalData.listCharacters,
-        {
-          requestCharacterId: "",
-          characterId: "",
-          characterName: "",
-          cosplayerId: null,
-          quantity: 1,
-          description: "shared",
-          requestDateResponses: [],
-        },
-      ],
-    });
-
-  const handleRemoveCharacter = (charIndex) =>
-    setModalData({
-      ...modalData,
-      listCharacters: modalData.listCharacters.filter(
-        (_, index) => index !== charIndex
-      ),
-    });
-
-  const handleViewEditConfirm = async () => {
-    if (modalData.status !== "Pending") {
-      setIsViewEditModalVisible(false);
-      return;
-    }
-    if (!modalData.packageId) {
-      toast.error("Package is required!");
-      return;
-    }
-    if (modalData.listCharacters.some((char) => !char.characterId)) {
-      toast.error("All characters must have a selected character!");
-      return;
-    }
-    if (
-      modalData.listCharacters.some(
-        (char) => !char.quantity || char.quantity < 1
-      )
-    ) {
-      toast.error("All characters must have a valid quantity (minimum 1)!");
-      return;
-    }
-    try {
-      const requestData = {
-        name: modalData.name,
-        description: modalData.description,
-        price: modalData.price,
-        startDate: modalData.startDate,
-        endDate: modalData.endDate,
-        location: modalData.location,
-        serviceId: modalData.serviceId || "S003",
-        packageId: modalData.packageId,
-        listUpdateRequestCharacters: modalData.listCharacters.map((char) => ({
-          requestCharacterId: char.requestCharacterId || null,
-          characterId: char.characterId,
-          description: char.description || "shared",
-          quantity: char.quantity || 1,
-        })),
-      };
-      await MyEventOrganizeService.updateEventOrganizationRequest(
-        modalData.requestId,
-        requestData
-      );
-      setRequests((prev) =>
-        prev.map((req) =>
-          req.requestId === modalData.requestId
-            ? {
-                ...req,
-                packageId: modalData.packageId,
-                price: modalData.price,
-                charactersListResponse: modalData.listCharacters.map(
-                  (char) => ({
-                    requestCharacterId: char.requestCharacterId,
-                    characterId: char.characterId,
-                    characterName: char.characterName,
-                    cosplayerId: char.cosplayerId,
-                    quantity: char.quantity,
-                    description: char.description,
-                    characterImages: char.characterImages,
-                    requestDateResponses: char.requestDateResponses,
-                    maxHeight: char.maxHeight,
-                    maxWeight: char.maxWeight,
-                    minHeight: char.minHeight,
-                    minWeight: char.minWeight,
-                    status: char.status,
-                  })
-                ),
-              }
-            : req
-        )
-      );
-      toast.success("Request updated successfully!");
-      setIsViewEditModalVisible(false);
-    } catch (error) {
-      toast.error("Failed to update request.");
-      console.error("Error updating request:", error);
-    }
-  };
-
   const handleDepositRequest = (request) => {
     if (!request?.requestId || !request?.price) {
       toast.error("Invalid request or price data");
@@ -3361,8 +3258,8 @@ const MyEventOrganize = () => {
           okText="Accept"
           cancelText="Cancel"
         >
-          <p>Tổng giá: {(modalData.price || 0).toLocaleString()} VND</p>
-          <p>Vui lòng chọn số tiền cọc:</p>
+          <p>Total price: {(modalData.price || 0).toLocaleString()} VND</p>
+          <p>Please select deposit:</p>
           <Radio.Group
             onChange={(e) => setDepositAmount(e.target.value)}
             value={depositAmount}
