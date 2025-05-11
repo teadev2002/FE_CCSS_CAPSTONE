@@ -140,5 +140,29 @@ const MyRentalCostumeService = {
       throw error;
     }
   },
+  AddCharacterInReq: async (data) => {
+    try {
+      const response = await apiClient.post(`/api/RequestCharacter`, data);
+      return response.data;
+    } catch (error) {
+      console.error("Error adding cosplayer to request:", error);
+      throw new Error(
+        error.response?.data?.message || "Failed to add cosplayer to request"
+      );
+    }
+  },
+  DeleteCharacterInReq: async (requestCharacterId) => {
+    try {
+      const response = await apiClient.delete(
+        `/api/RequestCharacter?requestCharacterId=${requestCharacterId}`
+      );
+      return response.data; // Assuming the API returns a success message or empty response
+    } catch (error) {
+      throw new Error(
+        error.response?.data?.message ||
+          "Failed to delete cosplayer from request."
+      );
+    }
+  },
 };
 export default MyRentalCostumeService;

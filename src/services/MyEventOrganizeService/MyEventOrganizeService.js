@@ -305,6 +305,67 @@ const MyEventOrganizeService = {
       );
     }
   },
+  AddCharacterInReq: async (data) => {
+    try {
+      const response = await apiClient.post(`/api/RequestCharacter`, data);
+      return response.data;
+    } catch (error) {
+      console.error("Error adding cosplayer to request:", error);
+      throw new Error(
+        error.response?.data?.message || "Failed to add cosplayer to request"
+      );
+    }
+  },
+  DeleteCharacterInReq: async (requestCharacterId) => {
+    try {
+      const response = await apiClient.delete(
+        `/api/RequestCharacter?requestCharacterId=${requestCharacterId}`
+      );
+      return response.data; // Assuming the API returns a success message or empty response
+    } catch (error) {
+      throw new Error(
+        error.response?.data?.message ||
+          "Failed to delete cosplayer from request."
+      );
+    }
+  },
+  getNameCosplayerInRequestByCosplayerId: async (accountId) => {
+    try {
+      const response = await apiClient.get(`/api/Account/${accountId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching cosplayer:", error);
+      throw error;
+    }
+  },
+  getTaskByCosplayerIdInContract: async (cosplayerId) => {
+    try {
+      const response = await apiClient.get(
+        `/api/Task/accountId/${cosplayerId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error(
+        "Error fetching task by cosplayer ID in contract:",
+        error.response?.data || error.message
+      );
+      throw error;
+    }
+  },
+  getContractByContractId: async (contractId) => {
+    try {
+      const response = await apiClient.get(
+        `/api/Contract/contractId/${contractId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error(
+        "Error fetching contract by contract ID:",
+        error.response?.data || error.message
+      );
+      throw error;
+    }
+  },
 };
 
 export default MyEventOrganizeService;
