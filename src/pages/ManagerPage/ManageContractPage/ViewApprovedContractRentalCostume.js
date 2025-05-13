@@ -161,7 +161,9 @@ const ViewApprovedContractRentalCostume = ({
   // Calculate total deposit of all costumes
   const totalDeposit = charactersListResponse.reduce((sum, char) => {
     const deposit =
-      char.price && char.quantity ? char.price * 5 * char.quantity : 0;
+      char.price && char.quantity
+        ? (char.price * totalDate + char.price * 5) * char.quantity
+        : 0;
     return sum + deposit;
   }, 0);
 
@@ -247,7 +249,7 @@ const ViewApprovedContractRentalCostume = ({
                 // Calculate deposit for each costume: (price * 5) * quantity
                 const characterDeposit =
                   char.price && char.quantity
-                    ? char.price * 5 * char.quantity
+                    ? (char.price * totalDate + char.price * 5) * char.quantity
                     : 0;
 
                 return (
