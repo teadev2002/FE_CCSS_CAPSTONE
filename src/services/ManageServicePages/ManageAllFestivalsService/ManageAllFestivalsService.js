@@ -96,11 +96,16 @@ const ManageAllFestivalsService = {
     }
   },
 
-  getAllCharacters: async () => {
+  getAllCharacters: async (startDate, endDate) => {
     try {
-      console.log("Fetching all characters...");
-      const response = await apiClient.get("/api/Character/all");
-      console.log("GetAllCharacters response:", response.data);
+      console.log(`Fetching characters with startDate=${startDate}, endDate=${endDate}...`);
+      const response = await apiClient.get("/api/Character/GetCharactersByDate", {
+        params: {
+          startDate: startDate, // Định dạng DD/MM/YYYY
+          endDate: endDate,     // Định dạng DD/MM/YYYY
+        },
+      });
+      console.log("GetCharactersByDate response:", response.data);
       return response.data;
     } catch (error) {
       console.error("Error fetching characters:", error.response?.data || error);

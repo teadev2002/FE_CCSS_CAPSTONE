@@ -28,6 +28,7 @@ const HomePage = () => {
     setIsPageManuallySelectedCharacters,
   ] = useState(false);
   const [characterImages, setCharacterImages] = useState({});
+  // Giá trị mặc định cho bộ lọc nhân vật
   const defaultCharacterSearchParams = {
     characterName: "",
     price: [0, 1000000],
@@ -48,7 +49,9 @@ const HomePage = () => {
     setIsPageManuallySelectedCosplayers,
   ] = useState(false);
   const [cosplayerImages, setCosplayerImages] = useState({});
+  // Giá trị mặc định cho bộ lọc cosplayer, thêm cosplayerName để tìm kiếm
   const defaultCosplayerSearchParams = {
+    cosplayerName: "", // Thêm trường để lưu tên cosplayer tìm kiếm
     averageStar: [0, 5],
     height: [100, 200],
     weight: [20, 100],
@@ -236,9 +239,15 @@ const HomePage = () => {
     setIsPageManuallySelectedCharacters(false);
   };
 
-  // Xử lý tìm kiếm và lọc cho Cosplayer List
+  // Xử lý tìm kiếm và lọc cho Cosplayer List, thêm lọc theo tên cosplayer
   const handleCosplayerSearch = () => {
     const filtered = cosplayers.filter((cosplayer) => {
+      // Kiểm tra tên cosplayer (không phân biệt hoa thường, hỗ trợ tìm kiếm gần đúng)
+      const nameMatch = cosplayerSearchParams.cosplayerName
+        ? cosplayer.name
+            .toLowerCase()
+            .includes(cosplayerSearchParams.cosplayerName.toLowerCase())
+        : true;
       const starMatch =
         cosplayer.averageStar >= cosplayerSearchParams.averageStar[0] &&
         cosplayer.averageStar <= cosplayerSearchParams.averageStar[1];
@@ -251,26 +260,36 @@ const HomePage = () => {
       const rateMatch =
         cosplayer.salaryIndex >= cosplayerSearchParams.hourlyRate[0] &&
         cosplayer.salaryIndex <= cosplayerSearchParams.hourlyRate[1];
-      return starMatch && heightMatch && weightMatch && rateMatch;
+      return nameMatch && starMatch && heightMatch && weightMatch && rateMatch;
     });
     setFilteredCosplayers(filtered);
     setCurrentPageCosplayers(1);
     setIsPageManuallySelectedCosplayers(false);
   };
 
+  // Xử lý thay đổi input cho Character
   const handleCharacterInputChange = (e) => {
     const { name, value } = e.target;
     setCharacterSearchParams((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Xử lý thay đổi input cho Cosplayer
+  const handleCosplayerInputChange = (e) => {
+    const { name, value } = e.target;
+    setCosplayerSearchParams((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Xử lý thay đổi range cho Character
   const handleCharacterRangeChange = (name, values) => {
     setCharacterSearchParams((prev) => ({ ...prev, [name]: values }));
   };
 
+  // Xử lý thay đổi range cho Cosplayer
   const handleCosplayerRangeChange = (name, values) => {
     setCosplayerSearchParams((prev) => ({ ...prev, [name]: values }));
   };
 
+  // Reset bộ lọc Character
   const handleCharacterCancel = () => {
     setCharacterSearchParams(defaultCharacterSearchParams);
     setFilteredCharacters(characters);
@@ -278,6 +297,7 @@ const HomePage = () => {
     setIsPageManuallySelectedCharacters(false);
   };
 
+  // Reset bộ lọc Cosplayer
   const handleCosplayerCancel = () => {
     setCosplayerSearchParams(defaultCosplayerSearchParams);
     setFilteredCosplayers(cosplayers);
@@ -285,38 +305,45 @@ const HomePage = () => {
     setIsPageManuallySelectedCosplayers(false);
   };
 
+  // Chuyển trang Character
   const handleCharacterPageChange = (page) => {
     setCurrentPageCharacters(page);
     setIsPageManuallySelectedCharacters(true);
   };
 
+  // Chuyển trang Cosplayer
   const handleCosplayerPageChange = (page) => {
     setCurrentPageCosplayers(page);
     setIsPageManuallySelectedCosplayers(true);
   };
 
+  // Trang trước Character
   const handleCharacterPrevious = () => {
     setCurrentPageCharacters((prev) => (prev > 1 ? prev - 1 : prev));
     setIsPageManuallySelectedCharacters(true);
   };
 
+  // Trang trước Cosplayer
   const handleCosplayerPrevious = () => {
     setCurrentPageCosplayers((prev) => (prev > 1 ? prev - 1 : prev));
     setIsPageManuallySelectedCosplayers(true);
   };
 
+  // Trang sau Character
   const handleCharacterNext = () => {
     const maxPage = Math.ceil(filteredCharacters.length / charactersPerPage);
     setCurrentPageCharacters((prev) => (prev < maxPage ? prev + 1 : prev));
     setIsPageManuallySelectedCharacters(true);
   };
 
+  // Trang sau Cosplayer
   const handleCosplayerNext = () => {
     const maxPage = Math.ceil(filteredCosplayers.length / cosplayersPerPage);
     setCurrentPageCosplayers((prev) => (prev < maxPage ? prev + 1 : prev));
     setIsPageManuallySelectedCosplayers(true);
   };
 
+  // Hiển thị thông báo chào mừng khi đăng nhập
   useEffect(() => {
     const accessToken = localStorage.getItem("accessToken");
     if (!accessToken) return;
@@ -343,6 +370,7 @@ const HomePage = () => {
 
   return (
     <div className="homepage">
+      <ToastContainer />
       <Carousel fade>
         {carouselItems.map((item, index) => (
           <Carousel.Item key={index}>
@@ -636,6 +664,19 @@ const HomePage = () => {
         <div className="character-list-container">
           <div className="search-filter-sidebar">
             <Form className="search-filter-form">
+              {/* Thanh tìm kiếm theo tên cosplayer */}
+              <Form.Group className="mb-4">
+                <Form.Label>Cosplayer Name</Form.Label>
+                <Form.Control
+                  type="text"
+                  name="cosplayerName"
+                  value={cosplayerSearchParams.cosplayerName}
+                  onChange={handleCosplayerInputChange}
+                  placeholder="Enter cosplayer name"
+                  className="search-input"
+                />
+              </Form.Group>
+
               <Form.Group className="mb-4">
                 <Form.Label>Average Star</Form.Label>
                 <Range

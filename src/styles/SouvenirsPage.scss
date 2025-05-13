@@ -91,6 +91,7 @@
           border: none;
           padding: 1rem;
           font-size: 1rem;
+          transition: border-color 0.3s ease;
 
           &:focus {
             box-shadow: none;
@@ -100,7 +101,21 @@
           &::placeholder {
             color: #6b7280;
           }
+
+          &.is-invalid {
+            border: 2px solid #dc3545 !important;
+          }
         }
+      }
+
+      .text-danger {
+        font-size: 0.85rem;
+        color: #dc3545;
+        margin-top: 0.5rem;
+        display: block;
+        text-align: center;
+        transition: opacity 0.3s ease;
+        opacity: 0.9;
       }
     }
   }
@@ -127,7 +142,7 @@
   .pagination-container {
     display: flex;
     justify-content: center;
-    margin-top: 3rem; // Đồng bộ với mt-5 từ Bootstrap
+    margin-top: 3rem;
 
     .ant-pagination {
       .ant-pagination-item {
@@ -370,7 +385,6 @@
           }
         }
 
-        /* Thêm vào SouvenirsPage.scss */
         .fest-purchase-form.summary-modal {
           background: white;
           border-radius: 0.5rem;
@@ -496,7 +510,8 @@
             margin-bottom: 1.5rem;
           }
 
-          .form-control {
+          .form-control,
+          .form-select {
             border: 2px solid #510545;
             border-radius: 0.5rem;
             padding: 0.75rem;
@@ -506,16 +521,24 @@
               border-color: #22668a;
               box-shadow: 0 0 5px rgba(34, 102, 138, 0.3);
             }
+
+            &.is-invalid {
+              border-color: #dc3545 !important;
+              /* Giữ biểu tượng lỗi mặc định của Bootstrap */
+              background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+              background-repeat: no-repeat;
+              background-position: right calc(0.375em + 0.1875rem) center;
+              background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+            }
           }
 
-          .form-select {
-            border: 2px solid #510545;
-            color: #510545;
-            transition: all 0.3s ease;
-
-            &:hover {
-              background-color: rgba(81, 5, 69, 0.1);
-            }
+          .text-danger {
+            font-size: 0.85rem;
+            color: #dc3545;
+            margin-top: 0.25rem;
+            display: block;
+            transition: opacity 0.3s ease;
+            opacity: 0.9;
           }
 
           .fest-confirm-purchase-btn {

@@ -58,9 +58,20 @@ const ManageAllFestivals = () => {
     if (isCreateModalVisible || isDetailsModalVisible) {
       const fetchCharactersAndActivities = async () => {
         try {
-          const charData = await ManageAllFestivalsService.getAllCharacters();
-          console.log("Characters:", charData);
-          charData.forEach(char => console.log("Character ID:", char.characterId, typeof char.characterId));
+          let charData = [];
+          if (formData.dateRange) {
+            const [startDate, endDate] = formData.dateRange;
+            const formattedStartDate = startDate.format("DD/MM/YYYY");
+            const formattedEndDate = endDate.format("DD/MM/YYYY");
+            charData = await ManageAllFestivalsService.getAllCharacters(
+              formattedStartDate,
+              formattedEndDate
+            );
+            console.log("Characters:", charData);
+            charData.forEach((char) =>
+              console.log("Character ID:", char.characterId, typeof char.characterId)
+            );
+          }
           setCharacters(Array.isArray(charData) ? charData : []);
 
           const actData = await ManageAllFestivalsService.getAllActivities();
@@ -74,7 +85,7 @@ const ManageAllFestivals = () => {
       };
       fetchCharactersAndActivities();
     }
-  }, [isCreateModalVisible, isDetailsModalVisible]);
+  }, [isCreateModalVisible, isDetailsModalVisible, formData.dateRange]);
 
   useEffect(() => {
     if (selectedCharacterId && formData.dateRange) {
@@ -281,6 +292,7 @@ const ManageAllFestivals = () => {
       setFormData((prev) => ({ ...prev, dateRange: null }));
       setSelectedCharacterId(null);
       setCosplayers([]);
+      setCharacters([]); // Reset characters khi bỏ chọn date range
       return;
     }
 
@@ -293,6 +305,7 @@ const ManageAllFestivals = () => {
       setFormData((prev) => ({ ...prev, dateRange: null }));
       setSelectedCharacterId(null);
       setCosplayers([]);
+      setCharacters([]);
       return;
     }
 
@@ -301,10 +314,13 @@ const ManageAllFestivals = () => {
       setFormData((prev) => ({ ...prev, dateRange: null }));
       setSelectedCharacterId(null);
       setCosplayers([]);
+      setCharacters([]);
       return;
     }
 
     setFormData((prev) => ({ ...prev, dateRange: dates }));
+    setSelectedCharacterId(null); // Reset character khi thay đổi date range
+    setCosplayers([]); // Reset cosplayers
   };
 
   const disabledDate = (current) => {
@@ -674,7 +690,7 @@ const ManageAllFestivals = () => {
                     <td className="text-center">{festival.startDate.split("T")[0]}</td>
                     <td className="text-center">{festival.endDate.split("T")[0]}</td>
                     <td className="text-center">
-                      {new Date(festival.createDate).toLocaleDateString()}
+                      <td className="text-center">{festival.createDate.split("T")[0]}</td>
                     </td>
                     <td className="text-center">{festival.createBy || "Unknown"}</td>
                     <td className="text-center">
@@ -854,10 +870,40 @@ const ManageAllFestivals = () => {
                 >
                   {characters.map((char) => (
                     <Option key={char.characterId} value={char.characterId}>
-                      {char.characterName} (Quantity: {char.quantity})
+                      {char.characterName} (Quantity: {char.quantity}, ID: {char.characterId})
                     </Option>
                   ))}
                 </Select>
+
+                {selectedCharacterId && (
+                  <div className="character-info mt-3">
+                    {characters
+                      .filter((char) => char.characterId === selectedCharacterId)
+                      .map((char) => (
+                        <div key={char.characterId} style={{ display: "flex", alignItems: "center" }}>
+                          <img
+                            src={
+                              char.images?.find((img) => img.isAvatar)?.urlImage ||
+                              char.images?.[0]?.urlImage ||
+                              "https://via.placeholder.com/100?text=No+Image"
+                            }
+                            alt={char.characterName}
+                            style={{
+                              width: "50px",
+                              height: "50px",
+                              borderRadius: "5px",
+                              marginRight: "10px",
+                              objectFit: "cover",
+                            }}
+                          />
+                          <div>
+                            <strong>{char.characterName}</strong>
+                            <p>Quantity: {char.quantity}</p>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                )}
 
                 {selectedCharacterId && cosplayers.length > 0 && (
                   <div className="cosplayer-grid mt-3">
@@ -888,8 +934,8 @@ const ManageAllFestivals = () => {
                             alignItems: "center",
                             height: "180px",
                           }}
-                          onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.05)"}
-                          onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
+                          onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
+                          onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
                         >
                           <div
                             style={{
@@ -951,9 +997,7 @@ const ManageAllFestivals = () => {
                 <List
                   dataSource={formData.selectedCosplayers}
                   renderItem={(item, index) => {
-                    const character = characters.find(
-                      (c) => c.characterId === item.characterId
-                    );
+                    const character = characters.find((c) => c.characterId === item.characterId);
                     return (
                       <List.Item
                         actions={[

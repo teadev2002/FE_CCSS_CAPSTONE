@@ -26,7 +26,12 @@ const CartPage = () => {
   const [accountName, setAccountName] = useState(null);
   const [cartId, setCartId] = useState(null);
   const [phone, setPhone] = useState("");
+  const [phoneError, setPhoneError] = useState(""); // Lỗi cho trường hợp không bắt đầu bằng 0
   const [address, setAddress] = useState("");
+  const [addressError, setAddressError] = useState(""); // Lỗi cho address
+  const [provinceError, setProvinceError] = useState(""); // Lỗi cho province
+  const [districtError, setDistrictError] = useState(""); // Lỗi cho district
+  const [wardError, setWardError] = useState(""); // Lỗi cho ward
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
   const [wards, setWards] = useState([]);
@@ -220,6 +225,137 @@ const CartPage = () => {
     setShowDeliveryModal(true);
   };
 
+  // Validate phone number
+  const validatePhoneNumber = (value) => {
+    if (!value) {
+      return "Phone number is required.";
+    }
+    if (!value.startsWith("0")) {
+      return "Phone number must start with 0.";
+    }
+    return "";
+  };
+
+  const handlePhoneChange = (e) => {
+    const value = e.target.value;
+    // Chỉ cho phép số và tối đa 11 số
+    if (/^\d*$/.test(value) && value.length <= 11) {
+      setPhone(value);
+      const error = validatePhoneNumber(value);
+      setPhoneError(error);
+    } else if (!/^\d*$/.test(value)) {
+      toast.error("Phone number must contain only digits.");
+    } else if (value.length > 11) {
+      toast.error("Phone number must not exceed 11 digits.");
+    }
+  };
+
+  // Validate address
+  const validateAddress = (value) => {
+    if (!value) {
+      return "Address is required.";
+    }
+    if (value.length < 5) {
+      return "Address must be at least 5 characters long.";
+    }
+    if (value.length > 100) {
+      return "Address must not exceed 100 characters.";
+    }
+    // Ngăn các ký tự đặc biệt không mong muốn
+    if (/[<>{}!@#$%^&*()+=[\]|\\:;"'?~`]/.test(value)) {
+      return "Address contains invalid special characters.";
+    }
+    return "";
+  };
+
+  const handleAddressChange = (e) => {
+    const value = e.target.value;
+    setAddress(value);
+    const error = validateAddress(value);
+    setAddressError(error);
+  };
+
+  // Validate province, district, ward
+  const validateProvince = (value) => {
+    if (!value) {
+      return "Please select a province/city.";
+    }
+    const province = provinces.find((p) => String(p.provinceId) === String(value));
+    if (!province) {
+      return "Invalid province selected.";
+    }
+    return "";
+  };
+
+  const validateDistrict = (value) => {
+    if (!value) {
+      return "Please select a district.";
+    }
+    const district = districts.find((d) => String(d.districtId) === String(value));
+    if (!district) {
+      return "Invalid district selected.";
+    }
+    return "";
+  };
+
+  const validateWard = (value) => {
+    if (!value) {
+      return "Please select a ward.";
+    }
+    const ward = wards.find((w) => String(w.wardCode) === String(value));
+    if (!ward) {
+      return "Invalid ward selected.";
+    }
+    return "";
+  };
+
+  const handleProvinceChange = (e) => {
+    const value = e.target.value;
+    setSelectedProvince(value);
+    const error = validateProvince(value);
+    setProvinceError(error);
+    if (value) {
+      fetchDistricts(value);
+    } else {
+      setDistricts([]);
+      setWards([]);
+      setSelectedDistrict("");
+      setSelectedWard("");
+      setToDistrictId("");
+      setToWardCode("");
+      setDistrictError("");
+      setWardError("");
+    }
+  };
+
+  const handleDistrictChange = (e) => {
+    const value = e.target.value;
+    setSelectedDistrict(value);
+    const error = validateDistrict(value);
+    setDistrictError(error);
+    const selected = districts.find((d) => d.districtId === parseInt(value));
+    const districtId = selected ? selected.districtId.toString() : "";
+    setToDistrictId(districtId);
+    if (value) {
+      fetchWards(value);
+    } else {
+      setWards([]);
+      setSelectedWard("");
+      setToWardCode("");
+      setWardError("");
+    }
+  };
+
+  const handleWardChange = (e) => {
+    const value = e.target.value;
+    setSelectedWard(value);
+    const error = validateWard(value);
+    setWardError(error);
+    const selected = wards.find((w) => String(w.wardCode) === String(value));
+    const wardCode = selected ? String(selected.wardCode) : String(value);
+    setToWardCode(wardCode);
+  };
+
   const handleDeliveryConfirm = () => {
     console.log("Delivery info check:", {
       phone,
@@ -231,22 +367,30 @@ const CartPage = () => {
       toWardCode,
     });
 
-    if (!phone || !address || !selectedProvince || !selectedDistrict || !selectedWard || !toWardCode) {
-      toast.error("Please fill in all delivery information, including ward!");
-      console.error("Missing fields:", {
-        phone: !phone,
-        address: !address,
-        selectedProvince: !selectedProvince,
-        selectedDistrict: !selectedDistrict,
-        selectedWard: !selectedWard,
-        toWardCode: !toWardCode,
-      });
-      return;
-    }
+    // Kiểm tra các trường bắt buộc và hợp lệ
+    const phoneErr = validatePhoneNumber(phone);
+    const addressErr = validateAddress(address);
+    const provinceErr = validateProvince(selectedProvince);
+    const districtErr = validateDistrict(selectedDistrict);
+    const wardErr = validateWard(selectedWard);
 
-    if (!/^\d{10}$/.test(phone)) {
-      toast.error("Phone number must be 10 digits!");
-      console.error("Invalid phone:", phone);
+    setPhoneError(phoneErr);
+    setAddressError(addressErr);
+    setProvinceError(provinceErr);
+    setDistrictError(districtErr);
+    setWardError(wardErr);
+
+    if (phoneErr || addressErr || provinceErr || districtErr || wardErr || !toWardCode) {
+      const errors = [
+        phoneErr,
+        addressErr,
+        provinceErr,
+        districtErr,
+        wardErr,
+        !toWardCode ? "Please fill in all delivery information, including ward!" : "",
+      ].filter(Boolean);
+      toast.error(errors.join(" "));
+      console.error("Validation errors:", errors);
       return;
     }
 
@@ -364,7 +508,7 @@ const CartPage = () => {
     setShowPaymentModal(true);
     console.log("Back to payment modal");
     setTimeout(() => {
-      const paymentModal = document.getElementById("cart-payment-modal");
+      const paymentModal = document.getId("cart-payment-modal");
       if (paymentModal) {
         paymentModal.scrollIntoView({ behavior: "smooth", block: "start" });
       }
@@ -382,12 +526,17 @@ const CartPage = () => {
     setShowPaymentModal(false);
     setShowSummaryModal(false);
     setPhone("");
+    setPhoneError("");
     setAddress("");
+    setAddressError("");
     setSelectedProvince("");
     setSelectedDistrict("");
     setSelectedWard("");
     setToDistrictId("");
     setToWardCode("");
+    setProvinceError("");
+    setDistrictError("");
+    setWardError("");
     setPaymentMethod(null);
     setDistricts([]);
     setWards([]);
@@ -542,13 +691,14 @@ const CartPage = () => {
                 <Form.Label>Phone Number</Form.Label>
                 <Form.Control
                   type="text"
-                  placeholder="Enter phone number (10 digits)"
+                  placeholder="Enter phone number (e.g., 01234567890)"
                   value={phone}
-                  onChange={(e) => {
-                    setPhone(e.target.value);
-                    console.log("Phone updated:", e.target.value);
-                  }}
+                  onChange={handlePhoneChange}
+                  isInvalid={!!phoneError}
                 />
+                {phoneError && (
+                  <Form.Text className="text-danger">{phoneError}</Form.Text>
+                )}
               </Form.Group>
               <Form.Group className="mb-3">
                 <Form.Label>Address (Street, House Number)</Form.Label>
@@ -556,31 +706,19 @@ const CartPage = () => {
                   type="text"
                   placeholder="Enter street and house number"
                   value={address}
-                  onChange={(e) => {
-                    setAddress(e.target.value);
-                    console.log("Address updated:", e.target.value);
-                  }}
+                  onChange={handleAddressChange}
+                  isInvalid={!!addressError}
                 />
+                {addressError && (
+                  <Form.Text className="text-danger">{addressError}</Form.Text>
+                )}
               </Form.Group>
               <Form.Group className="mb-3">
                 <Form.Label>Province/City</Form.Label>
                 <Form.Select
                   value={selectedProvince}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setSelectedProvince(value);
-                    if (value) {
-                      fetchDistricts(value);
-                    } else {
-                      setDistricts([]);
-                      setWards([]);
-                      setSelectedDistrict("");
-                      setSelectedWard("");
-                      setToDistrictId("");
-                      setToWardCode("");
-                    }
-                    console.log("Selected province:", value);
-                  }}
+                  onChange={handleProvinceChange}
+                  isInvalid={!!provinceError}
                 >
                   <option value="">Select Province/City</option>
                   {provinces.map((province) => (
@@ -589,32 +727,17 @@ const CartPage = () => {
                     </option>
                   ))}
                 </Form.Select>
+                {provinceError && (
+                  <Form.Text className="text-danger">{provinceError}</Form.Text>
+                )}
               </Form.Group>
               <Form.Group className="mb-3">
                 <Form.Label>District</Form.Label>
                 <Form.Select
                   value={selectedDistrict}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setSelectedDistrict(value);
-                    const selected = districts.find(
-                      (d) => d.districtId === parseInt(value)
-                    );
-                    const districtId = selected ? selected.districtId.toString() : "";
-                    setToDistrictId(districtId);
-                    if (value) {
-                      fetchWards(value);
-                    } else {
-                      setWards([]);
-                      setSelectedWard("");
-                      setToWardCode("");
-                    }
-                    console.log("Selected district:", {
-                      districtId: value,
-                      toDistrictId: districtId,
-                    });
-                  }}
+                  onChange={handleDistrictChange}
                   disabled={!selectedProvince}
+                  isInvalid={!!districtError}
                 >
                   <option value="">Select District</option>
                   {districts.map((district) => (
@@ -623,32 +746,17 @@ const CartPage = () => {
                     </option>
                   ))}
                 </Form.Select>
+                {districtError && (
+                  <Form.Text className="text-danger">{districtError}</Form.Text>
+                )}
               </Form.Group>
               <Form.Group className="mb-3">
                 <Form.Label>Ward</Form.Label>
                 <Form.Select
                   value={selectedWard}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setSelectedWard(value);
-                    const selected = wards.find(
-                      (w) => String(w.wardCode) === String(value)
-                    );
-                    const wardCode = selected ? String(selected.wardCode) : String(value);
-                    setToWardCode(wardCode);
-                    console.log("Selected ward:", {
-                      value,
-                      valueType: typeof value,
-                      wards: wards.map((w) => ({
-                        wardCode: w.wardCode,
-                        wardCodeType: typeof w.wardCode,
-                      })),
-                      selected,
-                      selectedWard: value,
-                      toWardCode: wardCode,
-                    });
-                  }}
+                  onChange={handleWardChange}
                   disabled={!selectedDistrict}
+                  isInvalid={!!wardError}
                 >
                   <option value="">Select Ward</option>
                   {wards.map((ward) => (
@@ -657,6 +765,9 @@ const CartPage = () => {
                     </option>
                   ))}
                 </Form.Select>
+                {wardError && (
+                  <Form.Text className="text-danger">{wardError}</Form.Text>
+                )}
               </Form.Group>
               <Button
                 className="checkout-btn mt-3"

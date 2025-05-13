@@ -526,7 +526,7 @@ const FestivalsPage = () => {
                                   margin: 0,
                                 }}
                               >
-                                {cosplayerData?.description || "No description available"}
+                                {cosplayerData?.description || "Cosplayer"}
                               </p>
                             </div>
                           </div>

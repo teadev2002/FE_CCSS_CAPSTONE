@@ -17,6 +17,7 @@ import { Pagination } from "antd";
 
 const SouvenirsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [searchError, setSearchError] = useState(""); // Lỗi cho search
   const [showSouvenirModal, setShowSouvenirModal] = useState(false);
   const [selectedSouvenir, setSelectedSouvenir] = useState(null);
   const [quantity, setQuantity] = useState(1);
@@ -33,7 +34,12 @@ const SouvenirsPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(8);
   const [phone, setPhone] = useState("");
+  const [phoneError, setPhoneError] = useState(""); // Lỗi cho trường hợp không bắt đầu bằng 0
   const [address, setAddress] = useState("");
+  const [addressError, setAddressError] = useState(""); // Lỗi cho address
+  const [provinceError, setProvinceError] = useState(""); // Lỗi cho province
+  const [districtError, setDistrictError] = useState(""); // Lỗi cho district
+  const [wardError, setWardError] = useState(""); // Lỗi cho ward
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
   const [wards, setWards] = useState([]);
@@ -81,7 +87,7 @@ const SouvenirsPage = () => {
     try {
       const provincesData = await ProductDeliveryService.getProvinces();
       setProvinces(provincesData);
-      console.log("Provinces fetched:", provincesData); // Debug
+      console.log("Provinces fetched:", provincesData);
     } catch (error) {
       toast.error(error.message);
       console.error("Fetch provinces error:", error);
@@ -97,7 +103,7 @@ const SouvenirsPage = () => {
       setSelectedWard("");
       setToDistrictId("");
       setToWardCode("");
-      console.log("Districts fetched for provinceId", provinceId, ":", districtsData); // Debug
+      console.log("Districts fetched for provinceId", provinceId, ":", districtsData);
     } catch (error) {
       toast.error(error.message);
       console.error("Fetch districts error:", error);
@@ -110,7 +116,7 @@ const SouvenirsPage = () => {
       setWards(wardsData);
       setSelectedWard("");
       setToWardCode("");
-      console.log("Wards fetched for districtId", districtId, ":", wardsData); // Debug
+      console.log("Wards fetched for districtId", districtId, ":", wardsData);
     } catch (error) {
       toast.error(error.message);
       console.error("Fetch wards error:", error);
@@ -142,7 +148,7 @@ const SouvenirsPage = () => {
   const handleSouvenirShow = (souvenir) => {
     setSelectedSouvenir(souvenir);
     setShowSouvenirModal(true);
-    console.log("Opening souvenir modal for:", souvenir.name); // Debug
+    console.log("Opening souvenir modal for:", souvenir.name);
   };
 
   const handleSouvenirClose = () => {
@@ -154,30 +160,41 @@ const SouvenirsPage = () => {
     setShowSummaryModal(false);
     setPaymentMethod(null);
     setPhone("");
+    setPhoneError("");
     setAddress("");
+    setAddressError("");
     setSelectedProvince("");
     setSelectedDistrict("");
     setSelectedWard("");
     setToDistrictId("");
     setToWardCode("");
+    setProvinceError("");
+    setDistrictError("");
+    setWardError("");
     setDistricts([]);
     setWards([]);
-    console.log("Closing souvenir modal"); // Debug
+    console.log("Closing souvenir modal");
   };
 
   const handleIncrease = () => {
     if (selectedSouvenir && quantity < selectedSouvenir.quantity) {
       setQuantity((prev) => prev + 1);
     } else {
-      toast.error("Quantity exceeds available stock!");
+      toast.error("Quantity cannot exceed available stock.");
     }
   };
 
-  const handleDecrease = () => setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
+  const handleDecrease = () => {
+    if (quantity > 1) {
+      setQuantity((prev) => prev - 1);
+    } else {
+      toast.error("Quantity must be at least 1.");
+    }
+  };
 
   const handleBuyNow = () => {
     setShowDeliveryModal(true);
-    console.log("Opening delivery modal"); // Debug
+    console.log("Opening delivery modal");
   };
 
   const handleAddToCart = async () => {
@@ -197,6 +214,159 @@ const SouvenirsPage = () => {
     }
   };
 
+  // Validate phone number
+  const validatePhoneNumber = (value) => {
+    if (!value) {
+      return "Phone number is required.";
+    }
+    if (!value.startsWith("0")) {
+      return "Phone number must start with 0.";
+    }
+    return "";
+  };
+
+  const handlePhoneChange = (e) => {
+    const value = e.target.value;
+    // Chỉ cho phép số và tối đa 11 số
+    if (/^\d*$/.test(value) && value.length <= 11) {
+      setPhone(value);
+      const error = validatePhoneNumber(value);
+      setPhoneError(error);
+    } else if (!/^\d*$/.test(value)) {
+      toast.error("Phone number must contain only digits.");
+    } else if (value.length > 11) {
+      toast.error("Phone number must not exceed 11 digits.");
+    }
+  };
+
+  // Validate address
+  const validateAddress = (value) => {
+    if (!value) {
+      return "Address is required.";
+    }
+    if (value.length < 5) {
+      return "Address must be at least 5 characters long.";
+    }
+    if (value.length > 100) {
+      return "Address must not exceed 100 characters.";
+    }
+    // Ngăn các ký tự đặc biệt không mong muốn
+    if (/[<>{}!@#$%^&*()+=[\]|\\:;"'?~`]/.test(value)) {
+      return "Address contains invalid special characters.";
+    }
+    return "";
+  };
+
+  const handleAddressChange = (e) => {
+    const value = e.target.value;
+    setAddress(value);
+    const error = validateAddress(value);
+    setAddressError(error);
+  };
+
+  // Validate province, district, ward
+  const validateProvince = (value) => {
+    if (!value) {
+      return "Please select a province/city.";
+    }
+    const province = provinces.find((p) => String(p.provinceId) === String(value));
+    if (!province) {
+      return "Invalid province selected.";
+    }
+    return "";
+  };
+
+  const validateDistrict = (value) => {
+    if (!value) {
+      return "Please select a district.";
+    }
+    const district = districts.find((d) => String(d.districtId) === String(value));
+    if (!district) {
+      return "Invalid district selected.";
+    }
+    return "";
+  };
+
+  const validateWard = (value) => {
+    if (!value) {
+      return "Please select a ward.";
+    }
+    const ward = wards.find((w) => String(w.wardCode) === String(value));
+    if (!ward) {
+      return "Invalid ward selected.";
+    }
+    return "";
+  };
+
+  const handleProvinceChange = (e) => {
+    const value = e.target.value;
+    setSelectedProvince(value);
+    const error = validateProvince(value);
+    setProvinceError(error);
+    if (value) {
+      fetchDistricts(value);
+    } else {
+      setDistricts([]);
+      setWards([]);
+      setSelectedDistrict("");
+      setSelectedWard("");
+      setToDistrictId("");
+      setToWardCode("");
+      setDistrictError("");
+      setWardError("");
+    }
+  };
+
+  const handleDistrictChange = (e) => {
+    const value = e.target.value;
+    setSelectedDistrict(value);
+    const error = validateDistrict(value);
+    setDistrictError(error);
+    const selected = districts.find((d) => d.districtId === parseInt(value));
+    const districtId = selected ? selected.districtId.toString() : "";
+    setToDistrictId(districtId);
+    if (value) {
+      fetchWards(value);
+    } else {
+      setWards([]);
+      setSelectedWard("");
+      setToWardCode("");
+      setWardError("");
+    }
+  };
+
+  const handleWardChange = (e) => {
+    const value = e.target.value;
+    setSelectedWard(value);
+    const error = validateWard(value);
+    setWardError(error);
+    const selected = wards.find((w) => String(w.wardCode) === String(value));
+    const wardCode = selected ? String(selected.wardCode) : String(value);
+    setToWardCode(wardCode);
+  };
+
+  // Validate search
+  const validateSearch = (value) => {
+    if (value.length > 50) {
+      return "Search term must not exceed 50 characters.";
+    }
+    if (!/^[a-zA-Z0-9\s-_]*$/.test(value)) {
+      return "Search term contains invalid characters.";
+    }
+    return "";
+  };
+
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    const error = validateSearch(value);
+    setSearchError(error);
+    if (!error) {
+      setSearchTerm(value);
+    } else {
+      toast.error(error);
+    }
+  };
+
   const handleDeliveryConfirm = () => {
     console.log("Delivery info check:", {
       phone,
@@ -208,22 +378,30 @@ const SouvenirsPage = () => {
       toWardCode,
     });
 
-    if (!phone || !address || !selectedProvince || !selectedDistrict || !selectedWard || !toWardCode) {
-      toast.error("Please fill in all delivery information, including ward!");
-      console.error("Missing fields:", {
-        phone: !phone,
-        address: !address,
-        selectedProvince: !selectedProvince,
-        selectedDistrict: !selectedDistrict,
-        selectedWard: !selectedWard,
-        toWardCode: !toWardCode,
-      });
-      return;
-    }
+    // Kiểm tra các trường bắt buộc và hợp lệ
+    const phoneErr = validatePhoneNumber(phone);
+    const addressErr = validateAddress(address);
+    const provinceErr = validateProvince(selectedProvince);
+    const districtErr = validateDistrict(selectedDistrict);
+    const wardErr = validateWard(selectedWard);
 
-    if (!/^\d{10}$/.test(phone)) {
-      toast.error("Phone number must be 10 digits!");
-      console.error("Invalid phone:", phone);
+    setPhoneError(phoneErr);
+    setAddressError(addressErr);
+    setProvinceError(provinceErr);
+    setDistrictError(districtErr);
+    setWardError(wardErr);
+
+    if (phoneErr || addressErr || provinceErr || districtErr || wardErr || !toWardCode) {
+      const errors = [
+        phoneErr,
+        addressErr,
+        provinceErr,
+        districtErr,
+        wardErr,
+        !toWardCode ? "Please fill in all delivery information, including ward!" : "",
+      ].filter(Boolean);
+      toast.error(errors.join(" "));
+      console.error("Validation errors:", errors);
       return;
     }
 
@@ -233,8 +411,8 @@ const SouvenirsPage = () => {
       toDistrictId,
       toWardCode,
     });
+    // Không đặt showDeliveryModal thành false để giữ form
     setShowPaymentModal(true);
-    // Cuộn đến modal thanh toán
     setTimeout(() => {
       const paymentModal = document.getElementById("payment-modal");
       if (paymentModal) {
@@ -248,10 +426,9 @@ const SouvenirsPage = () => {
       toast.error("Please select a payment method!");
       return;
     }
-    console.log("Payment method selected:", paymentMethod); // Debug
+    console.log("Payment method selected:", paymentMethod);
     setShowPaymentModal(false);
     setShowSummaryModal(true);
-    // Cuộn đến pop-up tóm tắt
     setTimeout(() => {
       const summaryModal = document.getElementById("summary-modal");
       if (summaryModal) {
@@ -276,9 +453,9 @@ const SouvenirsPage = () => {
           },
         ],
       };
-      console.log("Order payload:", orderData); // Debug
+      console.log("Order payload:", orderData);
       const response = await apiClient.post("/api/Order", orderData);
-      console.log("Order response:", response.data); // Debug
+      console.log("Order response:", response.data);
       return response.data;
     } catch (error) {
       console.error("Create order error:", error.response?.data || error.message);
@@ -297,7 +474,7 @@ const SouvenirsPage = () => {
 
     try {
       const orderpaymentId = await createOrder();
-      console.log("OrderpaymentId:", orderpaymentId); // Debug
+      console.log("OrderpaymentId:", orderpaymentId);
 
       const paymentData = {
         fullName: accountName || "Unknown",
@@ -312,22 +489,22 @@ const SouvenirsPage = () => {
         orderpaymentId: orderpaymentId,
         isWeb: true,
       };
-      console.log("Payment payload:", paymentData); // Debug
+      console.log("Payment payload:", paymentData);
 
       let paymentUrl;
       if (paymentMethod === "Momo") {
         paymentUrl = await PaymentService.createMomoPayment(paymentData);
-        console.log("Momo payment URL:", paymentUrl); // Debug
+        console.log("Momo payment URL:", paymentUrl);
       } else if (paymentMethod === "VNPay") {
         paymentUrl = await PaymentService.createVnpayPayment(paymentData);
-        console.log("VNPay payment URL:", paymentUrl); // Debug
+        console.log("VNPay payment URL:", paymentUrl);
       }
 
       toast.success(`Redirecting to ${paymentMethod} payment...`);
       setTimeout(() => {
         localStorage.setItem("paymentSource", "souvenirs");
         window.location.href = paymentUrl;
-      }, 3000); // Chờ 3 giây để xem log
+      }, 3000);
     } catch (error) {
       console.error("Payment error:", error.response?.data || error.message);
       toast.error(error.message);
@@ -338,7 +515,7 @@ const SouvenirsPage = () => {
   const handleBackToPayment = () => {
     setShowSummaryModal(false);
     setShowPaymentModal(true);
-    console.log("Back to payment modal"); // Debug
+    console.log("Back to payment modal");
     setTimeout(() => {
       const paymentModal = document.getElementById("payment-modal");
       if (paymentModal) {
@@ -349,7 +526,8 @@ const SouvenirsPage = () => {
 
   const handleBackToDelivery = () => {
     setShowPaymentModal(false);
-    console.log("Back to delivery modal"); // Debug
+    setShowDeliveryModal(true);
+    console.log("Back to delivery modal");
   };
 
   const filteredSouvenirs = products.filter((souvenir) =>
@@ -365,22 +543,21 @@ const SouvenirsPage = () => {
     setPageSize(pageSize);
   };
 
-  // Hàm lấy tên tỉnh, quận, phường
   const getProvinceName = (provinceId) => {
     const province = provinces.find((p) => String(p.provinceId) === String(provinceId));
-    console.log("getProvinceName:", { provinceId, provinceIdType: typeof provinceId, province }); // Debug
+    console.log("getProvinceName:", { provinceId, provinceIdType: typeof provinceId, province });
     return province ? province.provinceName : "N/A";
   };
 
   const getDistrictName = (districtId) => {
     const district = districts.find((d) => String(d.districtId) === String(districtId));
-    console.log("getDistrictName:", { districtId, districtIdType: typeof districtId, district }); // Debug
+    console.log("getDistrictName:", { districtId, districtIdType: typeof districtId, district });
     return district ? district.districtName : "N/A";
   };
 
   const getWardName = (wardCode) => {
     const ward = wards.find((w) => String(w.wardCode) === String(wardCode));
-    console.log("getWardName:", { wardCode, wardCodeType: typeof wardCode, ward }); // Debug
+    console.log("getWardName:", { wardCode, wardCodeType: typeof wardCode, ward });
     return ward ? ward.wardName : "N/A";
   };
 
@@ -428,9 +605,12 @@ const SouvenirsPage = () => {
                 className="form-control"
                 placeholder="Search souvenirs..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={handleSearchChange}
               />
             </div>
+            {searchError && (
+              <Form.Text className="text-danger">{searchError}</Form.Text>
+            )}
           </div>
         </div>
 
@@ -562,6 +742,7 @@ const SouvenirsPage = () => {
                   </div>
                 </div>
 
+                {/* Luôn hiển thị form Delivery Information khi đã bấm Buy Now */}
                 {showDeliveryModal && (
                   <div className="fest-purchase-form mt-4">
                     <h5>Delivery Information</h5>
@@ -570,13 +751,14 @@ const SouvenirsPage = () => {
                         <Form.Label>Phone Number</Form.Label>
                         <Form.Control
                           type="text"
-                          placeholder="Enter phone number (10 digits)"
+                          placeholder="Enter phone number (e.g., 01234567890)"
                           value={phone}
-                          onChange={(e) => {
-                            setPhone(e.target.value);
-                            console.log("Phone updated:", e.target.value); // Debug
-                          }}
+                          onChange={handlePhoneChange}
+                          isInvalid={!!phoneError}
                         />
+                        {phoneError && (
+                          <Form.Text className="text-danger">{phoneError}</Form.Text>
+                        )}
                       </Form.Group>
                       <Form.Group className="mb-3">
                         <Form.Label>Address (Street, House Number)</Form.Label>
@@ -584,31 +766,19 @@ const SouvenirsPage = () => {
                           type="text"
                           placeholder="Enter street and house number"
                           value={address}
-                          onChange={(e) => {
-                            setAddress(e.target.value);
-                            console.log("Address updated:", e.target.value); // Debug
-                          }}
+                          onChange={handleAddressChange}
+                          isInvalid={!!addressError}
                         />
+                        {addressError && (
+                          <Form.Text className="text-danger">{addressError}</Form.Text>
+                        )}
                       </Form.Group>
                       <Form.Group className="mb-3">
                         <Form.Label>Province/City</Form.Label>
                         <Form.Select
                           value={selectedProvince}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            setSelectedProvince(value);
-                            if (value) {
-                              fetchDistricts(value);
-                            } else {
-                              setDistricts([]);
-                              setWards([]);
-                              setSelectedDistrict("");
-                              setSelectedWard("");
-                              setToDistrictId("");
-                              setToWardCode("");
-                            }
-                            console.log("Selected province:", value); // Debug
-                          }}
+                          onChange={handleProvinceChange}
+                          isInvalid={!!provinceError}
                         >
                           <option value="">Select Province/City</option>
                           {provinces.map((province) => (
@@ -620,34 +790,17 @@ const SouvenirsPage = () => {
                             </option>
                           ))}
                         </Form.Select>
+                        {provinceError && (
+                          <Form.Text className="text-danger">{provinceError}</Form.Text>
+                        )}
                       </Form.Group>
                       <Form.Group className="mb-3">
                         <Form.Label>District</Form.Label>
                         <Form.Select
                           value={selectedDistrict}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            setSelectedDistrict(value);
-                            const selected = districts.find(
-                              (d) => d.districtId === parseInt(value)
-                            );
-                            const districtId = selected
-                              ? selected.districtId.toString()
-                              : "";
-                            setToDistrictId(districtId);
-                            if (value) {
-                              fetchWards(value);
-                            } else {
-                              setWards([]);
-                              setSelectedWard("");
-                              setToWardCode("");
-                            }
-                            console.log("Selected district:", {
-                              districtId: value,
-                              toDistrictId: districtId,
-                            }); // Debug
-                          }}
+                          onChange={handleDistrictChange}
                           disabled={!selectedProvince}
+                          isInvalid={!!districtError}
                         >
                           <option value="">Select District</option>
                           {districts.map((district) => (
@@ -659,32 +812,17 @@ const SouvenirsPage = () => {
                             </option>
                           ))}
                         </Form.Select>
+                        {districtError && (
+                          <Form.Text className="text-danger">{districtError}</Form.Text>
+                        )}
                       </Form.Group>
                       <Form.Group className="mb-3">
                         <Form.Label>Ward</Form.Label>
                         <Form.Select
                           value={selectedWard}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            setSelectedWard(value);
-                            const selected = wards.find(
-                              (w) => String(w.wardCode) === String(value)
-                            );
-                            const wardCode = selected ? String(selected.wardCode) : String(value);
-                            setToWardCode(wardCode);
-                            console.log("Selected ward:", {
-                              value,
-                              valueType: typeof value,
-                              wards: wards.map((w) => ({
-                                wardCode: w.wardCode,
-                                wardCodeType: typeof w.wardCode,
-                              })),
-                              selected,
-                              selectedWard: value,
-                              toWardCode: wardCode,
-                            }); // Debug
-                          }}
+                          onChange={handleWardChange}
                           disabled={!selectedDistrict}
+                          isInvalid={!!wardError}
                         >
                           <option value="">Select Ward</option>
                           {wards.map((ward) => (
@@ -693,6 +831,9 @@ const SouvenirsPage = () => {
                             </option>
                           ))}
                         </Form.Select>
+                        {wardError && (
+                          <Form.Text className="text-danger">{wardError}</Form.Text>
+                        )}
                       </Form.Group>
                       <Button
                         variant="primary"
@@ -705,6 +846,7 @@ const SouvenirsPage = () => {
                   </div>
                 )}
 
+                {/* Hiển thị Payment Method bên dưới Delivery Information */}
                 {showPaymentModal && (
                   <div className="fest-purchase-form mt-4" id="payment-modal">
                     <h5>Select Payment Method</h5>
@@ -741,6 +883,7 @@ const SouvenirsPage = () => {
                   </div>
                 )}
 
+                {/* Hiển thị Order Summary bên dưới Payment Method */}
                 {showSummaryModal && (
                   <div className="fest-purchase-form mt-4 summary-modal" id="summary-modal">
                     <h5>Order Summary</h5>
