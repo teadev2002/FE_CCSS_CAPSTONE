@@ -195,6 +195,12 @@ const SouvenirsPage = () => {
   const handleBuyNow = () => {
     setShowDeliveryModal(true);
     console.log("Opening delivery modal");
+    setTimeout(() => {
+      const deliveryForm = document.querySelector(".fest-purchase-form");
+      if (deliveryForm) {
+        deliveryForm.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 100);
   };
 
   const handleAddToCart = async () => {

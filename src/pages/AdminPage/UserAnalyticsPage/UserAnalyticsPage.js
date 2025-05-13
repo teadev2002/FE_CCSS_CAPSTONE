@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Card, Row, Col, Table, ProgressBar, Dropdown } from "react-bootstrap";
+import { Card, Row, Col, Table, ProgressBar, Dropdown, Form, InputGroup, Button } from "react-bootstrap";
 import { Line } from "react-chartjs-2";
 import {
   Chart,
@@ -8,7 +8,7 @@ import {
   PointElement,
   LineElement,
 } from "chart.js";
-import { Star, Award, Users as UsersIcon } from "lucide-react";
+import { Star, Award, Users as UsersIcon, Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Image } from "antd";
@@ -36,82 +36,50 @@ const UserAnalyticsPage = () => {
     admins: [],
   });
 
+  // State cho tìm kiếm và phân trang
+  const [searchTerms, setSearchTerms] = useState({
+    customers: { name: "", email: "" },
+    cosplayers: { name: "", email: "" },
+    consultants: { name: "", email: "" },
+    managers: { name: "", email: "" },
+    admins: { name: "", email: "" },
+  });
+  const [searchErrors, setSearchErrors] = useState({
+    customers: { name: "", email: "" },
+    cosplayers: { name: "", email: "" },
+    consultants: { name: "", email: "" },
+    managers: { name: "", email: "" },
+    admins: { name: "", email: "" },
+  });
+  const [pagination, setPagination] = useState({
+    customers: { currentPage: 1, pageSize: 10 },
+    cosplayers: { currentPage: 1, pageSize: 10 },
+    consultants: { currentPage: 1, pageSize: 10 },
+    managers: { currentPage: 1, pageSize: 10 },
+    admins: { currentPage: 1, pageSize: 10 },
+  });
+
   // State cho Top 5 Cosplayers by Rating
   const [topCosplayersByRating, setTopCosplayersByRating] = useState([]);
-  const [ratingFilter, setRatingFilter] = useState(0); // 0: Today, 1: This week, 2: This month, 3: This year
+  const [ratingFilter, setRatingFilter] = useState(0);
 
-  // Thống kê tương tác người dùng (giả lập - chưa có API)
+  // Thống kê tương tác người dùng (giả lập)
   const userEngagement = {
     activeUsers: 1800,
     newSignUps: 385,
     avgSessionTime: "15 mins",
   };
 
-  // Top 5 khách hàng sử dụng dịch vụ nhiều nhất (giả lập - chưa có API)
+  // Top 5 khách hàng sử dụng dịch vụ nhiều nhất (giả lập)
   const topCustomersByUsage = [
-    {
-      id: 1,
-      name: "Sarah Chen",
-      servicesUsed: {
-        costumeRental: 50,
-        hireCosplayers: 80,
-        eventOrganization: 26,
-        buySouvenirs: 15,
-        buyFestivalTickets: 10,
-      },
-      membership: "VIP",
-    },
-    {
-      id: 2,
-      name: "Viết Quốc",
-      servicesUsed: {
-        costumeRental: 60,
-        hireCosplayers: 70,
-        eventOrganization: 12,
-        buySouvenirs: 20,
-        buyFestivalTickets: 8,
-      },
-      membership: "VIP",
-    },
-    {
-      id: 3,
-      name: "Emily Watson",
-      servicesUsed: {
-        costumeRental: 40,
-        hireCosplayers: 60,
-        eventOrganization: 30,
-        buySouvenirs: 10,
-        buyFestivalTickets: 5,
-      },
-      membership: "Premium",
-    },
-    {
-      id: 4,
-      name: "Hoàng Nguyễn",
-      servicesUsed: {
-        costumeRental: 45,
-        hireCosplayers: 50,
-        eventOrganization: 30,
-        buySouvenirs: 12,
-        buyFestivalTickets: 7,
-      },
-      membership: "Premium",
-    },
-    {
-      id: 5,
-      name: "Lisa Tran",
-      servicesUsed: {
-        costumeRental: 30,
-        hireCosplayers: 60,
-        eventOrganization: 20,
-        buySouvenirs: 8,
-        buyFestivalTickets: 3,
-      },
-      membership: "Standard",
-    },
+    { id: 1, name: "Sarah Chen", servicesUsed: { costumeRental: 50, hireCosplayers: 80, eventOrganization: 26, buySouvenirs: 15, buyFestivalTickets: 10 }, membership: "VIP" },
+    { id: 2, name: "Viết Quốc", servicesUsed: { costumeRental: 60, hireCosplayers: 70, eventOrganization: 12, buySouvenirs: 20, buyFestivalTickets: 8 }, membership: "VIP" },
+    { id: 3, name: "Emily Watson", servicesUsed: { costumeRental: 40, hireCosplayers: 60, eventOrganization: 30, buySouvenirs: 10, buyFestivalTickets: 5 }, membership: "Premium" },
+    { id: 4, name: "Hoàng Nguyễn", servicesUsed: { costumeRental: 45, hireCosplayers: 50, eventOrganization: 30, buySouvenirs: 12, buyFestivalTickets: 7 }, membership: "Premium" },
+    { id: 5, name: "Lisa Tran", servicesUsed: { costumeRental: 30, hireCosplayers: 60, eventOrganization: 20, buySouvenirs: 8, buyFestivalTickets: 3 }, membership: "Standard" },
   ];
 
-  // Top 5 cosplayer được yêu thích nhất (book nhiều nhất) (giả lập - chưa có API)
+  // Top 5 cosplayer được yêu thích nhất (giả lập)
   const topCosplayersByBookings = [
     { id: 1, name: "Alex Mercer", bookings: 89, rating: 4.9 },
     { id: 2, name: "Nương Phạm", bookings: 82, rating: 4.8 },
@@ -120,7 +88,7 @@ const UserAnalyticsPage = () => {
     { id: 5, name: "James Carter", bookings: 65, rating: 4.5 },
   ];
 
-  // Sử dụng dịch vụ theo khách hàng (giả lập - chưa có API)
+  // Sử dụng dịch vụ theo khách hàng (giả lập)
   const serviceUsage = {
     customers: {
       costumeRental: 400,
@@ -138,142 +106,37 @@ const UserAnalyticsPage = () => {
     },
   };
 
-  // Biểu đồ xu hướng sử dụng dịch vụ (giả lập - chưa có API)
+  // Biểu đồ xu hướng sử dụng dịch vụ (giả lập)
   const [usageFilter, setUsageFilter] = useState("today");
   const usageChartData = {
     today: {
       labels: ["00:00", "04:00", "08:00", "12:00", "16:00", "20:00"],
       datasets: [
-        {
-          label: "Costume Rental",
-          data: [50, 100, 150, 200, 250, 300],
-          borderColor: "#3498db",
-          backgroundColor: "rgba(52, 152, 219, 0.1)",
-          fill: true,
-          tension: 0.4,
-        },
-        {
-          label: "Hire Cosplayers",
-          data: [80, 120, 180, 240, 300, 360],
-          borderColor: "#2ecc71",
-          backgroundColor: "rgba(46, 204, 113, 0.1)",
-          fill: true,
-          tension: 0.4,
-        },
-        {
-          label: "Event Organization",
-          data: [30, 60, 90, 120, 150, 180],
-          borderColor: "#f1c40f",
-          backgroundColor: "rgba(241, 196, 15, 0.1)",
-          fill: true,
-          tension: 0.4,
-        },
-        {
-          label: "Buy Souvenirs",
-          data: [20, 40, 60, 80, 100, 120],
-          borderColor: "#e74c3c",
-          backgroundColor: "rgba(231, 76, 60, 0.1)",
-          fill: true,
-          tension: 0.4,
-        },
-        {
-          label: "Buy Festival Tickets",
-          data: [10, 20, 30, 40, 50, 60],
-          borderColor: "#9b59b6",
-          backgroundColor: "rgba(155, 89, 182, 0.1)",
-          fill: true,
-          tension: 0.4,
-        },
+        { label: "Costume Rental", data: [50, 100, 150, 200, 250, 300], borderColor: "#3498db", backgroundColor: "rgba(52, 152, 219, 0.1)", fill: true, tension: 0.4 },
+        { label: "Hire Cosplayers", data: [80, 120, 180, 240, 300, 360], borderColor: "#2ecc71", backgroundColor: "rgba(46, 204, 113, 0.1)", fill: true, tension: 0.4 },
+        { label: "Event Organization", data: [30, 60, 90, 120, 150, 180], borderColor: "#f1c40f", backgroundColor: "rgba(241, 196, 15, 0.1)", fill: true, tension: 0.4 },
+        { label: "Buy Souvenirs", data: [20, 40, 60, 80, 100, 120], borderColor: "#e74c3c", backgroundColor: "rgba(231, 76, 60, 0.1)", fill: true, tension: 0.4 },
+        { label: "Buy Festival Tickets", data: [10, 20, 30, 40, 50, 60], borderColor: "#9b59b6", backgroundColor: "rgba(155, 89, 182, 0.1)", fill: true, tension: 0.4 },
       ],
     },
     month: {
       labels: ["1", "5", "10", "15", "20", "25", "30"],
       datasets: [
-        {
-          label: "Costume Rental",
-          data: [200, 300, 250, 350, 400, 450, 420],
-          borderColor: "#3498db",
-          backgroundColor: "rgba(52, 152, 219, 0.1)",
-          fill: true,
-          tension: 0.4,
-        },
-        {
-          label: "Hire Cosplayers",
-          data: [300, 400, 350, 450, 500, 550, 520],
-          borderColor: "#2ecc71",
-          backgroundColor: "rgba(46, 204, 113, 0.1)",
-          fill: true,
-          tension: 0.4,
-        },
-        {
-          label: "Event Organization",
-          data: [100, 150, 120, 180, 200, 220, 210],
-          borderColor: "#f1c40f",
-          backgroundColor: "rgba(241, 196, 15, 0.1)",
-          fill: true,
-          tension: 0.4,
-        },
-        {
-          label: "Buy Souvenirs",
-          data: [80, 120, 100, 140, 160, 180, 170],
-          borderColor: "#e74c3c",
-          backgroundColor: "rgba(231, 76, 60, 0.1)",
-          fill: true,
-          tension: 0.4,
-        },
-        {
-          label: "Buy Festival Tickets",
-          data: [50, 70, 60, 80, 90, 100, 95],
-          borderColor: "#9b59b6",
-          backgroundColor: "rgba(155, 89, 182, 0.1)",
-          fill: true,
-          tension: 0.4,
-        },
+        { label: "Costume Rental", data: [200, 300, 250, 350, 400, 450, 420], borderColor: "#3498db", backgroundColor: "rgba(52, 152, 219, 0.1)", fill: true, tension: 0.4 },
+        { label: "Hire Cosplayers", data: [300, 400, 350, 450, 500, 550, 520], borderColor: "#2ecc71", backgroundColor: "rgba(46, 204, 113, 0.1)", fill: true, tension: 0.4 },
+        { label: "Event Organization", data: [100, 150, 120, 180, 200, 220, 210], borderColor: "#f1c40f", backgroundColor: "rgba(241, 196, 15, 0.1)", fill: true, tension: 0.4 },
+        { label: "Buy Souvenirs", data: [80, 120, 100, 140, 160, 180, 170], borderColor: "#e74c3c", backgroundColor: "rgba(231, 76, 60, 0.1)", fill: true, tension: 0.4 },
+        { label: "Buy Festival Tickets", data: [50, 70, 60, 80, 90, 100, 95], borderColor: "#9b59b6", backgroundColor: "rgba(155, 89, 182, 0.1)", fill: true, tension: 0.4 },
       ],
     },
     year: {
       labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
       datasets: [
-        {
-          label: "Costume Rental",
-          data: [1000, 1200, 1100, 1300, 1400, 1500, 1600, 1550, 1450, 1400, 1300, 1200],
-          borderColor: "#3498db",
-          backgroundColor: "rgba(52, 152, 219, 0.1)",
-          fill: true,
-          tension: 0.4,
-        },
-        {
-          label: "Hire Cosplayers",
-          data: [1200, 1400, 1300, 1500, 1600, 1700, 1800, 1750, 1650, 1600, 1500, 1400],
-          borderColor: "#2ecc71",
-          backgroundColor: "rgba(46, 204, 113, 0.1)",
-          fill: true,
-          tension: 0.4,
-        },
-        {
-          label: "Event Organization",
-          data: [500, 600, 550, 650, 700, 750, 800, 780, 720, 700, 650, 600],
-          borderColor: "#f1c40f",
-          backgroundColor: "rgba(241, 196, 15, 0.1)",
-          fill: true,
-          tension: 0.4,
-        },
-        {
-          label: "Buy Souvenirs",
-          data: [300, 400, 350, 450, 500, 550, 600, 580, 540, 520, 480, 450],
-          borderColor: "#e74c3c",
-          backgroundColor: "rgba(231, 76, 60, 0.1)",
-          fill: true,
-          tension: 0.4,
-        },
-        {
-          label: "Buy Festival Tickets",
-          data: [200, 250, 220, 280, 300, 320, 340, 330, 310, 290, 270, 250],
-          borderColor: "#9b59b6",
-          backgroundColor: "rgba(155, 89, 182, 0.1)",
-          fill: true,
-          tension: 0.4,
-        },
+        { label: "Costume Rental", data: [1000, 1200, 1100, 1300, 1400, 1500, 1600, 1550, 1450, 1400, 1300, 1200], borderColor: "#3498db", backgroundColor: "rgba(52, 152, 219, 0.1)", fill: true, tension: 0.4 },
+        { label: "Hire Cosplayers", data: [1200, 1400, 1300, 1500, 1600, 1700, 1800, 1750, 1650, 1600, 1500, 1400], borderColor: "#2ecc71", backgroundColor: "rgba(46, 204, 113, 0.1)", fill: true, tension: 0.4 },
+        { label: "Event Organization", data: [500, 600, 550, 650, 700, 750, 800, 780, 720, 700, 650, 600], borderColor: "#f1c40f", backgroundColor: "rgba(241, 196, 15, 0.1)", fill: true, tension: 0.4 },
+        { label: "Buy Souvenirs", data: [300, 400, 350, 450, 500, 550, 600, 580, 540, 520, 480, 450], borderColor: "#e74c3c", backgroundColor: "rgba(231, 76, 60, 0.1)", fill: true, tension: 0.4 },
+        { label: "Buy Festival Tickets", data: [200, 250, 220, 280, 300, 320, 340, 330, 310, 290, 270, 250], borderColor: "#9b59b6", backgroundColor: "rgba(155, 89, 182, 0.1)", fill: true, tension: 0.4 },
       ],
     },
   };
@@ -282,31 +145,12 @@ const UserAnalyticsPage = () => {
   const chartOptions = {
     maintainAspectRatio: false,
     scales: {
-      y: {
-        beginAtZero: true,
-        grid: {
-          color: "rgba(0, 0, 0, 0.05)",
-        },
-        ticks: {
-          callback: (value) => value.toLocaleString(),
-        },
-      },
-      x: {
-        grid: {
-          display: false,
-        },
-      },
+      y: { beginAtZero: true, grid: { color: "rgba(0, 0, 0, 0.05)" }, ticks: { callback: (value) => value.toLocaleString() } },
+      x: { grid: { display: false } },
     },
     plugins: {
-      legend: {
-        display: true,
-        position: "top",
-      },
-      tooltip: {
-        callbacks: {
-          label: (context) => `${context.dataset.label}: ${context.raw.toLocaleString()}`,
-        },
-      },
+      legend: { display: true, position: "top" },
+      tooltip: { callbacks: { label: (context) => `${context.dataset.label}: ${context.raw.toLocaleString()}` } },
     },
   };
 
@@ -316,7 +160,6 @@ const UserAnalyticsPage = () => {
     { value: "year", label: "This Year" },
   ];
 
-  // Filter thời gian cho Top 5 Cosplayers by Rating
   const ratingFilterOptions = [
     { value: 0, label: "Today" },
     { value: 1, label: "This Week" },
@@ -324,7 +167,6 @@ const UserAnalyticsPage = () => {
     { value: 3, label: "This Year" },
   ];
 
-  // Role ID mapping
   const roleMapping = {
     R001: "admins",
     R002: "managers",
@@ -333,7 +175,81 @@ const UserAnalyticsPage = () => {
     R005: "customers",
   };
 
-  // Lấy dữ liệu tài khoản khi component mount
+  // Validate tìm kiếm
+  const validateName = (value) => {
+    if (value.length > 50) return "Name must not exceed 50 characters.";
+    if (!/^[a-zA-Z0-9\s-.]*$/.test(value)) return "Name contains invalid characters.";
+    return "";
+  };
+
+  const validateEmail = (value) => {
+    if (value.length > 100) return "Email must not exceed 100 characters.";
+    if (value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return "Invalid email format.";
+    return "";
+  };
+
+  // Xử lý thay đổi tìm kiếm
+  const handleSearchChange = (role, field, value) => {
+    setSearchTerms((prev) => ({
+      ...prev,
+      [role]: { ...prev[role], [field]: value },
+    }));
+
+    const error = field === "name" ? validateName(value) : validateEmail(value);
+    setSearchErrors((prev) => ({
+      ...prev,
+      [role]: { ...prev[role], [field]: error },
+    }));
+
+    if (error) toast.error(error);
+
+    // Reset về trang 1 khi tìm kiếm
+    setPagination((prev) => ({
+      ...prev,
+      [role]: { ...prev[role], currentPage: 1 },
+    }));
+  };
+
+  // Lọc tài khoản theo tìm kiếm
+  const filterAccounts = (role) => {
+    const { name, email } = searchTerms[role];
+    return accounts[role].filter((account) => {
+      const nameMatch = name
+        ? account.name.toLowerCase().includes(name.trim().toLowerCase())
+        : true;
+      const emailMatch = email
+        ? account.email.toLowerCase().includes(email.trim().toLowerCase())
+        : true;
+      return nameMatch && emailMatch;
+    });
+  };
+
+  // Phân trang tài khoản
+  const paginateAccounts = (role) => {
+    const filtered = filterAccounts(role);
+    const { currentPage, pageSize } = pagination[role];
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    return filtered.slice(startIndex, endIndex);
+  };
+
+  // Xử lý thay đổi trang
+  const handlePageChange = (role, page) => {
+    setPagination((prev) => ({
+      ...prev,
+      [role]: { ...prev[role], currentPage: page },
+    }));
+  };
+
+  // Xử lý thay đổi số lượng mỗi trang
+  const handlePageSizeChange = (role, size) => {
+    setPagination((prev) => ({
+      ...prev,
+      [role]: { currentPage: 1, pageSize: parseInt(size) },
+    }));
+  };
+
+  // Lấy dữ liệu tài khoản
   useEffect(() => {
     const fetchAccounts = async () => {
       try {
@@ -353,7 +269,6 @@ const UserAnalyticsPage = () => {
           customers: 0,
         };
 
-        // Gọi API cho từng vai trò
         for (const roleId of roles) {
           const data = await UserAnalyticsService.getAccountsByRole(roleId);
           const roleKey = roleMapping[roleId];
@@ -361,10 +276,7 @@ const UserAnalyticsPage = () => {
           counts[roleKey] = fetchedAccounts[roleKey].length;
         }
 
-        // Tính tổng số tài khoản
         const total = Object.values(counts).reduce((sum, count) => sum + count, 0);
-
-        // Tính trung bình sao của cosplayer
         const cosplayerRatings = fetchedAccounts.cosplayers
           .filter((cosplayer) => cosplayer.averageStar !== null)
           .map((cosplayer) => cosplayer.averageStar);
@@ -396,7 +308,6 @@ const UserAnalyticsPage = () => {
     const fetchTopCosplayersByRating = async () => {
       try {
         const data = await UserAnalyticsService.getTop5PopularCosplayers(ratingFilter);
-        // Sắp xếp theo averageStar giảm dần và giới hạn 5 cosplayer
         const sortedCosplayers = Array.isArray(data)
           ? data.sort((a, b) => b.averageStar - a.averageStar).slice(0, 5)
           : [];
@@ -423,12 +334,193 @@ const UserAnalyticsPage = () => {
     return avatarImage.urlImage;
   };
 
-  // Hàm lấy danh sách hình ảnh để preview
   const getImageList = (images) => {
     if (!images || images.length === 0) {
       return ["https://via.placeholder.com/40?text=No+Image"];
     }
     return images.map((img) => img.urlImage);
+  };
+
+  // Render bảng tài khoản
+  const renderAccountTable = (role, title) => {
+    const filteredAccounts = filterAccounts(role);
+    const paginatedAccounts = paginateAccounts(role);
+    const { currentPage, pageSize } = pagination[role];
+    const totalPages = Math.ceil(filteredAccounts.length / pageSize);
+    const startIndex = (currentPage - 1) * pageSize + 1;
+    const endIndex = Math.min(currentPage * pageSize, filteredAccounts.length);
+
+    return (
+      <Col lg={12}>
+        <Card className="mb-4">
+          <Card.Header>
+            <h5>{title}</h5>
+          </Card.Header>
+          <Card.Body>
+            <div className="search-container mb-3">
+              <Form>
+                <Row>
+                  <Col md={6}>
+                    <Form.Group>
+                      <InputGroup>
+                        <InputGroup.Text>
+                          <Search size={16} />
+                        </InputGroup.Text>
+                        <Form.Control
+                          type="text"
+                          placeholder="Search by name..."
+                          value={searchTerms[role].name}
+                          onChange={(e) => handleSearchChange(role, "name", e.target.value)}
+                          isInvalid={!!searchErrors[role].name}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                          {searchErrors[role].name}
+                        </Form.Control.Feedback>
+                      </InputGroup>
+                    </Form.Group>
+                  </Col>
+                  <Col md={6}>
+                    <Form.Group>
+                      <InputGroup>
+                        <InputGroup.Text>
+                          <Search size={16} />
+                        </InputGroup.Text>
+                        <Form.Control
+                          type="email"
+                          placeholder="Search by email..."
+                          value={searchTerms[role].email}
+                          onChange={(e) => handleSearchChange(role, "email", e.target.value)}
+                          isInvalid={!!searchErrors[role].email}
+                        />
+                        <Form.Control.Feedback type="invalid">
+                          {searchErrors[role].email}
+                        </Form.Control.Feedback>
+                      </InputGroup>
+                    </Form.Group>
+                  </Col>
+                </Row>
+              </Form>
+            </div>
+            <Table responsive>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  {role === "cosplayers" && <th>Average Star</th>}
+                  <th>Avatar</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paginatedAccounts.map((account) => (
+                  <tr key={account.accountId}>
+                    <td>{account.accountId}</td>
+                    <td>{account.name}</td>
+                    <td>{account.email}</td>
+                    {role === "cosplayers" && (
+                      <td>
+                        {account.averageStar ? (
+                          <div className="rating-cell">
+                            {account.averageStar}
+                            <Star size={14} className="star-filled ms-1" />
+                          </div>
+                        ) : (
+                          "N/A"
+                        )}
+                      </td>
+                    )}
+                    <td>
+                      <Image
+                        src={getAvatarUrl(account.images)}
+                        alt={`${account.name}'s avatar`}
+                        width={40}
+                        height={40}
+                        style={{
+                          borderRadius: "50%",
+                          objectFit: "cover",
+                          cursor: "pointer",
+                        }}
+                        preview={{
+                          src: getAvatarUrl(account.images),
+                          srcList: getImageList(account.images),
+                        }}
+                      />
+                    </td>
+                    <td>{account.isActive ? "Active" : "Inactive"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+            {filteredAccounts.length === 0 ? (
+              <p className="text-center mt-3">No accounts found.</p>
+            ) : (
+              <div className="pagination-container mt-3">
+                <div className="pagination-info">
+                  Showing {startIndex}-{endIndex} of {filteredAccounts.length} accounts
+                </div>
+                <div className="pagination-controls">
+                  <Button
+                    variant="outline-primary"
+                    size="sm"
+                    disabled={currentPage === 1}
+                    onClick={() => handlePageChange(role, 1)}
+                    className="pagination-btn"
+                  >
+                    <ChevronsLeft size={16} />
+                  </Button>
+                  <Button
+                    variant="outline-primary"
+                    size="sm"
+                    disabled={currentPage === 1}
+                    onClick={() => handlePageChange(role, currentPage - 1)}
+                    className="pagination-btn"
+                  >
+                    <ChevronLeft size={16} />
+                  </Button>
+                  <span className="pagination-page">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <Button
+                    variant="outline-primary"
+                    size="sm"
+                    disabled={currentPage === totalPages}
+                    onClick={() => handlePageChange(role, currentPage + 1)}
+                    className="pagination-btn"
+                  >
+                    <ChevronRight size={16} />
+                  </Button>
+                  <Button
+                    variant="outline-primary"
+                    size="sm"
+                    disabled={currentPage === totalPages}
+                    onClick={() => handlePageChange(role, totalPages)}
+                    className="pagination-btn"
+                  >
+                    <ChevronsRight size={16} />
+                  </Button>
+                  <Dropdown
+                    onSelect={(size) => handlePageSizeChange(role, size)}
+                    className="pagination-dropdown"
+                  >
+                    <Dropdown.Toggle variant="outline-primary" size="sm">
+                      {pageSize} per page
+                    </Dropdown.Toggle>
+                    <Dropdown.Menu>
+                      {[5, 10, 20].map((size) => (
+                        <Dropdown.Item key={size} eventKey={size}>
+                          {size} per page
+                        </Dropdown.Item>
+                      ))}
+                    </Dropdown.Menu>
+                  </Dropdown>
+                </div>
+              </div>
+            )}
+          </Card.Body>
+        </Card>
+      </Col>
+    );
   };
 
   return (
@@ -451,7 +543,6 @@ const UserAnalyticsPage = () => {
             <p>Admins: {totalAccounts.admins.toLocaleString()}</p>
           </Card.Body>
         </Card>
-
         <Card className="stat-card">
           <Card.Body>
             <div className="stat-icon">
@@ -476,7 +567,6 @@ const UserAnalyticsPage = () => {
             </div>
           </Card.Body>
         </Card>
-
         <Card className="stat-card">
           <Card.Body>
             <div className="stat-icon">
@@ -546,7 +636,6 @@ const UserAnalyticsPage = () => {
             </Card.Body>
           </Card>
         </Col>
-
         <Col lg={6}>
           <Card className="mb-4">
             <Card.Header>
@@ -710,258 +799,13 @@ const UserAnalyticsPage = () => {
         </Card.Body>
       </Card>
 
-      {/* Danh sách tài khoản */}
+      {/* Danh sách tài khoản với tìm kiếm và phân trang */}
       <Row>
-        <Col lg={12}>
-          <Card className="mb-4">
-            <Card.Header>
-              <h5>Customer Accounts</h5>
-            </Card.Header>
-            <Card.Body>
-              <Table responsive>
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Avatar</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {accounts.customers.map((account) => (
-                    <tr key={account.accountId}>
-                      <td>{account.accountId}</td>
-                      <td>{account.name}</td>
-                      <td>{account.email}</td>
-                      <td>
-                        <Image
-                          src={getAvatarUrl(account.images)}
-                          alt={`${account.name}'s avatar`}
-                          width={40}
-                          height={40}
-                          style={{
-                            borderRadius: "50%",
-                            objectFit: "cover",
-                            cursor: "pointer",
-                          }}
-                          preview={{
-                            src: getAvatarUrl(account.images),
-                            srcList: getImageList(account.images),
-                          }}
-                        />
-                      </td>
-                      <td>{account.isActive ? "Active" : "Inactive"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </Table>
-            </Card.Body>
-          </Card>
-        </Col>
-
-        <Col lg={12}>
-          <Card className="mb-4">
-            <Card.Header>
-              <h5>Cosplayer Accounts</h5>
-            </Card.Header>
-            <Card.Body>
-              <Table responsive>
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Average Star</th>
-                    <th>Avatar</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {accounts.cosplayers.map((account) => (
-                    <tr key={account.accountId}>
-                      <td>{account.accountId}</td>
-                      <td>{account.name}</td>
-                      <td>{account.email}</td>
-                      <td>
-                        {account.averageStar ? (
-                          <div className="rating-cell">
-                            {account.averageStar}
-                            <Star size={14} className="star-filled ms-1" />
-                          </div>
-                        ) : (
-                          "N/A"
-                        )}
-                      </td>
-                      <td>
-                        <Image
-                          src={getAvatarUrl(account.images)}
-                          alt={`${account.name}'s avatar`}
-                          width={40}
-                          height={40}
-                          style={{
-                            borderRadius: "50%",
-                            objectFit: "cover",
-                            cursor: "pointer",
-                          }}
-                          preview={{
-                            src: getAvatarUrl(account.images),
-                            srcList: getImageList(account.images),
-                          }}
-                        />
-                      </td>
-                      <td>{account.isActive ? "Active" : "Inactive"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </Table>
-            </Card.Body>
-          </Card>
-        </Col>
-
-        <Col lg={12}>
-          <Card className="mb-4">
-            <Card.Header>
-              <h5>Consultant Accounts</h5>
-            </Card.Header>
-            <Card.Body>
-              <Table responsive>
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Avatar</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {accounts.consultants.map((account) => (
-                    <tr key={account.accountId}>
-                      <td>{account.accountId}</td>
-                      <td>{account.name}</td>
-                      <td>{account.email}</td>
-                      <td>
-                        <Image
-                          src={getAvatarUrl(account.images)}
-                          alt={`${account.name}'s avatar`}
-                          width={40}
-                          height={40}
-                          style={{
-                            borderRadius: "50%",
-                            objectFit: "cover",
-                            cursor: "pointer",
-                          }}
-                          preview={{
-                            src: getAvatarUrl(account.images),
-                            srcList: getImageList(account.images),
-                          }}
-                        />
-                      </td>
-                      <td>{account.isActive ? "Active" : "Inactive"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </Table>
-            </Card.Body>
-          </Card>
-        </Col>
-
-        <Col lg={12}>
-          <Card className="mb-4">
-            <Card.Header>
-              <h5>Manager Accounts</h5>
-            </Card.Header>
-            <Card.Body>
-              <Table responsive>
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Avatar</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {accounts.managers.map((account) => (
-                    <tr key={account.accountId}>
-                      <td>{account.accountId}</td>
-                      <td>{account.name}</td>
-                      <td>{account.email}</td>
-                      <td>
-                        <Image
-                          src={getAvatarUrl(account.images)}
-                          alt={`${account.name}'s avatar`}
-                          width={40}
-                          height={40}
-                          style={{
-                            borderRadius: "50%",
-                            objectFit: "cover",
-                            cursor: "pointer",
-                          }}
-                          preview={{
-                            src: getAvatarUrl(account.images),
-                            srcList: getImageList(account.images),
-                          }}
-                        />
-                      </td>
-                      <td>{account.isActive ? "Active" : "Inactive"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </Table>
-            </Card.Body>
-          </Card>
-        </Col>
-
-        <Col lg={12}>
-          <Card className="mb-4">
-            <Card.Header>
-              <h5>Admin Accounts</h5>
-            </Card.Header>
-            <Card.Body>
-              <Table responsive>
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Avatar</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {accounts.admins.map((account) => (
-                    <tr key={account.accountId}>
-                      <td>{account.accountId}</td>
-                      <td>{account.name}</td>
-                      <td>{account.email}</td>
-                      <td>
-                        <Image
-                          src={getAvatarUrl(account.images)}
-                          alt={`${account.name}'s avatar`}
-                          width={40}
-                          height={40}
-                          style={{
-                            borderRadius: "50%",
-                            objectFit: "cover",
-                            cursor: "pointer",
-                          }}
-                          preview={{
-                            src: getAvatarUrl(account.images),
-                            srcList: getImageList(account.images),
-                          }}
-                        />
-                      </td>
-                      <td>{account.isActive ? "Active" : "Inactive"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </Table>
-            </Card.Body>
-          </Card>
-        </Col>
+        {renderAccountTable("customers", "Customer Accounts")}
+        {renderAccountTable("cosplayers", "Cosplayer Accounts")}
+        {renderAccountTable("consultants", "Consultant Accounts")}
+        {renderAccountTable("managers", "Manager Accounts")}
+        {renderAccountTable("admins", "Admin Accounts")}
       </Row>
     </div>
   );
