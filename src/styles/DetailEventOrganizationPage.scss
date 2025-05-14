@@ -1,7 +1,26 @@
 .event-organize-page {
   background-color: #f8f9fa;
   overflow-x: hidden;
-
+.range-slider {
+  margin: 20px 0;
+  .range-track {
+    height: 6px;
+    background: #ddd;
+  }
+  .range-thumb {
+    height: 20px;
+    width: 20px;
+    background: #007bff;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  .range-values {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    font-size: 14px;
+  }
+}
   .package-card {
     border-radius: 12px;
     overflow: hidden;

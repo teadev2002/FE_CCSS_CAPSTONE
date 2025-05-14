@@ -1486,7 +1486,7 @@ const CostumesPage = () => {
     return <div className="text-center py-5 text-danger">Error: {error}</div>;
 
   return (
-    <div className="costumes-page min-vh-100">
+    <div className="costumes-page min-vh-100" style={{ marginBottom: "5vh" }}>
       <div className="hero-section text-white py-5">
         <div className="container">
           <h1 className="display-4 fw-bold text-center">Costume Gallery</h1>
@@ -1954,6 +1954,20 @@ const CostumesPage = () => {
           </Button>
         </Modal.Footer>
       </Modal>
+      {filteredCostumes.length === 0 ? (
+        <p className="text-center mt-4">No costumes found.</p>
+      ) : (
+        <div className="pagination-container mt-5">
+          <Pagination
+            current={currentPage}
+            pageSize={pageSize}
+            total={filteredCostumes.length}
+            onChange={handlePageChange}
+            showSizeChanger
+            pageSizeOptions={["4", "8", "12", "16"]}
+          />
+        </div>
+      )}
     </div>
   );
 };

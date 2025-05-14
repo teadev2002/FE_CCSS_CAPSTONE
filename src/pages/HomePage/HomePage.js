@@ -370,7 +370,6 @@ const HomePage = () => {
 
   return (
     <div className="homepage">
-      <ToastContainer />
       <Carousel fade>
         {carouselItems.map((item, index) => (
           <Carousel.Item key={index}>
