@@ -105,6 +105,7 @@
 
         &.positive {
           color: #2ecc71;
+
           &:before {
             content: "↑";
             font-size: 1rem;
@@ -113,6 +114,7 @@
 
         &.negative {
           color: #e74c3c;
+
           &:before {
             content: "↓";
             font-size: 1rem;
@@ -146,9 +148,11 @@
       &:nth-child(1) .stat-icon {
         background: linear-gradient(135deg, #00cec9, #00b894);
       }
+
       &:nth-child(2) .stat-icon {
         background: linear-gradient(135deg, #f1c40f, #e67e22);
       }
+
       &:nth-child(3) .stat-icon {
         background: linear-gradient(135deg, #3498db, #2980b9);
       }
@@ -299,6 +303,7 @@
 
           &.positive {
             color: #2ecc71;
+
             &:before {
               content: "↑";
               font-size: 0.9rem;
@@ -307,6 +312,7 @@
 
           &.negative {
             color: #e74c3c;
+
             &:before {
               content: "↓";
               font-size: 0.9rem;
@@ -346,6 +352,7 @@
       opacity: 0;
       transform: translateY(20px);
     }
+
     to {
       opacity: 1;
       transform: translateY(0);
@@ -374,6 +381,7 @@
     }
 
     .table {
+
       th,
       td {
         padding: 0.5rem; // Giảm thêm trên mobile
@@ -382,6 +390,194 @@
 
     .service-usage-item {
       margin-bottom: 0.75rem; // Giảm từ 1rem để thanh tiến trình sát hơn
+    }
+  }
+
+  // Style cho ô tìm kiếm
+  .search-container {
+    margin-bottom: 1.5rem;
+
+    .input-group {
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+
+      .input-group-text {
+        background: #f8f9fa;
+        border: none;
+        padding: 0.5rem 0.75rem;
+        display: flex;
+        align-items: center;
+
+        svg {
+          color: #6c757d;
+        }
+      }
+
+      .form-control {
+        border: none;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+
+        &:focus {
+          box-shadow: none;
+          border-color: #3498db;
+          background: #fff;
+        }
+
+        &.is-invalid {
+          border-color: #e74c3c;
+        }
+      }
+
+      .invalid-feedback {
+        font-size: 0.8rem;
+        color: #e74c3c;
+        margin-top: 0.25rem;
+      }
+    }
+  }
+
+  // Style cho phân trang
+  .pagination-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1rem;
+
+    .pagination-info {
+      font-size: 0.9rem;
+      color: #6c757d;
+    }
+
+    .pagination-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+
+      .pagination-btn {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        padding: 0;
+        border: 1px solid #ced4da;
+        background: #fff;
+        transition: all 0.3s ease;
+
+        &:hover:not(:disabled) {
+          background: linear-gradient(135deg, #3498db, #2ecc71);
+          border-color: transparent;
+          color: #fff;
+        }
+
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        svg {
+          width: 16px;
+          height: 16px;
+        }
+      }
+
+      .pagination-page {
+        font-size: 0.9rem;
+        color: #2c3e50;
+        margin: 0 0.75rem;
+      }
+
+      .pagination-dropdown {
+        .btn {
+          font-size: 0.9rem;
+          padding: 0.25rem 0.75rem;
+          border-radius: 8px;
+          border: 1px solid #ced4da;
+          background: #fff;
+          color: #2c3e50;
+          transition: all 0.3s ease;
+
+          &:hover {
+            background: linear-gradient(135deg, #3498db, #2ecc71);
+            color: #fff;
+            border-color: transparent;
+          }
+        }
+
+        .dropdown-menu {
+          border-radius: 8px;
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+          border: none;
+
+          .dropdown-item {
+            font-size: 0.9rem;
+            padding: 0.5rem 1rem;
+
+            &:hover {
+              background: linear-gradient(135deg, #f0f0f0, #e0e0e0);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Responsive cho tìm kiếm và phân trang
+  @media (max-width: 768px) {
+    .search-container {
+      margin-bottom: 1rem;
+
+      .input-group {
+        .form-control {
+          font-size: 0.85rem;
+        }
+
+        .invalid-feedback {
+          font-size: 0.75rem;
+        }
+      }
+    }
+
+    .pagination-container {
+      flex-direction: column;
+      align-items: flex-start;
+
+      .pagination-info {
+        font-size: 0.85rem;
+      }
+
+      .pagination-controls {
+        gap: 0.25rem;
+
+        .pagination-btn {
+          width: 28px;
+          height: 28px;
+
+          svg {
+            width: 14px;
+            height: 14px;
+          }
+        }
+
+        .pagination-page {
+          font-size: 0.85rem;
+          margin: 0 0.5rem;
+        }
+
+        .pagination-dropdown {
+          .btn {
+            font-size: 0.85rem;
+            padding: 0.2rem 0.5rem;
+          }
+        }
+      }
     }
   }
 }
