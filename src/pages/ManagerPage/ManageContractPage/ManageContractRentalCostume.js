@@ -708,6 +708,7 @@ const ManageContractRentalCostume = () => {
                             ))}
                         </span>
                       </th>
+                      <th className="text-center">Contract Owner</th>
                       <th className="text-center">Price</th>
                       <th className="text-center">
                         <span
@@ -742,6 +743,9 @@ const ManageContractRentalCostume = () => {
                         <tr key={con.contractId || `contract-${index}`}>
                           <td className="text-center">
                             {con.contractName || "N/A"}
+                          </td>
+                          <td className="text-center">
+                            {con.createBy || "N/A"}
                           </td>
                           <td className="text-center">
                             {con.price ? con.price.toLocaleString() : "N/A"}

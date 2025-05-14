@@ -122,6 +122,7 @@ const MyEventOrganizeService = {
         location: updateData.location,
         serviceId: updateData.serviceId || "S003", // Default to S003 if not provided
         packageId: updateData.packageId,
+        range: updateData.range,
         listUpdateRequestCharacters: updateData.listUpdateRequestCharacters.map(
           (item) => ({
             requestCharacterId: item.requestCharacterId,

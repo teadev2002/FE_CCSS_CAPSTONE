@@ -59,8 +59,8 @@ const ManageAssignTask = () => {
   const [activeTab, setActiveTab] = useState("pending");
   const [isViewingAssigned, setIsViewingAssigned] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6;
   const [cosplayerDetails, setCosplayerDetails] = useState({});
+  const itemsPerPage = 6;
 
   useEffect(() => {
     const fetchRequests = async () => {
@@ -114,7 +114,6 @@ const ManageAssignTask = () => {
     fetchRequests();
   }, [activeTab]);
 
-  // Pagination logic
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentAssignedRequests = assignedRequests.slice(
@@ -178,6 +177,7 @@ const ManageAssignTask = () => {
               characterId: character.characterId,
               dates,
               accountId: preferredCosplayer.accountId,
+              requestId: request.requestId, // Add requestId
             });
             if (response && response.length > 0) {
               cosplayers.push(response[0]);
@@ -187,6 +187,7 @@ const ManageAssignTask = () => {
           const response = await ManageAssignTaskService.ChangeCosplayerFree({
             characterId: character.characterId,
             dates,
+            requestId: request.requestId, // Add requestId
           });
 
           const uniqueCosplayers = new Map();
@@ -197,15 +198,30 @@ const ManageAssignTask = () => {
                 name: cosplayer.name,
                 height: cosplayer.height ?? 0,
                 weight: cosplayer.weight ?? 0,
-                averageStar:
-                  cosplayer.averageStar || cosplayer.salaryIndex || "N/A",
+                salaryIndex: null, // Will be fetched from getProfileById
               });
             }
           });
 
+          // Fetch salaryIndex for each cosplayer using getProfileById
           cosplayers = Array.from(uniqueCosplayers.values());
+          for (let cosplayer of cosplayers) {
+            try {
+              const profile = await ManageAssignTaskService.getProfileById(
+                cosplayer.accountId
+              );
+              cosplayer.salaryIndex = profile.salaryIndex;
+            } catch (error) {
+              console.error(
+                `Error fetching profile for cosplayer ${cosplayer.accountId}:`,
+                error
+              );
+              cosplayer.salaryIndex = null; // Fallback if profile fetch fails
+            }
+          }
+
           cosplayers.sort(
-            (a, b) => (b.averageStar || 0) - (a.averageStar || 0)
+            (a, b) => (b.salaryIndex || 0) - (a.salaryIndex || 0)
           );
 
           const requiredQuantity = character.quantity || 1;
@@ -330,7 +346,6 @@ const ManageAssignTask = () => {
         return newAssignments;
       });
 
-      // Fetch cosplayer name for the newly selected cosplayer
       for (const cosplayerId of cosplayerIds) {
         if (cosplayerId && !cosplayerDetails[cosplayerId]) {
           try {
@@ -432,9 +447,9 @@ const ManageAssignTask = () => {
       .filter((c) => !selectedCosplayers.has(c.accountId))
       .map((c) => ({
         value: c.accountId,
-        label: `${c.name} (H: ${c.height}cm, W: ${c.weight}kg, Rate: ${
-          c.averageStar || "N/A"
-        })`,
+        label: `${c.name} (H: ${c.height}cm, W: ${c.weight}kg, $: ${
+          c.salaryIndex || "N/A"
+        }/h)`,
         disabled: false,
       }));
   };
@@ -445,7 +460,6 @@ const ManageAssignTask = () => {
     if (cosplayerName) {
       return { value: cosplayerId, label: cosplayerName };
     }
-    // Fallback to the original label from options if name hasn't been fetched yet
     const options = getCosplayerOptions(requestCharacterId);
     const selectedOption = options.find(
       (option) => option.value === cosplayerId
@@ -525,6 +539,9 @@ const ManageAssignTask = () => {
                         {formatDate(request.endDate)}
                         <br />
                         <strong>Location:</strong> {request.location}
+                        <br />
+                        <strong>Unit Hire Price Range:</strong>{" "}
+                        {request.range ? `${request.range} VND` : "N/A"}
                       </Card.Text>
                       <Button
                         variant="primary"
@@ -572,6 +589,9 @@ const ManageAssignTask = () => {
                         {formatDate(request.endDate)}
                         <br />
                         <strong>Location:</strong> {request.location}
+                        <br />
+                        <strong>Unit Hire Price Range:</strong>{" "}
+                        {request.range ? `${request.range} VND` : "N/A"}
                       </Card.Text>
                       <Button
                         variant="info"
@@ -587,7 +607,6 @@ const ManageAssignTask = () => {
               ))}
             </Row>
 
-            {/* Pagination Controls */}
             {assignedRequests.length > 0 && (
               <div className="d-flex justify-content-center mt-4">
                 <Pagination>

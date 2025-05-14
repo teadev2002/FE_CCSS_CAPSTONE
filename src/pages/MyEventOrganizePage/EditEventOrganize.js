@@ -311,9 +311,17 @@ const EditEventOrganize = ({
       toast.error("All characters must have a valid quantity (minimum 1)!");
       return;
     }
+    // Prevent submission if data is still loading
+    if (loading) {
+      toast.error("Please wait, data is still loading.");
+      return;
+    }
 
     setLoading(true);
     try {
+      // Debug: Log modalData.range to confirm it's set
+      console.log("modalData.range before sending:", modalData.range);
+
       // 1. Gọi API DeleteCharacterInReq cho các nhân vật trong charactersToRemove
       const deleteCharacterPromises = charactersToRemove.map(async (char) => {
         try {
@@ -349,14 +357,17 @@ const EditEventOrganize = ({
         location: modalData.location,
         serviceId: modalData.serviceId || "S003",
         packageId: modalData.packageId,
+        range: modalData.range || "", // Include the price range from modalData
         listUpdateRequestCharacters: modalData.listCharacters.map((char) => ({
           requestCharacterId: char.requestCharacterId,
           characterId: char.characterId,
           description: char.description || "shared",
           quantity: char.quantity || 1,
+          cosplayerId: char.cosplayerId || null,
         })),
       };
 
+      // Debug: Log requestData to confirm range is included
       console.log(
         "Sending updateEventOrganizationRequest with data:",
         requestData
@@ -367,22 +378,30 @@ const EditEventOrganize = ({
           modalData.requestId,
           requestData
         );
+
+      // Debug: Log API response
       console.log("updateEventOrganizationRequest response:", updateResponse);
 
       // 3. Xóa danh sách pending changes
       setCharactersToAdd([]);
       setCharactersToRemove([]);
 
-      // 4. Reload trang sau 500ms
       setTimeout(() => {
         window.location.reload();
-      }, 500);
+      }, 400); // Delay to allow user to see success message
 
       toast.success("Request updated successfully!");
       onOk();
     } catch (error) {
-      toast.error(error.message || "Failed to save changes.");
-      console.error("Error saving changes:", error);
+      // Debug: Log detailed error information
+      console.error("Error in handleConfirm:", {
+        message: error.message,
+        stack: error.stack,
+        response: error.response, // Log any API response details
+      });
+      toast.error(
+        error.message || "Failed to save changes. Check console for details."
+      );
     } finally {
       setLoading(false);
     }
@@ -393,7 +412,60 @@ const EditEventOrganize = ({
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   );
-
+  // Fetch request data when modal becomes visible to ensure all fields, including range, are populated
+  useEffect(() => {
+    const fetchRequestData = async () => {
+      if (visible && modalData.requestId) {
+        try {
+          setLoading(true);
+          const requestData =
+            await MyEventOrganizeService.getRequestByRequestId(
+              modalData.requestId
+            );
+          console.log("Fetched request data:", requestData); // Debug: Log the API response
+          setModalData((prev) => ({
+            ...prev,
+            name: requestData.name || prev.name,
+            description: requestData.description || prev.description,
+            price: requestData.price || prev.price,
+            startDate: formatDate(requestData.startDate) || prev.startDate,
+            endDate: formatDate(requestData.endDate) || prev.endDate,
+            location: requestData.location || prev.location,
+            serviceId: requestData.serviceId || prev.serviceId,
+            packageId: requestData.packageId || prev.packageId,
+            range: requestData.range || prev.range || "", // Ensure range is set
+            deposit: requestData.deposit || prev.deposit,
+            totalDate: requestData.totalDate || prev.totalDate,
+            reason: requestData.reason || prev.reason,
+            status: requestData.status || prev.status,
+            listCharacters: (requestData.charactersListResponse || []).map(
+              (char) => ({
+                requestCharacterId: char.requestCharacterId,
+                characterId: char.characterId,
+                characterName: char.characterName,
+                cosplayerId: char.cosplayerId,
+                quantity: char.quantity || 1,
+                description: char.description || "shared",
+                characterImages: char.characterImages || [],
+                requestDateResponses: char.requestDateResponses || [],
+                maxHeight: char.maxHeight,
+                maxWeight: char.maxWeight,
+                minHeight: char.minHeight,
+                minWeight: char.minWeight,
+                status: char.status || "Pending",
+              })
+            ),
+          }));
+        } catch (error) {
+          console.error("Failed to fetch request data:", error);
+          toast.error("Failed to load request data.");
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+    fetchRequestData();
+  }, [visible, modalData.requestId, setModalData]);
   return (
     <div>
       <Modal
@@ -589,6 +661,13 @@ const EditEventOrganize = ({
                       <p>{modalData.reason}</p>
                     </Form.Group>
                   )}
+                  {/* Add range field display - shows the read-only price range from modalData */}
+                  <Form.Group className="mb-3">
+                    <Form.Label>
+                      <strong>Unit Hire Price Range Cosplayer</strong>
+                    </Form.Label>
+                    <p>{modalData.range ? `${modalData.range} VND` : "N/A"}</p>
+                  </Form.Group>
                 </div>
               </div>
               <Collapse>
@@ -599,13 +678,13 @@ const EditEventOrganize = ({
                         header={`Character: ${char.characterName} (Qty: ${char.quantity})`}
                         key={charIndex}
                       >
-                        <p>Description: ${char.description}</p>
-                        <p>Max Height: ${char.maxHeight}</p>
-                        <p>Max Weight: ${char.maxWeight}</p>
-                        <p>Min Height: ${char.minHeight}</p>
-                        <p>Min Weight: ${char.minWeight}</p>
+                        <p>Description: {char.description}</p>
+                        <p>Max Height: {char.maxHeight}</p>
+                        <p>Max Weight: {char.maxWeight}</p>
+                        <p>Min Height: {char.minHeight}</p>
+                        <p>Min Weight: {char.minWeight}</p>
                         {char.status !== "Pending" && (
-                          <p>Status: ${char.status}</p>
+                          <p>Status: {char.status}</p>
                         )}
                         <Collapse>
                           <Panel header="Character Images" key="images">

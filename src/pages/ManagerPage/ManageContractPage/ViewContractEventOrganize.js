@@ -83,6 +83,7 @@ const ViewContractEventOrganize = ({ requestId }) => {
       ...requestData,
       startDate: formatDate(requestData.startDate),
       endDate: formatDate(requestData.endDate),
+      range: requestData.range || "N/A", // Add range field
       charactersListResponse: (requestData.charactersListResponse || []).map(
         (char) => ({
           ...char,
@@ -475,6 +476,11 @@ const ViewContractEventOrganize = ({ requestId }) => {
                       packageData.packageName
                     } (${packageData.price.toLocaleString()} VND)`
                   : "N/A"}
+              </p>
+              {/* Add range field display - shows the price range from the API response */}
+              <p className="mb-2">
+                <strong>Unit Hire Price Range Cosplayer:</strong>{" "}
+                {formattedData.range ? `${formattedData.range} VND` : "N/A"}
               </p>
             </Col>
             <Col md={6}>
