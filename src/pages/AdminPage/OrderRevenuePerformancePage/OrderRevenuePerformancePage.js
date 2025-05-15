@@ -379,9 +379,9 @@ const OrderRevenuePerformancePage = () => {
             </Card.Header>
             <Card.Body style={{ height: "400px" }}>
               {filterType === 0 ||
-              (filterType === 1 && chartData.dailyRevenue.length === 0) ||
-              (filterType === 2 && chartData.dailyRevenue.length === 0) ||
-              (filterType === 3 && chartData.monthlyRevenue.length === 0) ? (
+                (filterType === 1 && chartData.dailyRevenue.length === 0) ||
+                (filterType === 2 && chartData.dailyRevenue.length === 0) ||
+                (filterType === 3 && chartData.monthlyRevenue.length === 0) ? (
                 <p className="text-muted text-center">No data available for the selected period.</p>
               ) : (
                 <Line data={prepareChartData()} options={chartOptions} />
@@ -418,8 +418,8 @@ const OrderRevenuePerformancePage = () => {
                               getStatusText(payment.status).toLowerCase() === "completed"
                                 ? "status-completed"
                                 : getStatusText(payment.status).toLowerCase() === "canceled"
-                                ? "status-cancel"
-                                : ""
+                                  ? "status-cancel"
+                                  : ""
                             }
                           >
                             {getStatusText(payment.status)}

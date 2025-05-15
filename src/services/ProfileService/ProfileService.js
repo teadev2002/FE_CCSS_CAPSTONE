@@ -12,6 +12,9 @@
 //   },
 // };
 // export default ProfileService;
+
+//----------------------------------------------------------------------------------------//
+
 import { apiClient, formDataClient } from "../../api/apiClient.js";
 
 const ProfileService = {
@@ -20,7 +23,7 @@ const ProfileService = {
       const response = await apiClient.get(`/api/Account/${accountId}`);
       return response.data;
     } catch (error) {
-      throw new Error(error.response?.data?.message || "Lỗi khi lấy profile");
+      throw new Error(error.response?.data?.message || "Failed to get profile");
     }
   },
   updateProfile: async (accountId, data) => {
@@ -64,7 +67,7 @@ const ProfileService = {
       return response.data;
     } catch (error) {
       throw new Error(
-        error.response?.data?.message || "Lỗi khi cập nhật profile"
+        error.response?.data?.message || "Failed to update profile"
       );
     }
   },

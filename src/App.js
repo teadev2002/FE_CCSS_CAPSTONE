@@ -151,7 +151,7 @@
 // export default App;
 
 import { useEffect } from "react";
-import { Route, Routes, BrowserRouter, useLocation } from "react-router-dom";
+import { Route, Routes, BrowserRouter, useLocation, Navigate } from "react-router-dom";
 import "./styles/App.scss";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "react-toastify/dist/ReactToastify.css";
@@ -203,9 +203,11 @@ import ManageAllFestivals from "./pages/ManagerPage/ManageAllFestivalsPage/Manag
 import ManageTasKCosplayer from "./pages/ManagerPage/ManageTasKCosplayer/ManageTasKCosplayer.js"; // Thêm import
 import ManageActivities from "./pages/ManagerPage/ManageActivitiesPage/ManageActivities.js"; // Thêm import
 import ManageOrderProduct from "./pages/ManagerPage/ManageOrderProductPage/ManageOrderProduct.js";
+import AccountManagementPage from "./pages/AdminPage/AccountManagementPage/AccountManagementPage.js"
 import ManageContractRentalCostume from "./pages/ManagerPage/ManageContractPage/ManageContractRentalCostume.js"; // Thêm import
 import ManageContractEventOrganize from "./pages/ManagerPage/ManageContractPage/ManageContractEventOrganize.js"; // Thêm import
 import ManageRefund from "./pages/ManagerPage/ManageRefundPage/ManageRefund.js"; // Thêm import
+
 const AppLayout = ({ children }) => {
   const location = useLocation();
 
@@ -258,14 +260,18 @@ function App() {
           <Route path="/my-task/:id" element={<MyTask />} />
           <Route path="/my-rental-costume/:id" element={<MyRentalCostume />} />
           <Route path="/my-event-organize/:id" element={<MyEventOrganize />} />
-          <Route
-            path="/my-purchase-history/:id"
-            element={<PurchaseHistory />}
-          />
+          <Route path="/my-purchase-history/:id" element={<PurchaseHistory />} />
           <Route path="/success-payment" element={<SuccessPayment />} />
           <Route path="/fail-payment" element={<FailPayment />} />
+
+          {/* Admin */}
+          <Route path="/admin" element={<Navigate to="/admin/admin-overview" replace />} />
           <Route path="/admin/admin-overview" element={<AdminOverviewPage />} />
           <Route path="/admin/user-analytics" element={<UserAnalyticsPage />} />
+          <Route
+            path="/admin/account-management"
+            element={<AccountManagementPage />}
+          />
           <Route
             path="/admin/order-revenue-performance"
             element={<OrderRevenuePerformancePage />}
@@ -278,8 +284,10 @@ function App() {
             path="/admin/system-management"
             element={<SystemManagementPage />}
           />
+
+          {/* Manager */}
+          <Route path="/manage" element={<Navigate to="/manage/request" replace />} />
           <Route path="/manage/festival" element={<ManageAllFestivals />} />{" "}
-          {/* Thêm route mới */}
           <Route path="/manage/activity" element={<ManageActivities />} />
           <Route
             path="/manage/order-product"

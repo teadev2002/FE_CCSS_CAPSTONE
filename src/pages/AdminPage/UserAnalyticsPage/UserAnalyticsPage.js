@@ -1,5 +1,8 @@
+// src/pages/UserAnalyticsPage.jsx
+
+// Nhập các thư viện và thành phần cần thiết
 import React, { useState, useEffect } from "react";
-import { Card, Row, Col, Table, ProgressBar, Dropdown, Form, InputGroup, Button } from "react-bootstrap";
+import { Card, Row, Col, Table, ProgressBar, Dropdown } from "react-bootstrap";
 import { Line } from "react-chartjs-2";
 import {
   Chart,
@@ -8,17 +11,20 @@ import {
   PointElement,
   LineElement,
 } from "chart.js";
-import { Star, Award, Users as UsersIcon, Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { Star, Award, Users as UsersIcon } from "lucide-react";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { Image } from "antd";
-import "../../../styles/Admin/UserAnalyticsPage.scss";
 import UserAnalyticsService from "../../../services/AdminService/UserAnalyticsService";
+import "../../../styles/Admin/UserAnalyticsPage.scss";
 
+// Đăng ký các thành phần cần thiết cho Chart.js
 Chart.register(CategoryScale, LinearScale, PointElement, LineElement);
 
+// Thành phần chính của trang phân tích người dùng
 const UserAnalyticsPage = () => {
-  // State cho dữ liệu tài khoản
+  // --- Quản lý trạng thái ---
+
+  // Trạng thái cho tổng số tài khoản
   const [totalAccounts, setTotalAccounts] = useState({
     total: 0,
     customers: 0,
@@ -27,50 +33,18 @@ const UserAnalyticsPage = () => {
     managers: 0,
     admins: 0,
   });
+
+  // Trạng thái cho điểm trung bình của cosplayer
   const [averageCosplayerRating, setAverageCosplayerRating] = useState(0);
-  const [accounts, setAccounts] = useState({
-    customers: [],
-    cosplayers: [],
-    consultants: [],
-    managers: [],
-    admins: [],
-  });
 
-  // State cho tìm kiếm và phân trang
-  const [searchTerms, setSearchTerms] = useState({
-    customers: { name: "", email: "" },
-    cosplayers: { name: "", email: "" },
-    consultants: { name: "", email: "" },
-    managers: { name: "", email: "" },
-    admins: { name: "", email: "" },
-  });
-  const [searchErrors, setSearchErrors] = useState({
-    customers: { name: "", email: "" },
-    cosplayers: { name: "", email: "" },
-    consultants: { name: "", email: "" },
-    managers: { name: "", email: "" },
-    admins: { name: "", email: "" },
-  });
-  const [pagination, setPagination] = useState({
-    customers: { currentPage: 1, pageSize: 10 },
-    cosplayers: { currentPage: 1, pageSize: 10 },
-    consultants: { currentPage: 1, pageSize: 10 },
-    managers: { currentPage: 1, pageSize: 10 },
-    admins: { currentPage: 1, pageSize: 10 },
-  });
-
-  // State cho Top 5 Cosplayers by Rating
+  // Trạng thái cho Top 5 Cosplayers theo điểm
   const [topCosplayersByRating, setTopCosplayersByRating] = useState([]);
   const [ratingFilter, setRatingFilter] = useState(0);
 
-  // Thống kê tương tác người dùng (giả lập)
-  const userEngagement = {
-    activeUsers: 1800,
-    newSignUps: 385,
-    avgSessionTime: "15 mins",
-  };
+  // Trạng thái cho bộ lọc biểu đồ xu hướng sử dụng dịch vụ
+  const [usageFilter, setUsageFilter] = useState("today");
 
-  // Top 5 khách hàng sử dụng dịch vụ nhiều nhất (giả lập)
+  // Dữ liệu giả lập cho Top 5 khách hàng sử dụng dịch vụ nhiều nhất
   const topCustomersByUsage = [
     { id: 1, name: "Sarah Chen", servicesUsed: { costumeRental: 50, hireCosplayers: 80, eventOrganization: 26, buySouvenirs: 15, buyFestivalTickets: 10 }, membership: "VIP" },
     { id: 2, name: "Viết Quốc", servicesUsed: { costumeRental: 60, hireCosplayers: 70, eventOrganization: 12, buySouvenirs: 20, buyFestivalTickets: 8 }, membership: "VIP" },
@@ -79,7 +53,7 @@ const UserAnalyticsPage = () => {
     { id: 5, name: "Lisa Tran", servicesUsed: { costumeRental: 30, hireCosplayers: 60, eventOrganization: 20, buySouvenirs: 8, buyFestivalTickets: 3 }, membership: "Standard" },
   ];
 
-  // Top 5 cosplayer được yêu thích nhất (giả lập)
+  // Dữ liệu giả lập cho Top 5 cosplayer theo lượt đặt
   const topCosplayersByBookings = [
     { id: 1, name: "Alex Mercer", bookings: 89, rating: 4.9 },
     { id: 2, name: "Nương Phạm", bookings: 82, rating: 4.8 },
@@ -88,7 +62,7 @@ const UserAnalyticsPage = () => {
     { id: 5, name: "James Carter", bookings: 65, rating: 4.5 },
   ];
 
-  // Sử dụng dịch vụ theo khách hàng (giả lập)
+  // Dữ liệu giả lập cho sử dụng dịch vụ theo khách hàng
   const serviceUsage = {
     customers: {
       costumeRental: 400,
@@ -106,8 +80,7 @@ const UserAnalyticsPage = () => {
     },
   };
 
-  // Biểu đồ xu hướng sử dụng dịch vụ (giả lập)
-  const [usageFilter, setUsageFilter] = useState("today");
+  // Dữ liệu giả lập cho biểu đồ xu hướng sử dụng dịch vụ
   const usageChartData = {
     today: {
       labels: ["00:00", "04:00", "08:00", "12:00", "16:00", "20:00"],
@@ -141,32 +114,7 @@ const UserAnalyticsPage = () => {
     },
   };
 
-  // Tùy chọn biểu đồ
-  const chartOptions = {
-    maintainAspectRatio: false,
-    scales: {
-      y: { beginAtZero: true, grid: { color: "rgba(0, 0, 0, 0.05)" }, ticks: { callback: (value) => value.toLocaleString() } },
-      x: { grid: { display: false } },
-    },
-    plugins: {
-      legend: { display: true, position: "top" },
-      tooltip: { callbacks: { label: (context) => `${context.dataset.label}: ${context.raw.toLocaleString()}` } },
-    },
-  };
-
-  const filterTypeOptions = [
-    { value: "today", label: "Today" },
-    { value: "month", label: "This Month" },
-    { value: "year", label: "This Year" },
-  ];
-
-  const ratingFilterOptions = [
-    { value: 0, label: "Today" },
-    { value: 1, label: "This Week" },
-    { value: 2, label: "This Month" },
-    { value: 3, label: "This Year" },
-  ];
-
+  // Ánh xạ mã vai trò (roleId) với tên vai trò
   const roleMapping = {
     R001: "admins",
     R002: "managers",
@@ -175,81 +123,54 @@ const UserAnalyticsPage = () => {
     R005: "customers",
   };
 
-  // Validate tìm kiếm
-  const validateName = (value) => {
-    if (value.length > 50) return "Name must not exceed 50 characters.";
-    if (!/^[a-zA-Z0-9\s-.]*$/.test(value)) return "Name contains invalid characters.";
-    return "";
+  // --- Cấu hình biểu đồ ---
+
+  // Cấu hình cho biểu đồ đường
+  const chartOptions = {
+    maintainAspectRatio: false,
+    scales: {
+      y: {
+        beginAtZero: true,
+        grid: { color: "rgba(0, 0, 0, 0.05)" },
+        ticks: { callback: (value) => value.toLocaleString() },
+      },
+      x: { grid: { display: false } },
+    },
+    plugins: {
+      legend: { display: true, position: "top" },
+      tooltip: {
+        callbacks: {
+          label: (context) => `${context.dataset.label}: ${context.raw.toLocaleString()}`,
+        },
+      },
+    },
   };
 
-  const validateEmail = (value) => {
-    if (value.length > 100) return "Email must not exceed 100 characters.";
-    if (value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return "Invalid email format.";
-    return "";
+  // Các tùy chọn bộ lọc thời gian cho biểu đồ xu hướng
+  const filterTypeOptions = [
+    { value: "today", label: "Today" },
+    { value: "month", label: "This Month" },
+    { value: "year", label: "This Year" },
+  ];
+
+  // Các tùy chọn bộ lọc cho Top 5 Cosplayers by Rating
+  const ratingFilterOptions = [
+    { value: 0, label: "Today" },
+    { value: 1, label: "This Week" },
+    { value: 2, label: "This Month" },
+    { value: 3, label: "This Year" },
+  ];
+
+  // --- Hàm xử lý logic ---
+
+  // Định dạng giá thuê cosplayer
+  const formatHourlyRate = (rate) => {
+    return `${rate.toLocaleString("vi-VN")}/h VND`;
   };
 
-  // Xử lý thay đổi tìm kiếm
-  const handleSearchChange = (role, field, value) => {
-    setSearchTerms((prev) => ({
-      ...prev,
-      [role]: { ...prev[role], [field]: value },
-    }));
+  // --- Gọi API ---
 
-    const error = field === "name" ? validateName(value) : validateEmail(value);
-    setSearchErrors((prev) => ({
-      ...prev,
-      [role]: { ...prev[role], [field]: error },
-    }));
-
-    if (error) toast.error(error);
-
-    // Reset về trang 1 khi tìm kiếm
-    setPagination((prev) => ({
-      ...prev,
-      [role]: { ...prev[role], currentPage: 1 },
-    }));
-  };
-
-  // Lọc tài khoản theo tìm kiếm
-  const filterAccounts = (role) => {
-    const { name, email } = searchTerms[role];
-    return accounts[role].filter((account) => {
-      const nameMatch = name
-        ? account.name.toLowerCase().includes(name.trim().toLowerCase())
-        : true;
-      const emailMatch = email
-        ? account.email.toLowerCase().includes(email.trim().toLowerCase())
-        : true;
-      return nameMatch && emailMatch;
-    });
-  };
-
-  // Phân trang tài khoản
-  const paginateAccounts = (role) => {
-    const filtered = filterAccounts(role);
-    const { currentPage, pageSize } = pagination[role];
-    const startIndex = (currentPage - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-    return filtered.slice(startIndex, endIndex);
-  };
-
-  // Xử lý thay đổi trang
-  const handlePageChange = (role, page) => {
-    setPagination((prev) => ({
-      ...prev,
-      [role]: { ...prev[role], currentPage: page },
-    }));
-  };
-
-  // Xử lý thay đổi số lượng mỗi trang
-  const handlePageSizeChange = (role, size) => {
-    setPagination((prev) => ({
-      ...prev,
-      [role]: { currentPage: 1, pageSize: parseInt(size) },
-    }));
-  };
-
-  // Lấy dữ liệu tài khoản
+  // Lấy dữ liệu tổng số tài khoản và điểm trung bình cosplayer
   useEffect(() => {
     const fetchAccounts = async () => {
       try {
@@ -294,7 +215,6 @@ const UserAnalyticsPage = () => {
           admins: counts.admins,
         });
         setAverageCosplayerRating(avgRating.toFixed(1));
-        setAccounts(fetchedAccounts);
       } catch (error) {
         toast.error(error.message || "Failed to load account data");
       }
@@ -303,7 +223,7 @@ const UserAnalyticsPage = () => {
     fetchAccounts();
   }, []);
 
-  // Lấy dữ liệu Top 5 Cosplayers by Rating
+  // Lấy dữ liệu Top 5 Cosplayers theo điểm
   useEffect(() => {
     const fetchTopCosplayersByRating = async () => {
       try {
@@ -320,214 +240,13 @@ const UserAnalyticsPage = () => {
     fetchTopCosplayersByRating();
   }, [ratingFilter]);
 
-  // Hàm format giá thuê cosplayer
-  const formatHourlyRate = (rate) => {
-    return `${rate.toLocaleString("vi-VN")}/h VND`;
-  };
-
-  // Hàm lấy URL hình ảnh avatar và danh sách hình ảnh cho preview
-  const getAvatarUrl = (images) => {
-    if (!images || images.length === 0) {
-      return "https://via.placeholder.com/40?text=No+Image";
-    }
-    const avatarImage = images.find((img) => img.isAvatar) || images[0];
-    return avatarImage.urlImage;
-  };
-
-  const getImageList = (images) => {
-    if (!images || images.length === 0) {
-      return ["https://via.placeholder.com/40?text=No+Image"];
-    }
-    return images.map((img) => img.urlImage);
-  };
-
-  // Render bảng tài khoản
-  const renderAccountTable = (role, title) => {
-    const filteredAccounts = filterAccounts(role);
-    const paginatedAccounts = paginateAccounts(role);
-    const { currentPage, pageSize } = pagination[role];
-    const totalPages = Math.ceil(filteredAccounts.length / pageSize);
-    const startIndex = (currentPage - 1) * pageSize + 1;
-    const endIndex = Math.min(currentPage * pageSize, filteredAccounts.length);
-
-    return (
-      <Col lg={12}>
-        <Card className="mb-4">
-          <Card.Header>
-            <h5>{title}</h5>
-          </Card.Header>
-          <Card.Body>
-            <div className="search-container mb-3">
-              <Form>
-                <Row>
-                  <Col md={6}>
-                    <Form.Group>
-                      <InputGroup>
-                        <InputGroup.Text>
-                          <Search size={16} />
-                        </InputGroup.Text>
-                        <Form.Control
-                          type="text"
-                          placeholder="Search by name..."
-                          value={searchTerms[role].name}
-                          onChange={(e) => handleSearchChange(role, "name", e.target.value)}
-                          isInvalid={!!searchErrors[role].name}
-                        />
-                        <Form.Control.Feedback type="invalid">
-                          {searchErrors[role].name}
-                        </Form.Control.Feedback>
-                      </InputGroup>
-                    </Form.Group>
-                  </Col>
-                  <Col md={6}>
-                    <Form.Group>
-                      <InputGroup>
-                        <InputGroup.Text>
-                          <Search size={16} />
-                        </InputGroup.Text>
-                        <Form.Control
-                          type="email"
-                          placeholder="Search by email..."
-                          value={searchTerms[role].email}
-                          onChange={(e) => handleSearchChange(role, "email", e.target.value)}
-                          isInvalid={!!searchErrors[role].email}
-                        />
-                        <Form.Control.Feedback type="invalid">
-                          {searchErrors[role].email}
-                        </Form.Control.Feedback>
-                      </InputGroup>
-                    </Form.Group>
-                  </Col>
-                </Row>
-              </Form>
-            </div>
-            <Table responsive>
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Name</th>
-                  <th>Email</th>
-                  {role === "cosplayers" && <th>Average Star</th>}
-                  <th>Avatar</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {paginatedAccounts.map((account) => (
-                  <tr key={account.accountId}>
-                    <td>{account.accountId}</td>
-                    <td>{account.name}</td>
-                    <td>{account.email}</td>
-                    {role === "cosplayers" && (
-                      <td>
-                        {account.averageStar ? (
-                          <div className="rating-cell">
-                            {account.averageStar}
-                            <Star size={14} className="star-filled ms-1" />
-                          </div>
-                        ) : (
-                          "N/A"
-                        )}
-                      </td>
-                    )}
-                    <td>
-                      <Image
-                        src={getAvatarUrl(account.images)}
-                        alt={`${account.name}'s avatar`}
-                        width={40}
-                        height={40}
-                        style={{
-                          borderRadius: "50%",
-                          objectFit: "cover",
-                          cursor: "pointer",
-                        }}
-                        preview={{
-                          src: getAvatarUrl(account.images),
-                          srcList: getImageList(account.images),
-                        }}
-                      />
-                    </td>
-                    <td>{account.isActive ? "Active" : "Inactive"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
-            {filteredAccounts.length === 0 ? (
-              <p className="text-center mt-3">No accounts found.</p>
-            ) : (
-              <div className="pagination-container mt-3">
-                <div className="pagination-info">
-                  Showing {startIndex}-{endIndex} of {filteredAccounts.length} accounts
-                </div>
-                <div className="pagination-controls">
-                  <Button
-                    variant="outline-primary"
-                    size="sm"
-                    disabled={currentPage === 1}
-                    onClick={() => handlePageChange(role, 1)}
-                    className="pagination-btn"
-                  >
-                    <ChevronsLeft size={16} />
-                  </Button>
-                  <Button
-                    variant="outline-primary"
-                    size="sm"
-                    disabled={currentPage === 1}
-                    onClick={() => handlePageChange(role, currentPage - 1)}
-                    className="pagination-btn"
-                  >
-                    <ChevronLeft size={16} />
-                  </Button>
-                  <span className="pagination-page">
-                    Page {currentPage} of {totalPages}
-                  </span>
-                  <Button
-                    variant="outline-primary"
-                    size="sm"
-                    disabled={currentPage === totalPages}
-                    onClick={() => handlePageChange(role, currentPage + 1)}
-                    className="pagination-btn"
-                  >
-                    <ChevronRight size={16} />
-                  </Button>
-                  <Button
-                    variant="outline-primary"
-                    size="sm"
-                    disabled={currentPage === totalPages}
-                    onClick={() => handlePageChange(role, totalPages)}
-                    className="pagination-btn"
-                  >
-                    <ChevronsRight size={16} />
-                  </Button>
-                  <Dropdown
-                    onSelect={(size) => handlePageSizeChange(role, size)}
-                    className="pagination-dropdown"
-                  >
-                    <Dropdown.Toggle variant="outline-primary" size="sm">
-                      {pageSize} per page
-                    </Dropdown.Toggle>
-                    <Dropdown.Menu>
-                      {[5, 10, 20].map((size) => (
-                        <Dropdown.Item key={size} eventKey={size}>
-                          {size} per page
-                        </Dropdown.Item>
-                      ))}
-                    </Dropdown.Menu>
-                  </Dropdown>
-                </div>
-              </div>
-            )}
-          </Card.Body>
-        </Card>
-      </Col>
-    );
-  };
+  // --- Giao diện người dùng ---
 
   return (
     <div className="user-analytics">
       <h1>User Analytics</h1>
 
-      {/* Tổng quan */}
+      {/* Phần thống kê tổng quan */}
       <div className="overview-stats">
         <Card className="stat-card">
           <Card.Body>
@@ -567,20 +286,9 @@ const UserAnalyticsPage = () => {
             </div>
           </Card.Body>
         </Card>
-        <Card className="stat-card">
-          <Card.Body>
-            <div className="stat-icon">
-              <UsersIcon size={24} />
-            </div>
-            <h3>User Engagement</h3>
-            <p>Active Users: {userEngagement.activeUsers.toLocaleString()}</p>
-            <p>New Sign-ups: {userEngagement.newSignUps.toLocaleString()}</p>
-            <p>Avg. Session Time: {userEngagement.avgSessionTime}</p>
-          </Card.Body>
-        </Card>
       </div>
 
-      {/* Top 5 */}
+      {/* Phần Top 5 */}
       <Row>
         <Col lg={6}>
           <Card className="mb-4">
@@ -710,7 +418,7 @@ const UserAnalyticsPage = () => {
         </Col>
       </Row>
 
-      {/* Sử dụng dịch vụ theo khách hàng */}
+      {/* Phần sử dụng dịch vụ theo khách hàng */}
       <Card className="mb-4">
         <Card.Header>
           <h5>Service Usage by Customers</h5>
@@ -798,17 +506,9 @@ const UserAnalyticsPage = () => {
           <Line data={usageChartData[usageFilter]} options={chartOptions} />
         </Card.Body>
       </Card>
-
-      {/* Danh sách tài khoản với tìm kiếm và phân trang */}
-      <Row>
-        {renderAccountTable("customers", "Customer Accounts")}
-        {renderAccountTable("cosplayers", "Cosplayer Accounts")}
-        {renderAccountTable("consultants", "Consultant Accounts")}
-        {renderAccountTable("managers", "Manager Accounts")}
-        {renderAccountTable("admins", "Admin Accounts")}
-      </Row>
     </div>
   );
 };
 
+// Xuất component
 export default UserAnalyticsPage;

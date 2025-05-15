@@ -56,6 +56,25 @@ const AdminOverviewService = {
       throw new Error(errorMessage);
     }
   },
+
+  // Lấy dữ liệu xu hướng tạo hợp đồng
+  getContractTrend: async (dateFilterType) => {
+    try {
+      console.log(`Fetching contract trend for dateFilterType=${dateFilterType}...`);
+      const response = await apiClient.get("/api/DashBoard/GetAllContractFilterDateTime", {
+        params: { dateFilterType },
+      });
+      console.log(`GetContractTrend (${dateFilterType}) response:`, response.data);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching contract trend for dateFilterType=${dateFilterType}:`, error.response?.data || error);
+      const errorMessage =
+        error.response?.data?.notification ||
+        error.response?.data?.message ||
+        `Failed to fetch contract trend for filter ${dateFilterType}`;
+      throw new Error(errorMessage);
+    }
+  },
 };
 
 export default AdminOverviewService;
