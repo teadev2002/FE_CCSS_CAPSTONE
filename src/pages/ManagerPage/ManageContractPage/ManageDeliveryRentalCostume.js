@@ -1,4 +1,3 @@
-// hiển thị thêm cancel
 // import React, { useState, useEffect } from "react";
 // import {
 //   Modal,
@@ -34,7 +33,6 @@
 //   const [form] = Form.useForm();
 
 //   const statusOrder = [
-//     "Preparing",
 //     "Delivering",
 //     "UnReceived",
 //     "Received",
@@ -78,7 +76,7 @@
 //         const currentIndex = statusOrder.indexOf(latestStatus);
 //         setCurrentStep(currentIndex >= 0 ? currentIndex : 0);
 //       } catch (error) {
-//         console.error("Không thể tải thông tin giao hàng!");
+//         console.error("Failed to load delivery information!");
 //       } finally {
 //         setLoading(false);
 //       }
@@ -89,18 +87,18 @@
 //     }
 //   }, [visible, contractId]);
 
-//   // Lọc các trạng thái có dữ liệu, luôn bao gồm "Preparing" và trạng thái mới nhất (nếu có)
+//   // Filter statuses with data, always including "Preparing" and the latest status (if any)
 //   const filteredStatusOrder = Array.from(
 //     new Set(
 //       [
-//         "Preparing", // Luôn bao gồm Preparing
+//         "Preparing", // Always include Preparing
 //         ...statusOrder.filter((status) =>
 //           deliveryImages.some((img) => img.status === status)
 //         ),
-//         deliveryImages[deliveryImages.length - 1]?.status, // Bao gồm trạng thái mới nhất
+//         deliveryImages[deliveryImages.length - 1]?.status, // Include the latest status
 //       ].filter(Boolean)
-//     ) // Loại bỏ undefined/null
-//   ).sort((a, b) => statusOrder.indexOf(a) - statusOrder.indexOf(b)); // Sắp xếp theo thứ tự statusOrder
+//     ) // Remove undefined/null
+//   ).sort((a, b) => statusOrder.indexOf(a) - statusOrder.indexOf(b)); // Sort by statusOrder
 
 //   const stepItems = filteredStatusOrder.map((status, index) => {
 //     const imagesForStatus = deliveryImages.filter(
@@ -122,12 +120,12 @@
 //       title: status,
 //       description: (
 //         <div>
-//           {earliestDate && <p>Ngày: {earliestDate}</p>}
+//           {earliestDate && <p>Date: {earliestDate}</p>}
 //           {imagesForStatus.map((img, idx) => (
 //             <Image
 //               key={idx}
 //               src={img.urlImage}
-//               alt={`Hình ảnh cho ${status}`}
+//               alt={`Image for ${status}`}
 //               width={100}
 //               style={{ marginRight: "10px", marginTop: "10px" }}
 //             />
@@ -135,7 +133,7 @@
 //           {imagesForStatus.length === 0 && (
 //             <p>
 //               {status === "Cancel"
-//                 ? "Đã hủy giao hàng."
+//                 ? "Delivery canceled."
 //                 : "Costume is being prepared."}
 //             </p>
 //           )}
@@ -177,12 +175,12 @@
 
 //   const handleUpdateDelivery = async () => {
 //     if (!selectedStatus) {
-//       toast.error("Vui lòng chọn trạng thái giao hàng!");
+//       toast.error("Please select a delivery status!");
 //       return;
 //     }
 
 //     if (selectedStatus === "Cancel" && !reason.trim()) {
-//       toast.error("Vui lòng nhập lý do khi hủy giao hàng!");
+//       toast.error("Please enter a reason for cancellation!");
 //       return;
 //     }
 
@@ -224,10 +222,10 @@
 //       const currentIndex = statusOrder.indexOf(latestStatus);
 //       setCurrentStep(currentIndex >= 0 ? currentIndex : 0);
 
-//       toast.success("Cập nhật trạng thái giao hàng thành công!");
+//       toast.success("Delivery status updated successfully!");
 //       handleCloseUpdateModal();
 //     } catch (error) {
-//       toast.error("Không thể cập nhật trạng thái giao hàng!");
+//       toast.error("Failed to update delivery status!");
 //     } finally {
 //       setLoading(false);
 //     }
@@ -263,22 +261,22 @@
 //       </Modal>
 
 //       <Modal
-//         title="Cập nhật trạng thái giao hàng"
+//         title="Update Delivery Status"
 //         visible={updateModalVisible}
 //         onOk={handleUpdateDelivery}
 //         onCancel={handleCloseUpdateModal}
-//         okText="Cập nhật"
-//         cancelText="Hủy"
+//         okText="Update"
+//         cancelText="Cancel"
 //         confirmLoading={loading}
 //       >
 //         <Form form={form} layout="vertical">
 //           <Form.Item
-//             label="Trạng thái giao hàng"
+//             label="Delivery Status"
 //             name="status"
-//             rules={[{ required: true, message: "Vui lòng chọn trạng thái!" }]}
+//             rules={[{ required: true, message: "Please select a status!" }]}
 //           >
 //             <Select
-//               placeholder="Chọn trạng thái"
+//               placeholder="Select status"
 //               onChange={handleStatusChange}
 //               value={selectedStatus}
 //             >
@@ -292,9 +290,9 @@
 
 //           {selectedStatus === "Cancel" && (
 //             <Form.Item
-//               label="Lý do hủy"
+//               label="Reason for Cancellation"
 //               name="reason"
-//               rules={[{ required: true, message: "Vui lòng nhập lý do!" }]}
+//               rules={[{ required: true, message: "Please enter a reason!" }]}
 //             >
 //               <Input.TextArea
 //                 rows={4}
@@ -304,7 +302,7 @@
 //             </Form.Item>
 //           )}
 
-//           <Form.Item label="Hình ảnh (có thể chọn nhiều)">
+//           <Form.Item label="Images (multiple selection allowed)">
 //             <Upload
 //               accept="image/*"
 //               multiple
@@ -318,7 +316,7 @@
 //                 originFileObj: file,
 //               }))}
 //             >
-//               <Button icon={<UploadOutlined />}>Chọn hình ảnh</Button>
+//               <Button icon={<UploadOutlined />}>Select Images</Button>
 //             </Upload>
 //           </Form.Item>
 
@@ -346,7 +344,8 @@
 
 // export default ManageDeliveryRentalCostume;
 
-// fix lỗi resize loop
+// update status step by step
+
 import React, { useState, useEffect } from "react";
 import {
   Modal,
@@ -364,6 +363,7 @@ import {
 } from "antd";
 import { toast } from "react-toastify";
 import ManageContractService from "../../../services/ManageServicePages/ManageContractService/ManageContractService.js";
+
 import "../../../styles/ViewMyRentalCostume.scss";
 import dayjs from "dayjs";
 import { UploadOutlined } from "@ant-design/icons";
@@ -422,7 +422,8 @@ const ManageDeliveryRentalCostume = ({ visible, onCancel, contractId }) => {
         );
         setDeliveryImages(sortedImages);
 
-        const latestStatus = sortedImages[sortedImages.length - 1]?.status;
+        const latestStatus =
+          sortedImages[sortedImages.length - 1]?.status || "Preparing";
         const currentIndex = statusOrder.indexOf(latestStatus);
         setCurrentStep(currentIndex >= 0 ? currentIndex : 0);
       } catch (error) {
@@ -437,24 +438,47 @@ const ManageDeliveryRentalCostume = ({ visible, onCancel, contractId }) => {
     }
   }, [visible, contractId]);
 
-  // Filter statuses with data, always including "Preparing" and the latest status (if any)
+  // Determine available statuses based on the latest status
+  const getAvailableStatuses = () => {
+    const latestStatus =
+      deliveryImages[deliveryImages.length - 1]?.status || "Preparing";
+
+    if (latestStatus === "Preparing") {
+      return ["Delivering"];
+    }
+
+    if (latestStatus === "Delivering") {
+      return ["Cancel", "Received", "UnReceived"];
+    }
+
+    if (latestStatus === "Received") {
+      return ["Refund"];
+    }
+
+    if (latestStatus === "UnReceived") {
+      return ["Delivering"];
+    }
+
+    return [];
+  };
+
+  // Filter statuses for Steps, always including Preparing and latest status
   const filteredStatusOrder = Array.from(
     new Set(
       [
-        "Preparing", // Always include Preparing
+        "Preparing",
         ...statusOrder.filter((status) =>
           deliveryImages.some((img) => img.status === status)
         ),
-        deliveryImages[deliveryImages.length - 1]?.status, // Include the latest status
+        deliveryImages[deliveryImages.length - 1]?.status,
       ].filter(Boolean)
-    ) // Remove undefined/null
-  ).sort((a, b) => statusOrder.indexOf(a) - statusOrder.indexOf(b)); // Sort by statusOrder
+    )
+  ).sort((a, b) => statusOrder.indexOf(a) - statusOrder.indexOf(b));
 
   const stepItems = filteredStatusOrder.map((status, index) => {
     const imagesForStatus = deliveryImages.filter(
       (img) => img.status === status
     );
-    // Get the earliest createDate for the status
     const earliestDate =
       imagesForStatus.length > 0
         ? imagesForStatus.reduce((earliest, img) =>
@@ -467,25 +491,35 @@ const ManageDeliveryRentalCostume = ({ visible, onCancel, contractId }) => {
         : null;
 
     return {
-      title: status,
+      title: (
+        <span style={{ color: status === "Cancel" ? "red" : "inherit" }}>
+          {status}
+        </span>
+      ),
       description: (
         <div>
-          {earliestDate && <p>Date: {earliestDate}</p>}
-          {imagesForStatus.map((img, idx) => (
-            <Image
-              key={idx}
-              src={img.urlImage}
-              alt={`Image for ${status}`}
-              width={100}
-              style={{ marginRight: "10px", marginTop: "10px" }}
-            />
-          ))}
-          {imagesForStatus.length === 0 && (
-            <p>
-              {status === "Cancel"
-                ? "Delivery canceled."
-                : "Costume is being prepared."}
-            </p>
+          {status === "Cancel" || status === "UnReceived" ? (
+            <>{earliestDate && <p>Date: {earliestDate}</p>}</>
+          ) : (
+            <>
+              {earliestDate && <p>Date: {earliestDate}</p>}
+              {imagesForStatus.map((img, idx) => (
+                <Image
+                  key={idx}
+                  src={img.urlImage}
+                  alt={`Image for ${status}`}
+                  width={100}
+                  style={{ marginRight: "10px", marginTop: "10px" }}
+                />
+              ))}
+              {imagesForStatus.length === 0 && (
+                <p>
+                  {status === "Preparing"
+                    ? "Costume is being prepared."
+                    : "No images available."}
+                </p>
+              )}
+            </>
           )}
         </div>
       ),
@@ -510,7 +544,7 @@ const ManageDeliveryRentalCostume = ({ visible, onCancel, contractId }) => {
 
   const handleStatusChange = (value) => {
     setSelectedStatus(value);
-    if (value !== "Cancel") {
+    if (value !== "Cancel" || value !== "UnReceived") {
       setReason("");
       form.setFieldsValue({ reason: "" });
     }
@@ -529,8 +563,11 @@ const ManageDeliveryRentalCostume = ({ visible, onCancel, contractId }) => {
       return;
     }
 
-    if (selectedStatus === "Cancel" && !reason.trim()) {
-      toast.error("Please enter a reason for cancellation!");
+    if (
+      (selectedStatus === "Cancel" || selectedStatus === "UnReceived") &&
+      !reason.trim()
+    ) {
+      toast.error("Please enter a reason for this status!");
       return;
     }
 
@@ -540,7 +577,9 @@ const ManageDeliveryRentalCostume = ({ visible, onCancel, contractId }) => {
         contractId,
         selectedStatus,
         selectedImages,
-        selectedStatus === "Cancel" ? reason : ""
+        selectedStatus === "Cancel" || selectedStatus === "UnReceived"
+          ? reason
+          : ""
       );
 
       const images = [];
@@ -568,7 +607,8 @@ const ManageDeliveryRentalCostume = ({ visible, onCancel, contractId }) => {
       );
       setDeliveryImages(sortedImages);
 
-      const latestStatus = sortedImages[sortedImages.length - 1]?.status;
+      const latestStatus =
+        sortedImages[sortedImages.length - 1]?.status || "Preparing";
       const currentIndex = statusOrder.indexOf(latestStatus);
       setCurrentStep(currentIndex >= 0 ? currentIndex : 0);
 
@@ -581,6 +621,11 @@ const ManageDeliveryRentalCostume = ({ visible, onCancel, contractId }) => {
     }
   };
 
+  // Disable Update button if latest status is Cancel
+  const isUpdateDisabled =
+    deliveryImages[deliveryImages.length - 1]?.status === "Cancel" ||
+    deliveryImages[deliveryImages.length - 1]?.status === "Refund";
+
   return (
     <>
       <Modal
@@ -588,7 +633,12 @@ const ManageDeliveryRentalCostume = ({ visible, onCancel, contractId }) => {
         visible={visible}
         onCancel={onCancel}
         footer={[
-          <Button key="update" type="primary" onClick={handleShowUpdateModal}>
+          <Button
+            key="update"
+            type="primary"
+            onClick={handleShowUpdateModal}
+            disabled={isUpdateDisabled}
+          >
             Update Delivery
           </Button>,
           <Button key="close" onClick={onCancel}>
@@ -618,6 +668,7 @@ const ManageDeliveryRentalCostume = ({ visible, onCancel, contractId }) => {
         okText="Update"
         cancelText="Cancel"
         confirmLoading={loading}
+        okButtonProps={{ disabled: isUpdateDisabled }} // Disable Update button in modal if Cancel
       >
         <Form form={form} layout="vertical">
           <Form.Item
@@ -630,7 +681,7 @@ const ManageDeliveryRentalCostume = ({ visible, onCancel, contractId }) => {
               onChange={handleStatusChange}
               value={selectedStatus}
             >
-              {statusOrder.map((status) => (
+              {getAvailableStatuses().map((status) => (
                 <Option key={status} value={status}>
                   {status}
                 </Option>
@@ -638,7 +689,7 @@ const ManageDeliveryRentalCostume = ({ visible, onCancel, contractId }) => {
             </Select>
           </Form.Item>
 
-          {selectedStatus === "Cancel" && (
+          {(selectedStatus === "Cancel" || selectedStatus === "UnReceived") && (
             <Form.Item
               label="Reason for Cancellation"
               name="reason"

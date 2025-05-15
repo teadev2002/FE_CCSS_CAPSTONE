@@ -2216,7 +2216,7 @@ const EditRentalCostume = ({
           />
         </Form.Group>
         <Form.Group className="mb-3">
-          <Form.Label>End Date</Form.Label>
+          <Form.Label>Return Date</Form.Label>
           <DatePicker
             value={modalData.endDate}
             format="DD/MM/YYYY"

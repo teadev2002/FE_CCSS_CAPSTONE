@@ -22,6 +22,7 @@
 // import { toast, ToastContainer } from "react-toastify";
 // import DetailEventOrganizationPageService from "../../services/DetailEventOrganizationPageService/DetailEventOrganizationPageService.js";
 // import { jwtDecode } from "jwt-decode";
+// import { Range } from "react-range";
 
 // // Extend dayjs with isSameOrBefore
 // dayjs.extend(isSameOrBefore);
@@ -59,6 +60,7 @@
 //   const [expandedCharacters, setExpandedCharacters] = useState({});
 //   const pageSize = 6;
 //   const navigate = useNavigate();
+//   const [priceRange, setPriceRange] = useState([15000, 50000]);
 
 //   const placeholderImages = [
 //     "https://cdn.prod.website-files.com/6769617aecf082b10bb149ff/67763d8a2775bee07438e7a5_Events.png",
@@ -324,7 +326,8 @@
 //     if (!data.location) errors.push("Location is required");
 //     if (!data.packageId) errors.push("Package ID is required");
 //     if (data.price === 0) errors.push("Total price cannot be zero");
-//     // if (data.deposit) errors.push("Deposit percentage is required");
+//     if (!data.range || !/^\d+-\d+$/.test(data.range))
+//       errors.push("Valid price range is required (e.g., 1000000-10000000)");
 //     if (data.listRequestCharactersCreateEvent.length === 0)
 //       errors.push("At least one character is required");
 //     data.listRequestCharactersCreateEvent.forEach((char, index) => {
@@ -376,6 +379,7 @@
 //       location: location || "",
 //       deposit: 0 || "",
 //       packageId: selectedPackage?.packageId || "",
+//       range: `${priceRange[0]}-${priceRange[1]}`, // New range field as "min-max"
 //       listRequestCharactersCreateEvent: selectedCharacters.map((sc) => {
 //         const characterSlots = timeSlots;
 //         const listRequestDates = getDateList()
@@ -389,7 +393,7 @@
 //           .filter((slot) => slot.startDate && slot.endDate);
 //         return {
 //           characterId: sc.characterId,
-//           description: sc.note || "shared",
+//           description: sc.note || "",
 //           quantity: sc.quantity || 1,
 //           listRequestDates,
 //         };
@@ -398,7 +402,6 @@
 //     localStorage.setItem("eventData", JSON.stringify(eventData));
 //     return eventData;
 //   };
-
 //   // Handle API submission with price recalculation
 //   const handleSubmitEvent = async (eventData) => {
 //     setIsSubmitting(true);
@@ -1018,8 +1021,8 @@
 //           <div className="step-section fade-in">
 //             <h2 className="text-center mb-4">Review Your Event</h2>
 //             <Card>
-//               <Card.Body>
-//                 <Table bordered hover responsive>
+//               <Card.Body style={{ overflowX: "hidden" }}>
+//                 <Table bordered hover style={{ overflowX: "hidden" }}>
 //                   <tbody>
 //                     <tr>
 //                       <td>
@@ -1056,6 +1059,66 @@
 //                         <strong>Description</strong>
 //                       </td>
 //                       <td>{description || "N/A"}</td>
+//                     </tr>
+//                     <tr>
+//                       <td>
+//                         <strong>Hire Price Range Cosplayer</strong>
+//                       </td>
+//                       <td>
+//                         <div className="range-slider">
+//                           <Range
+//                             step={1000} // 100K increments
+//                             min={15000} // 1M
+//                             max={50000} // 10M
+//                             values={priceRange}
+//                             onChange={(values) => {
+//                               setPriceRange(values);
+//                               handleInputChange();
+//                             }}
+//                             renderTrack={({ props, children }) => (
+//                               <div
+//                                 {...props}
+//                                 className="range-track"
+//                                 style={{
+//                                   ...props.style,
+//                                   background: `linear-gradient(to right, #007bff ${
+//                                     ((priceRange[0] - 15000) /
+//                                       (50000 - 15000)) *
+//                                     100
+//                                   }%, #ddd ${
+//                                     ((priceRange[0] - 15000) /
+//                                       (50000 - 15000)) *
+//                                     100
+//                                   }%, #ddd ${
+//                                     ((priceRange[1] - 15000) /
+//                                       (50000 - 15000)) *
+//                                     100
+//                                   }%, #007bff ${
+//                                     ((priceRange[1] - 15000) /
+//                                       (50000 - 15000)) *
+//                                     100
+//                                   }%)`,
+//                                 }}
+//                               >
+//                                 {children}
+//                               </div>
+//                             )}
+//                             renderThumb={({ props }) => (
+//                               <div
+//                                 {...props}
+//                                 className="range-thumb"
+//                                 style={{
+//                                   ...props.style,
+//                                 }}
+//                               />
+//                             )}
+//                           />
+//                           <div className="range-values">
+//                             <span>{priceRange[0].toLocaleString()} VND</span>
+//                             <span>{priceRange[1].toLocaleString()} VND</span>
+//                           </div>
+//                         </div>
+//                       </td>
 //                     </tr>
 //                     <tr>
 //                       <td>
@@ -1346,6 +1409,11 @@
 //             <strong>Description:</strong> {description}
 //           </p>
 //           <p>
+//             <strong>Hire Price Range Cosplayer:</strong>{" "}
+//             {priceRange[0].toLocaleString()} VND -{" "}
+//             {priceRange[1].toLocaleString()} VND
+//           </p>
+//           <p>
 //             <strong>Characters:</strong>{" "}
 //             {selectedCharacters.length > 0
 //               ? selectedCharacters
@@ -1419,7 +1487,7 @@
 
 // export default DetailEventOrganizationPage;
 
-// them field range =====================================
+// validate 14 ngay
 import React, { useState, useEffect } from "react";
 import { Search, ChevronRight, ChevronDown, ChevronUp } from "lucide-react";
 import {
@@ -1478,7 +1546,6 @@ const DetailEventOrganizationPage = () => {
   const [characterPrices, setCharacterPrices] = useState({});
   const [depositPercentage, setDepositPercentage] = useState(0);
   const [sortOrder, setSortOrder] = useState("default");
-  // New state for toggling listRequestDates
   const [expandedCharacters, setExpandedCharacters] = useState({});
   const pageSize = 6;
   const navigate = useNavigate();
@@ -1597,9 +1664,9 @@ const DetailEventOrganizationPage = () => {
     }
   };
 
-  // Date validation for Form.Control
+  // Date validation logic (from CostumesPage)
   const getMinStartDate = () => {
-    return dayjs().add(2, "day").format("YYYY-MM-DD");
+    return dayjs().add(4, "day").format("YYYY-MM-DD"); // Changed from 2 to 3 days
   };
 
   const getMinEndDate = () => {
@@ -1609,7 +1676,46 @@ const DetailEventOrganizationPage = () => {
 
   const getMaxEndDate = () => {
     if (!dateRange[0]) return null;
-    return dayjs(dateRange[0]).add(4, "day").format("YYYY-MM-DD");
+    return dayjs(dateRange[0]).add(13, "day").format("YYYY-MM-DD"); // Max 14 days from start date
+  };
+
+  // Validate date range before proceeding to next step
+  const validateDateRange = () => {
+    if (!dateRange[0] || !dateRange[1]) {
+      toast.error("Please select both start and end dates!");
+      return false;
+    }
+
+    const startDate = dayjs(dateRange[0]);
+    const endDate = dayjs(dateRange[1]);
+    const today = dayjs().startOf("day");
+
+    // Validate start date is at least 3 days from today
+    const minStartDate = dayjs().add(4, "day");
+    if (startDate.isBefore(minStartDate, "day")) {
+      toast.error("Start date must be at least 3 days from today!");
+      return false;
+    }
+
+    // Validate end date is not more than 14 days from start date
+    const maxEndDate = startDate.add(13, "day");
+    if (endDate.isAfter(maxEndDate, "day")) {
+      toast.error("End date cannot be more than 14 days from start date!");
+      return false;
+    }
+
+    // Validate rental period is between 1 and 5 days
+    const diffDays = endDate.diff(startDate, "day") + 1;
+    if (diffDays < 1) {
+      toast.error("End date must be on or after start date!");
+      return false;
+    }
+    if (diffDays > 5) {
+      toast.error("Event period cannot exceed 5 days!");
+      return false;
+    }
+
+    return true;
   };
 
   // Generate list of dates between startDate and endDate
@@ -1636,7 +1742,7 @@ const DetailEventOrganizationPage = () => {
 
   // Validate time slot for a specific date
   const validateTimeSlot = (date, startTime, endTime) => {
-    if (!startTime || !endTime) return;
+    if (!startTime || !endTime) return false;
 
     const start = dayjs(startTime, "HH:mm");
     const end = dayjs(endTime, "HH:mm");
@@ -1801,7 +1907,7 @@ const DetailEventOrganizationPage = () => {
       location: location || "",
       deposit: 0 || "",
       packageId: selectedPackage?.packageId || "",
-      range: `${priceRange[0]}-${priceRange[1]}`, // New range field as "min-max"
+      range: `${priceRange[0]}-${priceRange[1]}`,
       listRequestCharactersCreateEvent: selectedCharacters.map((sc) => {
         const characterSlots = timeSlots;
         const listRequestDates = getDateList()
@@ -1824,6 +1930,7 @@ const DetailEventOrganizationPage = () => {
     localStorage.setItem("eventData", JSON.stringify(eventData));
     return eventData;
   };
+
   // Handle API submission with price recalculation
   const handleSubmitEvent = async (eventData) => {
     setIsSubmitting(true);
@@ -1848,7 +1955,7 @@ const DetailEventOrganizationPage = () => {
     }
   };
 
-  // Handle next step
+  // Handle next step with date validation
   const handleNextStep = () => {
     if (step === 1 && !selectedPackage) {
       toast.warn("Please select an event package!");
@@ -1862,6 +1969,9 @@ const DetailEventOrganizationPage = () => {
       return;
     }
     if (step === 2) {
+      if (!validateDateRange()) {
+        return;
+      }
       const hasTimeSlots = getDateList().every(
         (date) => timeSlots[date] && timeSlots[date][0] && timeSlots[date][1]
       );
@@ -1935,7 +2045,7 @@ const DetailEventOrganizationPage = () => {
       } else if (sortOrder === "desc") {
         return b.price - a.price;
       }
-      return 0; // Default order
+      return 0;
     });
 
   const totalPackages = filteredPackages.length;
@@ -2158,13 +2268,19 @@ const DetailEventOrganizationPage = () => {
                         const newStartDate = e.target.value
                           ? dayjs(e.target.value)
                           : null;
-                        const newDateRange = [newStartDate, dateRange[1]];
+                        let newDateRange = [newStartDate, dateRange[1]];
                         if (
                           newStartDate &&
                           dateRange[1] &&
                           newStartDate.isAfter(dateRange[1])
                         ) {
                           newDateRange[1] = null; // Reset end date if start date is after it
+                        } else if (newStartDate && dateRange[1]) {
+                          // Ensure end date does not exceed 5 days from start date
+                          const maxEndDate = newStartDate.add(5, "day");
+                          if (dayjs(dateRange[1]).isAfter(maxEndDate)) {
+                            newDateRange[1] = maxEndDate;
+                          }
                         }
                         setDateRange(newDateRange);
                         setTimeSlots({});
@@ -2489,9 +2605,9 @@ const DetailEventOrganizationPage = () => {
                       <td>
                         <div className="range-slider">
                           <Range
-                            step={1000} // 100K increments
-                            min={15000} // 1M
-                            max={50000} // 10M
+                            step={1000}
+                            min={15000}
+                            max={50000}
                             values={priceRange}
                             onChange={(values) => {
                               setPriceRange(values);

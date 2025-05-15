@@ -774,8 +774,11 @@ const ManageContractRentalCostume = () => {
                               onClick={() =>
                                 handleShowDeliveryModal(con.contractId)
                               } // Gọi hàm mở modal
+                              disabled={con.status === "Created"}
                             >
-                              Manage Delivery
+                              {con.status === "Created"
+                                ? "Wait Payment"
+                                : "Manage Delivery"}
                             </Button>
                           </td>
                           <td className="text-center">
