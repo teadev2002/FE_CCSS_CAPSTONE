@@ -806,8 +806,6 @@ const ManageContract = () => {
           )}
         </BootstrapModal.Footer>
       </BootstrapModal>
-      <ManageContractRentalCostume />
-      <ManageContractEventOrganzie />
     </div>
   );
 };

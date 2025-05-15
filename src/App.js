@@ -203,7 +203,9 @@ import ManageAllFestivals from "./pages/ManagerPage/ManageAllFestivalsPage/Manag
 import ManageTasKCosplayer from "./pages/ManagerPage/ManageTasKCosplayer/ManageTasKCosplayer.js"; // Thêm import
 import ManageActivities from "./pages/ManagerPage/ManageActivitiesPage/ManageActivities.js"; // Thêm import
 import ManageOrderProduct from "./pages/ManagerPage/ManageOrderProductPage/ManageOrderProduct.js";
-
+import ManageContractRentalCostume from "./pages/ManagerPage/ManageContractPage/ManageContractRentalCostume.js"; // Thêm import
+import ManageContractEventOrganize from "./pages/ManagerPage/ManageContractPage/ManageContractEventOrganize.js"; // Thêm import
+import ManageRefund from "./pages/ManagerPage/ManageRefundPage/ManageRefund.js"; // Thêm import
 const AppLayout = ({ children }) => {
   const location = useLocation();
 
@@ -263,10 +265,7 @@ function App() {
           <Route path="/success-payment" element={<SuccessPayment />} />
           <Route path="/fail-payment" element={<FailPayment />} />
           <Route path="/admin/admin-overview" element={<AdminOverviewPage />} />
-          <Route
-            path="/admin/user-analytics"
-            element={<UserAnalyticsPage />}
-          />
+          <Route path="/admin/user-analytics" element={<UserAnalyticsPage />} />
           <Route
             path="/admin/order-revenue-performance"
             element={<OrderRevenuePerformancePage />}
@@ -282,7 +281,10 @@ function App() {
           <Route path="/manage/festival" element={<ManageAllFestivals />} />{" "}
           {/* Thêm route mới */}
           <Route path="/manage/activity" element={<ManageActivities />} />
-          <Route path="/manage/order-product" element={<ManageOrderProduct />} />
+          <Route
+            path="/manage/order-product"
+            element={<ManageOrderProduct />}
+          />
           <Route path="/manage/ticket" element={<ManageTicket />} />
           <Route path="/manage/ticket-check" element={<TicketCheck />} />
           <Route path="/manage/feedback" element={<ManageFeedback />} />
@@ -291,6 +293,15 @@ function App() {
           <Route path="/manage/cosplayer" element={<ManageCosplayer />} />
           <Route path="/manage/character" element={<ManageCharacter />} />
           <Route path="/manage/contract" element={<ManageContract />} />
+          <Route
+            path="/manage/contract-rental-costume"
+            element={<ManageContractRentalCostume />}
+          />
+          <Route
+            path="/manage/contract-event-organize"
+            element={<ManageContractEventOrganize />}
+          />
+          <Route path="/manage/refund" element={<ManageRefund />} />
           <Route path="/manage/account" element={<ManageAccount />} />
           <Route
             path="/manage/task-cosplayer"

@@ -1,0 +1,308 @@
+.manage-refund {
+  padding: 10px;
+  background: url("https://i.pinimg.com/originals/d2/ad/3f/d2ad3f633977d1ec518916b5c4fe5acd.jpg")
+    no-repeat center center fixed;
+  background-size: cover;
+  min-height: 100vh;
+
+  .manage-refund-title {
+    font-size: 32px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    text-align: center;
+    color: #ffffff;
+    background: transparent;
+  }
+
+  .table-container {
+    display: flex;
+    padding: 10px;
+  }
+
+  .refund-table-card {
+    width: 90%;
+    margin: 10px auto;
+    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.2);
+    background: #fff;
+    border-radius: 15px;
+    opacity: 0.9;
+
+    .card-body {
+      padding: 15px;
+    }
+
+    .table-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+
+      h3 {
+        font-size: 20px;
+        font-weight: 600;
+        margin: 0;
+      }
+
+      .filters {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+
+        .filter-select {
+          width: 150px;
+          border-radius: 5px;
+          border: 1px solid #ced4da;
+          padding: 5px 10px;
+          font-size: 14px;
+
+          &:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+          }
+        }
+
+        .search-input {
+          width: 300px;
+          border-radius: 5px;
+          border: 1px solid #ced4da;
+          padding: 5px 10px;
+
+          &:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+          }
+        }
+      }
+    }
+
+    .error-message {
+      color: #ff4d4f;
+      font-size: 14px;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .table {
+      margin-bottom: 0;
+
+      th,
+      td {
+        vertical-align: middle;
+        padding: 8px;
+        text-align: center;
+      }
+
+      thead {
+        background-color: #f5f5f5;
+        font-weight: bold;
+        color: #333;
+
+        .sortable {
+          cursor: pointer;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          gap: 5px;
+
+          &:hover {
+            background-color: #e0e0e0;
+          }
+
+          .default-sort-icon {
+            opacity: 0.5;
+          }
+        }
+      }
+
+      tbody tr:hover {
+        background-color: #f0f0f0;
+      }
+
+      .action-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+
+        .action-btn {
+          padding: 5px 10px;
+          font-size: 14px;
+          border-radius: 4px;
+        }
+
+        .refund-btn {
+          background-color: #28a745;
+          border-color: #28a745;
+
+          &:hover {
+            background-color: #218838;
+            border-color: #1e7e34;
+          }
+        }
+
+        .view-btn {
+          background-color: #007bff;
+          border-color: #007bff;
+          color: #fff;
+
+          &:hover {
+            background-color: #0056b3;
+            border-color: #004085;
+          }
+        }
+
+        .edit-btn {
+          background-color: #ffc107;
+          border-color: #ffc107;
+          color: #212529;
+
+          &:hover {
+            background-color: #e0a800;
+            border-color: #d39e00;
+          }
+        }
+      }
+    }
+
+    .pagination-controls {
+      margin-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      .pagination-info {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+
+        span {
+          font-size: 14px;
+          color: #333;
+        }
+
+        .rows-per-page {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+
+          span {
+            font-size: 14px;
+            color: #333;
+          }
+
+          .dropdown {
+            .btn-secondary {
+              padding: 4px 8px;
+              font-size: 14px;
+              border-radius: 4px;
+            }
+
+            .dropdown-menu {
+              min-width: 60px;
+
+              .dropdown-item {
+                font-size: 14px;
+                padding: 4px 8px;
+              }
+            }
+          }
+        }
+      }
+
+      .pagination {
+        margin: 0;
+
+        .page-item {
+          .page-link {
+            padding: 4px 8px;
+            font-size: 14px;
+            border-radius: 4px;
+          }
+
+          &.active .page-link {
+            background-color: #007bff;
+            border-color: #007bff;
+          }
+        }
+      }
+    }
+  }
+
+  .refund-modal {
+    .modal-content {
+      border-radius: 8px;
+    }
+
+    .modal-header {
+      background-color: #f8f9fa;
+      border-bottom: 1px solid #dee2e6;
+      padding: 10px 15px;
+    }
+
+    .modal-title {
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .modal-body {
+      padding: 15px;
+
+      .refund-details {
+        p {
+          margin: 8px 0;
+          font-size: 14px;
+          color: #333;
+
+          strong {
+            font-weight: 600;
+            margin-right: 8px;
+          }
+        }
+
+        .form-group {
+          margin-bottom: 15px;
+
+          label {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 5px;
+          }
+
+          .form-control {
+            font-size: 14px;
+            border-radius: 5px;
+            padding: 5px 10px;
+          }
+        }
+      }
+    }
+
+    .modal-footer {
+      border-top: 1px solid #dee2e6;
+      padding: 10px 15px;
+
+      .ant-btn {
+        padding: 6px 12px;
+        border-radius: 5px;
+      }
+    }
+  }
+
+  // Override the default modal backdrop (if needed)
+  .modal-backdrop {
+    background-color: transparent !important; // Ensure default backdrop is transparent
+  }
+
+  // Define the custom-backdrop class to make the backdrop transparent
+  .custom-backdrop {
+    background-color: transparent !important; // Completely transparent backdrop
+  }
+
+  .modal-content {
+    background-color: #fff;
+    opacity: 1;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  }
+  
+}

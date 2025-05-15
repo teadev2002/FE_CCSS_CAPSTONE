@@ -1,0 +1,120 @@
+import { apiClient, formDataClient } from "../../api/apiClient.js";
+
+const RefundService = {
+  sendRefund: async (contractId, price, description, images) => {
+    try {
+      const formData = new FormData();
+
+      if (images && images.length > 0) {
+        images.forEach((image, index) => {
+          formData.append("images", image);
+        });
+      }
+
+      const queryParams = new URLSearchParams({
+        ContractId: contractId,
+        Price: price,
+        Description: description,
+      }).toString();
+
+      const url = `/api/ContractRefund?${queryParams}`;
+
+      const response = await formDataClient.post(url, formData);
+      return response.data;
+    } catch (error) {
+      console.error("Error sending refund:", error);
+      throw error;
+    }
+  },
+  getRefunds: async () => {
+    try {
+      const response = await apiClient.get("/api/ContractRefund");
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching refunds:", error);
+      throw error;
+    }
+  },
+  getRefundById: async (contractId) => {
+    try {
+      const response = await apiClient.get(
+        `/api/ContractRefund/GetContractRefundByContractId?contractId=${contractId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching refund by ID:", error);
+      throw error;
+    }
+  },
+  getContractRefundByRefundId: async (refundId) => {
+    try {
+      const url = `/api/ContractRefund/${refundId}`;
+      const response = await apiClient.get(url);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching refund by ID:", error);
+      throw error;
+    }
+  },
+  // New method to update a refund (PUT)
+  updateRefund: async (
+    contractRefundId,
+    contractId,
+    numberBank,
+    bankName,
+    accountBankName,
+    price,
+    description,
+    images
+  ) => {
+    try {
+      // Create FormData object for multipart/form-data (for images)
+      const formData = new FormData();
+
+      // Append images (assuming images is an array of File objects)
+      if (images && images.length > 0) {
+        images.forEach((image, index) => {
+          formData.append("images", image);
+        });
+      }
+
+      // Construct the URL with query parameters
+      const queryParams = new URLSearchParams({
+        contractRefundId,
+        ContractId: contractId,
+        NumberBank: numberBank,
+        BankName: bankName,
+        AccountBankName: accountBankName,
+        Price: price,
+        Description: description,
+      }).toString();
+
+      const url = `/api/ContractRefund?${queryParams}`;
+
+      // Make the PUT request using formDataClient
+      const response = await formDataClient.put(url, formData);
+      return response.data;
+    } catch (error) {
+      console.error("Error updating refund:", error);
+      throw error;
+    }
+  },
+  // Cập nhật trạng thái hợp đồng
+  updateContractStatus: async (contractId, status) => {
+    try {
+      const response = await apiClient.put(
+        `/api/Contract?contracId=${contractId}&status=Completed`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error updating contract status:", {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+      });
+      throw error;
+    }
+  },
+};
+
+export default RefundService;

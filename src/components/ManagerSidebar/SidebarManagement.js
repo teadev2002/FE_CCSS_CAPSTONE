@@ -305,7 +305,6 @@
 
 // export default SidebarManagement;
 
-
 //----------------------------------------------------------------------------------------------------//
 
 // import React, { useState, useEffect } from "react";
@@ -716,7 +715,25 @@ const SidebarManagement = () => {
       subMenus: [
         {
           path: "/manage/contract",
-          label: "Manage Contracts",
+          label: "Contract Hire Cosplayer",
+          icon: <ReceiptText size={18} />,
+          allowedRoles: ["Consultant"],
+        },
+        {
+          path: "/manage/contract-rental-costume",
+          label: "Contract Rental Costume",
+          icon: <ReceiptText size={18} />,
+          allowedRoles: ["Consultant"],
+        },
+        {
+          path: "/manage/contract-event-organize",
+          label: "Contract  Event Organize",
+          icon: <ReceiptText size={18} />,
+          allowedRoles: ["Consultant"],
+        },
+        {
+          path: "/manage/refund",
+          label: "Manage Refunds",
           icon: <ReceiptText size={18} />,
           allowedRoles: ["Consultant"],
         },
@@ -740,7 +757,9 @@ const SidebarManagement = () => {
           <div key={index} className="menu-item">
             {/* Menu lớn */}
             <div
-              className={`nav-link menu-link ${openMenu === menu.label ? "active" : ""}`}
+              className={`nav-link menu-link ${
+                openMenu === menu.label ? "active" : ""
+              }`}
               onClick={() => toggleMenu(menu.label)}
             >
               {menu.icon}
@@ -758,10 +777,14 @@ const SidebarManagement = () => {
                     key={subMenu.path}
                     to={subMenu.path}
                     className={({ isActive }) =>
-                      isActive ? "nav-link submenu-link active" : "nav-link submenu-link"
+                      isActive
+                        ? "nav-link submenu-link active"
+                        : "nav-link submenu-link"
                     }
                     onClick={(e) => {
-                      if (!checkPermission(subMenu.allowedRoles, subMenu.path)) {
+                      if (
+                        !checkPermission(subMenu.allowedRoles, subMenu.path)
+                      ) {
                         e.preventDefault();
                       }
                     }}
