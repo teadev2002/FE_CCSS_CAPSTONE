@@ -85,6 +85,7 @@ const AddCosplayerInReq = ({ visible, requestId, onCancel, onSuccess }) => {
   }, [visible, requestId]);
 
   // Fetch cosplayers when character is selected
+  // Handle fetching cosplayers using the ChangeCosplayer API with deduplication
   const fetchCosplayers = async (characterName) => {
     if (!characterName || requestDates.length === 0) {
       setFilteredCosplayers([]);
@@ -93,26 +94,43 @@ const AddCosplayerInReq = ({ visible, requestId, onCancel, onSuccess }) => {
 
     setLoading(true);
     try {
-      const startDateTime = requestDates[0].startDate;
-      const endDateTime = requestDates[requestDates.length - 1].endDate;
+      // Find the character to get its ID
+      const character = characters.find((char) => char.name === characterName);
+      if (!character) {
+        throw new Error("Character not found.");
+      }
 
-      const cosplayersData =
-        await MyHistoryService.getAccountByCharacterNameNDate(
-          characterName,
-          startDateTime,
-          endDateTime
-        );
+      // Construct the payload for ChangeCosplayer API
+      const payload = {
+        characterId: character.id,
+        dates: requestDates.map((date) => ({
+          startDate: date.startDate,
+          endDate: date.endDate,
+        })),
+        accountId: null,
+      };
 
-      const mappedCosplayers = cosplayersData.map((cosplayer) => ({
-        id: cosplayer.accountId,
-        name: cosplayer.name,
-        description: cosplayer.description || "No description",
-        height: cosplayer.height || 0, // Default to 0 if missing
-        weight: cosplayer.weight || 0, // Default to 0 if missing
-        salaryIndex: cosplayer.salaryIndex || 0,
-        averageStar: cosplayer.averageStar || 0,
-      }));
+      // Call the ChangeCosplayer API
+      const cosplayersData = await MyHistoryService.ChangeCosplayer(payload);
 
+      // Deduplicate cosplayers by accountId
+      const cosplayerMap = new Map();
+      cosplayersData.forEach((cosplayer) => {
+        if (!cosplayerMap.has(cosplayer.accountId)) {
+          cosplayerMap.set(cosplayer.accountId, {
+            id: cosplayer.accountId,
+            name: cosplayer.name,
+            description: cosplayer.description || "No description",
+            height: cosplayer.height || 0, // Default to 0 if missing
+            weight: cosplayer.weight || 0, // Default to 0 if missing
+            salaryIndex: cosplayer.salaryIndex || 0,
+            averageStar: cosplayer.averageStar || 0,
+          });
+        }
+      });
+      const mappedCosplayers = Array.from(cosplayerMap.values());
+
+      // Fetch existing cosplayers in the request to filter them out
       const requestData = await MyHistoryService.getRequestByRequestId(
         requestId
       );
@@ -122,9 +140,7 @@ const AddCosplayerInReq = ({ visible, requestId, onCancel, onSuccess }) => {
           .filter(Boolean)
       );
 
-      const character = characters.find((char) => char.name === characterName);
-
-      // Relaxed filtering to handle missing data
+      // Filter cosplayers based on character requirements and existing assignments
       const filtered = mappedCosplayers.filter(
         (cosplayer) =>
           !existingCosplayerIds.has(cosplayer.id) &&
@@ -206,7 +222,7 @@ const AddCosplayerInReq = ({ visible, requestId, onCancel, onSuccess }) => {
 
       setLoading(true);
       const response = await MyHistoryService.AddCosplayer(payload);
-      toast.success(response?.message || "Cosplayer added successfully!");
+      console.log(response?.message || "Cosplayer added successfully!");
       onSuccess();
       onCancel();
     } catch (error) {

@@ -877,8 +877,8 @@ const ViewMyRentCos = ({ requestId }) => {
   };
   return (
     <>
-      <Button size="small" className="btn-view" onClick={handleViewRequest}>
-        View
+      <Button size="small" className=" btn-view" onClick={handleViewRequest}>
+        <Eye size={16} /> View
       </Button>
       <Modal
         title="View Details"

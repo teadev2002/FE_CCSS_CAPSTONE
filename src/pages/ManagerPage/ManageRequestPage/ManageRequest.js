@@ -10,7 +10,7 @@ import "../../../styles/Manager/ManageRequest.scss";
 import RequestService from "../../../services/ManageServicePages/ManageRequestService/RequestService.js";
 import ViewManageRentalCostume from "./ViewManageRentalCostume";
 import ViewManageEventOrganize from "./ViewManageEventOrganize.js";
-import ViewMyRentCos from "../../MyHistoryPage/ViewMyRentCos.js";
+import ViewManageRentCosplayer from "./ViewManageRentCosplayer";
 import dayjs from "dayjs";
 import minMax from "dayjs/plugin/minMax";
 
@@ -518,7 +518,7 @@ const ManageRequest = () => {
                           </Button>
                         )}
                         {req.serviceId === "S002" ? (
-                          <ViewMyRentCos requestId={req.id} />
+                          <ViewManageRentCosplayer requestId={req.id} />
                         ) : (
                           <Button
                             size="small"

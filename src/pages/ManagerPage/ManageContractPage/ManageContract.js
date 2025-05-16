@@ -17,9 +17,8 @@ import LinearProgress from "@mui/material/LinearProgress";
 import ManageContractService from "../../../services/ManageServicePages/ManageContractService/ManageContractService.js";
 import "../../../styles/Manager/ManageContract.scss";
 import dayjs from "dayjs";
-import ViewMyRentCos from "../../MyHistoryPage/ViewMyRentCos.js"; // Import ViewMyRentCos
-import ManageContractRentalCostume from "./ManageContractRentalCostume";
-import ManageContractEventOrganzie from "./ManageContractEventOrganize.js";
+import ViewManageRentCosplayer from "../ManageRequestPage/ViewManageRentCosplayer.js"; // Import ViewMyRentCos
+
 function CustomTabPanel(props) {
   const { children, value, index, ...other } = props;
 
@@ -593,7 +592,7 @@ const ManageContract = () => {
                           <td>{req.endDate}</td>
                           <td>{req.reason}</td>
                           <td>
-                            <ViewMyRentCos
+                            <ViewManageRentCosplayer
                               requestId={req.id}
                               style={{ marginRight: "8px" }}
                             />
@@ -723,7 +722,7 @@ const ManageContract = () => {
                               : "N/A"}
                           </td>
                           <td className="text-center">
-                            <ViewMyRentCos
+                            <ViewManageRentCosplayer
                               requestId={con.requestId}
                               style={{ marginRight: "8px" }}
                               disabled={!con.contractId}

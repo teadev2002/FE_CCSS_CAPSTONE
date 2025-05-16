@@ -302,7 +302,7 @@ const EditRequestHireCosplayer = ({
         requestId,
         formattedData
       );
-      toast.success(response?.message || "Request updated successfully!");
+      console.log(response?.message || "Request updated successfully!");
       onSuccess();
       onCancel();
     } catch (error) {

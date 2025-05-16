@@ -685,12 +685,15 @@ const MyHistory = () => {
                         <div className="icon-circle">
                           <FileText size={24} />
                         </div>
-                        <div className="flex-grow-1">
+                        <div
+                          className="flex-grow-1"
+                          style={{ marginBottom: "10px" }}
+                        >
                           <div className="d-flex justify-content-between align-items-start">
                             <h3 className="history-title mb-0">
-                              {item.name || item.contractName || "N/A"}
+                              {item.name || item.contractName || "N/A"} {""}
+                              {getStatusBadge(item.status)}
                             </h3>
-                            {getStatusBadge(item.status)}
                           </div>
                           <div className="text-muted small mt-1">
                             <DollarSign size={16} className="me-1" />
@@ -886,9 +889,9 @@ const MyHistory = () => {
                                 <div className="flex-grow-1">
                                   <div className="d-flex justify-content-between align-items-start">
                                     <h3 className="history-title mb-0">
-                                      {contract.contractName || "N/A"}
+                                      {contract.contractName || "N/A"}{" "}
+                                      {getStatusBadge(contract.status)}
                                     </h3>
-                                    {getStatusBadge(contract.status)}
                                   </div>
                                   <div className="text-muted small mt-1">
                                     <DollarSign size={16} className="me-1" />
@@ -910,7 +913,6 @@ const MyHistory = () => {
                               <div className="d-flex gap-2 justify-content-md-end">
                                 <ViewMyRentCos requestId={contract.requestId} />
                                 <Button
-                                  size="small"
                                   className="btn-view-pdf"
                                   onClick={() =>
                                     handleViewContractPdf(contract.urlPdf)
@@ -920,7 +922,6 @@ const MyHistory = () => {
                                   View Contract PDF
                                 </Button>
                                 <Button
-                                  size="small"
                                   className="btn-action"
                                   onClick={() => handleDepositPayment(contract)}
                                 >
@@ -1015,7 +1016,6 @@ const MyHistory = () => {
                               <div className="d-flex gap-2 justify-content-md-end">
                                 <ViewMyRentCos requestId={contract.requestId} />
                                 <Button
-                                  size="small"
                                   className="btn-view-pdf"
                                   onClick={() =>
                                     handleViewContractPdf(contract.urlPdf)
@@ -1025,7 +1025,6 @@ const MyHistory = () => {
                                   View Contract PDF
                                 </Button>
                                 <Button
-                                  size="small"
                                   className="btn-complete-payment"
                                   onClick={() =>
                                     handleCompleteContractPayment(contract)
@@ -1077,7 +1076,7 @@ const MyHistory = () => {
               onPageChange={handleCompletedPageChange}
               onAction={(contract) => handleViewContractPdf(contract.urlPdf)}
               actionLabel="View Contract PDF"
-              actionIcon={<FileText size={16} className="me-1" />}
+              actionIcon={<FileText size={20} />}
               isCompletedTab={true}
             />
           </TabPane>
