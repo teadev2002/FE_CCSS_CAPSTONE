@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { Modal } from "react-bootstrap";
 import { Button } from "antd";
-import RefundService from "../../../services/RefundService/RefundService.js";
+import RefundService from "../../services/RefundService/RefundService.js";
 import { toast } from "react-toastify";
 
-const ViewRefundButton = ({ refund }) => {
+const ViewRefund = ({ refund }) => {
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [selectedRefund, setSelectedRefund] = useState(null);
@@ -61,20 +61,13 @@ const ViewRefundButton = ({ refund }) => {
         className="refund-modal"
         backdropClassName="custom-backdrop"
       >
-        <Modal.Header closeButton>
-          <Modal.Title>View Refund Details</Modal.Title>
-        </Modal.Header>
+        <Modal.Title style={{ textAlign: "center" }}>
+          View Refund Details
+        </Modal.Title>
+
         <Modal.Body>
           {selectedRefund ? (
             <div className="refund-details">
-              <p>
-                <strong>Refund ID:</strong>{" "}
-                {selectedRefund.contractRefundId || "N/A"}
-              </p>
-              <p>
-                <strong>Contract ID:</strong>{" "}
-                {selectedRefund.contractId || "N/A"}
-              </p>
               <p>
                 <strong>Bank Number:</strong>{" "}
                 {selectedRefund.numberBank || "N/A"}
@@ -98,6 +91,12 @@ const ViewRefundButton = ({ refund }) => {
                 <strong>Price:</strong>{" "}
                 {selectedRefund.price
                   ? selectedRefund.price.toLocaleString()
+                  : "N/A"}
+              </p>
+              <p>
+                <strong>Amount:</strong>{" "}
+                {selectedRefund.amount
+                  ? selectedRefund.amount.toLocaleString()
                   : "N/A"}
               </p>
               <p>
@@ -125,4 +124,4 @@ const ViewRefundButton = ({ refund }) => {
   );
 };
 
-export default ViewRefundButton;
+export default ViewRefund;

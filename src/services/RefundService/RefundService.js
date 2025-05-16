@@ -35,20 +35,18 @@ const RefundService = {
       throw error;
     }
   },
-  getRefundById: async (contractId) => {
+  getContractRefundByContractId: async (contractId) => {
     try {
-      const response = await apiClient.get(
-        `/api/ContractRefund/GetContractRefundByContractId?contractId=${contractId}`
-      );
+      const response = await apiClient.get(`/api/ContractRefund/${contractId}`);
       return response.data;
     } catch (error) {
       console.error("Error fetching refund by ID:", error);
       throw error;
     }
   },
-  getContractRefundByRefundId: async (refundId) => {
+  GetContractRefundByContractRefundId: async (refundId) => {
     try {
-      const url = `/api/ContractRefund/${refundId}`;
+      const url = `/api/ContractRefund/GetContractRefundByContractRefundId?contractRefundId=${refundId}`;
       const response = await apiClient.get(url);
       return response.data;
     } catch (error) {
@@ -112,6 +110,17 @@ const RefundService = {
         status: error.response?.status,
         data: error.response?.data,
       });
+      throw error;
+    }
+  },
+  getAllContractRefundByAccountId: async (accountId) => {
+    try {
+      const response = await apiClient.get(
+        `/api/ContractRefund/GetAllContractRefundByAccountId?accountId=${accountId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching refunds by account ID:", error);
       throw error;
     }
   },

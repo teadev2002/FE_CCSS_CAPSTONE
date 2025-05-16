@@ -1,3 +1,4 @@
+// fix ko thấy request browsed
 import React, { useState, useEffect, useMemo } from "react";
 import { Table, Form, Card, Modal as BootstrapModal } from "react-bootstrap";
 import {
@@ -103,122 +104,117 @@ const ManageContractEventOrganize = () => {
     }
   };
 
-  // Extract fetchData to reuse after creating contract
   const fetchData = async () => {
     let isMounted = true;
     try {
       setLoading(true);
 
       // Fetch contracts
-      try {
-        const contractData = await ManageContractService.getAllContracts();
-        const validContracts = await Promise.all(
-          contractData.map(async (con) => {
-            if (!con.contractId || !con.requestId) return null;
-            try {
-              const request = await ManageContractService.getRequestByRequestId(
-                con.requestId
-              );
-              if (request?.serviceId === "S003") {
-                return {
-                  ...con,
-                  contractName: con.contractName || "N/A",
-                  price: con.price || 0,
-                  status: con.status || "N/A",
-                  createDate: formatDate(con.createDate) || "N/A",
-                  startDate: con.startDate || "N/A",
-                  endDate: con.endDate || "N/A",
-                  requestId: con.requestId || "",
-                };
-              }
-              return null;
-            } catch (error) {
-              console.warn(
-                `Failed to fetch request for contract ${con.contractId}:`,
-                error
-              );
+      const contractData = await ManageContractService.getAllContracts();
+      console.log("Contracts response:", contractData);
+      const validContracts = await Promise.all(
+        contractData.map(async (con) => {
+          if (!con.contractId) {
+            console.warn(`Contract missing contractId:`, con);
+            return null;
+          }
+          try {
+            const request = con.requestId
+              ? await ManageContractService.getRequestByRequestId(con.requestId)
+              : null;
+            if (!request || request?.serviceId !== "S003") {
+              console.warn(`Contract ${con.contractId} invalid:`, {
+                request,
+                serviceId: request?.serviceId,
+              });
               return null;
             }
-          })
-        );
-        const filteredContracts = validContracts.filter((con) => con !== null);
-        if (isMounted) {
-          setContracts(filteredContracts);
-          if (filteredContracts.length === 0) {
-            toast.warn("No valid contracts found for Event Organize.");
+            return {
+              contractId: con.contractId,
+              contractName: con.contractName ?? "N/A",
+              price: con.price ?? 0,
+              status: con.status ?? "N/A",
+              createDate: formatDate(con.createDate) ?? "N/A",
+              startDate: formatDate(con.startDate) ?? "N/A",
+              endDate: formatDate(con.endDate) ?? "N/A",
+              requestId: con.requestId ?? "",
+              createBy: con.createBy ?? "N/A",
+            };
+          } catch (error) {
+            console.warn(
+              `Failed to fetch request for contract ${con.contractId}:`,
+              error
+            );
+            return null;
           }
+        })
+      );
+      const filteredContracts = validContracts.filter((con) => con !== null);
+      console.log("Filtered contracts:", filteredContracts);
+      if (isMounted) {
+        setContracts([...filteredContracts]);
+        if (filteredContracts.length === 0) {
+          toast.warn("No valid contracts found for Event Organize.");
         }
-      } catch (contractError) {
-        console.error("Failed to fetch contracts:", contractError);
-        toast.warn(
-          "Could not fetch contracts: " +
-            (contractError.response?.data?.message || contractError.message)
-        );
       }
 
       // Fetch requests
-      try {
-        const requestData = await ManageContractService.getAllRequests();
-        const formattedData = requestData
-          .filter(
-            (req) =>
-              req.status?.toLowerCase() === "browsed" &&
-              req.serviceId === "S003" &&
-              req.deposit > 1
-          )
-          .map((req) => {
-            let startDate = req.startDate || "N/A";
-            let endDate = req.endDate || "N/A";
-            if (
-              req.charactersListResponse?.length > 0 &&
-              req.charactersListResponse[0]?.requestDateResponses?.length > 0
-            ) {
-              const dateResponse =
-                req.charactersListResponse[0].requestDateResponses[0];
-              startDate = formatDate(dateResponse.startDate);
-              endDate = formatDate(dateResponse.endDate);
-            } else {
-              startDate = formatDate(req.startDate);
-              endDate = formatDate(req.endDate);
-            }
-            return {
-              id: req.requestId,
-              serviceId: "S003",
-              name: req.name || "N/A",
-              description: req.description || "N/A",
-              location: req.location || "N/A",
-              price: req.price || 0,
-              deposit: req.deposit || 0,
-              statusRequest: mapStatus(req.status),
-              startDate,
-              endDate,
-              reason: req.reason || "",
-              contractId: req.contractId || null,
-              charactersListResponse: req.charactersListResponse || [],
-            };
-          });
-        if (isMounted) {
-          setRequests(formattedData);
-          if (formattedData.length === 0) {
-            // toast.info("No requests found.");
-          } else {
-            console.log(
-              `Fetched ${formattedData.length} requests for Event Organize.`
-            );
+      const requestData = await ManageContractService.getAllRequests();
+      console.log("Requests response:", requestData);
+      const formattedData = requestData
+        .map((req) => {
+          if (
+            !req.requestId ||
+            req.serviceId !== "S003" ||
+            req.status?.toLowerCase() !== "browsed"
+          ) {
+            console.warn(`Request ${req.requestId} filtered out:`, {
+              serviceId: req.serviceId,
+              status: req.status,
+              deposit: req.deposit,
+            });
+            return null;
           }
+          let startDate = req.startDate ?? "N/A";
+          let endDate = req.endDate ?? "N/A";
+          if (req.charactersListResponse?.[0]?.requestDateResponses?.[0]) {
+            const dateResponse =
+              req.charactersListResponse[0].requestDateResponses[0];
+            startDate = formatDate(dateResponse.startDate) ?? "N/A";
+            endDate = formatDate(dateResponse.endDate) ?? "N/A";
+          } else {
+            startDate = formatDate(req.startDate) ?? "N/A";
+            endDate = formatDate(req.endDate) ?? "N/A";
+          }
+          return {
+            id: req.requestId,
+            serviceId: req.serviceId ?? "S003",
+            name: req.name ?? "N/A",
+            description: req.description ?? "N/A",
+            location: req.location ?? "N/A",
+            price: req.price ?? 0,
+            deposit: req.deposit ?? 0,
+            statusRequest: mapStatus(req.status) ?? "Unknown",
+            startDate,
+            endDate,
+            reason: req.reason ?? "",
+            contractId: req.contractId ?? null,
+            charactersListResponse: req.charactersListResponse ?? [],
+          };
+        })
+        .filter((req) => req !== null);
+      console.log("Formatted requests:", formattedData);
+      if (isMounted) {
+        setRequests([...formattedData]);
+        if (formattedData.length === 0) {
+          toast.info("No valid requests found.");
         }
-      } catch (requestError) {
-        console.error("Failed to fetch requests:", requestError);
       }
     } catch (error) {
-      if (isMounted) {
-        console.error("Unexpected error:", error);
-        console.log("Unexpected error: " + error.message);
-      }
+      console.error("Unexpected error:", error);
+      toast.error("Failed to load data. Please try again.");
     } finally {
-      if (isMounted) {
-        setLoading(false);
-      }
+      if (isMounted) setLoading(false);
     }
     return () => {
       isMounted = false;
@@ -244,33 +240,38 @@ const ManageContractEventOrganize = () => {
     }
   };
 
-  const filterAndSortContracts = (data, search) => {
-    let filtered = [...data];
-    if (search) {
-      filtered = filtered.filter((item) => {
-        const name = item.contractName ? item.contractName.toLowerCase() : "";
-        const status = item.status ? item.status.toLowerCase() : "";
-        return (
-          name.includes(search.toLowerCase()) ||
-          status.includes(search.toLowerCase())
-        );
-      });
-    }
-    return filtered.sort((a, b) => {
-      let valueA = a[sortContract.field] || "";
-      let valueB = b[sortContract.field] || "";
-      if (sortContract.field === "price") {
-        valueA = valueA || 0;
-        valueB = valueB || 0;
-        return sortContract.order === "asc" ? valueA - valueB : valueB - valueA;
+  const filterAndSortContracts = useMemo(
+    () => (data, search) => {
+      let filtered = [...data];
+      if (search) {
+        filtered = filtered.filter((item) => {
+          const name = item.contractName?.toLowerCase() ?? "";
+          const status = item.status?.toLowerCase() ?? "";
+          return (
+            name.includes(search.toLowerCase()) ||
+            status.includes(search.toLowerCase())
+          );
+        });
       }
-      valueA = valueA ? String(valueA).toLowerCase() : "";
-      valueB = valueB ? String(valueB).toLowerCase() : "";
-      return sortContract.order === "asc"
-        ? valueA.localeCompare(valueB)
-        : valueB.localeCompare(valueA);
-    });
-  };
+      return filtered.sort((a, b) => {
+        let valueA = a[sortContract.field] ?? "";
+        let valueB = b[sortContract.field] ?? "";
+        if (sortContract.field === "price") {
+          valueA = valueA || 0;
+          valueB = valueB || 0;
+          return sortContract.order === "asc"
+            ? valueA - valueB
+            : valueB - valueA;
+        }
+        valueA = String(valueA).toLowerCase();
+        valueB = String(valueB).toLowerCase();
+        return sortContract.order === "asc"
+          ? valueA.localeCompare(valueB)
+          : valueB.localeCompare(valueA);
+      });
+    },
+    [sortContract]
+  );
 
   const filteredContracts = filterAndSortContracts(contracts, searchContract);
 
@@ -284,37 +285,42 @@ const ManageContractEventOrganize = () => {
     }
   }, [totalPagesContract, currentPageContract]);
 
-  const paginatedContracts = paginateData(
-    filteredContracts,
-    currentPageContract
+  const paginatedContracts = useMemo(
+    () => paginateData(filteredContracts, currentPageContract),
+    [filteredContracts, currentPageContract, rowsPerPage]
   );
 
-  const filterAndSortRequests = (data, search) => {
-    let filtered = [...data];
-    const contractRequestIds = contracts.map((con) => con.requestId);
-    filtered = filtered.filter((req) => !contractRequestIds.includes(req.id));
-    if (search) {
-      filtered = filtered.filter((item) =>
-        Object.values(item).some((val) =>
-          String(val).toLowerCase().includes(search.toLowerCase())
-        )
-      );
-    }
-    return filtered.sort((a, b) => {
-      let valueA = a[sortRequest.field];
-      let valueB = b[sortRequest.field];
-      if (sortRequest.field === "price") {
-        valueA = valueA || 0;
-        valueB = valueB || 0;
-        return sortRequest.order === "asc" ? valueA - valueB : valueB - valueA;
+  const filterAndSortRequests = useMemo(
+    () => (data, search) => {
+      let filtered = [...data];
+      const contractRequestIds = contracts.map((con) => con.requestId);
+      filtered = filtered.filter((req) => !contractRequestIds.includes(req.id));
+      if (search) {
+        filtered = filtered.filter((item) =>
+          Object.values(item).some((val) =>
+            String(val).toLowerCase().includes(search.toLowerCase())
+          )
+        );
       }
-      valueA = valueA ? String(valueA).toLowerCase() : "";
-      valueB = valueB ? String(valueB).toLowerCase() : "";
-      return sortRequest.order === "asc"
-        ? valueA.localeCompare(valueB)
-        : valueB.localeCompare(valueA);
-    });
-  };
+      return filtered.sort((a, b) => {
+        let valueA = a[sortRequest.field] ?? "";
+        let valueB = b[sortRequest.field] ?? "";
+        if (sortRequest.field === "price") {
+          valueA = valueA || 0;
+          valueB = valueB || 0;
+          return sortRequest.order === "asc"
+            ? valueA - valueB
+            : valueB - valueA;
+        }
+        valueA = String(valueA).toLowerCase();
+        valueB = String(valueB).toLowerCase();
+        return sortRequest.order === "asc"
+          ? valueA.localeCompare(valueB)
+          : valueB.localeCompare(valueA);
+      });
+    },
+    [sortRequest, contracts]
+  );
 
   const filteredRequests = filterAndSortRequests(requests, searchRequest);
 
@@ -330,7 +336,10 @@ const ManageContractEventOrganize = () => {
     }
   }, [totalPagesRequest, currentPageRequest]);
 
-  const paginatedRequests = paginateData(filteredRequests, currentPageRequest);
+  const paginatedRequests = useMemo(
+    () => paginateData(filteredRequests, currentPageRequest),
+    [filteredRequests, currentPageRequest, rowsPerPage]
+  );
 
   function paginateData(data, page, perPage = rowsPerPage) {
     const startIndex = (page - 1) * perPage;
@@ -339,36 +348,33 @@ const ManageContractEventOrganize = () => {
   }
 
   const handleShowModal = (item = null, request = null) => {
+    console.log("handleShowModal:", { item, request });
     if (item) {
       setIsEditing(true);
       setIsRequestBased(false);
       setCurrentItem(item);
       setFormData({
-        customerName: item.customerName || "N/A",
-        deposit: item.deposit || "0",
-        requestId: item.requestId || "",
+        customerName: item.customerName ?? "N/A",
+        deposit: item.deposit ?? "0",
+        requestId: item.requestId ?? "",
       });
     } else if (request) {
       if (request.contractId) {
-        console.log("This request already has an associated contract!");
+        toast.warn("This request already has an associated contract!");
         return;
       }
       setIsEditing(false);
       setIsRequestBased(true);
       setCurrentItem(request);
       setFormData({
-        customerName: request.name || "N/A",
+        customerName: request.name ?? "N/A",
         deposit: request.deposit ? `${request.deposit}` : "0",
-        requestId: request.id || "",
+        requestId: request.id ?? "",
       });
     } else {
       setIsEditing(false);
       setIsRequestBased(false);
-      setFormData({
-        customerName: "",
-        deposit: "",
-        requestId: "",
-      });
+      setFormData({ customerName: "", deposit: "", requestId: "" });
     }
     setShowModal(true);
   };
@@ -378,20 +384,17 @@ const ManageContractEventOrganize = () => {
     setIsEditing(false);
     setIsRequestBased(false);
     setCurrentItem(null);
-    setFormData({
-      customerName: "",
-      deposit: "",
-      requestId: "",
-    });
+    setFormData({ customerName: "", deposit: "", requestId: "" });
   };
 
   const handleSubmit = async () => {
+    console.log("handleSubmit formData:", formData);
     if (!formData.requestId) {
-      console.log("Request ID is required to create a contract!");
+      toast.error("Request ID is required!");
       return;
     }
     if (!formData.deposit || isNaN(parseFloat(formData.deposit))) {
-      console.log("Valid deposit amount is required!");
+      toast.error("Valid deposit amount is required!");
       return;
     }
     try {
@@ -401,31 +404,38 @@ const ManageContractEventOrganize = () => {
         formData.requestId,
         depositValue
       );
-      console.log("Create contract response:", newContract); // Debug response
-      // Validate response (adjust based on actual API response structure)
-      if (!newContract) {
-        throw new Error("No contract data returned from server");
-      }
-      // Update state
-      setContracts((prev) => [...prev, newContract]);
+      console.log("Created contract:", newContract);
+      if (!newContract) throw new Error("No contract data returned");
+      setContracts((prev) => [
+        ...prev,
+        {
+          ...newContract,
+          contractName: newContract.contractName ?? "N/A",
+          price: newContract.price ?? 0,
+          status: newContract.status ?? "N/A",
+          createDate: formatDate(newContract.createDate) ?? "N/A",
+          startDate: formatDate(newContract.startDate) ?? "N/A",
+          endDate: formatDate(newContract.endDate) ?? "N/A",
+          requestId: newContract.requestId ?? "",
+          createBy: newContract.createBy ?? "N/A",
+        },
+      ]);
       if (isRequestBased) {
         setRequests((prev) =>
           prev.map((req) =>
             req.id === currentItem.id
-              ? { ...req, contractId: newContract.contractId || null }
+              ? { ...req, contractId: newContract.contractId ?? null }
               : req
           )
         );
       }
       toast.success("Contract created successfully!");
       handleCloseModal();
-      // Refetch data to ensure UI is up-to-date
       await fetchData();
     } catch (error) {
       console.error("Error creating contract:", error);
-      console.log(
-        "Failed to create contract: " +
-          (error.response?.data?.message || error.message)
+      toast.error(
+        error.response?.data?.message || "Failed to create contract."
       );
       handleCloseModal();
     }
@@ -518,127 +528,135 @@ const ManageContractEventOrganize = () => {
                     className="search-input"
                   />
                 </div>
-                <Table striped bordered hover responsive>
-                  <thead>
-                    <tr>
-                      <th onClick={() => handleSortRequest("name")}>
-                        Name{" "}
-                        {sortRequest.field === "name" &&
-                          (sortRequest.order === "asc" ? (
-                            <ArrowUp size={16} />
-                          ) : (
-                            <ArrowDown size={16} />
-                          ))}
-                      </th>
-                      <th onClick={() => handleSortRequest("description")}>
-                        Description{" "}
-                        {sortRequest.field === "description" &&
-                          (sortRequest.order === "asc" ? (
-                            <ArrowUp size={16} />
-                          ) : (
-                            <ArrowDown size={16} />
-                          ))}
-                      </th>
-                      <th>Location</th>
-                      <th onClick={() => handleSortRequest("price")}>
-                        Price{" "}
-                        {sortRequest.field === "price" &&
-                          (sortRequest.order === "asc" ? (
-                            <ArrowUp size={16} />
-                          ) : (
-                            <ArrowDown size={16} />
-                          ))}
-                      </th>
-                      <th onClick={() => handleSortRequest("statusRequest")}>
-                        Status{" "}
-                        {sortRequest.field === "statusRequest" &&
-                          (sortRequest.order === "asc" ? (
-                            <ArrowUp size={16} />
-                          ) : (
-                            <ArrowDown size={16} />
-                          ))}
-                      </th>
-                      <th onClick={() => handleSortRequest("startDate")}>
-                        Start Date{" "}
-                        {sortRequest.field === "startDate" &&
-                          (sortRequest.order === "asc" ? (
-                            <ArrowUp size={16} />
-                          ) : (
-                            <ArrowDown size={16} />
-                          ))}
-                      </th>
-                      <th onClick={() => handleSortRequest("endDate")}>
-                        End Date{" "}
-                        {sortRequest.field === "endDate" &&
-                          (sortRequest.order === "asc" ? (
-                            <ArrowUp size={16} />
-                          ) : (
-                            <ArrowDown size={16} />
-                          ))}
-                      </th>
-                      <th onClick={() => handleSortRequest("reason")}>
-                        Reason{" "}
-                        {sortRequest.field === "reason" &&
-                          (sortRequest.order === "asc" ? (
-                            <ArrowUp size={16} />
-                          ) : (
-                            <ArrowDown size={16} />
-                          ))}
-                      </th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {paginatedRequests.length > 0 ? (
-                      paginatedRequests.map((req) => (
-                        <tr key={req.id}>
-                          <td>{req.name}</td>
-                          <td>{req.description}</td>
-                          <td>{req.location}</td>
-                          <td>
-                            {req.price ? req.price.toLocaleString() : "N/A"}
-                          </td>
-                          <td>{req.statusRequest}</td>
-                          <td>{req.startDate}</td>
-                          <td>{req.endDate}</td>
-                          <td>{req.reason}</td>
-                          <td>
-                            <Button
-                              size="small"
-                              onClick={() => handleViewDetail(req.id)}
-                              style={{ marginRight: "8px" }}
-                            >
-                              View
-                            </Button>
-                            <Button
-                              type="primary"
-                              size="small"
-                              onClick={() => handleShowModal(null, req)}
-                            >
-                              Create Contract
-                            </Button>
-                          </td>
+                {loading ? (
+                  <LinearProgress />
+                ) : (
+                  <>
+                    <Table striped bordered hover responsive>
+                      <thead>
+                        <tr>
+                          <th onClick={() => handleSortRequest("name")}>
+                            Name{" "}
+                            {sortRequest.field === "name" &&
+                              (sortRequest.order === "asc" ? (
+                                <ArrowUp size={16} />
+                              ) : (
+                                <ArrowDown size={16} />
+                              ))}
+                          </th>
+                          <th onClick={() => handleSortRequest("description")}>
+                            Description{" "}
+                            {sortRequest.field === "description" &&
+                              (sortRequest.order === "asc" ? (
+                                <ArrowUp size={16} />
+                              ) : (
+                                <ArrowDown size={16} />
+                              ))}
+                          </th>
+                          <th>Location</th>
+                          <th onClick={() => handleSortRequest("price")}>
+                            Price{" "}
+                            {sortRequest.field === "price" &&
+                              (sortRequest.order === "asc" ? (
+                                <ArrowUp size={16} />
+                              ) : (
+                                <ArrowDown size={16} />
+                              ))}
+                          </th>
+                          <th
+                            onClick={() => handleSortRequest("statusRequest")}
+                          >
+                            Status{" "}
+                            {sortRequest.field === "statusRequest" &&
+                              (sortRequest.order === "asc" ? (
+                                <ArrowUp size={16} />
+                              ) : (
+                                <ArrowDown size={16} />
+                              ))}
+                          </th>
+                          <th onClick={() => handleSortRequest("startDate")}>
+                            Start Date{" "}
+                            {sortRequest.field === "startDate" &&
+                              (sortRequest.order === "asc" ? (
+                                <ArrowUp size={16} />
+                              ) : (
+                                <ArrowDown size={16} />
+                              ))}
+                          </th>
+                          <th onClick={() => handleSortRequest("endDate")}>
+                            End Date{" "}
+                            {sortRequest.field === "endDate" &&
+                              (sortRequest.order === "asc" ? (
+                                <ArrowUp size={16} />
+                              ) : (
+                                <ArrowDown size={16} />
+                              ))}
+                          </th>
+                          <th onClick={() => handleSortRequest("reason")}>
+                            Reason{" "}
+                            {sortRequest.field === "reason" &&
+                              (sortRequest.order === "asc" ? (
+                                <ArrowUp size={16} />
+                              ) : (
+                                <ArrowDown size={16} />
+                              ))}
+                          </th>
+                          <th>Actions</th>
                         </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan="9" className="text-center">
-                          No requests found
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </Table>
-                <PaginationControls
-                  currentPage={currentPageRequest}
-                  totalPages={totalPagesRequest}
-                  totalEntries={totalEntries}
-                  showingEntries={paginatedRequests.length}
-                  rowsPerPage={rowsPerPage}
-                  onPageChange={handlePageChangeRequest}
-                  onRowsPerPageChange={handleRowsPerPageChange}
-                  rowsPerPageOptions={rowsPerPageOptions}
-                />
+                      </thead>
+                      <tbody>
+                        {paginatedRequests.length > 0 ? (
+                          paginatedRequests.map((req) => (
+                            <tr key={req.id}>
+                              <td>{req.name}</td>
+                              <td>{req.description}</td>
+                              <td>{req.location}</td>
+                              <td>
+                                {req.price ? req.price.toLocaleString() : "N/A"}
+                              </td>
+                              <td>{req.statusRequest}</td>
+                              <td>{req.startDate}</td>
+                              <td>{req.endDate}</td>
+                              <td>{req.reason}</td>
+                              <td>
+                                <Button
+                                  size="small"
+                                  onClick={() => handleViewDetail(req.id)}
+                                  style={{ marginRight: "8px" }}
+                                >
+                                  View
+                                </Button>
+                                <Button
+                                  type="primary"
+                                  size="small"
+                                  onClick={() => handleShowModal(null, req)}
+                                >
+                                  Create Contract
+                                </Button>
+                              </td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td colSpan="9" className="text-center">
+                              No requests found
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </Table>
+                    <PaginationControls
+                      currentPage={currentPageRequest}
+                      totalPages={totalPagesRequest}
+                      totalEntries={totalEntries}
+                      showingEntries={paginatedRequests.length}
+                      rowsPerPage={rowsPerPage}
+                      onPageChange={handlePageChangeRequest}
+                      onRowsPerPageChange={handleRowsPerPageChange}
+                      rowsPerPageOptions={rowsPerPageOptions}
+                    />
+                  </>
+                )}
               </Card.Body>
             </Card>
           </div>
@@ -658,119 +676,119 @@ const ManageContractEventOrganize = () => {
                     className="search-input"
                   />
                 </div>
-                <Table striped bordered hover responsive>
-                  <thead>
-                    <tr>
-                      <th className="text-center">
-                        <span
-                          className="sortable"
-                          onClick={() => handleSortContract("contractName")}
-                        >
-                          Contract Name
-                          {sortContract.field === "contractName" &&
-                            (sortContract.order === "asc" ? (
-                              <ArrowUp size={16} />
-                            ) : (
-                              <ArrowDown size={16} />
-                            ))}
-                        </span>
-                      </th>
-                      <th className="text-center">Contract Owner</th>
-                      <th className="text-center">Price</th>
-                      <th className="text-center">
-                        <span
-                          className="sortable"
-                          onClick={() => handleSortContract("status")}
-                        >
-                          Status
-                          {sortContract.field === "status" &&
-                            (sortContract.order === "asc" ? (
-                              <ArrowUp size={16} />
-                            ) : (
-                              <ArrowDown size={16} />
-                            ))}
-                        </span>
-                      </th>
-                      <th className="text-center">Contract Created Date</th>
-                      <th className="text-center">Start Date</th>
-                      <th className="text-center">End Date</th>
-                      <th className="text-center">Actions</th>
-                      <th className="text-center">Complete Contract</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {paginatedContracts.length === 0 ? (
-                      <tr>
-                        <td colSpan="8" className="text-center">
-                          No contracts found
-                        </td>
-                      </tr>
-                    ) : (
-                      paginatedContracts.map((con, index) => (
-                        <tr key={con.contractId || `contract-${index}`}>
-                          <td className="text-center">
-                            {con.contractName || "N/A"}
-                          </td>
-                          <td className="text-center">
-                            {con.createBy || "N/A"}
-                          </td>
-                          <td className="text-center">
-                            {con.price ? con.price.toLocaleString() : "N/A"}
-                          </td>
-                          <td className="text-center">{con.status || "N/A"}</td>
-                          <td className="text-center">
-                            {formatDate(con.createDate)}
-                          </td>
-                          <td className="text-center">
-                            {formatDate(con.startDate)}
-                          </td>
-                          <td className="text-center">
-                            {formatDate(con.endDate)}
-                          </td>
-                          <td className="text-center">
-                            <Button
-                              type="default"
-                              size="small"
-                              onClick={() => handleViewDetail(con.requestId)}
-                              style={{ marginRight: "8px" }}
-                              disabled={!con.requestId}
+                {loading ? (
+                  <LinearProgress />
+                ) : (
+                  <>
+                    <Table striped bordered hover responsive>
+                      <thead>
+                        <tr>
+                          <th className="text-center">
+                            <span
+                              className="sortable"
+                              onClick={() => handleSortContract("contractName")}
                             >
-                              View Detail
-                            </Button>
-                          </td>
-                          <td className="text-center">
-                            {con.contractId &&
-                            con.status === "FinalSettlement" ? (
-                              <Popconfirm
-                                title="Are you sure you want to complete this contract?"
-                                onConfirm={() =>
-                                  handleCompleteContract(con.contractId)
-                                }
-                                okText="Yes"
-                                cancelText="No"
-                              >
-                                <Button type="primary" size="small">
-                                  Complete
-                                </Button>
-                              </Popconfirm>
-                            ) : (
-                              "-"
-                            )}
-                          </td>
+                              Contract Name
+                              {sortContract.field === "contractName" &&
+                                (sortContract.order === "asc" ? (
+                                  <ArrowUp size={16} />
+                                ) : (
+                                  <ArrowDown size={16} />
+                                ))}
+                            </span>
+                          </th>
+                          <th className="text-center">Contract Owner</th>
+                          <th className="text-center">Price</th>
+                          <th className="text-center">
+                            <span
+                              className="sortable"
+                              onClick={() => handleSortContract("status")}
+                            >
+                              Status
+                              {sortContract.field === "status" &&
+                                (sortContract.order === "asc" ? (
+                                  <ArrowUp size={16} />
+                                ) : (
+                                  <ArrowDown size={16} />
+                                ))}
+                            </span>
+                          </th>
+                          <th className="text-center">Contract Created Date</th>
+                          <th className="text-center">Start Date</th>
+                          <th className="text-center">End Date</th>
+                          <th className="text-center">Actions</th>
+                          <th className="text-center">Complete Contract</th>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </Table>
-                <PaginationControls
-                  currentPage={currentPageContract}
-                  totalPages={totalPagesContract}
-                  totalEntries={filteredContracts.length}
-                  rowsPerPage={rowsPerPage}
-                  onPageChange={handlePageChangeContract}
-                  onRowsPerPageChange={handleRowsPerPageChange}
-                  rowsPerPageOptions={rowsPerPageOptions}
-                />
+                      </thead>
+                      <tbody>
+                        {paginatedContracts.length === 0 ? (
+                          <tr>
+                            <td colSpan="9" className="text-center">
+                              No contracts found
+                            </td>
+                          </tr>
+                        ) : (
+                          paginatedContracts.map((con, index) => (
+                            <tr key={con.contractId || `contract-${index}`}>
+                              <td className="text-center">
+                                {con.contractName}
+                              </td>
+                              <td className="text-center">{con.createBy}</td>
+                              <td className="text-center">
+                                {con.price ? con.price.toLocaleString() : "N/A"}
+                              </td>
+                              <td className="text-center">{con.status}</td>
+                              <td className="text-center">{con.createDate}</td>
+                              <td className="text-center">{con.startDate}</td>
+                              <td className="text-center">{con.endDate}</td>
+                              <td className="text-center">
+                                <Button
+                                  type="default"
+                                  size="small"
+                                  onClick={() =>
+                                    handleViewDetail(con.requestId)
+                                  }
+                                  style={{ marginRight: "8px" }}
+                                  disabled={!con.requestId}
+                                >
+                                  View Detail
+                                </Button>
+                              </td>
+                              <td className="text-center">
+                                {con.contractId &&
+                                con.status === "FinalSettlement" ? (
+                                  <Popconfirm
+                                    title="Are you sure you want to complete this contract?"
+                                    onConfirm={() =>
+                                      handleCompleteContract(con.contractId)
+                                    }
+                                    okText="Yes"
+                                    cancelText="No"
+                                  >
+                                    <Button type="primary" size="small">
+                                      Complete
+                                    </Button>
+                                  </Popconfirm>
+                                ) : (
+                                  "-"
+                                )}
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </Table>
+                    <PaginationControls
+                      currentPage={currentPageContract}
+                      totalPages={totalPagesContract}
+                      totalEntries={filteredContracts.length}
+                      rowsPerPage={rowsPerPage}
+                      onPageChange={handlePageChangeContract}
+                      onRowsPerPageChange={handleRowsPerPageChange}
+                      rowsPerPageOptions={rowsPerPageOptions}
+                    />
+                  </>
+                )}
               </Card.Body>
             </Card>
           </div>

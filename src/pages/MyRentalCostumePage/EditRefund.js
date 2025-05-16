@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import { Modal, Form } from "react-bootstrap";
 import { Button } from "antd";
-import RefundService from "../../../services/RefundService/RefundService.js";
+import RefundService from "../../services/RefundService/RefundService.js";
 import { toast } from "react-toastify";
 
-const EditRefundButton = ({ refund }) => {
+const EditRefund = ({ refund }) => {
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -12,11 +12,10 @@ const EditRefundButton = ({ refund }) => {
     bankName: "",
     accountBankName: "",
     price: 0,
+    amount: 0,
     description: "",
     status: "Pending",
   });
-  const [images, setImages] = useState([]);
-  const previewContainerRef = useRef(null);
 
   const handleOpenModal = async () => {
     if (!refund?.contractRefundId) {
@@ -40,6 +39,7 @@ const EditRefundButton = ({ refund }) => {
         bankName: response.bankName || "",
         accountBankName: response.accountBankName || "",
         price: response.price || 0,
+        amount: response.amount || 0,
         description: response.description || "",
         status: response.status || "Pending",
       });
@@ -54,16 +54,12 @@ const EditRefundButton = ({ refund }) => {
 
   const handleCloseModal = () => {
     setShowModal(false);
-    setImages([]);
-    // Clear preview container
-    if (previewContainerRef.current) {
-      previewContainerRef.current.innerHTML = "";
-    }
     setFormData({
       numberBank: "",
       bankName: "",
       accountBankName: "",
       price: 0,
+      amount: 0,
       description: "",
       status: "Pending",
     });
@@ -74,48 +70,6 @@ const EditRefundButton = ({ refund }) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleImageChange = (e) => {
-    const selectedFiles = Array.from(e.target.files);
-    setImages(selectedFiles);
-    renderImagePreviews(selectedFiles);
-  };
-
-  const renderImagePreviews = (files) => {
-    const container = previewContainerRef.current;
-    if (!container) return;
-
-    // Clear existing previews
-    container.innerHTML = "";
-
-    // Create preview for each file
-    files.forEach((file, index) => {
-      const imgUrl = URL.createObjectURL(file);
-      const imgContainer = document.createElement("div");
-      imgContainer.style.textAlign = "center";
-      imgContainer.style.margin = "10px";
-
-      const img = document.createElement("img");
-      img.src = imgUrl;
-      img.alt = file.name;
-      img.style.maxWidth = "100px";
-      img.style.maxHeight = "100px";
-      img.style.objectFit = "cover";
-      img.style.borderRadius = "4px";
-
-      const name = document.createElement("p");
-      name.textContent = file.name;
-      name.style.fontSize = "12px";
-      name.style.marginTop = "5px";
-
-      imgContainer.appendChild(img);
-      imgContainer.appendChild(name);
-      container.appendChild(imgContainer);
-
-      // Clean up URL when component unmounts or images change
-      img.onload = () => URL.revokeObjectURL(imgUrl);
-    });
-  };
-
   const handleSaveChanges = async () => {
     if (!refund?.contractId) {
       toast.error("Invalid contract ID.");
@@ -124,35 +78,34 @@ const EditRefundButton = ({ refund }) => {
 
     setLoading(true);
     try {
+      // Update refund details
+      await RefundService.updateRefund(
+        refund.contractRefundId,
+        refund.contractId,
+        formData.numberBank,
+        formData.bankName,
+        formData.accountBankName,
+        formData.price,
+        formData.description
+      );
+      console.log(
+        "Refund updated for contractRefundId:",
+        refund.contractRefundId
+      );
+
+      // Update contract status to "Completed"
       await RefundService.updateContractStatus(refund.contractId, "Completed");
       console.log("Contract status updated for contractId:", refund.contractId);
 
-      const updatedData = {
-        contractRefundId: refund.contractRefundId,
-        ...formData,
-        images: images.map((image) => image.name),
-      };
-      console.log("Updated refund data:", updatedData);
-
-      toast.success("Contract status updated successfully.");
+      toast.success("Refund updated successfully.");
       handleCloseModal();
     } catch (error) {
-      console.error("Error updating contract status:", error);
-      toast.error("Failed to update contract status.");
+      console.error("Error updating refund:", error);
+      toast.error("Failed to update refund.");
     } finally {
       setLoading(false);
     }
   };
-
-  // Clean up URLs on component unmount
-  useEffect(() => {
-    return () => {
-      images.forEach((image) => {
-        const url = URL.createObjectURL(image);
-        URL.revokeObjectURL(url);
-      });
-    };
-  }, [images]);
 
   return (
     <>
@@ -174,9 +127,8 @@ const EditRefundButton = ({ refund }) => {
         className="refund-modal"
         backdropClassName="custom-backdrop"
       >
-        <Modal.Header closeButton>
-          <Modal.Title>Edit Refund</Modal.Title>
-        </Modal.Header>
+        <Modal.Title style={{ textAlign: "center" }}>Edit Refund</Modal.Title>
+
         <Modal.Body>
           <Form>
             <div className="two-column-layout">
@@ -233,7 +185,20 @@ const EditRefundButton = ({ refund }) => {
                     placeholder="Enter price"
                     min="0"
                     step="0.01"
-                    required
+                    readOnly
+                  />
+                </Form.Group>
+                <Form.Group className="mb-3">
+                  <Form.Label>Amount</Form.Label>
+                  <Form.Control
+                    type="number"
+                    name="price"
+                    value={formData.amount}
+                    onChange={handleInputChange}
+                    placeholder=""
+                    min="0"
+                    step="0.01"
+                    readOnly
                   />
                 </Form.Group>
                 <Form.Group className="mb-3">
@@ -245,29 +210,8 @@ const EditRefundButton = ({ refund }) => {
                     value={formData.description}
                     onChange={handleInputChange}
                     placeholder="Enter description"
+                    readOnly
                   />
-                </Form.Group>
-                <Form.Group className="mb-3">
-                  <Form.Label>Images</Form.Label>
-                  <Form.Control
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={handleImageChange}
-                  />
-                  {images.length > 0 && (
-                    <div className="mt-2">
-                      <p>Selected Images: {images.length}</p>
-                      <div
-                        ref={previewContainerRef}
-                        style={{
-                          display: "flex",
-                          flexWrap: "wrap",
-                          gap: "10px",
-                        }}
-                      ></div>
-                    </div>
-                  )}
                 </Form.Group>
               </div>
             </div>
@@ -291,4 +235,4 @@ const EditRefundButton = ({ refund }) => {
   );
 };
 
-export default EditRefundButton;
+export default EditRefund;

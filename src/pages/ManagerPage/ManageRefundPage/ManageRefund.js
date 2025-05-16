@@ -3,74 +3,18 @@ import { Table, Card, Pagination, Dropdown, Form } from "react-bootstrap";
 import { ArrowUp, ArrowDown } from "lucide-react";
 import Box from "@mui/material/Box";
 import LinearProgress from "@mui/material/LinearProgress";
-import RefundButton from "./RefundButton";
 import ViewRefundButton from "./ViewRefundButton";
 import EditRefundButton from "./EditRefundButton";
 import "../../../styles/Manager/ManageRefund.scss";
-
-// Mock data
-const mockRefunds = [
-  {
-    contractRefundId: "9a6208a9-bb7b-43a4-80a3-27bb11ea3ecc",
-    contractId: "bfec26a5-d335-45a3-96fc-c78273c0f409",
-    numberBank: null,
-    bankName: null,
-    accountBankName: null,
-    createDate: "15/05/2025",
-    updateDate: null,
-    price: 1000,
-    description: "hu r em",
-    type: "SystemRefund",
-    status: "Pending",
-  },
-  {
-    contractRefundId: "a1b2c3d4-e5f6-47g8-h9i0-j1k2l3m4n5o6",
-    contractId: "cdef1234-5678-90ab-cdef-1234567890ab",
-    numberBank: "1234567890",
-    bankName: "Bank A",
-    accountBankName: "John Doe",
-    createDate: "10/05/2025",
-    updateDate: "12/05/2025",
-    price: 5000,
-    description: "Refund for cancellation",
-    type: "DepositRetained",
-    status: "Paid",
-  },
-  {
-    contractRefundId: "p1q2r3s4-t5u6-47v8-w9x0-y1z2a3b4c5d6",
-    contractId: "7890abcd-ef12-3456-7890-abcdef123456",
-    numberBank: "0987654321",
-    bankName: "Bank B",
-    accountBankName: "Jane Smith",
-    createDate: "05/05/2025",
-    updateDate: null,
-    price: 2000,
-    description: "Partial refund",
-    type: "SystemRefund",
-    status: "Pending",
-  },
-  {
-    contractRefundId: "e1f2g3h4-i5j6-47k8-l9m0-n1o2p3q4r5s6",
-    contractId: "4567defg-hi89-jkl0-mnop-456789abcdef",
-    numberBank: null,
-    bankName: null,
-    accountBankName: null,
-    createDate: "01/05/2025",
-    updateDate: "03/05/2025",
-    price: 3000,
-    description: "Full refund due to error",
-    type: "DepositRetained",
-    status: "Paid",
-  },
-];
+import RefundService from "../../../services/RefundService/RefundService";
 
 const ManageRefund = () => {
   const [refunds, setRefunds] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState(""); // Filter for Status
-  const [typeFilter, setTypeFilter] = useState(""); // Filter for Type
+  const [statusFilter, setStatusFilter] = useState("");
+  const [typeFilter, setTypeFilter] = useState("");
   const [sortRefund, setSortRefund] = useState({
     field: "createDate",
     order: "desc",
@@ -80,22 +24,87 @@ const ManageRefund = () => {
   const rowsPerPageOptions = [10, 20, 30];
 
   // Modal states
-  const [showRefundModal, setShowRefundModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedRefund, setSelectedRefund] = useState(null);
 
-  // Fetch refunds (mocked for now; replace with actual API call)
+  // Fetch refunds using RefundService
   const fetchRefunds = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      setRefunds(mockRefunds);
+      const response = await RefundService.getRefunds();
+      console.log("Raw API Response:", response);
+
+      // Handle different response structures
+      let fetchedRefunds = [];
+      if (Array.isArray(response)) {
+        fetchedRefunds = response;
+      } else if (response?.data && Array.isArray(response.data)) {
+        fetchedRefunds = response.data;
+      } else {
+        console.warn("Unexpected response format:", response);
+        throw new Error("Invalid API response format");
+      }
+      console.log("Fetched Refunds:", fetchedRefunds);
+
+      // Remove duplicates based on contractRefundId
+      const uniqueRefunds = Array.from(
+        new Map(
+          fetchedRefunds.map((r) => [
+            r.contractRefundId || `temp-${Math.random()}`,
+            r,
+          ])
+        ).values()
+      );
+      console.log("Unique Refunds:", uniqueRefunds);
+
+      // Normalize the API data
+      const normalizedRefunds = uniqueRefunds.map((refund) => ({
+        ...refund,
+        status: normalizeStatus(refund.status),
+        type: normalizeType(refund.type),
+        contractRefundId: refund.contractRefundId || "N/A",
+        contractId: refund.contractId || "N/A",
+        createDate: refund.createDate || "N/A",
+        updateDate: refund.updateDate || "N/A",
+        price: refund.price || 0,
+        description: refund.description || "N/A",
+        numberBank: refund.numberBank || "N/A",
+        bankName: refund.bankName || "N/A",
+        accountBankName: refund.accountBankName || "N/A",
+      }));
+      console.log("Normalized Refunds:", normalizedRefunds);
+
+      setRefunds(normalizedRefunds);
     } catch (err) {
-      setError("Failed to fetch refunds.");
+      console.error("Error fetching refunds:", err);
+      setError(
+        err.message || "Failed to fetch refunds. Please try again later."
+      );
+      setRefunds([]);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Helper functions to normalize status and type
+  const normalizeStatus = (status) => {
+    if (!status) return "Pending";
+    const statusLower = status.toLowerCase();
+    if (statusLower === "pending") return "Pending";
+    if (statusLower === "paid") return "Paid";
+    return status;
+  };
+
+  const normalizeType = (type) => {
+    if (!type) return "SystemRefund";
+    const typeLower = type.toLowerCase(); // Fixed typo: toTypeLowerCase -> toLowerCase
+    if (typeLower === "system_refund" || typeLower === "systemrefund")
+      return "SystemRefund";
+    if (typeLower === "deposit_retained" || typeLower === "depositretained")
+      return "DepositRetained";
+    return type;
   };
 
   useEffect(() => {
@@ -104,13 +113,18 @@ const ManageRefund = () => {
 
   // Filter and sort refunds
   const filterAndSortData = (data, search, statusFilter, typeFilter, sort) => {
+    if (!Array.isArray(data)) {
+      console.warn("filterAndSortData received non-iterable data:", data);
+      return [];
+    }
+
     let filtered = [...data];
 
-    // Apply search filter
+    // Apply search filter across all fields
     if (search) {
       filtered = filtered.filter((item) =>
         Object.values(item)
-          .filter((value) => value !== null)
+          .filter((value) => value !== null && value !== undefined)
           .some((value) =>
             String(value).toLowerCase().includes(search.toLowerCase())
           )
@@ -119,18 +133,27 @@ const ManageRefund = () => {
 
     // Apply status filter
     if (statusFilter) {
-      filtered = filtered.filter((item) => item.status === statusFilter);
+      filtered = filtered.filter(
+        (item) => item.status?.toLowerCase() === statusFilter.toLowerCase()
+      );
     }
 
     // Apply type filter
     if (typeFilter) {
-      filtered = filtered.filter((item) => item.type === typeFilter);
+      filtered = filtered.filter(
+        (item) => item.type?.toLowerCase() === typeFilter.toLowerCase()
+      );
     }
 
     // Apply sorting
     return filtered.sort((a, b) => {
       let valueA = a[sort.field] ?? "";
       let valueB = b[sort.field] ?? "";
+      if (sort.field === "price") {
+        valueA = Number(valueA) || 0;
+        valueB = Number(valueB) || 0;
+        return sort.order === "asc" ? valueA - valueB : valueB - valueA;
+      }
       valueA = String(valueA).toLowerCase();
       valueB = String(valueB).toLowerCase();
       return sort.order === "asc"
@@ -146,12 +169,14 @@ const ManageRefund = () => {
     typeFilter,
     sortRefund
   );
+  console.log("Filtered Refunds:", filteredRefunds);
   const totalEntries = filteredRefunds.length;
   const totalPages = Math.ceil(totalEntries / rowsPerPage);
   const paginatedRefunds = filteredRefunds.slice(
     (currentPage - 1) * rowsPerPage,
     currentPage * rowsPerPage
   );
+  console.log("Paginated Refunds:", paginatedRefunds);
 
   const startEntry = (currentPage - 1) * rowsPerPage + 1;
   const endEntry = Math.min(currentPage * rowsPerPage, totalEntries);
@@ -217,7 +242,7 @@ const ManageRefund = () => {
                 </Form.Select>
                 <Form.Control
                   type="text"
-                  placeholder="Search by contract ID, description, or status..."
+                  placeholder="Search account holder, description, status,..."
                   value={searchTerm}
                   onChange={handleSearch}
                   className="search-input"
@@ -235,8 +260,6 @@ const ManageRefund = () => {
                 <Table striped bordered hover responsive>
                   <thead>
                     <tr>
-                      <th className="text-center">Refund ID</th>
-                      <th className="text-center">Contract ID</th>
                       <th className="text-center">Bank Number</th>
                       <th className="text-center">Bank Name</th>
                       <th className="text-center">Account Holder</th>
@@ -316,45 +339,33 @@ const ManageRefund = () => {
                   <tbody>
                     {paginatedRefunds.length === 0 ? (
                       <tr>
-                        <td colSpan="12" className="text-center text-muted">
+                        <td colSpan="10" className="text-center text-muted">
                           No refunds found{" "}
                           {searchTerm || statusFilter || typeFilter
                             ? "matching your filters"
+                            : refunds.length === 0
+                            ? "in the system"
                             : ""}
                         </td>
                       </tr>
                     ) : (
-                      paginatedRefunds.map((refund) => (
-                        <tr key={refund.contractRefundId}>
+                      paginatedRefunds.map((refund, index) => (
+                        <tr key={refund.contractRefundId || `refund-${index}`}>
+                          <td className="text-center">{refund.numberBank}</td>
+                          <td className="text-center">{refund.bankName}</td>
                           <td className="text-center">
-                            {refund.contractRefundId}
-                          </td>
-                          <td className="text-center">{refund.contractId}</td>
-                          <td className="text-center">
-                            {refund.numberBank || "N/A"}
-                          </td>
-                          <td className="text-center">
-                            {refund.bankName || "N/A"}
-                          </td>
-                          <td className="text-center">
-                            {refund.accountBankName || "N/A"}
+                            {refund.accountBankName}
                           </td>
                           <td className="text-center">{refund.createDate}</td>
+                          <td className="text-center">{refund.updateDate}</td>
                           <td className="text-center">
-                            {refund.updateDate || "N/A"}
+                            {refund.price.toLocaleString()}
                           </td>
-                          <td className="text-center">{refund.price}</td>
                           <td className="text-center">{refund.description}</td>
                           <td className="text-center">{refund.type}</td>
                           <td className="text-center">{refund.status}</td>
                           <td className="text-center">
                             <div className="action-buttons">
-                              <RefundButton
-                                refund={refund}
-                                showModal={showRefundModal}
-                                setShowModal={setShowRefundModal}
-                                setSelectedRefund={setSelectedRefund}
-                              />
                               <ViewRefundButton
                                 refund={refund}
                                 showModal={showViewModal}
