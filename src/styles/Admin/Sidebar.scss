@@ -1,87 +1,91 @@
+// src/styles/Admin/Sidebar.scss
+
+// Phong cách cho sidebar
 .sidebar {
-    width: 250px;
-    height: 100vh;
-    background: #2c3e50;
-    color: #fff;
-    position: fixed;
-    left: 0;
-    top: 0;
-    transition: all 0.3s ease;
-    z-index: 1000;
-  
-    &.collapsed {
-      width: 70px;
-  
-      .brand {
-        display: none;
-      }
-  
-      .nav-link span {
-        display: none;
+  width: 250px;
+  height: 100vh;
+  background: #2c3e50; // Màu nền
+  color: #fff; // Màu chữ
+  position: fixed;
+  left: 0;
+  top: 0;
+  transition: all 0.3s ease; // Hiệu ứng chuyển đổi
+  z-index: 1000;
+
+  &.collapsed {
+    width: 70px; // Chiều rộng khi thu gọn
+
+    .brand {
+      display: none; // Ẩn logo
+    }
+
+    .nav-link span {
+      display: none; // Ẩn văn bản liên kết
+    }
+  }
+
+  .sidebar-header {
+    padding: 1.5rem; // Khoảng cách bên trong
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1); // Đường viền dưới
+
+    .brand {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+
+    .toggle-btn {
+      background: none;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      padding: 0;
+
+      &:hover {
+        color: #3498db; // Màu khi di chuột
       }
     }
-  
-    .sidebar-header {
-      padding: 1.5rem;
+  }
+
+  .sidebar-nav {
+    padding: 1rem 0; // Khoảng cách bên trong
+
+    .nav-link {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  
-      .brand {
-        margin: 0;
-        font-size: 1.25rem;
-        font-weight: 600;
-      }
-  
-      .toggle-btn {
-        background: none;
-        border: none;
+      padding: 0.75rem 1.5rem;
+      color: rgba(255, 255, 255, 0.7);
+      text-decoration: none;
+      transition: all 0.3s ease;
+
+      &:hover {
         color: #fff;
-        cursor: pointer;
-        padding: 0;
-  
-        &:hover {
-          color: #3498db;
-        }
+        background: rgba(255, 255, 255, 0.1);
       }
-    }
-  
-    .sidebar-nav {
-      padding: 1rem 0;
-  
-      .nav-link {
-        display: flex;
-        align-items: center;
-        padding: 0.75rem 1.5rem;
-        color: rgba(255, 255, 255, 0.7);
-        text-decoration: none;
-        transition: all 0.3s ease;
-  
-        &:hover {
-          color: #fff;
-          background: rgba(255, 255, 255, 0.1);
-        }
-  
-        &.active {
-          color: #fff;
-          background: #3498db;
-        }
-  
-        span {
-          margin-left: 0.75rem;
-        }
+
+      &.active {
+        color: #fff;
+        background: #3498db; // Màu nền khi active
+      }
+
+      span {
+        margin-left: 0.75rem; // Khoảng cách giữa biểu tượng và văn bản
       }
     }
   }
-  
-  @media (max-width: 768px) {
-    .sidebar {
-      transform: translateX(-100%);
-  
-      &.collapsed {
-        transform: translateX(0);
-        width: 70px;
-      }
+}
+
+// Responsive cho thiết bị di động
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%); // Ẩn sidebar trên mobile
+
+    &.collapsed {
+      transform: translateX(0); // Hiển thị khi thu gọn
+      width: 70px;
     }
   }
+}

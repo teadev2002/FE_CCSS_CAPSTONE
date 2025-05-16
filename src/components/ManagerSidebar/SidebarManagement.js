@@ -594,25 +594,25 @@ const SidebarManagement = () => {
 
   // Cấu trúc menu với các tab lớn và tab con
   const menus = [
-    {
-      label: "User Management",
-      icon: <Users size={20} />,
-      allowedRoles: ["Manager"],
-      subMenus: [
-        {
-          path: "/manage/account",
-          label: "Manage Accounts",
-          icon: <UserSearch size={18} />,
-          allowedRoles: ["Manager"],
-        },
-        {
-          path: "/manage/cosplayer",
-          label: "Manage Cosplayers",
-          icon: <Users size={18} />,
-          allowedRoles: ["Manager"],
-        },
-      ],
-    },
+    // {
+    //   label: "User Management",
+    //   icon: <Users size={20} />,
+    //   allowedRoles: ["Manager"],
+    //   subMenus: [
+    //     {
+    //       path: "/manage/account",
+    //       label: "Manage Accounts",
+    //       icon: <UserSearch size={18} />,
+    //       allowedRoles: ["Manager"],
+    //     },
+    //     {
+    //       path: "/manage/cosplayer",
+    //       label: "Manage Cosplayers",
+    //       icon: <Users size={18} />,
+    //       allowedRoles: ["Manager"],
+    //     },
+    //   ],
+    // },
     {
       label: "Task Management",
       icon: <ListTodo size={20} />,

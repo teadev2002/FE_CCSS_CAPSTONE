@@ -73,6 +73,7 @@
 
       .stat-icon {
         background: white;
+
         svg {
           color: #3498db;
         }
@@ -141,6 +142,7 @@
 
       &.positive {
         color: #2ecc71;
+
         &:before {
           content: "↑";
           font-size: 1rem;
@@ -149,6 +151,7 @@
 
       &.negative {
         color: #e74c3c;
+
         &:before {
           content: "↓";
           font-size: 1rem;
@@ -167,27 +170,35 @@
     &:nth-child(2) .stat-icon {
       background: linear-gradient(135deg, #e74c3c, #c0392b);
     }
+
     &:nth-child(3) .stat-icon {
       background: linear-gradient(135deg, #2ecc71, #27ae60);
     }
+
     &:nth-child(4) .stat-icon {
       background: linear-gradient(135deg, #3498db, #2980b9);
     }
+
     &:nth-child(5) .stat-icon {
       background: linear-gradient(135deg, #9b59b6, #8e44ad);
     }
+
     &:nth-child(6) .stat-icon {
       background: linear-gradient(135deg, #f1c40f, #e67e22);
     }
+
     &:nth-child(7) .stat-icon {
       background: linear-gradient(135deg, #1abc9c, #16a085);
     }
+
     &:nth-child(8) .stat-icon {
       background: linear-gradient(135deg, #e67e22, #d35400);
     }
+
     &:nth-child(9) .stat-icon {
       background: linear-gradient(135deg, #7f8c8d, #6c757d);
     }
+
     &:nth-child(10) .stat-icon {
       background: linear-gradient(135deg, #c0392b, #a93226);
     }
@@ -197,9 +208,11 @@
       &:nth-child(1) .stat-icon {
         background: linear-gradient(135deg, #00cec9, #00b894);
       }
+
       &:nth-child(2) .stat-icon {
         background: linear-gradient(135deg, #6c5ce7, #4834d4);
       }
+
       &:nth-child(3) .stat-icon {
         background: linear-gradient(135deg, #2ecc71, #27ae60);
       }
@@ -272,6 +285,7 @@
       opacity: 0;
       transform: translateY(20px);
     }
+
     to {
       opacity: 1;
       transform: translateY(0);
