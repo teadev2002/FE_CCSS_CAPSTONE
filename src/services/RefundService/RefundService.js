@@ -124,6 +124,28 @@ const RefundService = {
       throw error;
     }
   },
+  getContractRefundImagebyContractId: async (contractId) => {
+    try {
+      const response = await apiClient.get(
+        `/api/ContractImage?contractId=${contractId}&status=Refund`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching refund images by contract ID:", error);
+      throw error;
+    }
+  },
+  getContractByContractId: async (contractId) => {
+    try {
+      const response = await apiClient.get(
+        `/api/Contract/contractId/${contractId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching contract by ID:", error);
+      throw error;
+    }
+  },
 };
 
 export default RefundService;

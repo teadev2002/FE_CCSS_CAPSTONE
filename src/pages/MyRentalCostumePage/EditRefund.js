@@ -111,13 +111,12 @@ const EditRefund = ({ refund }) => {
     <>
       <Button
         type="default"
-        size="small"
         onClick={handleOpenModal}
         className="action-btn edit-btn"
         loading={loading}
         disabled={loading || !refund?.contractRefundId}
       >
-        Edit
+        Update Refund
       </Button>
 
       <Modal
@@ -127,7 +126,7 @@ const EditRefund = ({ refund }) => {
         className="refund-modal"
         backdropClassName="custom-backdrop"
       >
-        <Modal.Title style={{ textAlign: "center" }}>Edit Refund</Modal.Title>
+        <Modal.Title style={{ textAlign: "center" }}>Update Refund</Modal.Title>
 
         <Modal.Body>
           <Form>
@@ -176,7 +175,7 @@ const EditRefund = ({ refund }) => {
               {/* Right Column: Refund-related fields */}
               <div className="column-right">
                 <Form.Group className="mb-3">
-                  <Form.Label>Price</Form.Label>
+                  <Form.Label>Price Damage</Form.Label>
                   <Form.Control
                     type="number"
                     name="price"
@@ -189,7 +188,7 @@ const EditRefund = ({ refund }) => {
                   />
                 </Form.Group>
                 <Form.Group className="mb-3">
-                  <Form.Label>Amount</Form.Label>
+                  <Form.Label>Money Amount</Form.Label>
                   <Form.Control
                     type="number"
                     name="price"

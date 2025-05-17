@@ -164,5 +164,54 @@ const MyRentalCostumeService = {
       );
     }
   },
+  getContractImageAndStatus: async (contractId, status) => {
+    try {
+      const response = await apiClient.get(
+        `/api/ContractImage?contractId=${contractId}&status=${status}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching contract images:", {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+      });
+      throw error;
+    }
+  },
+
+  updateDeliveryContract: async (contractId, status, images, reason = "") => {
+    try {
+      const formData = new FormData();
+
+      if (reason) {
+        formData.append("Reason", reason);
+      }
+
+      if (images && images.length > 0) {
+        images.forEach((image, index) => {
+          formData.append(`Images`, image, image.name);
+        });
+      }
+
+      const response = await apiClient.put(
+        `/api/Contract/UpdateDeliveryContract?ContractId=${contractId}&Status=${status}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error updating delivery contract:", {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+      });
+      throw error;
+    }
+  },
 };
 export default MyRentalCostumeService;

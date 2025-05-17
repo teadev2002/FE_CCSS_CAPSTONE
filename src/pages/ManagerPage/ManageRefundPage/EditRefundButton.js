@@ -55,7 +55,6 @@ const EditRefundButton = ({ refund }) => {
   const handleCloseModal = () => {
     setShowModal(false);
     setImages([]);
-    // Clear preview container
     if (previewContainerRef.current) {
       previewContainerRef.current.innerHTML = "";
     }
@@ -84,11 +83,9 @@ const EditRefundButton = ({ refund }) => {
     const container = previewContainerRef.current;
     if (!container) return;
 
-    // Clear existing previews
     container.innerHTML = "";
 
-    // Create preview for each file
-    files.forEach((file, index) => {
+    files.forEach((file) => {
       const imgUrl = URL.createObjectURL(file);
       const imgContainer = document.createElement("div");
       imgContainer.style.textAlign = "center";
@@ -110,49 +107,46 @@ const EditRefundButton = ({ refund }) => {
       imgContainer.appendChild(img);
       imgContainer.appendChild(name);
       container.appendChild(imgContainer);
-
-      // Clean up URL when component unmounts or images change
-      img.onload = () => URL.revokeObjectURL(imgUrl);
     });
   };
 
   const handleSaveChanges = async () => {
-    if (!refund?.contractId) {
-      toast.error("Invalid contract ID.");
+    if (!refund?.contractId || !refund?.contractRefundId) {
+      toast.error("Invalid contract or refund ID.");
       return;
     }
 
     setLoading(true);
     try {
-      await RefundService.updateContractStatus(refund.contractId, "Completed");
-      console.log("Contract status updated for contractId:", refund.contractId);
-
-      const updatedData = {
-        contractRefundId: refund.contractRefundId,
-        ...formData,
-        images: images.map((image) => image.name),
-      };
-      console.log("Updated refund data:", updatedData);
-
-      toast.success("Contract status updated successfully.");
+      await RefundService.updateRefund(
+        refund.contractRefundId,
+        refund.contractId,
+        formData.numberBank,
+        formData.bankName,
+        formData.accountBankName,
+        formData.price,
+        formData.description,
+        images
+      );
+      toast.success("Refund updated successfully.");
       handleCloseModal();
     } catch (error) {
-      console.error("Error updating contract status:", error);
-      toast.error("Failed to update contract status.");
+      console.error("Error updating refund:", error);
+      toast.error("Failed to update refund.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Clean up URLs on component unmount
+  // Clean up image URLs on component unmount
   useEffect(() => {
     return () => {
-      images.forEach((image) => {
-        const url = URL.createObjectURL(image);
-        URL.revokeObjectURL(url);
-      });
+      if (previewContainerRef.current) {
+        const imgs = previewContainerRef.current.querySelectorAll("img");
+        imgs.forEach((img) => URL.revokeObjectURL(img.src));
+      }
     };
-  }, [images]);
+  }, []);
 
   return (
     <>
@@ -180,7 +174,6 @@ const EditRefundButton = ({ refund }) => {
         <Modal.Body>
           <Form>
             <div className="two-column-layout">
-              {/* Left Column: Bank-related fields */}
               <div className="column-left">
                 <div
                   style={{ display: "flex", justifyContent: "space-between" }}
@@ -221,10 +214,9 @@ const EditRefundButton = ({ refund }) => {
                 </Form.Group>
               </div>
 
-              {/* Right Column: Refund-related fields */}
               <div className="column-right">
                 <Form.Group className="mb-3">
-                  <Form.Label>Price</Form.Label>
+                  <Form.Label>Price Damage</Form.Label>
                   <Form.Control
                     type="number"
                     name="price"

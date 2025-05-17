@@ -68,14 +68,6 @@ const ViewRefundButton = ({ refund }) => {
           {selectedRefund ? (
             <div className="refund-details">
               <p>
-                <strong>Refund ID:</strong>{" "}
-                {selectedRefund.contractRefundId || "N/A"}
-              </p>
-              <p>
-                <strong>Contract ID:</strong>{" "}
-                {selectedRefund.contractId || "N/A"}
-              </p>
-              <p>
                 <strong>Bank Number:</strong>{" "}
                 {selectedRefund.numberBank || "N/A"}
               </p>
@@ -126,3 +118,5 @@ const ViewRefundButton = ({ refund }) => {
 };
 
 export default ViewRefundButton;
+
+// ở trên còn thiếu chưa xem dc hình

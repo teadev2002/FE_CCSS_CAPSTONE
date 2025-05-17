@@ -1,4 +1,4 @@
-// view contract pdf=====================================================================
+// view detail cua request=======================================================================================
 // import React, { useState, useEffect } from "react";
 // import { Container, Row, Col, Form, Card, Badge } from "react-bootstrap";
 // import {
@@ -701,7 +701,9 @@
 //                                   <FileText size={24} />
 //                                 </div>
 //                                 <div>
-//                                   <h3 className="rental-title">{req.name}</h3>
+//                                   <h3 className="rental-title">
+//                                     {req.name} {getStatusBadge(req.status)}
+//                                   </h3>
 //                                   <div className="text-muted small">
 //                                     <DollarSign size={16} /> Price:{" "}
 //                                     {(req.price || 0).toLocaleString()} VND
@@ -730,11 +732,9 @@
 //                               </div>
 //                             </div>
 //                             <div className="d-flex gap-2 align-items-center">
-//                               {getStatusBadge(req.status)}
 //                               {req.status === "Pending" && (
 //                                 <Button
 //                                   type="primary"
-//                                   size="small"
 //                                   className="btn-edit"
 //                                   onClick={() =>
 //                                     handleEditRequest(req.requestId)
@@ -744,11 +744,10 @@
 //                                 </Button>
 //                               )}
 //                               <Button
-//                                 size="small"
 //                                 className="btn-detail"
 //                                 onClick={() => handleViewDetail(req.requestId)}
 //                               >
-//                                 <Eye size={16} /> View Details
+//                                 <Eye size={16} /> Request Details
 //                               </Button>
 //                             </div>
 //                           </div>
@@ -806,16 +805,22 @@
 //                                 </div>
 //                                 <div>
 //                                   <h3 className="rental-title">
-//                                     {contract.contractName}
+//                                     {contract.contractName}{" "}
+//                                     {getStatusBadge(contract.status)}
 //                                   </h3>
 //                                   <div className="text-muted small">
-//                                     <DollarSign size={16} /> Total Price:{" "}
-//                                     {(contract.price || 0).toLocaleString()} VND
+//                                     <User size={16} /> Contract Owner:{" "}
+//                                     {contract.createBy}
 //                                   </div>
+
 //                                   <div className="text-muted small">
 //                                     <DollarSign size={16} /> Deposit:{" "}
 //                                     {(contract.deposit || 0).toLocaleString()}{" "}
 //                                     VND
+//                                   </div>
+//                                   <div className="text-muted small">
+//                                     <DollarSign size={16} /> Total Hire Price:{" "}
+//                                     {(contract.price || 0).toLocaleString()} VND
 //                                   </div>
 //                                   <div className="text-muted small">
 //                                     <DollarSign size={16} /> Refund Amount:{" "}
@@ -834,10 +839,7 @@
 //                                     <Calendar size={16} /> Created Date:{" "}
 //                                     {contract.createDate}
 //                                   </div>
-//                                   <div className="text-muted small">
-//                                     <User size={16} /> Create By:{" "}
-//                                     {contract.createBy}
-//                                   </div>
+
 //                                   {contract.reason && (
 //                                     <div className="text-muted small">
 //                                       <FileText size={16} />{" "}
@@ -853,30 +855,8 @@
 //                               {contract.status === "Refund" && (
 //                                 <i>Refund Processing</i>
 //                               )}
-//                               {getStatusBadge(contract.status)}
-//                               <Button
-//                                 size="small"
-//                                 className="btn-detail"
-//                                 onClick={() =>
-//                                   handleViewDetail(contract.requestId)
-//                                 }
-//                               >
-//                                 <Eye size={16} /> View Details
-//                               </Button>
-//                               {contract.status !== "Created" && (
-//                                 <Button
-//                                   type="default"
-//                                   size="small"
-//                                   onClick={() =>
-//                                     handleViewDelivery(contract.contractId)
-//                                   }
-//                                 >
-//                                   <Eye size={16} /> View Delivery
-//                                 </Button>
-//                               )}
 //                               {contract.status === "Created" && (
 //                                 <Button
-//                                   size="small"
 //                                   className="btn-deposit"
 //                                   onClick={() => handlePayment(contract)}
 //                                 >
@@ -884,7 +864,25 @@
 //                                 </Button>
 //                               )}
 //                               <Button
-//                                 size="small"
+//                                 className="btn-detail"
+//                                 onClick={() =>
+//                                   handleViewDetail(contract.requestId)
+//                                 }
+//                               >
+//                                 <Eye size={16} /> Request Details
+//                               </Button>
+//                               {contract.status !== "Created" && (
+//                                 <Button
+//                                   type="default"
+//                                   onClick={() =>
+//                                     handleViewDelivery(contract.contractId)
+//                                   }
+//                                 >
+//                                   <Eye size={16} /> View Delivery
+//                                 </Button>
+//                               )}
+
+//                               <Button
 //                                 className="btn-pdf"
 //                                 disabled={!contract.urlPdf}
 //                                 onClick={() =>
@@ -952,14 +950,18 @@
 //                                     <FileText size={24} />
 //                                   </div>
 //                                   <div>
+//                                     <h3 className="rental-title">
+//                                       {" "}
+//                                       Refund Status{" "}
+//                                       {getStatusBadge(refund.status)}
+//                                     </h3>
 //                                     <div className="text-muted small">
-//                                       <DollarSign size={16} /> Price damage:{" "}
+//                                       <DollarSign size={16} /> Price Damage:{" "}
 //                                       {(refund.price || 0).toLocaleString()} VND
 //                                     </div>
 //                                     <div className="text-muted small">
-//                                       <DollarSign size={16} /> Amount:{" "}
-//                                       {(refund.amount || 0).toLocaleString()}{" "}
-//                                       VND
+//                                       <DollarSign size={16} /> Refund Amount:{" "}
+//                                       {(refund.amount || 0).toLocaleString()}
 //                                     </div>
 //                                     <div className="text-muted small">
 //                                       <FileText size={16} /> Description:{" "}
@@ -970,19 +972,22 @@
 //                                       <Calendar size={16} /> Created Date:{" "}
 //                                       {refund.createDate}
 //                                     </div>
-//                                     <div className="text-muted small">
-//                                       <Calendar size={16} /> Updated Date:{" "}
-//                                       {refund.updateDate}
-//                                     </div>
 //                                   </div>
 //                                 </div>
 //                               </div>
 //                               <div className="d-flex gap-2 align-items-center">
-//                                 {getStatusBadge(refund.status)}
+//                                 <Button
+//                                   className="btn-detail"
+//                                   disabled={!contract?.requestId}
+//                                   onClick={() =>
+//                                     handleViewDetail(contract?.requestId)
+//                                   }
+//                                 >
+//                                   <Eye size={16} /> Request Details
+//                                 </Button>
 //                                 <ViewRefund refund={refund} />
 //                                 <EditRefund refund={refund} />
 //                                 <Button
-//                                   size="small"
 //                                   className="btn-pdf"
 //                                   disabled={!contract?.urlPdf}
 //                                   onClick={() =>
@@ -1116,7 +1121,7 @@
 
 // export default MyRentalCostume;
 
-// view detail cua request
+// bỏ lọc tabs 2 và 3===============================================================================================
 import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Form, Card, Badge } from "react-bootstrap";
 import {
@@ -1374,6 +1379,78 @@ const MyRentalCostume = () => {
     statusFilters,
   ]);
 
+  // lọc tab 2 & 3
+
+  // useEffect(() => {
+  //   const filterDepositContracts = async () => {
+  //     setLoading(true);
+  //     try {
+  //       const data = await MyRentalCostumeService.getAllContractByAccountId(
+  //         accountId
+  //       );
+  //       const contractsArray = Array.isArray(data) ? data : [];
+  //       const refundedContractIds = refunds.map((refund) => refund.contractId);
+  //       const filtered = await Promise.all(
+  //         contractsArray.map(async (contract) => {
+  //           try {
+  //             const request = await getRequestByRequestId(contract.requestId);
+  //             if (
+  //               request.serviceId === "S001" &&
+  //               !refundedContractIds.includes(contract.contractId)
+  //             ) {
+  //               return {
+  //                 ...contract,
+  //                 startDate: formatDate(contract.startDate),
+  //                 endDate: formatDate(contract.endDate),
+  //                 price: contract.price || 0,
+  //                 deposit: contract.deposit || request.deposit || 0,
+  //                 reason: contract.reason
+  //                   ? contract.reason.trim().toLowerCase()
+  //                   : "",
+  //                 amount: contract.amount || 0,
+  //                 createBy: contract.createBy || "",
+  //                 createDate: formatDate(contract.createDate) || "",
+  //               };
+  //             }
+  //             return null;
+  //           } catch (error) {
+  //             console.error(
+  //               `Error fetching request ${contract.requestId}:`,
+  //               error
+  //             );
+  //             return null;
+  //           }
+  //         })
+  //       );
+  //       let validContracts = filtered
+  //         .filter((contract) => contract !== null)
+  //         .filter(
+  //           (contract) =>
+  //             (contract?.contractName?.toLowerCase?.() || "").includes(
+  //               debouncedSearchTerm.toLowerCase()
+  //             ) || (contract?.startDate || "").includes(debouncedSearchTerm)
+  //         )
+  //         .filter((contract) => contractStatusFilters[contract.status]);
+  //       validContracts = sortData(validContracts, sortField, sortOrder);
+  //       setFilteredDepositContracts(validContracts);
+  //       setCurrentDepositPage(1);
+  //     } catch (error) {
+  //       console.error("Failed to fetch deposit contracts:", error);
+  //       toast.error("Failed to load deposit contracts.");
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+  //   if (accountId) filterDepositContracts();
+  // }, [
+  //   debouncedSearchTerm,
+  //   accountId,
+  //   sortField,
+  //   sortOrder,
+  //   contractStatusFilters,
+  //   refunds,
+  // ]);
+
   useEffect(() => {
     const filterDepositContracts = async () => {
       setLoading(true);
@@ -1382,15 +1459,11 @@ const MyRentalCostume = () => {
           accountId
         );
         const contractsArray = Array.isArray(data) ? data : [];
-        const refundedContractIds = refunds.map((refund) => refund.contractId);
         const filtered = await Promise.all(
           contractsArray.map(async (contract) => {
             try {
               const request = await getRequestByRequestId(contract.requestId);
-              if (
-                request.serviceId === "S001" &&
-                !refundedContractIds.includes(contract.contractId)
-              ) {
+              if (request.serviceId === "S001") {
                 return {
                   ...contract,
                   startDate: formatDate(contract.startDate),
@@ -1441,9 +1514,7 @@ const MyRentalCostume = () => {
     sortField,
     sortOrder,
     contractStatusFilters,
-    refunds,
   ]);
-
   useEffect(() => {
     let filtered = refunds
       .filter(
@@ -1819,7 +1890,9 @@ const MyRentalCostume = () => {
                                   <FileText size={24} />
                                 </div>
                                 <div>
-                                  <h3 className="rental-title">{req.name}</h3>
+                                  <h3 className="rental-title">
+                                    {req.name} {getStatusBadge(req.status)}
+                                  </h3>
                                   <div className="text-muted small">
                                     <DollarSign size={16} /> Price:{" "}
                                     {(req.price || 0).toLocaleString()} VND
@@ -1848,11 +1921,9 @@ const MyRentalCostume = () => {
                               </div>
                             </div>
                             <div className="d-flex gap-2 align-items-center">
-                              {getStatusBadge(req.status)}
                               {req.status === "Pending" && (
                                 <Button
                                   type="primary"
-                                  size="small"
                                   className="btn-edit"
                                   onClick={() =>
                                     handleEditRequest(req.requestId)
@@ -1862,11 +1933,10 @@ const MyRentalCostume = () => {
                                 </Button>
                               )}
                               <Button
-                                size="small"
                                 className="btn-detail"
                                 onClick={() => handleViewDetail(req.requestId)}
                               >
-                                <Eye size={16} /> View Details
+                                <Eye size={16} /> Request Details
                               </Button>
                             </div>
                           </div>
@@ -1924,16 +1994,22 @@ const MyRentalCostume = () => {
                                 </div>
                                 <div>
                                   <h3 className="rental-title">
-                                    {contract.contractName}
+                                    {contract.contractName}{" "}
+                                    {getStatusBadge(contract.status)}
                                   </h3>
                                   <div className="text-muted small">
-                                    <DollarSign size={16} /> Total Price:{" "}
-                                    {(contract.price || 0).toLocaleString()} VND
+                                    <User size={16} /> Contract Owner:{" "}
+                                    {contract.createBy}
                                   </div>
+
                                   <div className="text-muted small">
                                     <DollarSign size={16} /> Deposit:{" "}
                                     {(contract.deposit || 0).toLocaleString()}{" "}
                                     VND
+                                  </div>
+                                  <div className="text-muted small">
+                                    <DollarSign size={16} /> Total Hire Price:{" "}
+                                    {(contract.price || 0).toLocaleString()} VND
                                   </div>
                                   <div className="text-muted small">
                                     <DollarSign size={16} /> Refund Amount:{" "}
@@ -1952,10 +2028,7 @@ const MyRentalCostume = () => {
                                     <Calendar size={16} /> Created Date:{" "}
                                     {contract.createDate}
                                   </div>
-                                  <div className="text-muted small">
-                                    <User size={16} /> Create By:{" "}
-                                    {contract.createBy}
-                                  </div>
+
                                   {contract.reason && (
                                     <div className="text-muted small">
                                       <FileText size={16} />{" "}
@@ -1971,30 +2044,8 @@ const MyRentalCostume = () => {
                               {contract.status === "Refund" && (
                                 <i>Refund Processing</i>
                               )}
-                              {getStatusBadge(contract.status)}
-                              <Button
-                                size="small"
-                                className="btn-detail"
-                                onClick={() =>
-                                  handleViewDetail(contract.requestId)
-                                }
-                              >
-                                <Eye size={16} /> View Details
-                              </Button>
-                              {contract.status !== "Created" && (
-                                <Button
-                                  type="default"
-                                  size="small"
-                                  onClick={() =>
-                                    handleViewDelivery(contract.contractId)
-                                  }
-                                >
-                                  <Eye size={16} /> View Delivery
-                                </Button>
-                              )}
                               {contract.status === "Created" && (
                                 <Button
-                                  size="small"
                                   className="btn-deposit"
                                   onClick={() => handlePayment(contract)}
                                 >
@@ -2002,7 +2053,25 @@ const MyRentalCostume = () => {
                                 </Button>
                               )}
                               <Button
-                                size="small"
+                                className="btn-detail"
+                                onClick={() =>
+                                  handleViewDetail(contract.requestId)
+                                }
+                              >
+                                <Eye size={16} /> Request Details
+                              </Button>
+                              {contract.status !== "Created" && (
+                                <Button
+                                  type="default"
+                                  onClick={() =>
+                                    handleViewDelivery(contract.contractId)
+                                  }
+                                >
+                                  <Eye size={16} /> View Delivery
+                                </Button>
+                              )}
+
+                              <Button
                                 className="btn-pdf"
                                 disabled={!contract.urlPdf}
                                 onClick={() =>
@@ -2070,6 +2139,11 @@ const MyRentalCostume = () => {
                                     <FileText size={24} />
                                   </div>
                                   <div>
+                                    <h3 className="rental-title">
+                                      {" "}
+                                      Refund Status{" "}
+                                      {getStatusBadge(refund.status)}
+                                    </h3>
                                     <div className="text-muted small">
                                       <DollarSign size={16} /> Price Damage:{" "}
                                       {(refund.price || 0).toLocaleString()} VND
@@ -2091,29 +2165,8 @@ const MyRentalCostume = () => {
                                 </div>
                               </div>
                               <div className="d-flex gap-2 align-items-center">
-                                {getStatusBadge(refund.status)}
-                                <Button
-                                  size="small"
-                                  className="btn-detail"
-                                  disabled={!contract?.requestId}
-                                  onClick={() =>
-                                    handleViewDetail(contract?.requestId)
-                                  }
-                                >
-                                  <Eye size={16} /> View Details
-                                </Button>
                                 <ViewRefund refund={refund} />
                                 <EditRefund refund={refund} />
-                                <Button
-                                  size="small"
-                                  className="btn-pdf"
-                                  disabled={!contract?.urlPdf}
-                                  onClick={() =>
-                                    window.open(contract?.urlPdf, "_blank")
-                                  }
-                                >
-                                  View Contract PDF
-                                </Button>
                               </div>
                             </div>
                           </Card.Body>
