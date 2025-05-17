@@ -1,9 +1,43 @@
-import { Users, Calendar, ShoppingBag } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button, Container, Row, Col } from "react-bootstrap";
-import { Link } from "react-router-dom"; // Added Link import
+import { Users, Calendar, ShoppingBag } from "lucide-react";
+import { jwtDecode } from "jwt-decode";
+import { toast } from "react-toastify";
 import "../../styles/HomePage.scss";
 
-const ServicesPage = (props) => {
+// Component trang Services
+const ServicesPage = () => {
+  const navigate = useNavigate();
+
+  // Kiểm tra trạng thái đăng nhập từ token
+  const getUserInfoFromToken = () => {
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        return { id: decoded?.Id };
+      } catch (error) {
+        console.error("Error decoding token:", error);
+        return { id: null };
+      }
+    }
+    return { id: null };
+  };
+
+  // Xử lý sự kiện click nút Explore Now
+  const handleExploreNow = (link) => {
+    const { id } = getUserInfoFromToken();
+    if (!id) {
+      toast.warn("Please log in to explore this service!", {
+        position: "top-right",
+        autoClose: 2100,
+      });
+      setTimeout(() => navigate("/login"), 2100);
+    } else {
+      navigate(link);
+    }
+  };
+
   return (
     <div className="homepage min-vh-100 bg-light">
       {/* Hero Section */}
@@ -16,12 +50,13 @@ const ServicesPage = (props) => {
         </Container>
       </div>
 
-      {/* Services */}
+      {/* Danh sách dịch vụ */}
       <Container className="py-5">
         {services.map((service, index) => (
           <Row
-            className={`align-items-center mb-5 ${index % 2 !== 0 ? "flex-row-reverse" : ""
-              }`}
+            className={`align-items-center mb-5 ${
+              index % 2 !== 0 ? "flex-row-reverse" : ""
+            }`}
             key={service.id}
           >
             <Col md={6}>
@@ -42,23 +77,23 @@ const ServicesPage = (props) => {
                   </li>
                 ))}
               </ul>
-              <Link to={service.link}> {/* Added Link wrapper */}
-                <Button
-                  variant="primary"
-                  size="lg"
-                  style={{
-                    background: "linear-gradient(135deg, #510545, #22668a)",
-                    border: "none",
-                    color: "white",
-                    fontWeight: "bold",
-                    transition: "all 0.3s ease",
-                  }}
-                  onMouseOver={(e) => (e.target.style.opacity = "0.8")}
-                  onMouseOut={(e) => (e.target.style.opacity = "1")}
-                >
-                  Explore Now!
-                </Button>
-              </Link>
+              {/* Nút Explore Now với kiểm tra đăng nhập */}
+              <Button
+                variant="primary"
+                size="lg"
+                style={{
+                  background: "linear-gradient(135deg, #510545, #22668a)",
+                  border: "none",
+                  color: "white",
+                  fontWeight: "bold",
+                  transition: "all 0.3s ease",
+                }}
+                onClick={() => handleExploreNow(service.link)}
+                onMouseOver={(e) => (e.target.style.opacity = "0.8")}
+                onMouseOut={(e) => (e.target.style.opacity = "1")}
+              >
+                Explore Now!
+              </Button>
             </Col>
           </Row>
         ))}
@@ -67,6 +102,7 @@ const ServicesPage = (props) => {
   );
 };
 
+// Danh sách dịch vụ
 const services = [
   {
     id: "cosplayer-hire",
@@ -83,7 +119,7 @@ const services = [
       "Available for events, parties, and photoshoots",
       "Flexible booking options",
     ],
-    link: "/cosplayers", // Links to CosplayersPage.js
+    link: "/cosplayers",
   },
   {
     id: "event-organization",
@@ -100,7 +136,7 @@ const services = [
       "Engaging Activities: Create memorable experiences for attendees.",
       "Professional Management: Ensuring a smooth and successful event.",
     ],
-    link: "/event", // Links to DetailEventOrganizationPage.js
+    link: "/event",
   },
   {
     id: "costume-rental",
@@ -117,13 +153,13 @@ const services = [
       "Flexible rental periods",
       "Cleaning and maintenance service",
     ],
-    link: "/costumes", // Links to CostumesPage.js
+    link: "/costumes",
   },
   {
     id: "event-registration",
     title: "Dive Into Festival Fun",
     description:
-      "Buy a ticket to meet your idol! Sign up for a photo and autograph session and create lasting memories. ",
+      "Buy a ticket to meet your idol! Sign up for a photo and autograph session and create lasting memories.",
     image:
       "https://mcdn.coolmate.me/image/May2022/top-le-hoi-cosplay-festival-noi-tieng_735.jpg",
     icon: ShoppingBag,
@@ -134,7 +170,7 @@ const services = [
       "Fun Experience: Enjoy an unforgettable event.",
       "Fan Community: Connect with like-minded fans",
     ],
-    link: "/festivals", // Links to FestivalsPage.js
+    link: "/festivals",
   },
   {
     id: "selling-souvenirs",
@@ -147,11 +183,10 @@ const services = [
     features: [
       "Enjoy unique collectibles",
       "Quality craftsmanship",
-      "Professional Photo: Capture the special moment.",
       "Perfect gifts",
       "Tangible reminders of joy!",
     ],
-    link: "/souvenirs-shop", // Links to SouvenirsPage.js
+    link: "/souvenirs-shop",
   },
 ];
 

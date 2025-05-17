@@ -150,6 +150,8 @@
 
 // export default App;
 
+//--------------------------------------------------------------------------------------------------//
+
 import { useEffect } from "react";
 import { Route, Routes, BrowserRouter, useLocation, Navigate } from "react-router-dom";
 import "./styles/App.scss";

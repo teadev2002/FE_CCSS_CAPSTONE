@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Carousel, Row, Col, Form, Button } from "react-bootstrap";
 import {
   Shirt,
@@ -19,6 +19,41 @@ import CharacterService from "../../services/HomePageService/CharacterService";
 import CosplayerService from "../../services/HomePageService/CosplayerService";
 
 const HomePage = () => {
+  const navigate = useNavigate();
+
+  // Kiểm tra trạng thái đăng nhập
+  const getUserInfoFromToken = () => {
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        return {
+          id: decoded?.Id,
+          role: decoded?.role,
+          accountName: decoded?.AccountName,
+        };
+      } catch (error) {
+        console.error("Error decoding token:", error);
+        return { id: null, role: null, accountName: null };
+      }
+    }
+    return { id: null, role: null, accountName: null };
+  };
+
+  // Xử lý nút Hire Cosplayers
+  const handleHireCosplayers = () => {
+    const { id } = getUserInfoFromToken();
+    if (!id) {
+      toast.warn("Please log in to hire cosplayers!", {
+        position: "top-right",
+        autoClose: 2100,
+      });
+      setTimeout(() => navigate("/login"), 2100);
+    } else {
+      navigate("/cosplayers");
+    }
+  };
+
   // State cho Character List
   const [characters, setCharacters] = useState([]);
   const [filteredCharacters, setFilteredCharacters] = useState([]);
@@ -28,7 +63,6 @@ const HomePage = () => {
     setIsPageManuallySelectedCharacters,
   ] = useState(false);
   const [characterImages, setCharacterImages] = useState({});
-  // Giá trị mặc định cho bộ lọc nhân vật
   const defaultCharacterSearchParams = {
     characterName: "",
     price: [0, 1000000],
@@ -49,9 +83,8 @@ const HomePage = () => {
     setIsPageManuallySelectedCosplayers,
   ] = useState(false);
   const [cosplayerImages, setCosplayerImages] = useState({});
-  // Giá trị mặc định cho bộ lọc cosplayer, thêm cosplayerName để tìm kiếm
   const defaultCosplayerSearchParams = {
-    cosplayerName: "", // Thêm trường để lưu tên cosplayer tìm kiếm
+    cosplayerName: "",
     averageStar: [0, 5],
     height: [100, 200],
     weight: [20, 100],
@@ -75,7 +108,7 @@ const HomePage = () => {
     return `${price.toLocaleString("vi-VN")} VND`;
   };
 
-  // Format giá tiền thuê cosplayer (per hour) - Thêm VND
+  // Format giá tiền thuê cosplayer (per hour)
   const formatHourlyRate = (rate) => {
     return `${rate.toLocaleString("vi-VN")}/h VND`;
   };
@@ -211,7 +244,7 @@ const HomePage = () => {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % aboutUsImages.length);
-    }, 7000); // Chuyển hình sau 7 giây
+    }, 7000);
     return () => clearInterval(timer);
   }, [aboutUsImages.length]);
 
@@ -239,10 +272,9 @@ const HomePage = () => {
     setIsPageManuallySelectedCharacters(false);
   };
 
-  // Xử lý tìm kiếm và lọc cho Cosplayer List, thêm lọc theo tên cosplayer
+  // Xử lý tìm kiếm và lọc cho Cosplayer List
   const handleCosplayerSearch = () => {
     const filtered = cosplayers.filter((cosplayer) => {
-      // Kiểm tra tên cosplayer (không phân biệt hoa thường, hỗ trợ tìm kiếm gần đúng)
       const nameMatch = cosplayerSearchParams.cosplayerName
         ? cosplayer.name
             .toLowerCase()
@@ -345,24 +377,20 @@ const HomePage = () => {
 
   // Hiển thị thông báo chào mừng khi đăng nhập
   useEffect(() => {
-    const accessToken = localStorage.getItem("accessToken");
-    if (!accessToken) return;
-    try {
-      const decoded = jwtDecode(accessToken);
-      const accountName = decoded?.AccountName;
-      if (accountName) {
-        toast.success(`Welcome, ${accountName}!`);
-      }
-    } catch (error) {
-      console.error("Invalid token", error);
+    const { accountName } = getUserInfoFromToken();
+    if (accountName) {
+      toast.success(`Welcome, ${accountName}!`, {
+        position: "top-right",
+        autoClose: 3000,
+      });
     }
   }, []);
 
   // Tính toán chỉ số hình ảnh cho About Us
   const getImageIndices = () => {
     const length = aboutUsImages.length;
-    const prevIndex = (currentImageIndex - 1 + length) % length; // Hình bên trái
-    const nextIndex = (currentImageIndex + 1) % length; // Hình bên phải
+    const prevIndex = (currentImageIndex - 1 + length) % length;
+    const nextIndex = (currentImageIndex + 1) % length;
     return { prevIndex, currentIndex: currentImageIndex, nextIndex };
   };
 
@@ -370,6 +398,7 @@ const HomePage = () => {
 
   return (
     <div className="homepage">
+      <ToastContainer />
       <Carousel fade>
         {carouselItems.map((item, index) => (
           <Carousel.Item key={index}>
@@ -390,7 +419,6 @@ const HomePage = () => {
       {/* Character List */}
       <div className="custom-section featured-characters py-5">
         <h2 className="text-center fw-bold mb-5">Character List</h2>
-
         <div className="character-list-container">
           <div className="search-filter-sidebar">
             <Form className="search-filter-form">
@@ -405,7 +433,6 @@ const HomePage = () => {
                   className="search-input"
                 />
               </Form.Group>
-
               <Form.Group className="mb-4">
                 <Form.Label>Price Range (VND)</Form.Label>
                 <Range
@@ -459,7 +486,6 @@ const HomePage = () => {
                   {formatPrice(characterSearchParams.price[1])}
                 </div>
               </Form.Group>
-
               <Form.Group className="mb-4">
                 <Form.Label>Height Range (cm)</Form.Label>
                 <Range
@@ -513,7 +539,6 @@ const HomePage = () => {
                   {characterSearchParams.height[1]} cm
                 </div>
               </Form.Group>
-
               <Form.Group className="mb-4">
                 <Form.Label>Weight Range (kg)</Form.Label>
                 <Range
@@ -567,7 +592,6 @@ const HomePage = () => {
                   {characterSearchParams.weight[1]} kg
                 </div>
               </Form.Group>
-
               <div className="filter-buttons">
                 <Button
                   className="search-button mb-2 w-100"
@@ -584,7 +608,6 @@ const HomePage = () => {
               </div>
             </Form>
           </div>
-
           <div className="character-grid">
             <ul className="card-list">
               {currentCharacters.map((character) => (
@@ -621,7 +644,6 @@ const HomePage = () => {
                 </li>
               ))}
             </ul>
-
             <div className="pagination-controls text-center mt-4">
               <Button
                 className="pagination-arrow"
@@ -659,11 +681,9 @@ const HomePage = () => {
       {/* Cosplayer List */}
       <div className="custom-section featured-cosplayers py-5">
         <h2 className="text-center fw-bold mb-5">Cosplayer List</h2>
-
         <div className="character-list-container">
           <div className="search-filter-sidebar">
             <Form className="search-filter-form">
-              {/* Thanh tìm kiếm theo tên cosplayer */}
               <Form.Group className="mb-4">
                 <Form.Label>Cosplayer Name</Form.Label>
                 <Form.Control
@@ -675,7 +695,6 @@ const HomePage = () => {
                   className="search-input"
                 />
               </Form.Group>
-
               <Form.Group className="mb-4">
                 <Form.Label>Average Star</Form.Label>
                 <Range
@@ -731,7 +750,6 @@ const HomePage = () => {
                   <Star size={14} className="star-filled" />
                 </div>
               </Form.Group>
-
               <Form.Group className="mb-4">
                 <Form.Label>Height Range (cm)</Form.Label>
                 <Range
@@ -785,7 +803,6 @@ const HomePage = () => {
                   {cosplayerSearchParams.height[1]} cm
                 </div>
               </Form.Group>
-
               <Form.Group className="mb-4">
                 <Form.Label>Weight Range (kg)</Form.Label>
                 <Range
@@ -839,7 +856,6 @@ const HomePage = () => {
                   {cosplayerSearchParams.weight[1]} kg
                 </div>
               </Form.Group>
-
               <Form.Group className="mb-4">
                 <Form.Label>Hourly Rate (VND)</Form.Label>
                 <Range
@@ -897,7 +913,6 @@ const HomePage = () => {
                   {formatPrice(cosplayerSearchParams.hourlyRate[1])}
                 </div>
               </Form.Group>
-
               <div className="filter-buttons">
                 <Button
                   className="search-button mb-2 w-100"
@@ -914,7 +929,6 @@ const HomePage = () => {
               </div>
             </Form>
           </div>
-
           <div className="character-grid">
             <ul className="card-list">
               {currentCosplayers.map((cosplayer) => (
@@ -963,7 +977,6 @@ const HomePage = () => {
                 </li>
               ))}
             </ul>
-
             <div className="pagination-controls text-center mt-4">
               <Button
                 className="pagination-arrow"
@@ -996,11 +1009,13 @@ const HomePage = () => {
             </div>
           </div>
         </div>
-
         <div className="text-center mt-4">
-          <Link to="/cosplayers" className="view-all-button">
+          <button
+            className="view-all-button"
+            onClick={handleHireCosplayers}
+          >
             Hire Cosplayers
-          </Link>
+          </button>
         </div>
       </div>
 
@@ -1057,8 +1072,6 @@ const HomePage = () => {
                   />
                 </div>
               </div>
-
-              {/* Controls: Mũi tên và dấu chấm nằm bên dưới */}
               <div className="carousel-controls">
                 <button
                   className="carousel-arrow left-arrow"

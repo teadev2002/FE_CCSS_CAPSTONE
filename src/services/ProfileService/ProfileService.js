@@ -18,6 +18,7 @@
 import { apiClient, formDataClient } from "../../api/apiClient.js";
 
 const ProfileService = {
+  // Lấy thông tin hồ sơ theo accountId
   getProfileById: async (accountId) => {
     try {
       const response = await apiClient.get(`/api/Account/${accountId}`);
@@ -26,6 +27,20 @@ const ProfileService = {
       throw new Error(error.response?.data?.message || "Failed to get profile");
     }
   },
+
+  // Lấy danh sách tài khoản theo roleId
+  getAccountsByRoleId: async (roleId) => {
+    try {
+      const response = await apiClient.get(`/api/Account/roleId/${roleId}`);
+      return Array.isArray(response.data) ? response.data : [response.data]; // Đảm bảo trả về mảng
+    } catch (error) {
+      throw new Error(
+        error.response?.data?.message || "Failed to get accounts by role"
+      );
+    }
+  },
+
+  // Cập nhật thông tin hồ sơ
   updateProfile: async (accountId, data) => {
     try {
       const formData = new FormData();
@@ -68,6 +83,18 @@ const ProfileService = {
     } catch (error) {
       throw new Error(
         error.response?.data?.message || "Failed to update profile"
+      );
+    }
+  },
+
+  // Lấy danh sách feedback theo cosplayerId
+  getFeedbackByCosplayerId: async (cosplayerId) => {
+    try {
+      const response = await apiClient.get(`/api/Feedback/cosplayerId/${cosplayerId}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(
+        error.response?.data?.message || "Failed to get feedbacks"
       );
     }
   },
