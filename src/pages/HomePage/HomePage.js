@@ -1,3 +1,5 @@
+// src/pages/HomePage.jsx
+
 import React, { useEffect, useState, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Carousel, Row, Col, Form, Button } from "react-bootstrap";
@@ -172,13 +174,17 @@ const HomePage = () => {
     }
   };
 
-  // Lấy danh sách cosplayer
+  // Lấy danh sách cosplayer (chỉ lấy những cosplayer có isActive: true)
   const fetchCosplayers = useCallback(async () => {
     try {
       const data = await CosplayerService.getAllCosplayers();
       const cosplayersArray = Array.isArray(data) ? data : [data];
-      setCosplayers(cosplayersArray);
-      setFilteredCosplayers(cosplayersArray);
+      // Lọc cosplayer có isActive: true
+      const activeCosplayers = cosplayersArray.filter(
+        (cosplayer) => cosplayer.isActive === true
+      );
+      setCosplayers(activeCosplayers);
+      setFilteredCosplayers(activeCosplayers);
     } catch (error) {
       toast.error(error.message);
     }
@@ -253,8 +259,8 @@ const HomePage = () => {
     const filtered = characters.filter((char) => {
       const nameMatch = characterSearchParams.characterName
         ? char.characterName
-            .toLowerCase()
-            .includes(characterSearchParams.characterName.toLowerCase())
+          .toLowerCase()
+          .includes(characterSearchParams.characterName.toLowerCase())
         : true;
       const priceMatch =
         char.price >= characterSearchParams.price[0] &&
@@ -272,13 +278,13 @@ const HomePage = () => {
     setIsPageManuallySelectedCharacters(false);
   };
 
-  // Xử lý tìm kiếm và lọc cho Cosplayer List
+  // Xử lý tìm kiếm và lọc cho Cosplayer List (chỉ lấy cosplayer có isActive: true)
   const handleCosplayerSearch = () => {
     const filtered = cosplayers.filter((cosplayer) => {
       const nameMatch = cosplayerSearchParams.cosplayerName
         ? cosplayer.name
-            .toLowerCase()
-            .includes(cosplayerSearchParams.cosplayerName.toLowerCase())
+          .toLowerCase()
+          .includes(cosplayerSearchParams.cosplayerName.toLowerCase())
         : true;
       const starMatch =
         cosplayer.averageStar >= cosplayerSearchParams.averageStar[0] &&
@@ -292,7 +298,15 @@ const HomePage = () => {
       const rateMatch =
         cosplayer.salaryIndex >= cosplayerSearchParams.hourlyRate[0] &&
         cosplayer.salaryIndex <= cosplayerSearchParams.hourlyRate[1];
-      return nameMatch && starMatch && heightMatch && weightMatch && rateMatch;
+      const isActiveMatch = cosplayer.isActive === true; // Chỉ lấy cosplayer active
+      return (
+        nameMatch &&
+        starMatch &&
+        heightMatch &&
+        weightMatch &&
+        rateMatch &&
+        isActiveMatch
+      );
     });
     setFilteredCosplayers(filtered);
     setCurrentPageCosplayers(1);
@@ -332,7 +346,7 @@ const HomePage = () => {
   // Reset bộ lọc Cosplayer
   const handleCosplayerCancel = () => {
     setCosplayerSearchParams(defaultCosplayerSearchParams);
-    setFilteredCosplayers(cosplayers);
+    setFilteredCosplayers(cosplayers); // cosplayers đã được lọc isActive: true
     setCurrentPageCosplayers(1);
     setIsPageManuallySelectedCosplayers(false);
   };
@@ -451,15 +465,11 @@ const HomePage = () => {
                         ...props.style,
                         height: "8px",
                         width: "100%",
-                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${
-                          ((characterSearchParams.price[0] - 0) / 1000000) * 100
-                        }%, #d3d3d3 ${
-                          ((characterSearchParams.price[0] - 0) / 1000000) * 100
-                        }%, #d3d3d3 ${
-                          ((characterSearchParams.price[1] - 0) / 1000000) * 100
-                        }%, #f85caa ${
-                          ((characterSearchParams.price[1] - 0) / 1000000) * 100
-                        }%, #f85caa 100%)`,
+                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${((characterSearchParams.price[0] - 0) / 1000000) * 100
+                          }%, #d3d3d3 ${((characterSearchParams.price[0] - 0) / 1000000) * 100
+                          }%, #d3d3d3 ${((characterSearchParams.price[1] - 0) / 1000000) * 100
+                          }%, #f85caa ${((characterSearchParams.price[1] - 0) / 1000000) * 100
+                          }%, #f85caa 100%)`,
                         borderRadius: "5px",
                       }}
                     >
@@ -504,15 +514,11 @@ const HomePage = () => {
                         ...props.style,
                         height: "8px",
                         width: "100%",
-                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${
-                          ((characterSearchParams.height[0] - 100) / 100) * 100
-                        }%, #d3d3d3 ${
-                          ((characterSearchParams.height[0] - 100) / 100) * 100
-                        }%, #d3d3d3 ${
-                          ((characterSearchParams.height[1] - 100) / 100) * 100
-                        }%, #f85caa ${
-                          ((characterSearchParams.height[1] - 100) / 100) * 100
-                        }%, #f85caa 100%)`,
+                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${((characterSearchParams.height[0] - 100) / 100) * 100
+                          }%, #d3d3d3 ${((characterSearchParams.height[0] - 100) / 100) * 100
+                          }%, #d3d3d3 ${((characterSearchParams.height[1] - 100) / 100) * 100
+                          }%, #f85caa ${((characterSearchParams.height[1] - 100) / 100) * 100
+                          }%, #f85caa 100%)`,
                         borderRadius: "5px",
                       }}
                     >
@@ -557,15 +563,11 @@ const HomePage = () => {
                         ...props.style,
                         height: "8px",
                         width: "100%",
-                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${
-                          ((characterSearchParams.weight[0] - 20) / 80) * 100
-                        }%, #d3d3d3 ${
-                          ((characterSearchParams.weight[0] - 20) / 80) * 100
-                        }%, #d3d3d3 ${
-                          ((characterSearchParams.weight[1] - 20) / 80) * 100
-                        }%, #f85caa ${
-                          ((characterSearchParams.weight[1] - 20) / 80) * 100
-                        }%, #f85caa 100%)`,
+                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${((characterSearchParams.weight[0] - 20) / 80) * 100
+                          }%, #d3d3d3 ${((characterSearchParams.weight[0] - 20) / 80) * 100
+                          }%, #d3d3d3 ${((characterSearchParams.weight[1] - 20) / 80) * 100
+                          }%, #f85caa ${((characterSearchParams.weight[1] - 20) / 80) * 100
+                          }%, #f85caa 100%)`,
                         borderRadius: "5px",
                       }}
                     >
@@ -658,9 +660,8 @@ const HomePage = () => {
               ).map((page) => (
                 <Button
                   key={page}
-                  className={`pagination-number ${
-                    currentPageCharacters === page ? "active" : ""
-                  }`}
+                  className={`pagination-number ${currentPageCharacters === page ? "active" : ""
+                    }`}
                   onClick={() => handleCharacterPageChange(page)}
                 >
                   {page}
@@ -713,15 +714,11 @@ const HomePage = () => {
                         ...props.style,
                         height: "8px",
                         width: "100%",
-                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${
-                          ((cosplayerSearchParams.averageStar[0] - 0) / 5) * 100
-                        }%, #d3d3d3 ${
-                          ((cosplayerSearchParams.averageStar[0] - 0) / 5) * 100
-                        }%, #d3d3d3 ${
-                          ((cosplayerSearchParams.averageStar[1] - 0) / 5) * 100
-                        }%, #f85caa ${
-                          ((cosplayerSearchParams.averageStar[1] - 0) / 5) * 100
-                        }%, #f85caa 100%)`,
+                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${((cosplayerSearchParams.averageStar[0] - 0) / 5) * 100
+                          }%, #d3d3d3 ${((cosplayerSearchParams.averageStar[0] - 0) / 5) * 100
+                          }%, #d3d3d3 ${((cosplayerSearchParams.averageStar[1] - 0) / 5) * 100
+                          }%, #f85caa ${((cosplayerSearchParams.averageStar[1] - 0) / 5) * 100
+                          }%, #f85caa 100%)`,
                         borderRadius: "5px",
                       }}
                     >
@@ -768,15 +765,11 @@ const HomePage = () => {
                         ...props.style,
                         height: "8px",
                         width: "100%",
-                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${
-                          ((cosplayerSearchParams.height[0] - 100) / 100) * 100
-                        }%, #d3d3d3 ${
-                          ((cosplayerSearchParams.height[0] - 100) / 100) * 100
-                        }%, #d3d3d3 ${
-                          ((cosplayerSearchParams.height[1] - 100) / 100) * 100
-                        }%, #f85caa ${
-                          ((cosplayerSearchParams.height[1] - 100) / 100) * 100
-                        }%, #f85caa 100%)`,
+                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${((cosplayerSearchParams.height[0] - 100) / 100) * 100
+                          }%, #d3d3d3 ${((cosplayerSearchParams.height[0] - 100) / 100) * 100
+                          }%, #d3d3d3 ${((cosplayerSearchParams.height[1] - 100) / 100) * 100
+                          }%, #f85caa ${((cosplayerSearchParams.height[1] - 100) / 100) * 100
+                          }%, #f85caa 100%)`,
                         borderRadius: "5px",
                       }}
                     >
@@ -821,15 +814,11 @@ const HomePage = () => {
                         ...props.style,
                         height: "8px",
                         width: "100%",
-                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${
-                          ((cosplayerSearchParams.weight[0] - 20) / 80) * 100
-                        }%, #d3d3d3 ${
-                          ((cosplayerSearchParams.weight[0] - 20) / 80) * 100
-                        }%, #d3d3d3 ${
-                          ((cosplayerSearchParams.weight[1] - 20) / 80) * 100
-                        }%, #f85caa ${
-                          ((cosplayerSearchParams.weight[1] - 20) / 80) * 100
-                        }%, #f85caa 100%)`,
+                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${((cosplayerSearchParams.weight[0] - 20) / 80) * 100
+                          }%, #d3d3d3 ${((cosplayerSearchParams.weight[0] - 20) / 80) * 100
+                          }%, #d3d3d3 ${((cosplayerSearchParams.weight[1] - 20) / 80) * 100
+                          }%, #f85caa ${((cosplayerSearchParams.weight[1] - 20) / 80) * 100
+                          }%, #f85caa 100%)`,
                         borderRadius: "5px",
                       }}
                     >
@@ -874,19 +863,15 @@ const HomePage = () => {
                         ...props.style,
                         height: "8px",
                         width: "100%",
-                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${
-                          ((cosplayerSearchParams.hourlyRate[0] - 0) / 100000) *
+                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${((cosplayerSearchParams.hourlyRate[0] - 0) / 100000) *
                           100
-                        }%, #d3d3d3 ${
-                          ((cosplayerSearchParams.hourlyRate[0] - 0) / 100000) *
+                          }%, #d3d3d3 ${((cosplayerSearchParams.hourlyRate[0] - 0) / 100000) *
                           100
-                        }%, #d3d3d3 ${
-                          ((cosplayerSearchParams.hourlyRate[1] - 0) / 100000) *
+                          }%, #d3d3d3 ${((cosplayerSearchParams.hourlyRate[1] - 0) / 100000) *
                           100
-                        }%, #f85caa ${
-                          ((cosplayerSearchParams.hourlyRate[1] - 0) / 100000) *
+                          }%, #f85caa ${((cosplayerSearchParams.hourlyRate[1] - 0) / 100000) *
                           100
-                        }%, #f85caa 100%)`,
+                          }%, #f85caa 100%)`,
                         borderRadius: "5px",
                       }}
                     >
@@ -991,9 +976,8 @@ const HomePage = () => {
               ).map((page) => (
                 <Button
                   key={page}
-                  className={`pagination-number ${
-                    currentPageCosplayers === page ? "active" : ""
-                  }`}
+                  className={`pagination-number ${currentPageCosplayers === page ? "active" : ""
+                    }`}
                   onClick={() => handleCosplayerPageChange(page)}
                 >
                   {page}
@@ -1010,10 +994,7 @@ const HomePage = () => {
           </div>
         </div>
         <div className="text-center mt-4">
-          <button
-            className="view-all-button"
-            onClick={handleHireCosplayers}
-          >
+          <button className="view-all-button" onClick={handleHireCosplayers}>
             Hire Cosplayers
           </button>
         </div>
@@ -1027,10 +1008,10 @@ const HomePage = () => {
           </Col>
           <Col md={6}>
             <p className="text-muted mb-4 text-center">
-              Welcome to CCSS – your one-stop destination for all things
-              cosplay! Our passionate team brings creativity, authenticity, and
-              excitement to every event, costume, and experience. Explore our
-              world of cosplay and let’s make your fandom dreams come true!
+              Welcome to CCSS – your one-stop destination for all things cosplay!
+              Our passionate team brings creativity, authenticity, and excitement
+              to every event, costume, and experience. Explore our world of
+              cosplay and let’s make your fandom dreams come true!
             </p>
           </Col>
           <Col md={6}>
@@ -1046,10 +1027,7 @@ const HomePage = () => {
                   }
                   style={{ transform: `translateX(-100%)` }}
                 >
-                  <img
-                    src={aboutUsImages[prevIndex]}
-                    alt="About Us Side Left"
-                  />
+                  <img src={aboutUsImages[prevIndex]} alt="About Us Side Left" />
                 </div>
                 <div
                   className="image-wrapper main-image"
@@ -1088,9 +1066,8 @@ const HomePage = () => {
                   {aboutUsImages.map((_, index) => (
                     <span
                       key={index}
-                      className={`dot ${
-                        currentImageIndex === index ? "active" : ""
-                      }`}
+                      className={`dot ${currentImageIndex === index ? "active" : ""
+                        }`}
                       onClick={() => setCurrentImageIndex(index)}
                     />
                   ))}
@@ -1111,6 +1088,7 @@ const HomePage = () => {
         </Row>
       </div>
 
+      {/* Featured Services */}
       <div className="custom-section featured-services py-5">
         <h2 className="text-center mb-5">Featured Services</h2>
         <Row className="justify-content-center">

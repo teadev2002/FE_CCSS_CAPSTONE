@@ -1,20 +1,19 @@
 // src/styles/Admin/AccountManagementPage.scss
 
-// Phong cách cho trang quản lý tài khoản
 .account-management {
-  padding: 1.5rem; // Khoảng cách bên trong
-  background: #f8f9fa; // Màu nền
-  min-height: 100vh; // Chiều cao tối thiểu toàn màn hình
-  animation: fadeIn 0.5s ease-in; // Hiệu ứng xuất hiện
-  margin-left: 70px; // Khoảng cách trái để tránh sidebar
-  margin-right: 0; // Không có margin phải
+  padding: 1.5rem;
+  background: #f8f9fa;
+  min-height: 100vh;
+  animation: fadeIn 0.5s ease-in;
+  margin-left: 70px;
+  margin-right: 0;
 
   h1 {
-    margin-bottom: 2rem; // Khoảng cách dưới
-    color: #1a1a2e; // Màu chữ
-    font-weight: 700; // Độ đậm
-    font-size: 2.25rem; // Kích thước chữ
-    letter-spacing: -0.5px; // Khoảng cách chữ
+    margin-bottom: 2rem;
+    color: #1a1a2e;
+    font-weight: 700;
+    font-size: 2.25rem;
+    letter-spacing: -0.5px;
     position: relative;
     padding-bottom: 0.5rem;
 
@@ -25,36 +24,68 @@
       left: 0;
       width: 60px;
       height: 4px;
-      background: linear-gradient(135deg, #3498db, #2ecc71); // Gradient màu
+      background: linear-gradient(135deg, #3498db, #2ecc71);
       border-radius: 2px;
     }
   }
 
-  // Phong cách cho thẻ Bootstrap
   .card {
     border: none;
     border-radius: 16px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); // Bóng đổ
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
     background: white;
-    margin-bottom: 1.5rem; // Khoảng cách dưới
+    margin-bottom: 1.5rem;
 
     .card-header {
       background: #fff;
       border-bottom: none;
-      padding: 1.25rem; // Khoảng cách bên trong
+      padding: 1.25rem;
 
       h5 {
         color: #1a1a2e;
         font-weight: 600;
         margin: 0;
       }
+
+      .dropdown {
+        .btn {
+          font-size: 0.9rem;
+          padding: 0.25rem 0.75rem;
+          border-radius: 8px;
+          border: 1px solid #ced4da;
+          background: #fff;
+          color: #2c3e50;
+          transition: all 0.3s ease;
+
+          &:hover {
+            background: linear-gradient(135deg, #3498db, #2ecc71);
+            color: #fff;
+            border-color: transparent;
+          }
+        }
+
+        .dropdown-menu {
+          border-radius: 8px;
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+          border: none;
+
+          .dropdown-item {
+            font-size: 0.9rem;
+            padding: 0.5rem 1rem;
+
+            &:hover {
+              background: linear-gradient(135deg, #f0f0f0, #e0e0e0);
+            }
+          }
+        }
+      }
     }
 
     .card-body {
-      padding: 1.5rem; // Khoảng cách bên trong
+      padding: 1.5rem;
 
       .aligned-table {
-        table-layout: fixed; // Cố định chiều rộng cột
+        table-layout: fixed;
         width: 100%;
         margin-bottom: 0;
 
@@ -78,31 +109,30 @@
           letter-spacing: 0.5px;
         }
 
-        // Định nghĩa chiều rộng cố định cho từng cột
         .col-id {
-          width: 80px; // Cột ID nhỏ gọn
+          width: 80px;
         }
 
         .col-name {
-          width: 200px; // Cột Name đủ dài
-          word-break: break-all; // Ngắt từ nếu tên quá dài
+          width: 200px;
+          word-break: break-all;
         }
 
         .col-email {
-          width: 250px; // Cột Email dài hơn
-          word-break: break-all; // Ngắt từ nếu email quá dài
+          width: 250px;
+          word-break: break-all;
         }
 
         .col-average-star {
-          width: 120px; // Cột Average Star cho Cosplayer
+          width: 120px;
         }
 
         .col-avatar {
-          width: 60px; // Cột Avatar nhỏ gọn
+          width: 60px;
         }
 
         .col-action {
-          width: 180px; // Cột Action chứa 2 nút
+          width: 180px;
         }
 
         .rating-cell {
@@ -123,7 +153,7 @@
           display: flex;
           justify-content: center;
           align-items: center;
-          gap: 0.5rem; // Khoảng cách giữa hai nút
+          gap: 0.5rem;
           flex-wrap: nowrap;
 
           .action-btn {
@@ -141,10 +171,10 @@
             }
 
             &:hover {
-              transform: scale(1.05); // Phóng to nhẹ khi hover
+              transform: scale(1.05);
             }
 
-            &.edit-btn {
+            &.view-details-btn {
               border-color: #3498db;
               color: #3498db;
 
@@ -155,14 +185,27 @@
               }
             }
 
-            &.disable-btn {
-              border-color: #e74c3c;
-              color: #e74c3c;
+            &.status-btn {
+              &.btn-outline-danger {
+                border-color: #e74c3c;
+                color: #e74c3c;
 
-              &:hover {
-                background: #e74c3c;
-                color: #fff;
-                border-color: transparent;
+                &:hover {
+                  background: #e74c3c;
+                  color: #fff;
+                  border-color: transparent;
+                }
+              }
+
+              &.btn-outline-success {
+                border-color: #2ecc71;
+                color: #2ecc71;
+
+                &:hover {
+                  background: #2ecc71;
+                  color: #fff;
+                  border-color: transparent;
+                }
               }
             }
           }
@@ -171,7 +214,6 @@
     }
   }
 
-  // Phong cách cho ô tìm kiếm
   .search-container {
     margin-bottom: 1.5rem;
 
@@ -217,7 +259,6 @@
     }
   }
 
-  // Phong cách cho phân trang
   .pagination-container {
     display: flex;
     justify-content: space-between;
@@ -307,13 +348,314 @@
     }
   }
 
-  // Phong cách cho biểu tượng sao
   .star-filled {
     fill: #f1c40f;
     color: #f1c40f;
   }
 
-  // Hiệu ứng xuất hiện
+  // Phong cách cho modal chi tiết tài khoản
+  .account-details-modal {
+    .modal-dialog {
+      max-width: 900px;
+    }
+
+    .modal-content {
+      border: none;
+      border-radius: 16px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+      background: linear-gradient(145deg, #ffffff, #f8f9fa);
+      overflow: hidden;
+    }
+
+    .modal-header-custom {
+      background: linear-gradient(135deg, #3498db, #2ecc71);
+      color: #fff;
+      border-bottom: none;
+      padding: 1.5rem;
+      position: relative;
+
+      .modal-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+      }
+
+      .btn-close {
+        filter: invert(1);
+        opacity: 0.8;
+        transition: opacity 0.3s ease;
+
+        &:hover {
+          opacity: 1;
+        }
+      }
+    }
+
+    .modal-body-custom {
+      padding: 2rem;
+      background: #fff;
+      border-radius: 0 0 16px 16px;
+
+      .account-details {
+        .info-section {
+          margin-bottom: 2rem;
+
+          .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 1rem;
+            position: relative;
+
+            &:after {
+              content: "";
+              display: block;
+              width: 40px;
+              height: 3px;
+              background: linear-gradient(135deg, #3498db, #2ecc71);
+              margin-top: 0.5rem;
+              border-radius: 2px;
+            }
+          }
+
+          .info-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e9ecef;
+            transition: background 0.3s ease;
+
+            &:hover {
+              background: #f8f9fa;
+              border-radius: 8px;
+            }
+
+            .info-label {
+              font-weight: 600;
+              color: #2c3e50;
+              width: 120px;
+              flex-shrink: 0;
+            }
+
+            .info-value {
+              color: #34495e;
+              flex: 1;
+              font-size: 0.95rem;
+            }
+          }
+        }
+
+        .image-gallery {
+          margin-top: 2rem;
+
+          .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 1rem;
+
+            &:after {
+              content: "";
+              display: block;
+              width: 40px;
+              height: 3px;
+              background: linear-gradient(135deg, #3498db, #2ecc71);
+              margin-top: 0.5rem;
+              border-radius: 2px;
+            }
+          }
+
+          .image-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin-top: 1rem;
+          }
+
+          .gallery-image {
+            object-fit: cover;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+            &:hover {
+              transform: scale(1.05);
+              box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            }
+          }
+
+          .no-images {
+            color: #6c757d;
+            font-style: italic;
+            margin-top: 1rem;
+          }
+        }
+      }
+    }
+
+    .modal-footer-custom {
+      padding: 1.5rem;
+      border-top: none;
+      background: #fff;
+      display: flex;
+      justify-content: flex-end;
+      gap: 1rem;
+
+      .btn-close-modal {
+        background: #6c757d;
+        border: none;
+        border-radius: 8px;
+        padding: 0.5rem 1.5rem;
+        font-size: 0.9rem;
+        transition: background 0.3s ease;
+
+        &:hover {
+          background: #5c636a;
+        }
+      }
+
+      .btn-status-modal {
+        border-radius: 8px;
+        padding: 0.5rem 1.5rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+        &.btn-danger {
+          background: #e74c3c;
+          border: none;
+
+          &:hover {
+            background: #c0392b;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+            transform: translateY(-2px);
+          }
+        }
+
+        &.btn-success {
+          background: #2ecc71;
+          border: none;
+
+          &:hover {
+            background: #27ae60;
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4);
+            transform: translateY(-2px);
+          }
+        }
+      }
+    }
+  }
+
+  // Phong cách cho modal xác nhận
+  .confirm-modal {
+    .modal-dialog {
+      max-width: 400px;
+    }
+
+    .modal-content {
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+      background: #fff;
+    }
+
+    .confirm-modal-header {
+      background: linear-gradient(135deg, #3498db, #2ecc71);
+      color: #fff;
+      border-bottom: none;
+      padding: 1rem;
+      text-align: center;
+
+      .modal-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0 auto;
+      }
+
+      .btn-close {
+        filter: invert(1);
+        opacity: 0.8;
+        transition: opacity 0.3s ease;
+
+        &:hover {
+          opacity: 1;
+        }
+      }
+    }
+
+    .confirm-modal-body {
+      padding: 1.5rem;
+      text-align: center;
+      font-size: 1rem;
+      color: #2c3e50;
+
+      p {
+        margin: 0;
+      }
+    }
+
+    .confirm-modal-footer {
+      padding: 1rem;
+      border-top: none;
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+
+      .btn-cancel {
+        background: #6c757d;
+        border: none;
+        border-radius: 8px;
+        padding: 0.5rem 1.5rem;
+        font-size: 0.9rem;
+        transition: background 0.3s ease;
+
+        &:hover {
+          background: #5c636a;
+        }
+      }
+
+      .btn-confirm {
+        border-radius: 8px;
+        padding: 0.5rem 1.5rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+        &.btn-danger {
+          background: #e74c3c;
+          border: none;
+
+          &:hover {
+            background: #c0392b;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+            transform: translateY(-2px);
+          }
+        }
+
+        &.btn-success {
+          background: #2ecc71;
+          border: none;
+
+          &:hover {
+            background: #27ae60;
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4);
+            transform: translateY(-2px);
+          }
+        }
+      }
+    }
+  }
+
+  // Fix lỗi preview hình
+  .custom-preview-mask {
+    z-index: 9999 !important;
+  }
+
+  .ant-image-preview-root {
+    z-index: 10000 !important;
+  }
+
   @keyframes fadeIn {
     from {
       opacity: 0;
@@ -326,31 +668,29 @@
     }
   }
 
-  // Phong cách cho thiết bị di động
   @media (max-width: 768px) {
-    padding: 1rem; // Giảm khoảng cách trên mobile
-    margin-left: 70px; // Khoảng cách khi sidebar thu gọn
+    padding: 1rem;
+    margin-left: 70px;
 
     h1 {
-      font-size: 1.75rem; // Giảm kích thước chữ
+      font-size: 1.75rem;
     }
 
     .card-body {
-      padding: 1rem; // Giảm khoảng cách bên trong
+      padding: 1rem;
     }
 
     .card {
-      margin-bottom: 1rem; // Giảm khoảng cách dưới
+      margin-bottom: 1rem;
     }
 
     .aligned-table {
 
       th,
       td {
-        padding: 0.5rem; // Giảm padding trên mobile
+        padding: 0.5rem;
       }
 
-      // Giảm chiều rộng cột trên mobile để vừa màn hình
       .col-id {
         width: 60px;
       }
@@ -376,8 +716,8 @@
       }
 
       .action-cell {
-        flex-direction: row; // Giữ hàng ngang trên mobile
-        gap: 0.25rem; // Giảm khoảng cách giữa nút
+        flex-direction: row;
+        gap: 0.25rem;
 
         .action-btn {
           padding: 0.2rem 0.4rem;
@@ -439,10 +779,44 @@
         }
       }
     }
+
+    .account-details-modal {
+      .modal-dialog {
+        max-width: 95%;
+      }
+
+      .modal-body-custom {
+        padding: 1.5rem;
+
+        .info-section {
+          margin-bottom: 1.5rem;
+
+          .info-item {
+            flex-direction: column;
+            align-items: flex-start;
+
+            .info-label {
+              width: 100%;
+              margin-bottom: 0.25rem;
+            }
+          }
+        }
+
+        .image-gallery {
+          .image-list {
+            gap: 1rem;
+          }
+
+          .gallery-image {
+            width: 100px;
+            height: 100px;
+          }
+        }
+      }
+    }
   }
 
-  // Khi sidebar không hiển thị
   @media (max-width: 767px) {
-    margin-left: 0; // Không có khoảng cách trái trên mobile
+    margin-left: 0;
   }
 }
