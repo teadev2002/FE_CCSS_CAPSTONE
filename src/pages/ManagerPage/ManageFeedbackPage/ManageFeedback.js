@@ -203,7 +203,7 @@ const ManageFeedback = () => {
                           className="sortable"
                           onClick={() => handleSort("description")}
                         >
-                          Description
+                          Feedback
                           {sortFeedback.field === "description" ? (
                             sortFeedback.order === "asc" ? (
                               <ArrowUp size={16} />
