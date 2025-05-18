@@ -953,6 +953,130 @@ $badge-bg-leader: #ffca28; // Badge leader
         }
       }
     }
+
+    // Phần feedback
+    .feedback-section {
+      padding: 2rem 0;
+
+      h5 {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        color: $primary-color;
+        text-transform: uppercase;
+      }
+
+      // Thống kê feedback
+      .feedback-stats {
+        background: white;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        box-shadow: $shadow;
+        margin-bottom: 2rem;
+
+        .average-star {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-size: 1.2rem;
+          font-weight: 600;
+          color: $primary-color;
+          margin-bottom: 1rem;
+
+          .star-icon {
+            color: #f4c542;
+          }
+        }
+
+        .star-distribution {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+
+          .star-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 0.9rem;
+            color: $text-primary;
+
+            .progress-bar {
+              flex: 1;
+              height: 10px;
+              background: #e9ecef;
+              border-radius: 5px;
+              overflow: hidden;
+
+              .progress-fill {
+                height: 100%;
+                background: linear-gradient(135deg, $primary-color, $secondary-color);
+                transition: width 0.3s ease;
+              }
+            }
+          }
+        }
+      }
+
+      // Danh sách feedback
+      .feedback-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+
+        .feedback-item {
+          background: white;
+          border-radius: 0.75rem;
+          padding: 1.5rem;
+          box-shadow: $shadow;
+          transition: transform 0.3s ease;
+
+          &:hover {
+            transform: translateY(-5px);
+          }
+
+          .feedback-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+
+            .character-name {
+              font-weight: 600;
+              color: $primary-color;
+              font-size: 1rem;
+            }
+
+            .star-rating {
+              display: flex;
+              gap: 0.2rem;
+
+              .filled-star {
+                color: #f4c542;
+                fill: #f4c542;
+              }
+
+              .empty-star {
+                color: #e9ecef;
+                fill: none;
+              }
+            }
+          }
+
+          .feedback-description {
+            color: $text-primary;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin: 0.5rem 0;
+          }
+
+          .feedback-author {
+            font-size: 0.85rem;
+            color: $text-secondary;
+            font-style: italic;
+          }
+        }
+      }
+    }
   }
 }
 

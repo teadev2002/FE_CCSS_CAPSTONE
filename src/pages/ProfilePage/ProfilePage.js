@@ -1193,12 +1193,12 @@ import LinearProgress from "@mui/material/LinearProgress";
 import { Image } from "antd";
 import { jwtDecode } from "jwt-decode";
 
-// Hàm lấy ID người dùng hiện tại từ token
-const getCurrentUserId = () => {
+// Hàm lấy thông tin người dùng hiện tại từ token, bao gồm ID và role
+const getCurrentUserInfo = () => {
   try {
     const accessToken = localStorage.getItem("accessToken");
     if (!accessToken) {
-      console.warn("No accessToken found in localStorage");
+      console.warn("Không tìm thấy accessToken trong localStorage");
       return null;
     }
     const decodedToken = jwtDecode(accessToken);
@@ -1208,13 +1208,14 @@ const getCurrentUserId = () => {
       decodedToken.id ||
       decodedToken.sub ||
       decodedToken.userId;
-    if (!userId) {
-      console.warn("No Id field found in decoded JWT token");
+    const role = decodedToken.role;
+    if (!userId || !role) {
+      console.warn("Không tìm thấy Id hoặc role trong decoded JWT token");
       return null;
     }
-    return userId;
+    return { userId, role };
   } catch (error) {
-    console.error("Error decoding JWT token:", error);
+    console.error("Lỗi khi decode JWT token:", error);
     return null;
   }
 };
@@ -1257,37 +1258,52 @@ const ProfilePage = () => {
   const [formData, setFormData] = useState({});
   const [avatarFile, setAvatarFile] = useState(null);
   const [additionalImages, setAdditionalImages] = useState([]);
+  // State để lưu feedback
+  const [feedbacks, setFeedbacks] = useState([]);
+  const [feedbackLoading, setFeedbackLoading] = useState(true);
+  // State để kiểm tra xem profile có phải Cosplayer không
+  const [isCosplayer, setIsCosplayer] = useState(false);
 
-  const currentUserId = getCurrentUserId();
+  const currentUserInfo = getCurrentUserInfo();
   const normalizedId = String(id).trim();
-  const normalizedCurrentUserId = currentUserId
-    ? String(currentUserId).trim()
+  const normalizedCurrentUserId = currentUserInfo
+    ? String(currentUserInfo.userId).trim()
     : null;
   const isProfileOwner =
     normalizedCurrentUserId && normalizedId === normalizedCurrentUserId;
 
-  // Lấy dữ liệu hồ sơ
-  const fetchProfile = async () => {
+  // Lấy dữ liệu hồ sơ và kiểm tra role Cosplayer
+  const fetchProfileAndCheckRole = async () => {
     try {
-      const data = await ProfileService.getProfileById(id);
-      setProfile(data);
+      // Lấy thông tin profile
+      const profileData = await ProfileService.getProfileById(id);
+      setProfile(profileData);
+
+      // Lấy danh sách Cosplayer
+      const cosplayerAccounts = await ProfileService.getAccountsByRoleId("R004");
+      // Kiểm tra xem accountId có trong danh sách Cosplayer không
+      const isCosplayerAccount = cosplayerAccounts.some(
+        (account) => account.accountId === id
+      );
+      setIsCosplayer(isCosplayerAccount);
+
       let formattedBirthday = "";
-      if (data.birthday) {
-        const date = new Date(data.birthday);
+      if (profileData.birthday) {
+        const date = new Date(profileData.birthday);
         if (!isNaN(date.getTime())) {
           formattedBirthday = date.toISOString().split("T")[0];
         }
       }
       setFormData({
         accountId: id,
-        name: data.name || "",
-        email: data.email || "",
-        password: data.password || "",
-        description: data.description || "",
+        name: profileData.name || "",
+        email: profileData.email || "",
+        password: profileData.password || "",
+        description: profileData.description || "",
         birthday: formattedBirthday,
-        phone: data.phone || "",
-        height: data.height || "",
-        weight: data.weight || "",
+        phone: profileData.phone || "",
+        height: profileData.height || "",
+        weight: profileData.weight || "",
         avatar: null,
         images: [],
       });
@@ -1298,9 +1314,31 @@ const ProfilePage = () => {
     }
   };
 
+  // Lấy dữ liệu feedback theo cosplayerId
+  const fetchFeedbacks = async () => {
+    try {
+      setFeedbackLoading(true);
+      const data = await ProfileService.getFeedbackByCosplayerId(id);
+      setFeedbacks(data);
+    } catch (err) {
+      console.error("Lỗi khi lấy feedback:", err);
+      setError("Failed to load feedbacks");
+    } finally {
+      setFeedbackLoading(false);
+    }
+  };
+
+  // Gọi API khi component mount hoặc id thay đổi
   useEffect(() => {
-    fetchProfile();
+    fetchProfileAndCheckRole();
   }, [id]);
+
+  // Gọi API feedback khi xác định profile là Cosplayer
+  useEffect(() => {
+    if (isCosplayer) {
+      fetchFeedbacks();
+    }
+  }, [isCosplayer]);
 
   // Xử lý thay đổi input
   const handleInputChange = (e) => {
@@ -1346,10 +1384,10 @@ const ProfilePage = () => {
         avatar: formData.avatar || null,
         images: formData.images.length > 0 ? formData.images : [],
       };
-      console.log("Data being sent to API:", updatedData);
+      console.log("Dữ liệu gửi tới API:", updatedData);
       const response = await ProfileService.updateProfile(id, updatedData);
-      console.log("Update response:", response);
-      await fetchProfile();
+      console.log("Phản hồi cập nhật:", response);
+      await fetchProfileAndCheckRole();
       setIsEditing(false);
       setAvatarFile(null);
       setAdditionalImages([]);
@@ -1396,6 +1434,28 @@ const ProfilePage = () => {
     });
   };
 
+  // Tính tổng số sao trung bình và thống kê số lần nhận sao
+  const calculateFeedbackStats = () => {
+    if (!feedbacks || feedbacks.length === 0) {
+      return {
+        averageStar: 0,
+        starCounts: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+      };
+    }
+
+    const totalStars = feedbacks.reduce((sum, fb) => sum + fb.star, 0);
+    const averageStar = (totalStars / feedbacks.length).toFixed(1);
+
+    const starCounts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    feedbacks.forEach((fb) => {
+      starCounts[fb.star] = (starCounts[fb.star] || 0) + 1;
+    });
+
+    return { averageStar, starCounts };
+  };
+
+  const { averageStar, starCounts } = calculateFeedbackStats();
+
   if (loading) return <div></div>;
   if (error)
     return (
@@ -1420,7 +1480,7 @@ const ProfilePage = () => {
               className={`tab ${activeTab === "posts" ? "active" : ""}`}
               onClick={() => setActiveTab("posts")}
             >
-              <Grid size={12} className="icon" /> Your Profile
+              <Grid size={12} className="icon" /> Profile
             </div>
           </div>
 
@@ -1678,6 +1738,81 @@ const ProfilePage = () => {
               <a href="#" className="share-button">
                 Share Your First Photo
               </a>
+            </div>
+          )}
+
+          {/* Phần hiển thị feedback, chỉ hiển thị nếu profile là Cosplayer */}
+          {isCosplayer && (
+            <div className="feedback-section">
+              <h5>Feedback</h5>
+              {feedbackLoading ? (
+                <Box sx={{ width: "100%" }}>
+                  <LinearProgress />
+                </Box>
+              ) : feedbacks.length === 0 ? (
+                <div className="empty-state">
+                  <div className="camera-icon">
+                    <Star size={24} />
+                  </div>
+                  <h2>No Feedback Yet</h2>
+                  <p>This cosplayer has not received any feedback.</p>
+                </div>
+              ) : (
+                <>
+                  {/* Hiển thị tổng số sao trung bình và thống kê */}
+                  <div className="feedback-stats">
+                    <div className="average-star">
+                      <Star size={24} className="star-icon" />
+                      <span>{averageStar} Stars (Average)</span>
+                    </div>
+                    <div className="star-distribution">
+                      {[5, 4, 3, 2, 1].map((star) => (
+                        <div key={star} className="star-row">
+                          <span>{star} Star{star > 1 ? "s" : ""}</span>
+                          <div className="progress-bar">
+                            <div
+                              className="progress-fill"
+                              style={{
+                                width: `${
+                                  (starCounts[star] / feedbacks.length) * 100
+                                }%`,
+                              }}
+                            ></div>
+                          </div>
+                          <span>{starCounts[star]} votes</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Danh sách các feedback */}
+                  <div className="feedback-list">
+                    {feedbacks.map((feedback, index) => (
+                      <div key={index} className="feedback-item">
+                        <div className="feedback-header">
+                          <span className="character-name">
+                            Cosplayed as {feedback.characterName}
+                          </span>
+                          <div className="star-rating">
+                            {[...Array(5)].map((_, i) => (
+                              <Star
+                                key={i}
+                                size={16}
+                                className={
+                                  i < feedback.star ? "filled-star" : "empty-star"
+                                }
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        <p className="feedback-description">
+                          {feedback.description}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
           )}
         </Container>

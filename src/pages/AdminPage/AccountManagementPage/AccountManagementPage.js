@@ -1,16 +1,15 @@
 // src/pages/AccountManagementPage.jsx
 
-// Nhập các thư viện và thành phần cần thiết
 import React, { useState, useEffect } from "react";
-import { Card, Row, Col, Table, Form, InputGroup, Button, Dropdown } from "react-bootstrap";
-import { Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Star, Pencil, Lock } from "lucide-react";
+import { Card, Row, Col, Table, Form, InputGroup, Button, Dropdown, Modal } from "react-bootstrap";
+import { Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Star, Eye, Lock, Unlock } from "lucide-react";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Image } from "antd";
 import AccountManagementService from "../../../services/AdminService/AccountManagementService";
 import "../../../styles/Admin/AccountManagementPage.scss";
 
-// Thành phần chính của trang quản lý tài khoản
+// Component trang quản lý tài khoản
 const AccountManagementPage = () => {
   // --- Quản lý trạng thái ---
 
@@ -50,6 +49,23 @@ const AccountManagementPage = () => {
     admins: { currentPage: 1, pageSize: 10 },
   });
 
+  // Trạng thái cho bộ lọc trạng thái tài khoản
+  const [statusFilters, setStatusFilters] = useState({
+    customers: "all",
+    cosplayers: "all",
+    consultants: "all",
+    managers: "all",
+    admins: "all",
+  });
+
+  // Trạng thái cho modal chi tiết tài khoản
+  const [showModal, setShowModal] = useState(false);
+  const [selectedAccount, setSelectedAccount] = useState(null);
+
+  // Trạng thái cho modal xác nhận disable/enable
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null);
+
   // Ánh xạ mã vai trò (roleId) với tên vai trò
   const roleMapping = {
     R001: "admins",
@@ -75,14 +91,13 @@ const AccountManagementPage = () => {
     return "";
   };
 
-  // Xử lý sự kiện thay đổi giá trị tìm kiếm (chỉ cập nhật state)
+  // Xử lý sự kiện thay đổi giá trị tìm kiếm
   const handleSearchChange = (role, field, value) => {
     setSearchTerms((prev) => ({
       ...prev,
       [role]: { ...prev[role], [field]: value },
     }));
 
-    // Chỉ validate tên ngay lập tức, không validate email ở đây
     if (field === "name") {
       const error = validateName(value);
       setSearchErrors((prev) => ({
@@ -92,7 +107,6 @@ const AccountManagementPage = () => {
       if (error) toast.error(error);
     }
 
-    // Reset về trang 1 khi tìm kiếm
     setPagination((prev) => ({
       ...prev,
       [role]: { ...prev[role], currentPage: 1 },
@@ -111,9 +125,22 @@ const AccountManagementPage = () => {
     }
   };
 
-  // Lọc danh sách tài khoản dựa trên từ khóa tìm kiếm
+  // Xử lý thay đổi bộ lọc trạng thái
+  const handleStatusFilterChange = (role, filter) => {
+    setStatusFilters((prev) => ({
+      ...prev,
+      [role]: filter,
+    }));
+    setPagination((prev) => ({
+      ...prev,
+      [role]: { ...prev[role], currentPage: 1 },
+    }));
+  };
+
+  // Lọc danh sách tài khoản dựa trên từ khóa tìm kiếm và trạng thái
   const filterAccounts = (role) => {
     const { name, email } = searchTerms[role];
+    const statusFilter = statusFilters[role];
     return accounts[role].filter((account) => {
       const nameMatch = name
         ? account.name.toLowerCase().includes(name.trim().toLowerCase())
@@ -121,7 +148,13 @@ const AccountManagementPage = () => {
       const emailMatch = email
         ? account.email.toLowerCase().includes(email.trim().toLowerCase())
         : true;
-      return nameMatch && emailMatch;
+      const statusMatch =
+        statusFilter === "all"
+          ? true
+          : statusFilter === "active"
+            ? account.isActive === true
+            : account.isActive === false;
+      return nameMatch && emailMatch && statusMatch;
     });
   };
 
@@ -167,16 +200,70 @@ const AccountManagementPage = () => {
     return images.map((img) => img.urlImage);
   };
 
-  // Xử lý sự kiện nhấn nút Edit
-  const handleEdit = (accountId) => {
-    toast.info(`Edit account ${accountId} clicked`);
-    // TODO: Thêm logic chuyển hướng hoặc mở form chỉnh sửa
+  // Xử lý sự kiện nhấn nút View Details
+  const handleViewDetails = async (accountId) => {
+    try {
+      const accountData = await AccountManagementService.getAccountById(accountId);
+      setSelectedAccount(accountData);
+      setShowModal(true);
+    } catch (error) {
+      toast.error(error.message || "Failed to load account details");
+    }
   };
 
-  // Xử lý sự kiện nhấn nút Disable
-  const handleDisable = (accountId) => {
-    toast.info(`Disable account ${accountId} clicked`);
-    // TODO: Thêm logic gọi API để vô hiệu hóa tài khoản
+  // Xử lý sự kiện nhấn nút Disable/Enable (hiển thị modal xác nhận)
+  const handleToggleStatus = (accountId, currentStatus, role) => {
+    setConfirmAction({
+      accountId,
+      currentStatus,
+      role,
+      action: currentStatus ? "disable" : "enable",
+    });
+    setShowConfirmModal(true);
+  };
+
+  // Xác nhận hành động disable/enable
+  const confirmToggleStatus = async () => {
+    if (!confirmAction) return;
+    const { accountId, currentStatus, role } = confirmAction;
+    const newStatus = !currentStatus;
+    try {
+      await AccountManagementService.updateAccountStatus(accountId, newStatus);
+      toast.success(`Account ${newStatus ? "enabled" : "disabled"} successfully`);
+      // Cập nhật danh sách tài khoản
+      setAccounts((prev) => ({
+        ...prev,
+        [role]: prev[role].map((account) =>
+          account.accountId === accountId ? { ...account, isActive: newStatus } : account
+        ),
+      }));
+      // Cập nhật selectedAccount nếu đang mở modal
+      if (selectedAccount && selectedAccount.accountId === accountId) {
+        setSelectedAccount((prev) => ({ ...prev, isActive: newStatus }));
+      }
+    } catch (error) {
+      toast.error(error.message || `Failed to ${newStatus ? "enable" : "disable"} account`);
+    } finally {
+      setShowConfirmModal(false);
+      setConfirmAction(null);
+    }
+  };
+
+  // Hủy xác nhận
+  const cancelToggleStatus = () => {
+    setShowConfirmModal(false);
+    setConfirmAction(null);
+  };
+
+  // Đóng modal chi tiết
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setSelectedAccount(null);
+  };
+
+  // Định dạng giá thuê cosplayer
+  const formatHourlyRate = (rate) => {
+    return `${rate.toLocaleString("vi-VN")}/h VND`;
   };
 
   // --- Gọi API ---
@@ -220,11 +307,30 @@ const AccountManagementPage = () => {
     const startIndex = (currentPage - 1) * pageSize + 1;
     const endIndex = Math.min(currentPage * pageSize, filteredAccounts.length);
 
+    // Các tùy chọn bộ lọc trạng thái
+    const statusFilterOptions = [
+      { value: "all", label: "All Accounts" },
+      { value: "active", label: "Active Accounts" },
+      { value: "blocked", label: "Disabled Accounts" }, // Changed "Blocked" to "Disabled"
+    ];
+
     return (
       <Col lg={12}>
         <Card className="mb-4">
-          <Card.Header>
+          <Card.Header className="d-flex justify-content-between align-items-center">
             <h5>{title}</h5>
+            <Dropdown onSelect={(value) => handleStatusFilterChange(role, value)}>
+              <Dropdown.Toggle variant="outline-secondary" size="sm">
+                {statusFilterOptions.find((opt) => opt.value === statusFilters[role])?.label}
+              </Dropdown.Toggle>
+              <Dropdown.Menu>
+                {statusFilterOptions.map((option) => (
+                  <Dropdown.Item key={option.value} eventKey={option.value}>
+                    {option.label}
+                  </Dropdown.Item>
+                ))}
+              </Dropdown.Menu>
+            </Dropdown>
           </Card.Header>
           <Card.Body>
             <div className="search-container mb-3">
@@ -324,20 +430,29 @@ const AccountManagementPage = () => {
                         <Button
                           variant="outline-primary"
                           size="sm"
-                          className="action-btn edit-btn"
-                          onClick={() => handleEdit(account.accountId)}
+                          className="action-btn view-details-btn"
+                          onClick={() => handleViewDetails(account.accountId)}
                         >
-                          <Pencil size={14} className="me-1" />
-                          Edit
+                          <Eye size={14} className="me-1" />
+                          View Details
                         </Button>
                         <Button
-                          variant="outline-danger"
+                          variant={account.isActive ? "outline-danger" : "outline-success"}
                           size="sm"
-                          className="action-btn disable-btn"
-                          onClick={() => handleDisable(account.accountId)}
+                          className="action-btn status-btn"
+                          onClick={() => handleToggleStatus(account.accountId, account.isActive, role)}
                         >
-                          <Lock size={14} className="me-1" />
-                          Disable
+                          {account.isActive ? (
+                            <>
+                              <Lock size={14} className="me-1" />
+                              Disable
+                            </>
+                          ) : (
+                            <>
+                              <Unlock size={14} className="me-1" />
+                              Enable
+                            </>
+                          )}
                         </Button>
                       </div>
                     </td>
@@ -428,9 +543,461 @@ const AccountManagementPage = () => {
         {renderAccountTable("managers", "Manager Accounts")}
         {renderAccountTable("admins", "Admin Accounts")}
       </Row>
+
+      {/* Modal chi tiết tài khoản */}
+      <Modal
+        show={showModal}
+        onHide={handleCloseModal}
+        centered
+        size="lg"
+        style={{
+          zIndex: 1050, // Consistent z-index for modal
+        }}
+      >
+        <Modal.Header
+          closeButton
+          style={{
+            background: "linear-gradient(135deg, #3498db, #2ecc71)",
+            color: "#fff",
+            borderBottom: "none",
+            padding: "1.5rem",
+            position: "relative",
+          }}
+        >
+          <Modal.Title style={{ fontSize: "1.5rem", fontWeight: 700, letterSpacing: "-0.5px" }}>
+            Account Details
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body
+          style={{
+            padding: "2rem",
+            background: "#fff",
+            borderRadius: "0 0 16px 16px",
+            maxHeight: "70vh",
+            overflowY: "auto",
+          }}
+        >
+          {selectedAccount ? (
+            <div style={{ width: "100%" }}>
+              <Row>
+                <Col md={6} style={{ marginBottom: "2rem" }}>
+                  <h6
+                    style={{
+                      fontSize: "1.25rem",
+                      fontWeight: 600,
+                      color: "#1a1a2e",
+                      marginBottom: "1rem",
+                      position: "relative",
+                    }}
+                  >
+                    Basic Information
+                    <span
+                      style={{
+                        display: "block",
+                        width: "40px",
+                        height: "3px",
+                        background: "linear-gradient(135deg, #3498db, #2ecc71)",
+                        marginTop: "0.5rem",
+                        borderRadius: "2px",
+                      }}
+                    />
+                  </h6>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      marginBottom: "0.75rem",
+                      padding: "0.5rem 0",
+                      borderBottom: "1px solid #e9ecef",
+                    }}
+                  >
+                    <span style={{ fontWeight: 600, color: "#2c3e50", width: "120px" }}>
+                      Account ID:
+                    </span>
+                    <span style={{ color: "#34495e", flex: 1, fontSize: "0.95rem" }}>
+                      {selectedAccount.accountId}
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      marginBottom: "0.75rem",
+                      padding: "0.5rem 0",
+                      borderBottom: "1px solid #e9ecef",
+                    }}
+                  >
+                    <span style={{ fontWeight: 600, color: "#2c3e50", width: "120px" }}>
+                      Name:
+                    </span>
+                    <span style={{ color: "#34495e", flex: 1, fontSize: "0.95rem" }}>
+                      {selectedAccount.name}
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      marginBottom: "0.75rem",
+                      padding: "0.5rem 0",
+                      borderBottom: "1px solid #e9ecef",
+                    }}
+                  >
+                    <span style={{ fontWeight: 600, color: "#2c3e50", width: "120px" }}>
+                      Email:
+                    </span>
+                    <span style={{ color: "#34495e", flex: 1, fontSize: "0.95rem" }}>
+                      {selectedAccount.email}
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      marginBottom: "0.75rem",
+                      padding: "0.5rem 0",
+                      borderBottom: "1px solid #e9ecef",
+                    }}
+                  >
+                    <span style={{ fontWeight: 600, color: "#2c3e50", width: "120px" }}>
+                      Phone:
+                    </span>
+                    <span style={{ color: "#34495e", flex: 1, fontSize: "0.95rem" }}>
+                      {selectedAccount.phone || "N/A"}
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      marginBottom: "0.75rem",
+                      padding: "0.5rem 0",
+                      borderBottom: "1px solid #e9ecef",
+                    }}
+                  >
+                    <span style={{ fontWeight: 600, color: "#2c3e50", width: "120px" }}>
+                      Birthday:
+                    </span>
+                    <span style={{ color: "#34495e", flex: 1, fontSize: "0.95rem" }}>
+                      {selectedAccount.birthday}
+                    </span>
+                  </div>
+                </Col>
+                {roleMapping["R004"] === "cosplayers" && selectedAccount.height && (
+                  <Col md={6} style={{ marginBottom: "2rem" }}>
+                    <h6
+                      style={{
+                        fontSize: "1.25rem",
+                        fontWeight: 600,
+                        color: "#1a1a2e",
+                        marginBottom: "1rem",
+                        position: "relative",
+                      }}
+                    >
+                      Cosplayer Details
+                      <span
+                        style={{
+                          display: "block",
+                          width: "40px",
+                          height: "3px",
+                          background: "linear-gradient(135deg, #3498db, #2ecc71)",
+                          marginTop: "0.5rem",
+                          borderRadius: "2px",
+                        }}
+                      />
+                    </h6>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        marginBottom: "0.75rem",
+                        padding: "0.5rem 0",
+                        borderBottom: "1px solid #e9ecef",
+                      }}
+                    >
+                      <span style={{ fontWeight: 600, color: "#2c3e50", width: "120px" }}>
+                        Average Star:
+                      </span>
+                      <span style={{ color: "#34495e", flex: 1, fontSize: "0.95rem" }}>
+                        {selectedAccount.averageStar ? (
+                          <span style={{ display: "flex", alignItems: "center" }}>
+                            {selectedAccount.averageStar}
+                            <Star
+                              size={14}
+                              style={{ color: "#f1c40f", fill: "#f1c40f", marginLeft: "0.25rem" }}
+                            />
+                          </span>
+                        ) : (
+                          "N/A"
+                        )}
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        marginBottom: "0.75rem",
+                        padding: "0.5rem 0",
+                        borderBottom: "1px solid #e9ecef",
+                      }}
+                    >
+                      <span style={{ fontWeight: 600, color: "#2c3e50", width: "120px" }}>
+                        Height:
+                      </span>
+                      <span style={{ color: "#34495e", flex: 1, fontSize: "0.95rem" }}>
+                        {selectedAccount.height} cm
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        marginBottom: "0.75rem",
+                        padding: "0.5rem 0",
+                        borderBottom: "1px solid #e9ecef",
+                      }}
+                    >
+                      <span style={{ fontWeight: 600, color: "#2c3e50", width: "120px" }}>
+                        Weight:
+                      </span>
+                      <span style={{ color: "#34495e", flex: 1, fontSize: "0.95rem" }}>
+                        {selectedAccount.weight} kg
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        marginBottom: "0.75rem",
+                        padding: "0.5rem 0",
+                        borderBottom: "1px solid #e9ecef",
+                      }}
+                    >
+                      <span style={{ fontWeight: 600, color: "#2c3e50", width: "120px" }}>
+                        Hourly Rate:
+                      </span>
+                      <span style={{ color: "#34495e", flex: 1, fontSize: "0.95rem" }}>
+                        {formatHourlyRate(selectedAccount.salaryIndex)}
+                      </span>
+                    </div>
+                  </Col>
+                )}
+              </Row>
+              <div style={{ marginTop: "2rem" }}>
+                <h6
+                  style={{
+                    fontSize: "1.25rem",
+                    fontWeight: 600,
+                    color: "#1a1a2e",
+                    marginBottom: "1rem",
+                    position: "relative",
+                  }}
+                >
+                  Images
+                  <span
+                    style={{
+                      display: "block",
+                      width: "40px",
+                      height: "3px",
+                      background: "linear-gradient(135deg, #3498db, #2ecc71)",
+                      marginTop: "0.5rem",
+                      borderRadius: "2px",
+                    }}
+                  />
+                </h6>
+                {selectedAccount.images && selectedAccount.images.length > 0 ? (
+                  <div
+                    style={{
+                      display: "flex",
+                      flexWrap: "wrap",
+                      gap: "1.5rem", // Spacing between images
+                      marginTop: "1rem",
+                    }}
+                  >
+                    {selectedAccount.images.map((img, index) => (
+                      <img
+                        key={index}
+                        src={img.urlImage}
+                        alt={`Account image ${index + 1}`}
+                        style={{
+                          width: "250px", // Increased size for better visibility
+                          height: "250px",
+                          objectFit: "cover",
+                          borderRadius: "12px",
+                          boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)",
+                          transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                        }}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <p style={{ color: "#6c757d", fontStyle: "italic", marginTop: "1rem" }}>
+                    No images available
+                  </p>
+                )}
+              </div>
+            </div>
+          ) : (
+            <p style={{ textAlign: "center", color: "#2c3e50" }}>
+              Loading account details...
+            </p>
+          )}
+        </Modal.Body>
+        <Modal.Footer
+          style={{
+            padding: "1.5rem",
+            borderTop: "none",
+            background: "#fff",
+            display: "flex",
+            justifyContent: "flex-end",
+            gap: "1rem",
+          }}
+        >
+          <Button
+            variant="secondary"
+            onClick={handleCloseModal}
+            style={{
+              background: "#6c757d",
+              border: "none",
+              borderRadius: "8px",
+              padding: "0.5rem 1.5rem",
+              fontSize: "0.9rem",
+              transition: "background 0.3s ease",
+            }}
+            onMouseOver={(e) => (e.target.style.background = "#5c636a")}
+            onMouseOut={(e) => (e.target.style.background = "#6c757d")}
+          >
+            Close
+          </Button>
+          {selectedAccount && (
+            <Button
+              variant={selectedAccount.isActive ? "danger" : "success"}
+              onClick={() =>
+                handleToggleStatus(
+                  selectedAccount.accountId,
+                  selectedAccount.isActive,
+                  roleMapping["R004"] === "cosplayers" && selectedAccount.height
+                    ? "cosplayers"
+                    : roleMapping[
+                    Object.keys(roleMapping).find((key) =>
+                      roleMapping[key] ===
+                      Object.keys(accounts).find((r) =>
+                        accounts[r].some((acc) => acc.accountId === selectedAccount.accountId)
+                      )
+                    )
+                    ]
+                )
+              }
+              style={{
+                background: selectedAccount.isActive ? "#e74c3c" : "#2ecc71",
+                border: "none",
+                borderRadius: "8px",
+                padding: "0.5rem 1.5rem",
+                fontSize: "0.9rem",
+                fontWeight: 600,
+                transition: "transform 0.3s ease, box-shadow 0.3s ease",
+              }}
+              onMouseOver={(e) =>
+                (e.target.style.background = selectedAccount.isActive ? "#c0392b" : "#27ae60")
+              }
+              onMouseOut={(e) =>
+                (e.target.style.background = selectedAccount.isActive ? "#e74c3c" : "#2ecc71")
+              }
+            >
+              {selectedAccount.isActive ? "Disable Account" : "Enable Account"}
+            </Button>
+          )}
+        </Modal.Footer>
+      </Modal>
+
+      {/* Modal xác nhận disable/enable */}
+      <Modal
+        show={showConfirmModal}
+        onHide={cancelToggleStatus}
+        centered
+        size="sm"
+        style={{
+          zIndex: 1050, // Consistent z-index for confirm modal
+        }}
+      >
+        <Modal.Header
+          closeButton
+          style={{
+            background: "linear-gradient(135deg, #3498db, #2ecc71)",
+            color: "#fff",
+            borderBottom: "none",
+            padding: "1rem",
+            textAlign: "center",
+          }}
+        >
+          <Modal.Title style={{ fontSize: "1.25rem", fontWeight: 600, margin: "0 auto", marginLeft: "0px" }}>
+            Confirm Action
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body
+          style={{
+            padding: "1.5rem",
+            textAlign: "center",
+            fontSize: "1rem",
+            color: "#2c3e50",
+          }}
+        >
+          <p style={{ margin: 0 }}>
+            Are you sure you want to {confirmAction?.action} this account?
+          </p>
+        </Modal.Body>
+        <Modal.Footer
+          style={{
+            padding: "1rem",
+            borderTop: "none",
+            display: "flex",
+            justifyContent: "center",
+            gap: "1rem",
+          }}
+        >
+          <Button
+            variant="secondary"
+            onClick={cancelToggleStatus}
+            style={{
+              background: "#6c757d",
+              border: "none",
+              borderRadius: "8px",
+              padding: "0.5rem 1.5rem",
+              fontSize: "0.9rem",
+              transition: "background 0.3s ease",
+            }}
+            onMouseOver={(e) => (e.target.style.background = "#5c636a")}
+            onMouseOut={(e) => (e.target.style.background = "#6c757d")}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant={confirmAction?.action === "disable" ? "danger" : "success"}
+            onClick={confirmToggleStatus}
+            style={{
+              background: confirmAction?.action === "disable" ? "#e74c3c" : "#2ecc71",
+              border: "none",
+              borderRadius: "8px",
+              padding: "0.5rem 1.5rem",
+              fontSize: "0.9rem",
+              fontWeight: 600,
+              transition: "transform 0.3s ease, box-shadow 0.3s ease",
+            }}
+            onMouseOver={(e) =>
+            (e.target.style.background =
+              confirmAction?.action === "disable" ? "#c0392b" : "#27ae60")
+            }
+            onMouseOut={(e) =>
+            (e.target.style.background =
+              confirmAction?.action === "disable" ? "#e74c3c" : "#2ecc71")
+            }
+          >
+            Confirm
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };
 
-// Xuất component
 export default AccountManagementPage;

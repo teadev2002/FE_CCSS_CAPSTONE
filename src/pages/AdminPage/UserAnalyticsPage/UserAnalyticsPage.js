@@ -1,6 +1,5 @@
 // src/pages/UserAnalyticsPage.jsx
 
-// Nhập các thư viện và thành phần cần thiết
 import React, { useState, useEffect } from "react";
 import { Card, Row, Col, Table, ProgressBar, Dropdown } from "react-bootstrap";
 import { Line } from "react-chartjs-2";
@@ -20,7 +19,7 @@ import "../../../styles/Admin/UserAnalyticsPage.scss";
 // Đăng ký các thành phần cần thiết cho Chart.js
 Chart.register(CategoryScale, LinearScale, PointElement, LineElement);
 
-// Thành phần chính của trang phân tích người dùng
+// Component trang phân tích người dùng
 const UserAnalyticsPage = () => {
   // --- Quản lý trạng thái ---
 
@@ -41,16 +40,89 @@ const UserAnalyticsPage = () => {
   const [topCosplayersByRating, setTopCosplayersByRating] = useState([]);
   const [ratingFilter, setRatingFilter] = useState(0);
 
+  // Trạng thái cho sử dụng dịch vụ
+  const [serviceUsage, setServiceUsage] = useState({
+    customers: {
+      costumeRental: 0,
+      hireCosplayers: 0,
+      eventOrganization: 0,
+      buySouvenirs: 0,
+      buyFestivalTickets: 0,
+    },
+  });
+
   // Trạng thái cho bộ lọc biểu đồ xu hướng sử dụng dịch vụ
   const [usageFilter, setUsageFilter] = useState("today");
 
+  // Dữ liệu cho biểu đồ xu hướng sử dụng dịch vụ
+  const [usageChartData, setUsageChartData] = useState({
+    today: { labels: [], datasets: [] },
+    month: { labels: [], datasets: [] },
+    year: { labels: [], datasets: [] },
+  });
+
   // Dữ liệu giả lập cho Top 5 khách hàng sử dụng dịch vụ nhiều nhất
   const topCustomersByUsage = [
-    { id: 1, name: "Sarah Chen", servicesUsed: { costumeRental: 50, hireCosplayers: 80, eventOrganization: 26, buySouvenirs: 15, buyFestivalTickets: 10 }, membership: "VIP" },
-    { id: 2, name: "Viết Quốc", servicesUsed: { costumeRental: 60, hireCosplayers: 70, eventOrganization: 12, buySouvenirs: 20, buyFestivalTickets: 8 }, membership: "VIP" },
-    { id: 3, name: "Emily Watson", servicesUsed: { costumeRental: 40, hireCosplayers: 60, eventOrganization: 30, buySouvenirs: 10, buyFestivalTickets: 5 }, membership: "Premium" },
-    { id: 4, name: "Hoàng Nguyễn", servicesUsed: { costumeRental: 45, hireCosplayers: 50, eventOrganization: 30, buySouvenirs: 12, buyFestivalTickets: 7 }, membership: "Premium" },
-    { id: 5, name: "Lisa Tran", servicesUsed: { costumeRental: 30, hireCosplayers: 60, eventOrganization: 20, buySouvenirs: 8, buyFestivalTickets: 3 }, membership: "Standard" },
+    {
+      id: 1,
+      name: "Sarah Chen",
+      servicesUsed: {
+        costumeRental: 50,
+        hireCosplayers: 80,
+        eventOrganization: 26,
+        buySouvenirs: 15,
+        buyFestivalTickets: 10,
+      },
+      membership: "VIP",
+    },
+    {
+      id: 2,
+      name: "Viết Quốc",
+      servicesUsed: {
+        costumeRental: 60,
+        hireCosplayers: 70,
+        eventOrganization: 12,
+        buySouvenirs: 20,
+        buyFestivalTickets: 8,
+      },
+      membership: "VIP",
+    },
+    {
+      id: 3,
+      name: "Emily Watson",
+      servicesUsed: {
+        costumeRental: 40,
+        hireCosplayers: 60,
+        eventOrganization: 30,
+        buySouvenirs: 10,
+        buyFestivalTickets: 5,
+      },
+      membership: "Premium",
+    },
+    {
+      id: 4,
+      name: "Hoàng Nguyễn",
+      servicesUsed: {
+        costumeRental: 45,
+        hireCosplayers: 50,
+        eventOrganization: 30,
+        buySouvenirs: 12,
+        buyFestivalTickets: 7,
+      },
+      membership: "Premium",
+    },
+    {
+      id: 5,
+      name: "Lisa Tran",
+      servicesUsed: {
+        costumeRental: 30,
+        hireCosplayers: 60,
+        eventOrganization: 20,
+        buySouvenirs: 8,
+        buyFestivalTickets: 3,
+      },
+      membership: "Standard",
+    },
   ];
 
   // Dữ liệu giả lập cho Top 5 cosplayer theo lượt đặt
@@ -61,58 +133,6 @@ const UserAnalyticsPage = () => {
     { id: 4, name: "Minh Anh", bookings: 70, rating: 4.6 },
     { id: 5, name: "James Carter", bookings: 65, rating: 4.5 },
   ];
-
-  // Dữ liệu giả lập cho sử dụng dịch vụ theo khách hàng
-  const serviceUsage = {
-    customers: {
-      costumeRental: 400,
-      hireCosplayers: 500,
-      eventOrganization: 200,
-      buySouvenirs: 150,
-      buyFestivalTickets: 100,
-    },
-    trends: {
-      costumeRental: "+9.1%",
-      hireCosplayers: "+14.3%",
-      eventOrganization: "-0.6%",
-      buySouvenirs: "+5.0%",
-      buyFestivalTickets: "+3.2%",
-    },
-  };
-
-  // Dữ liệu giả lập cho biểu đồ xu hướng sử dụng dịch vụ
-  const usageChartData = {
-    today: {
-      labels: ["00:00", "04:00", "08:00", "12:00", "16:00", "20:00"],
-      datasets: [
-        { label: "Costume Rental", data: [50, 100, 150, 200, 250, 300], borderColor: "#3498db", backgroundColor: "rgba(52, 152, 219, 0.1)", fill: true, tension: 0.4 },
-        { label: "Hire Cosplayers", data: [80, 120, 180, 240, 300, 360], borderColor: "#2ecc71", backgroundColor: "rgba(46, 204, 113, 0.1)", fill: true, tension: 0.4 },
-        { label: "Event Organization", data: [30, 60, 90, 120, 150, 180], borderColor: "#f1c40f", backgroundColor: "rgba(241, 196, 15, 0.1)", fill: true, tension: 0.4 },
-        { label: "Buy Souvenirs", data: [20, 40, 60, 80, 100, 120], borderColor: "#e74c3c", backgroundColor: "rgba(231, 76, 60, 0.1)", fill: true, tension: 0.4 },
-        { label: "Buy Festival Tickets", data: [10, 20, 30, 40, 50, 60], borderColor: "#9b59b6", backgroundColor: "rgba(155, 89, 182, 0.1)", fill: true, tension: 0.4 },
-      ],
-    },
-    month: {
-      labels: ["1", "5", "10", "15", "20", "25", "30"],
-      datasets: [
-        { label: "Costume Rental", data: [200, 300, 250, 350, 400, 450, 420], borderColor: "#3498db", backgroundColor: "rgba(52, 152, 219, 0.1)", fill: true, tension: 0.4 },
-        { label: "Hire Cosplayers", data: [300, 400, 350, 450, 500, 550, 520], borderColor: "#2ecc71", backgroundColor: "rgba(46, 204, 113, 0.1)", fill: true, tension: 0.4 },
-        { label: "Event Organization", data: [100, 150, 120, 180, 200, 220, 210], borderColor: "#f1c40f", backgroundColor: "rgba(241, 196, 15, 0.1)", fill: true, tension: 0.4 },
-        { label: "Buy Souvenirs", data: [80, 120, 100, 140, 160, 180, 170], borderColor: "#e74c3c", backgroundColor: "rgba(231, 76, 60, 0.1)", fill: true, tension: 0.4 },
-        { label: "Buy Festival Tickets", data: [50, 70, 60, 80, 90, 100, 95], borderColor: "#9b59b6", backgroundColor: "rgba(155, 89, 182, 0.1)", fill: true, tension: 0.4 },
-      ],
-    },
-    year: {
-      labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-      datasets: [
-        { label: "Costume Rental", data: [1000, 1200, 1100, 1300, 1400, 1500, 1600, 1550, 1450, 1400, 1300, 1200], borderColor: "#3498db", backgroundColor: "rgba(52, 152, 219, 0.1)", fill: true, tension: 0.4 },
-        { label: "Hire Cosplayers", data: [1200, 1400, 1300, 1500, 1600, 1700, 1800, 1750, 1650, 1600, 1500, 1400], borderColor: "#2ecc71", backgroundColor: "rgba(46, 204, 113, 0.1)", fill: true, tension: 0.4 },
-        { label: "Event Organization", data: [500, 600, 550, 650, 700, 750, 800, 780, 720, 700, 650, 600], borderColor: "#f1c40f", backgroundColor: "rgba(241, 196, 15, 0.1)", fill: true, tension: 0.4 },
-        { label: "Buy Souvenirs", data: [300, 400, 350, 450, 500, 550, 600, 580, 540, 520, 480, 450], borderColor: "#e74c3c", backgroundColor: "rgba(231, 76, 60, 0.1)", fill: true, tension: 0.4 },
-        { label: "Buy Festival Tickets", data: [200, 250, 220, 280, 300, 320, 340, 330, 310, 290, 270, 250], borderColor: "#9b59b6", backgroundColor: "rgba(155, 89, 182, 0.1)", fill: true, tension: 0.4 },
-      ],
-    },
-  };
 
   // Ánh xạ mã vai trò (roleId) với tên vai trò
   const roleMapping = {
@@ -166,6 +186,150 @@ const UserAnalyticsPage = () => {
   // Định dạng giá thuê cosplayer
   const formatHourlyRate = (rate) => {
     return `${rate.toLocaleString("vi-VN")}/h VND`;
+  };
+
+  // Lấy dữ liệu sử dụng dịch vụ từ API
+  const fetchServiceUsage = async () => {
+    try {
+      // Lấy dữ liệu Costume Rental (S001)
+      const costumeContracts = await UserAnalyticsService.getContractsByService("S001");
+      const costumeCount = Array.isArray(costumeContracts) ? costumeContracts.length : 1;
+
+      // Lấy dữ liệu Hire Cosplayers (S002)
+      const cosplayerContracts = await UserAnalyticsService.getContractsByService("S002");
+      const cosplayerCount = Array.isArray(cosplayerContracts) ? cosplayerContracts.length : 1;
+
+      // Lấy dữ liệu Event Organization (S003)
+      const eventContracts = await UserAnalyticsService.getContractsByService("S003");
+      const eventCount = Array.isArray(eventContracts) ? eventContracts.length : 1;
+
+      // Lấy dữ liệu Buy Souvenirs
+      const orders = await UserAnalyticsService.getAllOrders();
+      const souvenirCount = Array.isArray(orders) ? orders.length : 1;
+
+      // Lấy dữ liệu Buy Festival Tickets
+      const ticketPayments = await UserAnalyticsService.getAllTicketPayments();
+      const ticketCount = Array.isArray(ticketPayments) ? ticketPayments.length : 1;
+
+      // Cập nhật state
+      setServiceUsage({
+        customers: {
+          costumeRental: costumeCount,
+          hireCosplayers: cosplayerCount,
+          eventOrganization: eventCount,
+          buySouvenirs: souvenirCount,
+          buyFestivalTickets: ticketCount,
+        },
+      });
+    } catch (error) {
+      toast.error(error.message || "Failed to load service usage data");
+    }
+  };
+
+  // Lấy dữ liệu xu hướng sử dụng dịch vụ từ API
+  const fetchServiceUsageTrends = async () => {
+    try {
+      const filterTypes = [
+        { key: "today", filterType: 0 },
+        { key: "month", filterType: 2 },
+        { key: "year", filterType: 3 },
+      ];
+
+      const newChartData = {};
+
+      for (const { key, filterType } of filterTypes) {
+        // Labels cho biểu đồ
+        let labels;
+        if (key === "today") {
+          labels = ["00:00", "04:00", "08:00", "12:00", "16:00", "20:00"];
+        } else if (key === "month") {
+          labels = ["1", "5", "10", "15", "20", "25", "30"];
+        } else if (key === "year") {
+          labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        }
+
+        // Dữ liệu cho Costume Rental
+        const costumeData = await UserAnalyticsService.getContractsByServiceAndDate("S001", filterType);
+        const costumeCounts = Array.isArray(costumeData)
+          ? costumeData.map((item) => item.count)
+          : [costumeData.count];
+
+        // Dữ liệu cho Hire Cosplayers
+        const cosplayerData = await UserAnalyticsService.getContractsByServiceAndDate("S002", filterType);
+        const cosplayerCounts = Array.isArray(cosplayerData)
+          ? cosplayerData.map((item) => item.count)
+          : [cosplayerData.count];
+
+        // Dữ liệu cho Event Organization
+        const eventData = await UserAnalyticsService.getContractsByServiceAndDate("S003", filterType);
+        const eventCounts = Array.isArray(eventData)
+          ? eventData.map((item) => item.count)
+          : [eventData.count];
+
+        // Dữ liệu cho Buy Souvenirs
+        const souvenirData = await UserAnalyticsService.getOrdersByDate(filterType);
+        const souvenirCounts = Array.isArray(souvenirData)
+          ? souvenirData.map((item) => item.count)
+          : [souvenirData.count];
+
+        // Dữ liệu cho Buy Festival Tickets
+        const ticketData = await UserAnalyticsService.getTicketPaymentsByDate(filterType);
+        const ticketCounts = Array.isArray(ticketData)
+          ? ticketData.map((item) => item.count)
+          : [ticketData.count];
+
+        // Cập nhật datasets
+        newChartData[key] = {
+          labels,
+          datasets: [
+            {
+              label: "Costume Rental",
+              data: costumeCounts,
+              borderColor: "#3498db",
+              backgroundColor: "rgba(52, 152, 219, 0.1)",
+              fill: true,
+              tension: 0.4,
+            },
+            {
+              label: "Hire Cosplayers",
+              data: cosplayerCounts,
+              borderColor: "#2ecc71",
+              backgroundColor: "rgba(46, 204, 113, 0.1)",
+              fill: true,
+              tension: 0.4,
+            },
+            {
+              label: "Event Organization",
+              data: eventCounts,
+              borderColor: "#f1c40f",
+              backgroundColor: "rgba(241, 196, 15, 0.1)",
+              fill: true,
+              tension: 0.4,
+            },
+            {
+              label: "Buy Souvenirs",
+              data: souvenirCounts,
+              borderColor: "#e74c3c",
+              backgroundColor: "rgba(231, 76, 60, 0.1)",
+              fill: true,
+              tension: 0.4,
+            },
+            {
+              label: "Buy Festival Tickets",
+              data: ticketCounts,
+              borderColor: "#9b59b6",
+              backgroundColor: "rgba(155, 89, 182, 0.1)",
+              fill: true,
+              tension: 0.4,
+            },
+          ],
+        };
+      }
+
+      setUsageChartData(newChartData);
+    } catch (error) {
+      toast.error(error.message || "Failed to load service usage trends");
+    }
   };
 
   // --- Gọi API ---
@@ -239,6 +403,12 @@ const UserAnalyticsPage = () => {
 
     fetchTopCosplayersByRating();
   }, [ratingFilter]);
+
+  // Lấy dữ liệu sử dụng dịch vụ và xu hướng
+  useEffect(() => {
+    fetchServiceUsage();
+    fetchServiceUsageTrends();
+  }, []);
 
   // --- Giao diện người dùng ---
 
@@ -427,58 +597,35 @@ const UserAnalyticsPage = () => {
           <div className="service-usage-item">
             <div className="d-flex justify-content-between mb-1">
               <span>Costume Rental</span>
-              <span>
-                {serviceUsage.customers.costumeRental.toLocaleString()}{" "}
-                <span className="trend positive">{serviceUsage.trends.costumeRental}</span>
-              </span>
+              <span>{serviceUsage.customers.costumeRental.toLocaleString()}</span>
             </div>
             <ProgressBar now={35} variant="success" />
           </div>
           <div className="service-usage-item">
             <div className="d-flex justify-content-between mb-1">
               <span>Hire Cosplayers</span>
-              <span>
-                {serviceUsage.customers.hireCosplayers.toLocaleString()}{" "}
-                <span className="trend positive">{serviceUsage.trends.hireCosplayers}</span>
-              </span>
+              <span>{serviceUsage.customers.hireCosplayers.toLocaleString()}</span>
             </div>
             <ProgressBar now={45} variant="info" />
           </div>
           <div className="service-usage-item">
             <div className="d-flex justify-content-between mb-1">
               <span>Event Organization</span>
-              <span>
-                {serviceUsage.customers.eventOrganization.toLocaleString()}{" "}
-                <span
-                  className={
-                    serviceUsage.trends.eventOrganization.startsWith("-")
-                      ? "trend negative"
-                      : "trend positive"
-                  }
-                >
-                  {serviceUsage.trends.eventOrganization}
-                </span>
-              </span>
+              <span>{serviceUsage.customers.eventOrganization.toLocaleString()}</span>
             </div>
             <ProgressBar now={20} variant="warning" />
           </div>
           <div className="service-usage-item">
             <div className="d-flex justify-content-between mb-1">
               <span>Buy Souvenirs</span>
-              <span>
-                {serviceUsage.customers.buySouvenirs.toLocaleString()}{" "}
-                <span className="trend positive">{serviceUsage.trends.buySouvenirs}</span>
-              </span>
+              <span>{serviceUsage.customers.buySouvenirs.toLocaleString()}</span>
             </div>
             <ProgressBar now={15} variant="danger" />
           </div>
           <div className="service-usage-item">
             <div className="d-flex justify-content-between mb-1">
               <span>Buy Festival Tickets</span>
-              <span>
-                {serviceUsage.customers.buyFestivalTickets.toLocaleString()}{" "}
-                <span className="trend positive">{serviceUsage.trends.buyFestivalTickets}</span>
-              </span>
+              <span>{serviceUsage.customers.buyFestivalTickets.toLocaleString()}</span>
             </div>
             <ProgressBar now={10} variant="purple" />
           </div>
@@ -510,5 +657,4 @@ const UserAnalyticsPage = () => {
   );
 };
 
-// Xuất component
 export default UserAnalyticsPage;

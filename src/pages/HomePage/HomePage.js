@@ -1,5 +1,7 @@
+// src/pages/HomePage.jsx
+
 import React, { useEffect, useState, useCallback } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Carousel, Row, Col, Form, Button } from "react-bootstrap";
 import {
   Shirt,
@@ -19,6 +21,41 @@ import CharacterService from "../../services/HomePageService/CharacterService";
 import CosplayerService from "../../services/HomePageService/CosplayerService";
 
 const HomePage = () => {
+  const navigate = useNavigate();
+
+  // Kiểm tra trạng thái đăng nhập
+  const getUserInfoFromToken = () => {
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        return {
+          id: decoded?.Id,
+          role: decoded?.role,
+          accountName: decoded?.AccountName,
+        };
+      } catch (error) {
+        console.error("Error decoding token:", error);
+        return { id: null, role: null, accountName: null };
+      }
+    }
+    return { id: null, role: null, accountName: null };
+  };
+
+  // Xử lý nút Hire Cosplayers
+  const handleHireCosplayers = () => {
+    const { id } = getUserInfoFromToken();
+    if (!id) {
+      toast.warn("Please log in to hire cosplayers!", {
+        position: "top-right",
+        autoClose: 2100,
+      });
+      setTimeout(() => navigate("/login"), 2100);
+    } else {
+      navigate("/cosplayers");
+    }
+  };
+
   // State cho Character List
   const [characters, setCharacters] = useState([]);
   const [filteredCharacters, setFilteredCharacters] = useState([]);
@@ -28,7 +65,6 @@ const HomePage = () => {
     setIsPageManuallySelectedCharacters,
   ] = useState(false);
   const [characterImages, setCharacterImages] = useState({});
-  // Giá trị mặc định cho bộ lọc nhân vật
   const defaultCharacterSearchParams = {
     characterName: "",
     price: [0, 1000000],
@@ -49,9 +85,8 @@ const HomePage = () => {
     setIsPageManuallySelectedCosplayers,
   ] = useState(false);
   const [cosplayerImages, setCosplayerImages] = useState({});
-  // Giá trị mặc định cho bộ lọc cosplayer, thêm cosplayerName để tìm kiếm
   const defaultCosplayerSearchParams = {
-    cosplayerName: "", // Thêm trường để lưu tên cosplayer tìm kiếm
+    cosplayerName: "",
     averageStar: [0, 5],
     height: [100, 200],
     weight: [20, 100],
@@ -75,7 +110,7 @@ const HomePage = () => {
     return `${price.toLocaleString("vi-VN")} VND`;
   };
 
-  // Format giá tiền thuê cosplayer (per hour) - Thêm VND
+  // Format giá tiền thuê cosplayer (per hour)
   const formatHourlyRate = (rate) => {
     return `${rate.toLocaleString("vi-VN")}/h VND`;
   };
@@ -139,13 +174,17 @@ const HomePage = () => {
     }
   };
 
-  // Lấy danh sách cosplayer
+  // Lấy danh sách cosplayer (chỉ lấy những cosplayer có isActive: true)
   const fetchCosplayers = useCallback(async () => {
     try {
       const data = await CosplayerService.getAllCosplayers();
       const cosplayersArray = Array.isArray(data) ? data : [data];
-      setCosplayers(cosplayersArray);
-      setFilteredCosplayers(cosplayersArray);
+      // Lọc cosplayer có isActive: true
+      const activeCosplayers = cosplayersArray.filter(
+        (cosplayer) => cosplayer.isActive === true
+      );
+      setCosplayers(activeCosplayers);
+      setFilteredCosplayers(activeCosplayers);
     } catch (error) {
       toast.error(error.message);
     }
@@ -211,7 +250,7 @@ const HomePage = () => {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % aboutUsImages.length);
-    }, 7000); // Chuyển hình sau 7 giây
+    }, 7000);
     return () => clearInterval(timer);
   }, [aboutUsImages.length]);
 
@@ -220,8 +259,8 @@ const HomePage = () => {
     const filtered = characters.filter((char) => {
       const nameMatch = characterSearchParams.characterName
         ? char.characterName
-            .toLowerCase()
-            .includes(characterSearchParams.characterName.toLowerCase())
+          .toLowerCase()
+          .includes(characterSearchParams.characterName.toLowerCase())
         : true;
       const priceMatch =
         char.price >= characterSearchParams.price[0] &&
@@ -239,14 +278,13 @@ const HomePage = () => {
     setIsPageManuallySelectedCharacters(false);
   };
 
-  // Xử lý tìm kiếm và lọc cho Cosplayer List, thêm lọc theo tên cosplayer
+  // Xử lý tìm kiếm và lọc cho Cosplayer List (chỉ lấy cosplayer có isActive: true)
   const handleCosplayerSearch = () => {
     const filtered = cosplayers.filter((cosplayer) => {
-      // Kiểm tra tên cosplayer (không phân biệt hoa thường, hỗ trợ tìm kiếm gần đúng)
       const nameMatch = cosplayerSearchParams.cosplayerName
         ? cosplayer.name
-            .toLowerCase()
-            .includes(cosplayerSearchParams.cosplayerName.toLowerCase())
+          .toLowerCase()
+          .includes(cosplayerSearchParams.cosplayerName.toLowerCase())
         : true;
       const starMatch =
         cosplayer.averageStar >= cosplayerSearchParams.averageStar[0] &&
@@ -260,7 +298,15 @@ const HomePage = () => {
       const rateMatch =
         cosplayer.salaryIndex >= cosplayerSearchParams.hourlyRate[0] &&
         cosplayer.salaryIndex <= cosplayerSearchParams.hourlyRate[1];
-      return nameMatch && starMatch && heightMatch && weightMatch && rateMatch;
+      const isActiveMatch = cosplayer.isActive === true; // Chỉ lấy cosplayer active
+      return (
+        nameMatch &&
+        starMatch &&
+        heightMatch &&
+        weightMatch &&
+        rateMatch &&
+        isActiveMatch
+      );
     });
     setFilteredCosplayers(filtered);
     setCurrentPageCosplayers(1);
@@ -300,7 +346,7 @@ const HomePage = () => {
   // Reset bộ lọc Cosplayer
   const handleCosplayerCancel = () => {
     setCosplayerSearchParams(defaultCosplayerSearchParams);
-    setFilteredCosplayers(cosplayers);
+    setFilteredCosplayers(cosplayers); // cosplayers đã được lọc isActive: true
     setCurrentPageCosplayers(1);
     setIsPageManuallySelectedCosplayers(false);
   };
@@ -345,24 +391,20 @@ const HomePage = () => {
 
   // Hiển thị thông báo chào mừng khi đăng nhập
   useEffect(() => {
-    const accessToken = localStorage.getItem("accessToken");
-    if (!accessToken) return;
-    try {
-      const decoded = jwtDecode(accessToken);
-      const accountName = decoded?.AccountName;
-      if (accountName) {
-        toast.success(`Welcome, ${accountName}!`);
-      }
-    } catch (error) {
-      console.error("Invalid token", error);
+    const { accountName } = getUserInfoFromToken();
+    if (accountName) {
+      toast.success(`Welcome, ${accountName}!`, {
+        position: "top-right",
+        autoClose: 3000,
+      });
     }
   }, []);
 
   // Tính toán chỉ số hình ảnh cho About Us
   const getImageIndices = () => {
     const length = aboutUsImages.length;
-    const prevIndex = (currentImageIndex - 1 + length) % length; // Hình bên trái
-    const nextIndex = (currentImageIndex + 1) % length; // Hình bên phải
+    const prevIndex = (currentImageIndex - 1 + length) % length;
+    const nextIndex = (currentImageIndex + 1) % length;
     return { prevIndex, currentIndex: currentImageIndex, nextIndex };
   };
 
@@ -370,6 +412,7 @@ const HomePage = () => {
 
   return (
     <div className="homepage">
+      <ToastContainer />
       <Carousel fade>
         {carouselItems.map((item, index) => (
           <Carousel.Item key={index}>
@@ -390,7 +433,6 @@ const HomePage = () => {
       {/* Character List */}
       <div className="custom-section featured-characters py-5">
         <h2 className="text-center fw-bold mb-5">Character List</h2>
-
         <div className="character-list-container">
           <div className="search-filter-sidebar">
             <Form className="search-filter-form">
@@ -405,7 +447,6 @@ const HomePage = () => {
                   className="search-input"
                 />
               </Form.Group>
-
               <Form.Group className="mb-4">
                 <Form.Label>Price Range (VND)</Form.Label>
                 <Range
@@ -424,15 +465,11 @@ const HomePage = () => {
                         ...props.style,
                         height: "8px",
                         width: "100%",
-                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${
-                          ((characterSearchParams.price[0] - 0) / 1000000) * 100
-                        }%, #d3d3d3 ${
-                          ((characterSearchParams.price[0] - 0) / 1000000) * 100
-                        }%, #d3d3d3 ${
-                          ((characterSearchParams.price[1] - 0) / 1000000) * 100
-                        }%, #f85caa ${
-                          ((characterSearchParams.price[1] - 0) / 1000000) * 100
-                        }%, #f85caa 100%)`,
+                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${((characterSearchParams.price[0] - 0) / 1000000) * 100
+                          }%, #d3d3d3 ${((characterSearchParams.price[0] - 0) / 1000000) * 100
+                          }%, #d3d3d3 ${((characterSearchParams.price[1] - 0) / 1000000) * 100
+                          }%, #f85caa ${((characterSearchParams.price[1] - 0) / 1000000) * 100
+                          }%, #f85caa 100%)`,
                         borderRadius: "5px",
                       }}
                     >
@@ -459,7 +496,6 @@ const HomePage = () => {
                   {formatPrice(characterSearchParams.price[1])}
                 </div>
               </Form.Group>
-
               <Form.Group className="mb-4">
                 <Form.Label>Height Range (cm)</Form.Label>
                 <Range
@@ -478,15 +514,11 @@ const HomePage = () => {
                         ...props.style,
                         height: "8px",
                         width: "100%",
-                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${
-                          ((characterSearchParams.height[0] - 100) / 100) * 100
-                        }%, #d3d3d3 ${
-                          ((characterSearchParams.height[0] - 100) / 100) * 100
-                        }%, #d3d3d3 ${
-                          ((characterSearchParams.height[1] - 100) / 100) * 100
-                        }%, #f85caa ${
-                          ((characterSearchParams.height[1] - 100) / 100) * 100
-                        }%, #f85caa 100%)`,
+                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${((characterSearchParams.height[0] - 100) / 100) * 100
+                          }%, #d3d3d3 ${((characterSearchParams.height[0] - 100) / 100) * 100
+                          }%, #d3d3d3 ${((characterSearchParams.height[1] - 100) / 100) * 100
+                          }%, #f85caa ${((characterSearchParams.height[1] - 100) / 100) * 100
+                          }%, #f85caa 100%)`,
                         borderRadius: "5px",
                       }}
                     >
@@ -513,7 +545,6 @@ const HomePage = () => {
                   {characterSearchParams.height[1]} cm
                 </div>
               </Form.Group>
-
               <Form.Group className="mb-4">
                 <Form.Label>Weight Range (kg)</Form.Label>
                 <Range
@@ -532,15 +563,11 @@ const HomePage = () => {
                         ...props.style,
                         height: "8px",
                         width: "100%",
-                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${
-                          ((characterSearchParams.weight[0] - 20) / 80) * 100
-                        }%, #d3d3d3 ${
-                          ((characterSearchParams.weight[0] - 20) / 80) * 100
-                        }%, #d3d3d3 ${
-                          ((characterSearchParams.weight[1] - 20) / 80) * 100
-                        }%, #f85caa ${
-                          ((characterSearchParams.weight[1] - 20) / 80) * 100
-                        }%, #f85caa 100%)`,
+                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${((characterSearchParams.weight[0] - 20) / 80) * 100
+                          }%, #d3d3d3 ${((characterSearchParams.weight[0] - 20) / 80) * 100
+                          }%, #d3d3d3 ${((characterSearchParams.weight[1] - 20) / 80) * 100
+                          }%, #f85caa ${((characterSearchParams.weight[1] - 20) / 80) * 100
+                          }%, #f85caa 100%)`,
                         borderRadius: "5px",
                       }}
                     >
@@ -567,7 +594,6 @@ const HomePage = () => {
                   {characterSearchParams.weight[1]} kg
                 </div>
               </Form.Group>
-
               <div className="filter-buttons">
                 <Button
                   className="search-button mb-2 w-100"
@@ -584,7 +610,6 @@ const HomePage = () => {
               </div>
             </Form>
           </div>
-
           <div className="character-grid">
             <ul className="card-list">
               {currentCharacters.map((character) => (
@@ -621,7 +646,6 @@ const HomePage = () => {
                 </li>
               ))}
             </ul>
-
             <div className="pagination-controls text-center mt-4">
               <Button
                 className="pagination-arrow"
@@ -636,9 +660,8 @@ const HomePage = () => {
               ).map((page) => (
                 <Button
                   key={page}
-                  className={`pagination-number ${
-                    currentPageCharacters === page ? "active" : ""
-                  }`}
+                  className={`pagination-number ${currentPageCharacters === page ? "active" : ""
+                    }`}
                   onClick={() => handleCharacterPageChange(page)}
                 >
                   {page}
@@ -659,11 +682,9 @@ const HomePage = () => {
       {/* Cosplayer List */}
       <div className="custom-section featured-cosplayers py-5">
         <h2 className="text-center fw-bold mb-5">Cosplayer List</h2>
-
         <div className="character-list-container">
           <div className="search-filter-sidebar">
             <Form className="search-filter-form">
-              {/* Thanh tìm kiếm theo tên cosplayer */}
               <Form.Group className="mb-4">
                 <Form.Label>Cosplayer Name</Form.Label>
                 <Form.Control
@@ -675,7 +696,6 @@ const HomePage = () => {
                   className="search-input"
                 />
               </Form.Group>
-
               <Form.Group className="mb-4">
                 <Form.Label>Average Star</Form.Label>
                 <Range
@@ -694,15 +714,11 @@ const HomePage = () => {
                         ...props.style,
                         height: "8px",
                         width: "100%",
-                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${
-                          ((cosplayerSearchParams.averageStar[0] - 0) / 5) * 100
-                        }%, #d3d3d3 ${
-                          ((cosplayerSearchParams.averageStar[0] - 0) / 5) * 100
-                        }%, #d3d3d3 ${
-                          ((cosplayerSearchParams.averageStar[1] - 0) / 5) * 100
-                        }%, #f85caa ${
-                          ((cosplayerSearchParams.averageStar[1] - 0) / 5) * 100
-                        }%, #f85caa 100%)`,
+                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${((cosplayerSearchParams.averageStar[0] - 0) / 5) * 100
+                          }%, #d3d3d3 ${((cosplayerSearchParams.averageStar[0] - 0) / 5) * 100
+                          }%, #d3d3d3 ${((cosplayerSearchParams.averageStar[1] - 0) / 5) * 100
+                          }%, #f85caa ${((cosplayerSearchParams.averageStar[1] - 0) / 5) * 100
+                          }%, #f85caa 100%)`,
                         borderRadius: "5px",
                       }}
                     >
@@ -731,7 +747,6 @@ const HomePage = () => {
                   <Star size={14} className="star-filled" />
                 </div>
               </Form.Group>
-
               <Form.Group className="mb-4">
                 <Form.Label>Height Range (cm)</Form.Label>
                 <Range
@@ -750,15 +765,11 @@ const HomePage = () => {
                         ...props.style,
                         height: "8px",
                         width: "100%",
-                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${
-                          ((cosplayerSearchParams.height[0] - 100) / 100) * 100
-                        }%, #d3d3d3 ${
-                          ((cosplayerSearchParams.height[0] - 100) / 100) * 100
-                        }%, #d3d3d3 ${
-                          ((cosplayerSearchParams.height[1] - 100) / 100) * 100
-                        }%, #f85caa ${
-                          ((cosplayerSearchParams.height[1] - 100) / 100) * 100
-                        }%, #f85caa 100%)`,
+                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${((cosplayerSearchParams.height[0] - 100) / 100) * 100
+                          }%, #d3d3d3 ${((cosplayerSearchParams.height[0] - 100) / 100) * 100
+                          }%, #d3d3d3 ${((cosplayerSearchParams.height[1] - 100) / 100) * 100
+                          }%, #f85caa ${((cosplayerSearchParams.height[1] - 100) / 100) * 100
+                          }%, #f85caa 100%)`,
                         borderRadius: "5px",
                       }}
                     >
@@ -785,7 +796,6 @@ const HomePage = () => {
                   {cosplayerSearchParams.height[1]} cm
                 </div>
               </Form.Group>
-
               <Form.Group className="mb-4">
                 <Form.Label>Weight Range (kg)</Form.Label>
                 <Range
@@ -804,15 +814,11 @@ const HomePage = () => {
                         ...props.style,
                         height: "8px",
                         width: "100%",
-                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${
-                          ((cosplayerSearchParams.weight[0] - 20) / 80) * 100
-                        }%, #d3d3d3 ${
-                          ((cosplayerSearchParams.weight[0] - 20) / 80) * 100
-                        }%, #d3d3d3 ${
-                          ((cosplayerSearchParams.weight[1] - 20) / 80) * 100
-                        }%, #f85caa ${
-                          ((cosplayerSearchParams.weight[1] - 20) / 80) * 100
-                        }%, #f85caa 100%)`,
+                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${((cosplayerSearchParams.weight[0] - 20) / 80) * 100
+                          }%, #d3d3d3 ${((cosplayerSearchParams.weight[0] - 20) / 80) * 100
+                          }%, #d3d3d3 ${((cosplayerSearchParams.weight[1] - 20) / 80) * 100
+                          }%, #f85caa ${((cosplayerSearchParams.weight[1] - 20) / 80) * 100
+                          }%, #f85caa 100%)`,
                         borderRadius: "5px",
                       }}
                     >
@@ -839,7 +845,6 @@ const HomePage = () => {
                   {cosplayerSearchParams.weight[1]} kg
                 </div>
               </Form.Group>
-
               <Form.Group className="mb-4">
                 <Form.Label>Hourly Rate (VND)</Form.Label>
                 <Range
@@ -858,19 +863,15 @@ const HomePage = () => {
                         ...props.style,
                         height: "8px",
                         width: "100%",
-                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${
-                          ((cosplayerSearchParams.hourlyRate[0] - 0) / 100000) *
+                        background: `linear-gradient(to right, #f85caa 0%, #f85caa ${((cosplayerSearchParams.hourlyRate[0] - 0) / 100000) *
                           100
-                        }%, #d3d3d3 ${
-                          ((cosplayerSearchParams.hourlyRate[0] - 0) / 100000) *
+                          }%, #d3d3d3 ${((cosplayerSearchParams.hourlyRate[0] - 0) / 100000) *
                           100
-                        }%, #d3d3d3 ${
-                          ((cosplayerSearchParams.hourlyRate[1] - 0) / 100000) *
+                          }%, #d3d3d3 ${((cosplayerSearchParams.hourlyRate[1] - 0) / 100000) *
                           100
-                        }%, #f85caa ${
-                          ((cosplayerSearchParams.hourlyRate[1] - 0) / 100000) *
+                          }%, #f85caa ${((cosplayerSearchParams.hourlyRate[1] - 0) / 100000) *
                           100
-                        }%, #f85caa 100%)`,
+                          }%, #f85caa 100%)`,
                         borderRadius: "5px",
                       }}
                     >
@@ -897,7 +898,6 @@ const HomePage = () => {
                   {formatPrice(cosplayerSearchParams.hourlyRate[1])}
                 </div>
               </Form.Group>
-
               <div className="filter-buttons">
                 <Button
                   className="search-button mb-2 w-100"
@@ -914,7 +914,6 @@ const HomePage = () => {
               </div>
             </Form>
           </div>
-
           <div className="character-grid">
             <ul className="card-list">
               {currentCosplayers.map((cosplayer) => (
@@ -963,7 +962,6 @@ const HomePage = () => {
                 </li>
               ))}
             </ul>
-
             <div className="pagination-controls text-center mt-4">
               <Button
                 className="pagination-arrow"
@@ -978,9 +976,8 @@ const HomePage = () => {
               ).map((page) => (
                 <Button
                   key={page}
-                  className={`pagination-number ${
-                    currentPageCosplayers === page ? "active" : ""
-                  }`}
+                  className={`pagination-number ${currentPageCosplayers === page ? "active" : ""
+                    }`}
                   onClick={() => handleCosplayerPageChange(page)}
                 >
                   {page}
@@ -996,11 +993,10 @@ const HomePage = () => {
             </div>
           </div>
         </div>
-
         <div className="text-center mt-4">
-          <Link to="/cosplayers" className="view-all-button">
+          <button className="view-all-button" onClick={handleHireCosplayers}>
             Hire Cosplayers
-          </Link>
+          </button>
         </div>
       </div>
 
@@ -1012,10 +1008,10 @@ const HomePage = () => {
           </Col>
           <Col md={6}>
             <p className="text-muted mb-4 text-center">
-              Welcome to CCSS – your one-stop destination for all things
-              cosplay! Our passionate team brings creativity, authenticity, and
-              excitement to every event, costume, and experience. Explore our
-              world of cosplay and let’s make your fandom dreams come true!
+              Welcome to CCSS – your one-stop destination for all things cosplay!
+              Our passionate team brings creativity, authenticity, and excitement
+              to every event, costume, and experience. Explore our world of
+              cosplay and let’s make your fandom dreams come true!
             </p>
           </Col>
           <Col md={6}>
@@ -1031,10 +1027,7 @@ const HomePage = () => {
                   }
                   style={{ transform: `translateX(-100%)` }}
                 >
-                  <img
-                    src={aboutUsImages[prevIndex]}
-                    alt="About Us Side Left"
-                  />
+                  <img src={aboutUsImages[prevIndex]} alt="About Us Side Left" />
                 </div>
                 <div
                   className="image-wrapper main-image"
@@ -1057,8 +1050,6 @@ const HomePage = () => {
                   />
                 </div>
               </div>
-
-              {/* Controls: Mũi tên và dấu chấm nằm bên dưới */}
               <div className="carousel-controls">
                 <button
                   className="carousel-arrow left-arrow"
@@ -1075,9 +1066,8 @@ const HomePage = () => {
                   {aboutUsImages.map((_, index) => (
                     <span
                       key={index}
-                      className={`dot ${
-                        currentImageIndex === index ? "active" : ""
-                      }`}
+                      className={`dot ${currentImageIndex === index ? "active" : ""
+                        }`}
                       onClick={() => setCurrentImageIndex(index)}
                     />
                   ))}
@@ -1098,6 +1088,7 @@ const HomePage = () => {
         </Row>
       </div>
 
+      {/* Featured Services */}
       <div className="custom-section featured-services py-5">
         <h2 className="text-center mb-5">Featured Services</h2>
         <Row className="justify-content-center">
