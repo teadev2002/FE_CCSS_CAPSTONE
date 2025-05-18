@@ -1,3 +1,4 @@
+/// them api post hinh anh
 import React, { useState, useEffect, useRef } from "react";
 import { Modal, Form } from "react-bootstrap";
 import { Button } from "antd";
@@ -111,16 +112,38 @@ const EditRefundButton = ({ refund }) => {
   };
 
   const handleSaveChanges = async () => {
-    if (!refund?.contractId || !refund?.contractRefundId) {
-      toast.error("Invalid contract or refund ID.");
+    if (!refund?.contractRefundId) {
+      toast.error("Invalid refund ID.");
       return;
     }
 
     setLoading(true);
     try {
+      // Fetch refund details to get contractId
+      const refundDetails =
+        await RefundService.GetContractRefundByContractRefundId(
+          refund.contractRefundId
+        );
+      const contractId = refundDetails.contractId;
+
+      if (!contractId) {
+        toast.error("Contract ID not found in refund details.");
+        return;
+      }
+
+      // Call sendContractImage if images are present
+      if (images.length > 0) {
+        await RefundService.sendContractImage(
+          contractId,
+          "RefundMoney",
+          images
+        );
+      }
+
+      // Call updateRefund
       await RefundService.updateRefund(
         refund.contractRefundId,
-        refund.contractId,
+        contractId,
         formData.numberBank,
         formData.bankName,
         formData.accountBankName,
@@ -128,11 +151,12 @@ const EditRefundButton = ({ refund }) => {
         formData.description,
         images
       );
+
       toast.success("Refund updated successfully.");
       handleCloseModal();
     } catch (error) {
-      console.error("Error updating refund:", error);
-      toast.error("Failed to update refund.");
+      console.error("Error processing refund:", error);
+      toast.error("Failed to update refund or upload images.");
     } finally {
       setLoading(false);
     }
@@ -239,25 +263,79 @@ const EditRefundButton = ({ refund }) => {
                     placeholder="Enter description"
                   />
                 </Form.Group>
-                <Form.Group className="mb-3">
-                  <Form.Label>Images</Form.Label>
-                  <Form.Control
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={handleImageChange}
-                  />
+
+                <Form.Group className="mb-4">
+                  <Form.Label className="fw-bold">Upload Images</Form.Label>
+                  <div
+                    style={{
+                      border: "2px dashed #ccc",
+                      padding: "20px",
+                      borderRadius: "8px",
+                      textAlign: "center",
+                      backgroundColor: "#f9f9f9",
+                    }}
+                  >
+                    <Form.Control
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      style={{ display: "none" }}
+                      id="customFileInput"
+                    />
+                    <label
+                      htmlFor="customFileInput"
+                      style={{ cursor: "pointer", color: "#007bff" }}
+                    >
+                      Click to select images
+                    </label>
+                  </div>
+
                   {images.length > 0 && (
-                    <div className="mt-2">
-                      <p>Selected Images: {images.length}</p>
+                    <div className="mt-3">
+                      <p className="mb-2">Selected Images ({images.length}):</p>
                       <div
-                        ref={previewContainerRef}
                         style={{
-                          display: "flex",
-                          flexWrap: "wrap",
-                          gap: "10px",
+                          display: "grid",
+                          gridTemplateColumns:
+                            "repeat(auto-fill, minmax(100px, 1fr))",
+                          gap: "12px",
                         }}
-                      ></div>
+                      >
+                        {images.map((image, index) => (
+                          <div
+                            key={index}
+                            style={{
+                              border: "1px solid #ddd",
+                              borderRadius: "8px",
+                              padding: "6px",
+                              textAlign: "center",
+                              backgroundColor: "#fff",
+                              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                            }}
+                          >
+                            <img
+                              src={URL.createObjectURL(image)}
+                              alt={image.name}
+                              style={{
+                                width: "100%",
+                                height: "80px",
+                                objectFit: "cover",
+                                borderRadius: "4px",
+                              }}
+                            />
+                            <div
+                              style={{
+                                fontSize: "11px",
+                                marginTop: "6px",
+                                wordBreak: "break-all",
+                              }}
+                            >
+                              {image.name}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </Form.Group>
@@ -273,7 +351,12 @@ const EditRefundButton = ({ refund }) => {
             type="primary"
             onClick={handleSaveChanges}
             loading={loading}
-            disabled={loading || !formData.price}
+            disabled={
+              loading ||
+              !formData.accountBankName ||
+              !formData.numberBank ||
+              !formData.bankName
+            }
           >
             Save Changes
           </Button>

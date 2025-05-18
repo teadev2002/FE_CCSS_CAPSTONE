@@ -530,7 +530,7 @@
 
 // export default ViewDeliveryRentalCostume;
 
-// thêm nhiều hình
+// thêm nhiều hình==== chua dc
 import React, { useState, useEffect } from "react";
 import {
   Modal,
@@ -572,7 +572,7 @@ const ViewDeliveryRentalCostume = ({ visible, onCancel, contractId }) => {
   ];
 
   // Maximum number of images allowed
-  const MAX_IMAGES = 5;
+  const MAX_IMAGES = 1;
 
   // Fetch image data and delivery status
   useEffect(() => {
@@ -797,9 +797,7 @@ const ViewDeliveryRentalCostume = ({ visible, onCancel, contractId }) => {
       handleCloseUpdateModal();
     } catch (error) {
       console.error("Failed to update delivery status!", error);
-      toast.error(
-        error.response?.data?.message || "Failed to update delivery status!"
-      );
+      toast.error(error.response?.data?.message || "Lack of image!");
     } finally {
       setLoading(false);
     }
@@ -843,10 +841,18 @@ const ViewDeliveryRentalCostume = ({ visible, onCancel, contractId }) => {
         title="Update Delivery Status"
         visible={updateModalVisible}
         onOk={handleUpdateDelivery}
-        onCancel={handleCloseUpdateModal}
         okText="Update"
-        cancelText="Cancel"
         confirmLoading={loading}
+        footer={[
+          <Button
+            key="submit"
+            type="primary"
+            loading={loading}
+            onClick={handleUpdateDelivery}
+          >
+            Update
+          </Button>,
+        ]}
       >
         <Form form={form} layout="vertical">
           <Form.Item
@@ -859,7 +865,7 @@ const ViewDeliveryRentalCostume = ({ visible, onCancel, contractId }) => {
           </Form.Item>
 
           <Form.Item
-            label={`Images (at least one required, max ${MAX_IMAGES})`}
+            label={`Images (at least one required)`}
             name="images"
             rules={[
               {

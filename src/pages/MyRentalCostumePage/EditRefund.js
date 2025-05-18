@@ -93,10 +93,6 @@ const EditRefund = ({ refund }) => {
         refund.contractRefundId
       );
 
-      // Update contract status to "Completed"
-      await RefundService.updateContractStatus(refund.contractId, "Completed");
-      console.log("Contract status updated for contractId:", refund.contractId);
-
       toast.success("Refund updated successfully.");
       handleCloseModal();
     } catch (error) {
@@ -142,11 +138,12 @@ const EditRefund = ({ refund }) => {
                   >
                     <Form.Label>Bank Number</Form.Label>
                     <Form.Control
-                      type="text"
+                      type="number"
                       name="numberBank"
                       value={formData.numberBank}
                       onChange={handleInputChange}
                       placeholder="Enter bank number"
+                      required
                     />
                   </Form.Group>
                   <Form.Group className="mb-3" style={{ flex: 1 }}>
@@ -157,6 +154,7 @@ const EditRefund = ({ refund }) => {
                       value={formData.bankName}
                       onChange={handleInputChange}
                       placeholder="Enter bank name"
+                      required
                     />
                   </Form.Group>
                 </div>
@@ -168,6 +166,7 @@ const EditRefund = ({ refund }) => {
                     value={formData.accountBankName}
                     onChange={handleInputChange}
                     placeholder="Enter account holder name"
+                    required
                   />
                 </Form.Group>
               </div>
@@ -224,7 +223,12 @@ const EditRefund = ({ refund }) => {
             type="primary"
             onClick={handleSaveChanges}
             loading={loading}
-            disabled={loading || !formData.price}
+            disabled={
+              loading ||
+              !formData.accountBankName ||
+              !formData.numberBank ||
+              !formData.bankName
+            }
           >
             Save Changes
           </Button>

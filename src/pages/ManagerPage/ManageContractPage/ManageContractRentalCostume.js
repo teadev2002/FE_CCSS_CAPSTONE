@@ -704,7 +704,6 @@ const ManageContractRentalCostume = () => {
                       <th className="text-center">End Date</th>
                       <th className="text-center">Actions</th>
                       <th className="text-center">Refund</th>
-                      <th className="text-center">Complete Contract</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -772,25 +771,6 @@ const ManageContractRentalCostume = () => {
                               >
                                 Refund
                               </Button>
-                            ) : (
-                              "-"
-                            )}
-                          </td>
-                          <td className="text-center">
-                            {con.contractId &&
-                            con.status === "FinalSettlement" ? (
-                              <Popconfirm
-                                title="Are you sure you want to complete this contract?"
-                                onConfirm={() =>
-                                  handleCompleteContract(con.contractId)
-                                }
-                                okText="Yes"
-                                cancelText="No"
-                              >
-                                <Button type="primary" size="small">
-                                  Complete
-                                </Button>
-                              </Popconfirm>
                             ) : (
                               "-"
                             )}

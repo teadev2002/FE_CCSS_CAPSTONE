@@ -135,6 +135,17 @@ const RefundService = {
       throw error;
     }
   },
+  getImageRefundMoneybyContractId: async (contractId) => {
+    try {
+      const response = await apiClient.get(
+        `/api/ContractImage?contractId=${contractId}&status=RefundMoney`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching refund images by contract ID:", error);
+      throw error;
+    }
+  },
   getContractByContractId: async (contractId) => {
     try {
       const response = await apiClient.get(
@@ -143,6 +154,44 @@ const RefundService = {
       return response.data;
     } catch (error) {
       console.error("Error fetching contract by ID:", error);
+      throw error;
+    }
+  },
+  sendContractImage: async (contractId, status, images) => {
+    try {
+      // Validate inputs
+      if (!contractId || typeof contractId !== "string") {
+        throw new Error("Invalid or missing contractId");
+      }
+      if (!status || typeof status !== "string") {
+        throw new Error("Invalid or missing status");
+      }
+      if (!images || !Array.isArray(images) || images.length === 0) {
+        throw new Error("Images array is required and must not be empty");
+      }
+
+      // Create FormData object for multipart/form-data
+      const formData = new FormData();
+      images.forEach((image, index) => {
+        formData.append("UrlImages", image);
+      });
+
+      // Construct the URL with query parameters
+      const queryParams = new URLSearchParams({
+        contractId,
+        status,
+      }).toString();
+      const url = `/api/ContractImage?${queryParams}`;
+
+      // Make the POST request using formDataClient
+      const response = await formDataClient.post(url, formData);
+      return response.data;
+    } catch (error) {
+      console.error("Error sending contract images:", {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+      });
       throw error;
     }
   },

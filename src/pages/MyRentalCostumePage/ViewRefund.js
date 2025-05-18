@@ -4,13 +4,13 @@ import { Button, Image, Spin } from "antd";
 import RefundService from "../../services/RefundService/RefundService.js";
 import { toast } from "react-toastify";
 import { Eye } from "lucide-react";
-
+import { useParams } from "react-router-dom";
 const ViewRefund = ({ refund }) => {
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [selectedRefund, setSelectedRefund] = useState(null);
   const [refundImage, setRefundImage] = useState(null);
-
+  const [refundImage2, setRefundImage2] = useState(null);
   const handleOpenModal = async () => {
     if (!refund?.contractRefundId) {
       console.error("Invalid or missing contractRefundId:", refund);
@@ -39,6 +39,14 @@ const ViewRefund = ({ refund }) => {
         console.log("Image API response:", imageResponse);
         setRefundImage(imageResponse[0]); // Assuming the API returns an array
       }
+      if (response.contractId) {
+        const imageResponse =
+          await RefundService.getImageRefundMoneybyContractId(
+            response.contractId
+          );
+        console.log("Image API response:", imageResponse);
+        setRefundImage2(imageResponse[0]); // Assuming the API returns an array
+      }
 
       setShowModal(true);
     } catch (error) {
@@ -53,6 +61,30 @@ const ViewRefund = ({ refund }) => {
     setShowModal(false);
     setSelectedRefund(null);
     setRefundImage(null);
+    setRefundImage2(null);
+  };
+
+  const handleComplete = async () => {
+    if (!selectedRefund?.contractId) {
+      toast.error("Contract ID is missing.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Call updateContractStatus to set status to "Completed"
+      await RefundService.updateContractStatus(
+        selectedRefund.contractId,
+        "Completed"
+      );
+      toast.success("Contract status updated to Completed.");
+      handleCloseModal(); // Close modal after success
+    } catch (error) {
+      console.error("Error updating contract status:", error);
+      toast.error("Failed to update contract status.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -75,7 +107,7 @@ const ViewRefund = ({ refund }) => {
         centered
         className="refund-modal"
         backdropClassName="custom-backdrop"
-        style={{ zIndex: 1050 }} // Ensure modal is above other elements
+        style={{ zIndex: 1050 }}
       >
         <Modal.Title style={{ textAlign: "center", padding: "16px" }}>
           View Refund Details
@@ -99,12 +131,11 @@ const ViewRefund = ({ refund }) => {
                 <strong>Account Holder:</strong>{" "}
                 {selectedRefund.accountBankName || "..."}
               </p>
-
               <p>
                 <strong>Price Damage:</strong>{" "}
                 {selectedRefund.price
                   ? selectedRefund.price.toLocaleString()
-                  : "N/A"}
+                  : 0}
               </p>
               <p>
                 <strong>Amount:</strong>{" "}
@@ -136,18 +167,36 @@ const ViewRefund = ({ refund }) => {
                     }}
                     preview={{
                       maskClassName: "custom-preview-mask",
-                      zIndex: 1060, // Ensure preview is above modal
+                      zIndex: 1060,
                     }}
                     fallback="https://via.placeholder.com/150?text=No+Image"
                     onError={() => toast.error("Failed to load image.")}
                   />
                 ) : (
-                  <p>No image available</p>
+                  <i>No image available</i>
                 )}
                 <p>
                   <strong>Created Date:</strong>{" "}
                   {selectedRefund.createDate || "N/A"}
                 </p>
+                {refundImage2 && refundImage2.urlImage ? (
+                  <Image
+                    src={refundImage2.urlImage}
+                    alt="Refund"
+                    width="20%"
+                    style={{
+                      objectFit: "contain",
+                    }}
+                    preview={{
+                      maskClassName: "custom-preview-mask",
+                      zIndex: 1060,
+                    }}
+                    fallback="https://via.placeholder.com/150?text=No+Image"
+                    onError={() => toast.error("Failed to load image.")}
+                  />
+                ) : (
+                  <i>Waiting to Banking Image...</i>
+                )}
                 <p>
                   <strong>Updated Date:</strong>{" "}
                   {selectedRefund.updateDate || "Not Yet"}
@@ -162,6 +211,18 @@ const ViewRefund = ({ refund }) => {
           <Button type="default" onClick={handleCloseModal}>
             Close
           </Button>
+          {refundImage2 && refundImage2.urlImage && (
+            <Button
+              type="primary"
+              onClick={handleComplete}
+              loading={loading}
+              disabled={
+                loading || (selectedRefund && selectedRefund.status === "Paid")
+              } // Add null check
+            >
+              Completed
+            </Button>
+          )}
         </Modal.Footer>
       </Modal>
     </>
