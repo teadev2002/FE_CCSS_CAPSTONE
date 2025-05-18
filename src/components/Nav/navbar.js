@@ -1039,9 +1039,11 @@ export function Navbar() {
   const [userId, setUserId] = useState(null);
   const [userRole, setUserRole] = useState(null);
   const [notifications, setNotifications] = useState([]);
+  const [persistedNotifications, setPersistedNotifications] = useState([]); // Lưu trữ thông báo cũ trên FE
   const [cartCount, setCartCount] = useState(0);
   const callCountRef = useRef(0);
 
+  // Hàm lấy thông tin người dùng từ token
   const getUserInfoFromToken = () => {
     const token = localStorage.getItem("accessToken");
     if (token) {
@@ -1061,6 +1063,7 @@ export function Navbar() {
     return { id: null, role: null };
   };
 
+  // Cập nhật số lượng sản phẩm trong giỏ hàng
   const updateCartCount = async () => {
     try {
       const { id } = getUserInfoFromToken();
@@ -1084,13 +1087,33 @@ export function Navbar() {
     }
   };
 
+  // Lấy danh sách thông báo và gộp với thông báo đã lưu
   const fetchNotifications = async (accountId) => {
     try {
       const notificationData = await navbarService.getNotification(accountId);
-      setNotifications(notificationData);
+      // Sắp xếp thông báo mới từ API
+      const sortedNewNotifications = notificationData.sort((a, b) =>
+        b.createdAt && a.createdAt
+          ? new Date(b.createdAt) - new Date(a.createdAt)
+          : b.id - a.id
+      );
+      // Lọc thông báo chưa đọc từ API
+      const unreadNotifications = sortedNewNotifications.filter(
+        (n) => !n.isRead
+      );
+      // Gộp với thông báo đã lưu (lấy tối đa 10 đã đọc)
+      const readNotifications = persistedNotifications
+        .filter((n) => n.isRead)
+        .slice(0, 10);
+      // Cập nhật danh sách hiển thị
+      const updatedNotifications = [...unreadNotifications, ...readNotifications];
+      setNotifications(updatedNotifications);
+      // Cập nhật danh sách lưu trữ
+      setPersistedNotifications(updatedNotifications);
     } catch (error) {
       console.error("Failed to fetch notifications:", error);
-      setNotifications([]);
+      // Nếu API lỗi, giữ danh sách đã lưu
+      setNotifications(persistedNotifications);
       toast.error("Failed to load notifications", {
         position: "top-right",
         autoClose: 3000,
@@ -1098,6 +1121,7 @@ export function Navbar() {
     }
   };
 
+  // Đánh dấu thông báo đã đọc
   const markNotificationsAsSeen = async () => {
     try {
       const unreadNotifications = notifications.filter(
@@ -1105,17 +1129,48 @@ export function Navbar() {
       );
       if (unreadNotifications.length === 0) return;
 
+      // Gọi API để đánh dấu đã đọc
       await Promise.all(
         unreadNotifications.map((notification) =>
           navbarService.seenNotification(notification.id)
         )
       );
 
+      // Cập nhật state trên FE: đánh dấu tất cả thông báo chưa đọc thành đã đọc
+      const updatedNotifications = notifications.map((notification) => ({
+        ...notification,
+        isRead: true,
+      }));
+      // Sắp xếp lại: mới nhất ở trên
+      const sortedNotifications = updatedNotifications.sort((a, b) =>
+        b.createdAt && a.createdAt
+          ? new Date(b.createdAt) - new Date(a.createdAt)
+          : b.id - a.id
+      );
+      // Lấy tối đa 10 thông báo đã đọc
+      const limitedNotifications = sortedNotifications.slice(0, 10);
+      setNotifications(limitedNotifications);
+      setPersistedNotifications(limitedNotifications);
+
+      // Làm mới từ API nếu cần
       if (userId) {
         await fetchNotifications(userId);
       }
     } catch (error) {
       console.error("Failed to mark notifications as seen:", error);
+      // Nếu API lỗi, vẫn cập nhật state trên FE
+      const updatedNotifications = notifications.map((notification) => ({
+        ...notification,
+        isRead: true,
+      }));
+      const sortedNotifications = updatedNotifications.sort((a, b) =>
+        b.createdAt && a.createdAt
+          ? new Date(b.createdAt) - new Date(a.createdAt)
+          : b.id - a.id
+      );
+      const limitedNotifications = sortedNotifications.slice(0, 10);
+      setNotifications(limitedNotifications);
+      setPersistedNotifications(limitedNotifications);
       toast.error("Failed to mark notifications as seen", {
         position: "top-right",
         autoClose: 3000,
@@ -1123,6 +1178,7 @@ export function Navbar() {
     }
   };
 
+  // Khởi tạo dữ liệu khi component mount
   useEffect(() => {
     const { id, role } = getUserInfoFromToken();
     setUserId(id);
@@ -1147,6 +1203,7 @@ export function Navbar() {
     }
   }, []);
 
+  // Điều hướng đến trang hồ sơ
   const goToProfile = () => {
     const { id } = getUserInfoFromToken();
     if (!id) {
@@ -1157,6 +1214,7 @@ export function Navbar() {
     }
   };
 
+  // Điều hướng đến lịch sử thuê
   const goToMyHistory = () => {
     const { id } = getUserInfoFromToken();
     if (!id) {
@@ -1167,6 +1225,7 @@ export function Navbar() {
     }
   };
 
+  // Điều hướng đến trang thuê trang phục
   const goToMyRentalCostume = () => {
     const { id } = getUserInfoFromToken();
     if (!id) {
@@ -1177,6 +1236,7 @@ export function Navbar() {
     }
   };
 
+  // Điều hướng đến trang tổ chức sự kiện
   const goToMyEventOrganize = () => {
     const { id } = getUserInfoFromToken();
     if (!id) {
@@ -1187,6 +1247,7 @@ export function Navbar() {
     }
   };
 
+  // Điều hướng đến lịch sử mua hàng
   const goToMyPurchaseHistory = () => {
     const { id } = getUserInfoFromToken();
     if (!id) {
@@ -1197,6 +1258,7 @@ export function Navbar() {
     }
   };
 
+  // Điều hướng đến trang nhiệm vụ (dành cho Cosplayer)
   const goToMyTask = () => {
     const { id, role } = getUserInfoFromToken();
     if (!id) {
@@ -1214,19 +1276,21 @@ export function Navbar() {
     }
   };
 
+  // Xử lý đăng xuất
   const handleLogout = () => {
     AuthService.logout();
     setUserId(null);
     setUserRole(null);
     setCartCount(0);
     setNotifications([]);
+    setPersistedNotifications([]); // Xóa thông báo khi đăng xuất
     navigate("/login");
   };
 
   return (
     <nav className="navbar">
       <div className="container mx-auto flex items-center justify-between h-24 px-4">
-        {/* [THAY ĐỔI] Thêm placeholder cho Cosplayer để giữ layout */}
+        {/* Thêm placeholder cho Cosplayer để giữ layout */}
         <div className="brand-container flex items-center">
           {userRole !== "Cosplayer" && (
             <Link to="/" className="flex items-center">
@@ -1307,13 +1371,18 @@ export function Navbar() {
                   notifications.map((notification) => (
                     <div
                       key={notification.id}
-                      className={`dropdown-item ${
+                      className={`dropdown-item notification-item ${
                         notification.isRead ? "read" : "unread"
                       }`}
                     >
-                      <p className="notification-message">
-                        {notification.message || "Unnamed notification"}
-                      </p>
+                      <div className="notification-content">
+                        {!notification.isRead && (
+                          <span className="notification-new-label">New</span>
+                        )}
+                        <p className="notification-message">
+                          {notification.message || "Unnamed notification"}
+                        </p>
+                      </div>
                     </div>
                   ))
                 ) : (
