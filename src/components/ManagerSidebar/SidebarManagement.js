@@ -757,9 +757,8 @@ const SidebarManagement = () => {
           <div key={index} className="menu-item">
             {/* Menu lớn */}
             <div
-              className={`nav-link menu-link ${
-                openMenu === menu.label ? "active" : ""
-              }`}
+              className={`nav-link menu-link ${openMenu === menu.label ? "active" : ""
+                }`}
               onClick={() => toggleMenu(menu.label)}
             >
               {menu.icon}

@@ -1223,13 +1223,11 @@ const getCurrentUserInfo = () => {
 // Định dạng ngày hiển thị
 const formatDateForDisplay = (dateString) => {
   if (!dateString) return "N/A";
-  // Kiểm tra định dạng YYYY-MM-DD
   const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
   if (dateRegex.test(dateString)) {
     const [year, month, day] = dateString.split("-");
     return `${day}/${month}/${year}`;
   }
-  // Nếu không đúng định dạng, thử parse bằng Date
   const date = new Date(dateString);
   if (!isNaN(date.getTime())) {
     const day = String(date.getDate()).padStart(2, "0");
@@ -1258,10 +1256,8 @@ const ProfilePage = () => {
   const [formData, setFormData] = useState({});
   const [avatarFile, setAvatarFile] = useState(null);
   const [additionalImages, setAdditionalImages] = useState([]);
-  // State để lưu feedback
   const [feedbacks, setFeedbacks] = useState([]);
   const [feedbackLoading, setFeedbackLoading] = useState(true);
-  // State để kiểm tra xem profile có phải Cosplayer không
   const [isCosplayer, setIsCosplayer] = useState(false);
 
   const currentUserInfo = getCurrentUserInfo();
@@ -1272,16 +1268,12 @@ const ProfilePage = () => {
   const isProfileOwner =
     normalizedCurrentUserId && normalizedId === normalizedCurrentUserId;
 
-  // Lấy dữ liệu hồ sơ và kiểm tra role Cosplayer
   const fetchProfileAndCheckRole = async () => {
     try {
-      // Lấy thông tin profile
       const profileData = await ProfileService.getProfileById(id);
       setProfile(profileData);
 
-      // Lấy danh sách Cosplayer
       const cosplayerAccounts = await ProfileService.getAccountsByRoleId("R004");
-      // Kiểm tra xem accountId có trong danh sách Cosplayer không
       const isCosplayerAccount = cosplayerAccounts.some(
         (account) => account.accountId === id
       );
@@ -1314,7 +1306,6 @@ const ProfilePage = () => {
     }
   };
 
-  // Lấy dữ liệu feedback theo cosplayerId
   const fetchFeedbacks = async () => {
     try {
       setFeedbackLoading(true);
@@ -1328,25 +1319,21 @@ const ProfilePage = () => {
     }
   };
 
-  // Gọi API khi component mount hoặc id thay đổi
   useEffect(() => {
     fetchProfileAndCheckRole();
   }, [id]);
 
-  // Gọi API feedback khi xác định profile là Cosplayer
   useEffect(() => {
     if (isCosplayer) {
       fetchFeedbacks();
     }
   }, [isCosplayer]);
 
-  // Xử lý thay đổi input
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Xử lý thay đổi avatar
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -1355,7 +1342,6 @@ const ProfilePage = () => {
     }
   };
 
-  // Xử lý thay đổi ảnh bổ sung
   const handleImagesChange = (e) => {
     const files = Array.from(e.target.files);
     const uniqueFiles = Array.from(
@@ -1365,7 +1351,6 @@ const ProfilePage = () => {
     setFormData((prev) => ({ ...prev, images: uniqueFiles }));
   };
 
-  // Gửi dữ liệu cập nhật
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -1397,7 +1382,6 @@ const ProfilePage = () => {
     }
   };
 
-  // Chuyển đổi chế độ chỉnh sửa
   const toggleEditMode = () => {
     if (!isProfileOwner) {
       setError("You do not have permission to edit this profile.");
@@ -1407,7 +1391,6 @@ const ProfilePage = () => {
     setError(null);
   };
 
-  // Lấy URL avatar
   const getAvatarUrl = () => {
     if (avatarFile) {
       return URL.createObjectURL(avatarFile);
@@ -1421,7 +1404,6 @@ const ProfilePage = () => {
     return "https://cdn.pixabay.com/photo/2023/12/04/13/23/ai-generated-8429472_1280.png";
   };
 
-  // Lấy danh sách ảnh duy nhất
   const getUniqueImages = (images) => {
     if (!images || images.length === 0) return [];
     const seenUrls = new Set();
@@ -1434,12 +1416,12 @@ const ProfilePage = () => {
     });
   };
 
-  // Tính tổng số sao trung bình và thống kê số lần nhận sao
   const calculateFeedbackStats = () => {
     if (!feedbacks || feedbacks.length === 0) {
       return {
         averageStar: 0,
         starCounts: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+        totalVotes: 0, // [THAY ĐỔI] Thêm totalVotes
       };
     }
 
@@ -1451,10 +1433,12 @@ const ProfilePage = () => {
       starCounts[fb.star] = (starCounts[fb.star] || 0) + 1;
     });
 
-    return { averageStar, starCounts };
+    const totalVotes = feedbacks.length; // [THAY ĐỔI] Tính tổng số vote
+
+    return { averageStar, starCounts, totalVotes };
   };
 
-  const { averageStar, starCounts } = calculateFeedbackStats();
+  const { averageStar, starCounts, totalVotes } = calculateFeedbackStats(); // [THAY ĐỔI] Lấy totalVotes
 
   if (loading) return <div></div>;
   if (error)
@@ -1474,7 +1458,6 @@ const ProfilePage = () => {
     <div className="profile-page">
       <div className="profile-container" style={{ maxWidth: "1200px" }}>
         <Container>
-          {/* Tabs điều hướng */}
           <div className="tabs">
             <div
               className={`tab ${activeTab === "posts" ? "active" : ""}`}
@@ -1484,7 +1467,6 @@ const ProfilePage = () => {
             </div>
           </div>
 
-          {/* Header hồ sơ */}
           <div className="profile-header">
             <div className="left-side">
               {isEditing ? (
@@ -1704,7 +1686,6 @@ const ProfilePage = () => {
             </div>
           </div>
 
-          {/* Gallery hoặc trạng thái trống */}
           {!isEditing && uniqueImages.length > 0 ? (
             <div className="additional-images">
               <h5>Images</h5>
@@ -1741,7 +1722,6 @@ const ProfilePage = () => {
             </div>
           )}
 
-          {/* Phần hiển thị feedback, chỉ hiển thị nếu profile là Cosplayer */}
           {isCosplayer && (
             <div className="feedback-section">
               <h5>Feedback</h5>
@@ -1759,11 +1739,14 @@ const ProfilePage = () => {
                 </div>
               ) : (
                 <>
-                  {/* Hiển thị tổng số sao trung bình và thống kê */}
                   <div className="feedback-stats">
                     <div className="average-star">
                       <Star size={24} className="star-icon" />
                       <span>{averageStar} Stars (Average)</span>
+                      {/* [THAY ĐỔI] Thêm tổng số vote */}
+                      <span className="total-votes">
+                        • {totalVotes} {totalVotes === 1 ? "vote" : "votes"}
+                      </span>
                     </div>
                     <div className="star-distribution">
                       {[5, 4, 3, 2, 1].map((star) => (
@@ -1773,9 +1756,8 @@ const ProfilePage = () => {
                             <div
                               className="progress-fill"
                               style={{
-                                width: `${
-                                  (starCounts[star] / feedbacks.length) * 100
-                                }%`,
+                                width: `${(starCounts[star] / feedbacks.length) * 100
+                                  }%`,
                               }}
                             ></div>
                           </div>
@@ -1785,7 +1767,6 @@ const ProfilePage = () => {
                     </div>
                   </div>
 
-                  {/* Danh sách các feedback */}
                   <div className="feedback-list">
                     {feedbacks.map((feedback, index) => (
                       <div key={index} className="feedback-item">

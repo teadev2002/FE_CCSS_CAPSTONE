@@ -1040,9 +1040,8 @@ export function Navbar() {
   const [userRole, setUserRole] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [cartCount, setCartCount] = useState(0);
-  const callCountRef = useRef(0); // Theo dõi số lần gọi API
+  const callCountRef = useRef(0);
 
-  // Lấy thông tin người dùng từ token
   const getUserInfoFromToken = () => {
     const token = localStorage.getItem("accessToken");
     if (token) {
@@ -1062,7 +1061,6 @@ export function Navbar() {
     return { id: null, role: null };
   };
 
-  // Cập nhật số lượng giỏ hàng
   const updateCartCount = async () => {
     try {
       const { id } = getUserInfoFromToken();
@@ -1086,7 +1084,6 @@ export function Navbar() {
     }
   };
 
-  // Lấy thông báo
   const fetchNotifications = async (accountId) => {
     try {
       const notificationData = await navbarService.getNotification(accountId);
@@ -1101,7 +1098,6 @@ export function Navbar() {
     }
   };
 
-  // Đánh dấu thông báo đã xem
   const markNotificationsAsSeen = async () => {
     try {
       const unreadNotifications = notifications.filter(
@@ -1127,23 +1123,20 @@ export function Navbar() {
     }
   };
 
-  // Khởi tạo dữ liệu khi component mount
   useEffect(() => {
     const { id, role } = getUserInfoFromToken();
     setUserId(id);
     setUserRole(role);
 
-    if (id && role !== "Cosplayer") {
-      fetchNotifications(id); // Lấy thông báo ban đầu
-      callCountRef.current = 1; // Đếm lần gọi đầu tiên
+    if (id) {
+      fetchNotifications(id);
+      callCountRef.current = 1;
 
-      // Thiết lập polling cho thông báo
       const intervalId = setInterval(() => {
         fetchNotifications(id);
-        callCountRef.current += 1; // Tăng số lần gọi
+        callCountRef.current += 1;
       }, 5000);
 
-      // Dọn dẹp interval
       return () => clearInterval(intervalId);
     }
 
@@ -1154,7 +1147,6 @@ export function Navbar() {
     }
   }, []);
 
-  // Chuyển đến trang Profile
   const goToProfile = () => {
     const { id } = getUserInfoFromToken();
     if (!id) {
@@ -1165,7 +1157,6 @@ export function Navbar() {
     }
   };
 
-  // Chuyển đến trang My History
   const goToMyHistory = () => {
     const { id } = getUserInfoFromToken();
     if (!id) {
@@ -1176,7 +1167,6 @@ export function Navbar() {
     }
   };
 
-  // Chuyển đến trang My Rental Costume
   const goToMyRentalCostume = () => {
     const { id } = getUserInfoFromToken();
     if (!id) {
@@ -1187,7 +1177,6 @@ export function Navbar() {
     }
   };
 
-  // Chuyển đến trang My Event Organize
   const goToMyEventOrganize = () => {
     const { id } = getUserInfoFromToken();
     if (!id) {
@@ -1198,7 +1187,6 @@ export function Navbar() {
     }
   };
 
-  // Chuyển đến trang My Purchase History
   const goToMyPurchaseHistory = () => {
     const { id } = getUserInfoFromToken();
     if (!id) {
@@ -1209,7 +1197,6 @@ export function Navbar() {
     }
   };
 
-  // Chuyển đến trang My Task
   const goToMyTask = () => {
     const { id, role } = getUserInfoFromToken();
     if (!id) {
@@ -1227,7 +1214,6 @@ export function Navbar() {
     }
   };
 
-  // Xử lý đăng xuất
   const handleLogout = () => {
     AuthService.logout();
     setUserId(null);
@@ -1240,21 +1226,19 @@ export function Navbar() {
   return (
     <nav className="navbar">
       <div className="container mx-auto flex items-center justify-between h-24 px-4">
-        {/* Ẩn Logo khi là Cosplayer */}
-        {userRole !== "Cosplayer" && (
-          <div className="brand-container flex items-center">
+        {/* [THAY ĐỔI] Thêm placeholder cho Cosplayer để giữ layout */}
+        <div className="brand-container flex items-center">
+          {userRole !== "Cosplayer" && (
             <Link to="/" className="flex items-center">
               <img src={Logo} alt="CCSS Logo" className="brand-logo h-12" />
             </Link>
-          </div>
-        )}
+          )}
+        </div>
 
         <div className="nav-menu">
-          {/* Hiển thị tab khi không phải Cosplayer */}
           {userRole !== "Cosplayer" && (
             <>
               {userId ? (
-                // Đã đăng nhập (non-Cosplayer)
                 <>
                   {[
                     { to: "/services", label: "Services", Icon: ShoppingBag },
@@ -1281,41 +1265,8 @@ export function Navbar() {
                       </NavLink>
                     </div>
                   ))}
-
-                  <div className="dropdown-container notification-container">
-                    <div
-                      className="dropdown-toggle"
-                      onClick={markNotificationsAsSeen}
-                    >
-                      <Bell size={20} />
-                      {notifications.filter((n) => !n.isRead).length > 0 && (
-                        <span className="notification-badge">
-                          {notifications.filter((n) => !n.isRead).length}
-                        </span>
-                      )}
-                    </div>
-                    <div className="dropdown-menu dropdown-menu-notifications">
-                      {notifications.length > 0 ? (
-                        notifications.map((notification) => (
-                          <div
-                            key={notification.id}
-                            className={`dropdown-item ${
-                              notification.isRead ? "read" : "unread"
-                            }`}
-                          >
-                            <p className="notification-message">
-                              {notification.message || "Unnamed notification"}
-                            </p>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="dropdown-item">No new notifications</div>
-                      )}
-                    </div>
-                  </div>
                 </>
               ) : (
-                // Chưa đăng nhập
                 <>
                   {[
                     { to: "/services", label: "Services", Icon: ShoppingBag },
@@ -1338,7 +1289,40 @@ export function Navbar() {
             </>
           )}
 
-          {/* Icon CircleUser luôn hiển thị */}
+          {userId && (
+            <div className="dropdown-container notification-container">
+              <div
+                className="dropdown-toggle"
+                onClick={markNotificationsAsSeen}
+              >
+                <Bell size={20} />
+                {notifications.filter((n) => !n.isRead).length > 0 && (
+                  <span className="notification-badge">
+                    {notifications.filter((n) => !n.isRead).length}
+                  </span>
+                )}
+              </div>
+              <div className="dropdown-menu dropdown-menu-notifications">
+                {notifications.length > 0 ? (
+                  notifications.map((notification) => (
+                    <div
+                      key={notification.id}
+                      className={`dropdown-item ${
+                        notification.isRead ? "read" : "unread"
+                      }`}
+                    >
+                      <p className="notification-message">
+                        {notification.message || "Unnamed notification"}
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  <div className="dropdown-item">No new notifications</div>
+                )}
+              </div>
+            </div>
+          )}
+
           <div className="dropdown-container">
             <div className="dropdown-toggle">
               <CircleUser size={20} />
@@ -1387,9 +1371,6 @@ export function Navbar() {
                           <span className="cart-badge">{cartCount}</span>
                         )}
                       </Link>
-                      {/* <Link to="/contact" className="dropdown-item">
-                        Contact
-                      </Link> */}
                       <Link
                         to="/login"
                         className="dropdown-item"
@@ -1402,9 +1383,6 @@ export function Navbar() {
                 </>
               ) : (
                 <>
-                  {/* <Link to="/contact" className="dropdown-item">
-                    Contact
-                  </Link> */}
                   <Link to="/login" className="dropdown-item">
                     Log In
                   </Link>
