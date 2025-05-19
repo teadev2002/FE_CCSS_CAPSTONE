@@ -1,302 +1,303 @@
- 
-// .sidebar {
-//   width: 70px;
-//   /* Chiều rộng khi thu gọn */
-//   height: 110vh;
-//   background: #2c3e50;
-//   color: #fff;
-//   position: fixed;
-//   left: 0;
-//   top: 0;
-//   transition: width 0.3s ease;
-//   z-index: 1000;
-//   // overflow: scroll;
-//   overflow-x: hidden;
-//   // overflow: hidden;
-//   /* Giữ để ẩn nội dung dư thừa */
+ // .sidebar {
+ //   width: 70px;
+ //   /* Chiều rộng khi thu gọn */
+ //   height: 110vh;
+ //   background: #2c3e50;
+ //   color: #fff;
+ //   position: fixed;
+ //   left: 0;
+ //   top: 0;
+ //   transition: width 0.3s ease;
+ //   z-index: 1000;
+ //   // overflow: scroll;
+ //   overflow-x: hidden;
+ //   // overflow: hidden;
+ //   /* Giữ để ẩn nội dung dư thừa */
 
-//   &:hover {
-//     width: 250px;
-//     /* Chiều rộng khi mở rộng */
-//   }
+ //   &:hover {
+ //     width: 250px;
+ //     /* Chiều rộng khi mở rộng */
+ //   }
 
-//   .sidebar-header {
-//     padding: 0.5rem;
-//     display: flex;
-//     align-items: center;
-//     justify-content: space-between;
-//     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+ //   .sidebar-header {
+ //     padding: 0.5rem;
+ //     display: flex;
+ //     align-items: center;
+ //     justify-content: space-between;
+ //     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 
-//     .brand {
-//       margin: 0;
-//       font-size: 1.25rem;
-//       font-weight: 600;
-//       white-space: nowrap;
-//       opacity: 0;
-//       /* Ẩn khi thu gọn */
-//       transition: opacity 0.1s ease;
-//     }
-//   }
+ //     .brand {
+ //       margin: 0;
+ //       font-size: 1.25rem;
+ //       font-weight: 600;
+ //       white-space: nowrap;
+ //       opacity: 0;
+ //       /* Ẩn khi thu gọn */
+ //       transition: opacity 0.1s ease;
+ //     }
+ //   }
 
-//   &:hover .sidebar-header .brand {
-//     opacity: 1;
-//     /* Hiện chữ khi hover */
-//   }
+ //   &:hover .sidebar-header .brand {
+ //     opacity: 1;
+ //     /* Hiện chữ khi hover */
+ //   }
 
-//   .sidebar-nav {
-//     padding: 1rem 0;
+ //   .sidebar-nav {
+ //     padding: 1rem 0;
 
-//     .nav-link {
-//       display: flex;
-//       align-items: center;
-//       padding: 0.75rem 1.5rem;
-//       color: rgba(255, 255, 255, 0.7);
-//       text-decoration: none;
-//       transition: all 0.3s ease;
-//       white-space: nowrap;
+ //     .nav-link {
+ //       display: flex;
+ //       align-items: center;
+ //       padding: 0.75rem 1.5rem;
+ //       color: rgba(255, 255, 255, 0.7);
+ //       text-decoration: none;
+ //       transition: all 0.3s ease;
+ //       white-space: nowrap;
 
-//       &:hover {
-//         color: #fff;
-//         background: rgba(255, 255, 255, 0.1);
-//       }
+ //       &:hover {
+ //         color: #fff;
+ //         background: rgba(255, 255, 255, 0.1);
+ //       }
 
-//       &.active {
-//         color: #fff;
-//         background: #3498db;
-//       }
+ //       &.active {
+ //         color: #fff;
+ //         background: #3498db;
+ //       }
 
-//       svg {
-//         /* Đảm bảo icon luôn hiển thị */
-//         flex-shrink: 0;
-//         /* Ngăn icon bị co lại */
-//         width: 20px;
-//         /* Kích thước cố định cho icon */
-//         height: 20px;
-//       }
+ //       svg {
+ //         /* Đảm bảo icon luôn hiển thị */
+ //         flex-shrink: 0;
+ //         /* Ngăn icon bị co lại */
+ //         width: 20px;
+ //         /* Kích thước cố định cho icon */
+ //         height: 20px;
+ //       }
 
-//       span {
-//         margin-left: 0.75rem;
-//         opacity: 0;
-//         /* Ẩn chữ khi thu gọn */
-//         transition: opacity 0.1s ease;
-//       }
-//     }
-//   }
+ //       span {
+ //         margin-left: 0.75rem;
+ //         opacity: 0;
+ //         /* Ẩn chữ khi thu gọn */
+ //         transition: opacity 0.1s ease;
+ //       }
+ //     }
+ //   }
 
-//   &:hover .sidebar-nav .nav-link span {
-//     opacity: 1;
-//     /* Hiện chữ khi hover */
-//   }
-// }
+ //   &:hover .sidebar-nav .nav-link span {
+ //     opacity: 1;
+ //     /* Hiện chữ khi hover */
+ //   }
+ // }
 
-// @media (max-width: 768px) {
-//   .sidebar {
-//     transform: translateX(-100%);
-//     width: 70px;
+ // @media (max-width: 768px) {
+ //   .sidebar {
+ //     transform: translateX(-100%);
+ //     width: 70px;
 
-//     &:hover {
-//       transform: translateX(0);
-//       width: 250px;
-//     }
-//   }
-// }
+ //     &:hover {
+ //       transform: translateX(0);
+ //       width: 250px;
+ //     }
+ //   }
+ // }
 
-//----------------------------------------------------------------------------------------------------//
+ //----------------------------------------------------------------------------------------------------//
 
-.sidebar {
-  width: 70px; // Chiều rộng khi thu gọn
-  height: 100vh;
-  background: #2c3e50;
-  color: #fff;
-  position: fixed;
-  left: 0;
-  top: 0;
-  transition: width 0.3s ease;
-  z-index: 1000;
-  overflow-x: hidden;
+ .sidebar {
+   width: 70px; // Chiều rộng khi thu gọn
+   height: 100vh;
+   background: #2c3e50;
+   color: #fff;
+   position: fixed;
+   left: 0;
+   top: 0;
+   transition: width 0.3s ease;
+   z-index: 1000;
+   overflow-x: hidden;
 
-  &:hover {
-    width: 280px; // Tăng chiều rộng để chứa tiêu đề dài
-  }
+   &:hover {
+     width: 280px; // Tăng chiều rộng để chứa tiêu đề dài
+   }
 
-  &.collapsed {
-    width: 70px; // Chiều rộng khi thu gọn hoàn toàn
-  }
+   &.collapsed {
+     width: 70px; // Chiều rộng khi thu gọn hoàn toàn
+   }
 
-  .sidebar-header {
-    padding: 0.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+   .sidebar-header {
+     padding: 0.5rem;
+     display: flex;
+     align-items: center;
+     justify-content: space-between;
+     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 
-    .brand {
-      margin: 0;
-      font-size: 1.25rem;
-      font-weight: 600;
-      white-space: nowrap;
-      opacity: 0; // Ẩn khi thu gọn
-      transition: opacity 0.3s ease;
-    }
+     .brand {
+       margin: 0;
+       font-size: 1.25rem;
+       font-weight: 600;
+       white-space: nowrap;
+       opacity: 0; // Ẩn khi thu gọn
+       transition: opacity 0.3s ease;
+     }
 
-    .toggle-btn {
-      background: none;
-      border: none;
-      color: #fff;
-      cursor: pointer;
-      padding: 0.5rem;
-    }
-  }
+     .toggle-btn {
+       background: none;
+       border: none;
+       color: #fff;
+       cursor: pointer;
+       padding: 0.5rem;
+     }
+   }
 
-  &:hover .sidebar-header .brand {
-    opacity: 1; // Hiện chữ khi hover
-  }
+   &:hover .sidebar-header .brand {
+     opacity: 1; // Hiện chữ khi hover
+   }
 
-  .sidebar-nav {
-    padding: 1rem 0;
+   .sidebar-nav {
+     padding: 1rem 0;
 
-    .menu-item {
-      .menu-link {
-        display: flex;
-        align-items: center;
-        padding: 0.75rem 1.5rem;
-        color: rgba(255, 255, 255, 0.7);
-        text-decoration: none;
-        transition: all 0.3s ease;
-        cursor: pointer;
-        white-space: normal; // Cho phép xuống dòng cho tiêu đề dài
-        line-height: 1.2; // Điều chỉnh khoảng cách dòng
+     .menu-item {
+       .menu-link {
+         display: flex;
+         align-items: center;
+         padding: 0.75rem 1.5rem;
+         color: rgba(255, 255, 255, 0.7);
+         text-decoration: none;
+         transition: all 0.3s ease;
+         cursor: pointer;
+         white-space: normal; // Cho phép xuống dòng cho tiêu đề dài
+         line-height: 1.2; // Điều chỉnh khoảng cách dòng
 
-        &:hover {
-          color: #fff;
-          background: rgba(255, 255, 255, 0.1);
-        }
+         &:hover {
+           color: #fff;
+           background: rgba(255, 255, 255, 0.1);
+         }
 
-        &.active {
-          color: #fff;
-          background: #3498db;
-        }
+         &.active {
+           color: #fff;
+           background: #3498db;
+         }
 
-        svg {
-          flex-shrink: 0;
-          width: 20px;
-          height: 20px;
-        }
+         svg {
+           flex-shrink: 0;
+           width: 20px;
+           height: 20px;
+         }
 
-        span {
-          margin-left: 0.75rem;
-          opacity: 0;
-          transition: opacity 0.3s ease;
-          max-width: 180px; // Giới hạn chiều rộng để tránh tràn
-          display: inline-block;
-        }
+         span {
+           margin-left: 0.75rem;
+           opacity: 0;
+           transition: opacity 0.3s ease;
+           max-width: 180px; // Giới hạn chiều rộng để tránh tràn
+           display: inline-block;
+         }
 
-        .chevron {
-          margin-left: auto;
-          transition: transform 0.3s ease;
-          &.rotate {
-            transform: rotate(180deg); // Xoay mũi tên khi menu mở
-          }
-        }
-      }
+         .chevron {
+           margin-left: auto;
+           transition: transform 0.3s ease;
 
-      .submenu {
-        padding-left: 1rem;
-        background: rgba(0, 0, 0, 0.1);
+           &.rotate {
+             transform: rotate(180deg); // Xoay mũi tên khi menu mở
+           }
+         }
+       }
 
-        .submenu-link {
-          padding: 0.5rem 1rem 0.5rem 2rem; // Thụt lề cho submenu
-          font-size: 0.9rem;
-          white-space: normal; // Cho phép xuống dòng cho tiêu đề dài
-          line-height: 1.2;
+       .submenu {
+         padding-left: 1rem;
+         background: rgba(0, 0, 0, 0.1);
 
-          svg {
-            width: 18px;
-            height: 18px;
-          }
+         .submenu-link {
+           padding: 0.5rem 1rem 0.5rem 2rem; // Thụt lề cho submenu
+           font-size: 0.9rem;
+           white-space: normal; // Cho phép xuống dòng cho tiêu đề dài
+           line-height: 1.2;
 
-          span {
-            max-width: 160px; // Giới hạn chiều rộng cho submenu
-            display: inline-block;
-          }
+           svg {
+             width: 18px;
+             height: 18px;
+           }
 
-          &:hover {
-            background: rgba(255, 255, 255, 0.15);
-          }
+           span {
+             max-width: 160px; // Giới hạn chiều rộng cho submenu
+             display: inline-block;
+           }
 
-          &.active {
-            background: #2980b9; // Màu khác biệt cho submenu active
-          }
-        }
-      }
-    }
+           &:hover {
+             background: rgba(255, 255, 255, 0.15);
+           }
 
-    .nav-link {
-      display: flex;
-      align-items: center;
-      padding: 0.75rem 1.5rem;
-      color: rgba(255, 255, 255, 0.7);
-      text-decoration: none;
-      transition: all 0.3s ease;
-      white-space: normal; // Cho phép xuống dòng
-      line-height: 1.2;
+           &.active {
+             background: #2980b9; // Màu khác biệt cho submenu active
+           }
+         }
+       }
+     }
 
-      &:hover {
-        color: #fff;
-        background: rgba(255, 255, 255, 0.1);
-      }
+     .nav-link {
+       display: flex;
+       align-items: center;
+       padding: 0.75rem 1.5rem;
+       color: rgba(255, 255, 255, 0.7);
+       text-decoration: none;
+       transition: all 0.3s ease;
+       white-space: normal; // Cho phép xuống dòng
+       line-height: 1.2;
 
-      &.active {
-        color: #fff;
-        background: #3498db;
-      }
+       &:hover {
+         color: #fff;
+         background: rgba(255, 255, 255, 0.1);
+       }
 
-      svg {
-        flex-shrink: 0;
-        width: 20px;
-        height: 20px;
-      }
+       &.active {
+         color: #fff;
+         background: #3498db;
+       }
 
-      span {
-        margin-left: 0.75rem;
-        opacity: 0;
-        transition: opacity 0.3s ease;
-        max-width: 180px; // Giới hạn chiều rộng
-        display: inline-block;
-      }
-    }
+       svg {
+         flex-shrink: 0;
+         width: 20px;
+         height: 20px;
+       }
 
-    .logout-link {
-      margin-top: 2rem;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-    }
-  }
+       span {
+         margin-left: 0.75rem;
+         opacity: 0;
+         transition: opacity 0.3s ease;
+         max-width: 180px; // Giới hạn chiều rộng
+         display: inline-block;
+       }
+     }
 
-  &:hover .sidebar-nav .nav-link span,
-  &:hover .sidebar-nav .menu-link span {
-    opacity: 1; // Hiện chữ khi hover
-  }
+     .logout-link {
+       margin-top: 2rem;
+       border-top: 1px solid rgba(255, 255, 255, 0.1);
+     }
+   }
 
-  @media (max-width: 768px) {
-    transform: translateX(-100%);
-    width: 70px;
+   &:hover .sidebar-nav .nav-link span,
+   &:hover .sidebar-nav .menu-link span {
+     opacity: 1; // Hiện chữ khi hover
+   }
 
-    &:hover {
-      transform: translateX(0);
-      width: 280px; // Tăng chiều rộng trên mobile
-    }
+   @media (max-width: 768px) {
+     transform: translateX(-100%);
+     width: 70px;
 
-    &.collapsed {
-      transform: translateX(-100%);
-    }
+     &:hover {
+       transform: translateX(0);
+       width: 280px; // Tăng chiều rộng trên mobile
+     }
 
-    .sidebar-nav {
-      .menu-link,
-      .submenu-link {
-        span {
-          max-width: 160px; // Giới hạn chiều rộng trên mobile
-        }
-      }
-    }
-  }
-}
+     &.collapsed {
+       transform: translateX(-100%);
+     }
+
+     .sidebar-nav {
+
+       .menu-link,
+       .submenu-link {
+         span {
+           max-width: 160px; // Giới hạn chiều rộng trên mobile
+         }
+       }
+     }
+   }
+ }

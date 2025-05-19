@@ -1,40 +1,37 @@
-// src/styles/Admin/Sidebar.scss
-
-// Phong cách cho sidebar
 .sidebar {
   width: 250px;
   height: 100vh;
-  background: #2c3e50; // Màu nền
-  color: #fff; // Màu chữ
+  background: #2c3e50;
+  color: #fff;
   position: fixed;
   left: 0;
   top: 0;
-  transition: all 0.3s ease; // Hiệu ứng chuyển đổi
+  transition: all 0.3s ease;
   z-index: 1000;
+  overflow-x: hidden; // [THAY ĐỔI] Thêm để xử lý tràn nội dung
 
   &.collapsed {
-    width: 70px; // Chiều rộng khi thu gọn
+    width: 70px;
+  }
 
-    .brand {
-      display: none; // Ẩn logo
-    }
-
-    .nav-link span {
-      display: none; // Ẩn văn bản liên kết
-    }
+  // [THAY ĐỔI] Thêm hiệu ứng hover để mở rộng
+  &:not(.collapsed):hover {
+    width: 280px; // Tăng chiều rộng để chứa tiêu đề dài
   }
 
   .sidebar-header {
-    padding: 1.5rem; // Khoảng cách bên trong
+    padding: 1.5rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1); // Đường viền dưới
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 
     .brand {
       margin: 0;
       font-size: 1.25rem;
       font-weight: 600;
+      opacity: 0; // [THAY ĐỔI] Ẩn khi thu gọn
+      transition: opacity 0.3s ease;
     }
 
     .toggle-btn {
@@ -45,13 +42,19 @@
       padding: 0;
 
       &:hover {
-        color: #3498db; // Màu khi di chuột
+        color: #3498db;
       }
     }
   }
 
+  // [THAY ĐỔI] Hiện brand khi hover hoặc không thu gọn
+  &:hover .sidebar-header .brand,
+  &.collapsed .sidebar-header .brand {
+    opacity: 1;
+  }
+
   .sidebar-nav {
-    padding: 1rem 0; // Khoảng cách bên trong
+    padding: 1rem 0;
 
     .nav-link {
       display: flex;
@@ -60,6 +63,8 @@
       color: rgba(255, 255, 255, 0.7);
       text-decoration: none;
       transition: all 0.3s ease;
+      white-space: normal; // [THAY ĐỔI] Cho phép xuống dòng
+      line-height: 1.2;
 
       &:hover {
         color: #fff;
@@ -68,24 +73,64 @@
 
       &.active {
         color: #fff;
-        background: #3498db; // Màu nền khi active
+        background: #3498db;
+      }
+
+      svg {
+        flex-shrink: 0;
+        width: 20px;
+        height: 20px;
       }
 
       span {
-        margin-left: 0.75rem; // Khoảng cách giữa biểu tượng và văn bản
+        margin-left: 0.75rem;
+        opacity: 0; // [THAY ĐỔI] Ẩn mặc định
+        transition: opacity 0.3s ease;
+        max-width: 180px; // [THAY ĐỔI] Giới hạn chiều rộng
+        display: inline-block;
       }
     }
-  }
-}
 
-// Responsive cho thiết bị di động
-@media (max-width: 768px) {
-  .sidebar {
-    transform: translateX(-100%); // Ẩn sidebar trên mobile
+    // [THAY ĐỔI] Thêm style cho logout-link
+    .logout-link {
+      margin-top: 2rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+  }
+
+  // [THAY ĐỔI] Hiện span khi hover hoặc không thu gọn
+  &:hover .sidebar-nav .nav-link span,
+  &.collapsed .sidebar-nav .nav-link span {
+    opacity: 1;
+  }
+
+  &.collapsed {
+
+    .brand,
+    .nav-link span {
+      display: none; // Ẩn khi thu gọn
+    }
+  }
+
+  @media (max-width: 768px) {
+    transform: translateX(-100%);
+
+    &:hover {
+      transform: translateX(0);
+      width: 280px;
+    }
 
     &.collapsed {
-      transform: translateX(0); // Hiển thị khi thu gọn
+      transform: translateX(0);
       width: 70px;
+    }
+
+    .sidebar-nav {
+      .nav-link {
+        span {
+          max-width: 160px; // [THAY ĐỔI] Giới hạn chiều rộng trên mobile
+        }
+      }
     }
   }
 }

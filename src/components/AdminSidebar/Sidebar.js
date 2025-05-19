@@ -88,24 +88,52 @@
 // src/components/Sidebar.jsx
 
 // Nhập các thư viện và biểu tượng
-import React, { useState } from "react";
-import { NavLink } from "react-router-dom";
+import React, { useState, useEffect } from "react"; // [THAY ĐỔI] Thêm useEffect
+import { NavLink, useNavigate } from "react-router-dom"; // [THAY ĐỔI] Thêm useNavigate
 import {
   LayoutDashboard,
   Users,
   DollarSign,
   Menu,
+  LogOut, // [THAY ĐỔI] Thêm LogOut
 } from "lucide-react";
+import { jwtDecode } from "jwt-decode"; // [THAY ĐỔI] Thêm jwtDecode
+import { toast } from "react-toastify"; // [THAY ĐỔI] Thêm toast
 import "../../styles/Admin/Sidebar.scss";
+import AuthService from "../../services/AuthService"; // [THAY ĐỔI] Thêm AuthService
 
-// Thành phần Sidebar cho điều hướng admin
 const Sidebar = () => {
-  // Trạng thái kiểm soát sidebar thu gọn/mở rộng
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [role, setRole] = useState(null); // [THAY ĐỔI] Thêm state role
+  const navigate = useNavigate(); // [THAY ĐỔI] Thêm useNavigate
 
-  // Hàm chuyển đổi trạng thái thu gọn/mở rộng
+  // [THAY ĐỔI] Thêm useEffect để kiểm tra token
+  useEffect(() => {
+    const accessToken = localStorage.getItem("accessToken");
+    if (accessToken) {
+      try {
+        const decoded = jwtDecode(accessToken);
+        setRole(decoded?.role);
+      } catch (error) {
+        console.error("Invalid token", error);
+        toast.error("Invalid token. Please log in again.");
+        navigate("/login");
+      }
+    } else {
+      toast.error("You need to log in to access this page.");
+      navigate("/login");
+    }
+  }, [navigate]);
+
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
+  };
+
+  // [THAY ĐỔI] Thêm hàm handleLogout
+  const handleLogout = () => {
+    AuthService.logout();
+    setRole(null);
+    navigate("/login");
   };
 
   return (
@@ -157,10 +185,19 @@ const Sidebar = () => {
           <DollarSign size={20} />
           <span>Order & Revenue</span>
         </NavLink>
+
+        {/* [THAY ĐỔI] Thêm nút Log Out */}
+        <NavLink
+          to="/login"
+          className="nav-link logout-link"
+          onClick={handleLogout}
+        >
+          <LogOut size={20} />
+          <span>Log Out</span>
+        </NavLink>
       </nav>
     </div>
   );
 };
 
-// Xuất component
 export default Sidebar;

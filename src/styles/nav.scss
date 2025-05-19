@@ -120,8 +120,8 @@
           position: absolute;
           top: -5px;
           right: -5px;
-          background: #ec4899;
-          color: white;
+          background: #ec4899; // Màu hồng cho badge
+          color: white; // Chữ trắng
           font-size: 0.65rem;
           font-weight: 700;
           border-radius: 50%;
@@ -197,13 +197,15 @@
 
         &.dropdown-menu-notifications {
           right: 0;
-          width: 250px;
+          width: 300px; // Tăng chiều rộng để chứa nội dung dài
+          max-height: 400px; // Giới hạn chiều cao, cho phép cuộn
+          overflow-y: auto; // Thêm thanh cuộn nếu vượt quá chiều cao
         }
 
         .dropdown-item {
           display: flex;
           align-items: center;
-          justify-content: space-between; // Để badge nằm bên phải
+          justify-content: space-between;
           padding: 0.6rem 1rem;
           text-decoration: none;
           font-size: 0.85rem;
@@ -213,6 +215,52 @@
           transition: all 0.3s ease, color 0.3s ease;
           position: relative;
           overflow: hidden;
+
+          &.notification-item {
+            flex-direction: column; // Xếp nội dung theo chiều dọc
+            align-items: flex-start; // Căn trái nội dung
+            padding: 0.8rem 1rem; // Tăng padding
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1); // Phân cách thông báo
+
+            &:last-child {
+              border-bottom: none; // Bỏ viền cho thông báo cuối
+            }
+
+            &.unread {
+              background: rgba(236, 72, 153, 0.15); // Nền nổi bật cho thông báo mới
+            }
+
+            &.read {
+              opacity: 0.6; // Làm mờ thông báo đã đọc
+            }
+
+            .notification-content {
+              display: flex;
+              align-items: flex-start;
+              gap: 0.5rem; // Khoảng cách giữa nhãn "New" và nội dung
+              width: 100%;
+            }
+
+            .notification-new-label {
+              background: #ec4899; // Màu hồng cho nhãn "New"
+              color: white;
+              font-size: 0.75rem;
+              font-weight: 600;
+              padding: 0.2rem 0.5rem;
+              border-radius: 3px;
+            }
+
+            .notification-message {
+              font-size: 0.85rem;
+              white-space: normal; // Cho phép xuống dòng
+              word-wrap: break-word; // Ngắt từ nếu quá dài
+              overflow-wrap: break-word; // Hỗ trợ ngắt từ
+              line-height: 1.4; // Tăng khoảng cách dòng
+              max-height: 4.2rem; // Giới hạn chiều cao (3 dòng)
+              overflow: hidden; // Ẩn nội dung vượt quá
+              text-overflow: ellipsis; // Thêm dấu ... nếu nội dung bị cắt
+            }
+          }
 
           &.cart-item {
             position: relative;
@@ -326,7 +374,25 @@
       }
 
       .dropdown-menu {
+        &.dropdown-menu-notifications {
+          width: 280px; // Giảm chiều rộng trên màn hình nhỏ
+        }
+
         .dropdown-item {
+          &.notification-item {
+            padding: 0.7rem 0.9rem;
+
+            .notification-new-label {
+              font-size: 0.7rem;
+              padding: 0.15rem 0.4rem;
+            }
+
+            .notification-message {
+              font-size: 0.8rem;
+              max-height: 3.6rem; // Giảm chiều cao tối đa
+            }
+          }
+
           .cart-badge {
             width: 16px;
             height: 16px;

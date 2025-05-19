@@ -303,7 +303,7 @@
 //     display: flex;
 //     gap: 2rem;
 //     margin: 1rem 0;
-    
+
 //     .stat-item {
 //       .value {
 //         color: $text-light;
@@ -468,12 +468,12 @@
 //     flex-wrap: wrap;
 //     justify-content: center;
 //     gap: 8px; // Space between images
-  
+
 //     .ant-image {
 //       flex: 0 0 calc(25% - 8px); // 25% width for 4 images per row, minus gap
 //       max-width: 150px; // Match the width prop on Image
 //     }
-  
+
 //     // Ensure the image itself takes up the full width of the container
 //     .ant-image-img {
 //       width: 100%;
@@ -482,7 +482,7 @@
 //       border-radius: 8px;
 //     }
 //   }
-  
+
 //   .additional-images {
 //     text-align: center;
 //     h5 {
@@ -507,13 +507,11 @@ $badge-bg-task: #007bff; // Badge on-task
 $badge-bg-leader: #ffca28; // Badge leader
 
 .profile-page {
-  // Nền trắng nhạt, đồng bộ với FestivalsPage
   background: $bg-light;
   min-height: 100vh;
   padding-top: 8vh;
 
   .profile-container {
-    // Container chính với nền trắng và bóng nhẹ
     background: white;
     border-radius: 1rem;
     margin: 0 auto;
@@ -521,7 +519,6 @@ $badge-bg-leader: #ffca28; // Badge leader
     padding: 2.5rem;
     min-height: 80vh;
 
-    // Thông báo lỗi
     .error-message {
       text-align: center;
       padding: 2rem;
@@ -529,7 +526,6 @@ $badge-bg-leader: #ffca28; // Badge leader
       font-size: 1.2rem;
     }
 
-    // Header hồ sơ
     .profile-header {
       display: flex;
       gap: 2rem;
@@ -549,7 +545,6 @@ $badge-bg-leader: #ffca28; // Badge leader
       }
     }
 
-    // Avatar
     .avatar-wrapper {
       position: relative;
       transition: transform 0.3s ease;
@@ -571,7 +566,6 @@ $badge-bg-leader: #ffca28; // Badge leader
       }
     }
 
-    // Cột bên trái (avatar và nút)
     .left-side {
       display: flex;
       flex-direction: column;
@@ -603,7 +597,6 @@ $badge-bg-leader: #ffca28; // Badge leader
       }
     }
 
-    // Nút hành động
     .action-buttons {
       display: flex;
       flex-direction: column;
@@ -656,7 +649,6 @@ $badge-bg-leader: #ffca28; // Badge leader
       }
     }
 
-    // Thông tin hồ sơ
     .profile-info {
       flex: 1;
       display: flex;
@@ -718,7 +710,6 @@ $badge-bg-leader: #ffca28; // Badge leader
         }
       }
 
-      // Badge trạng thái
       .status-badges {
         display: flex;
         gap: 0.75rem;
@@ -755,20 +746,19 @@ $badge-bg-leader: #ffca28; // Badge leader
         }
       }
 
-      // Grid chi tiết
       .details-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
         gap: 1rem;
 
         @media (max-width: 768px) {
-          grid-template-columns: 1fr; // 1 cột trên mobile
+          grid-template-columns: 1fr;
         }
 
         .detail-item {
           display: flex;
           align-items: center;
-          gap: 0.75rem; // Khoảng cách giữa icon và nội dung
+          gap: 0.75rem;
           padding: 1rem;
           background: white;
           border-radius: 0.5rem;
@@ -789,10 +779,9 @@ $badge-bg-leader: #ffca28; // Badge leader
             flex-shrink: 0;
           }
 
-          // Container cho nội dung
           span {
             flex: 1;
-            padding-right: 0.5rem; // Khoảng cách vô hình bên phải
+            padding-right: 0.5rem;
           }
 
           .form-control-custom {
@@ -815,7 +804,6 @@ $badge-bg-leader: #ffca28; // Badge leader
       }
     }
 
-    // Tabs
     .tabs {
       margin: 2rem 0;
       display: flex;
@@ -853,7 +841,6 @@ $badge-bg-leader: #ffca28; // Badge leader
       }
     }
 
-    // Gallery ảnh
     .additional-images {
       padding: 2rem 0;
 
@@ -893,7 +880,6 @@ $badge-bg-leader: #ffca28; // Badge leader
       }
     }
 
-    // Trạng thái trống
     .empty-state {
       display: flex;
       flex-direction: column;
@@ -954,7 +940,6 @@ $badge-bg-leader: #ffca28; // Badge leader
       }
     }
 
-    // Phần feedback
     .feedback-section {
       padding: 2rem 0;
 
@@ -966,7 +951,6 @@ $badge-bg-leader: #ffca28; // Badge leader
         text-transform: uppercase;
       }
 
-      // Thống kê feedback
       .feedback-stats {
         background: white;
         border-radius: 0.75rem;
@@ -982,9 +966,21 @@ $badge-bg-leader: #ffca28; // Badge leader
           font-weight: 600;
           color: $primary-color;
           margin-bottom: 1rem;
+          flex-wrap: wrap; // [THAY ĐỔI] Thêm flex-wrap cho responsive
 
           .star-icon {
             color: #f4c542;
+          }
+
+          .total-votes {
+            // [THAY ĐỔI] Style cho tổng số vote
+            color: $primary-color;
+            font-weight: 600;
+            font-size: 1.2rem;
+
+            @media (max-width: 768px) {
+              font-size: 1rem;
+            }
           }
         }
 
@@ -1017,7 +1013,6 @@ $badge-bg-leader: #ffca28; // Badge leader
         }
       }
 
-      // Danh sách feedback
       .feedback-list {
         display: flex;
         flex-direction: column;
@@ -1080,16 +1075,17 @@ $badge-bg-leader: #ffca28; // Badge leader
   }
 }
 
-// Keyframes cho hiệu ứng pulse
 @keyframes pulse {
   0% {
     transform: scale(1);
     box-shadow: 0 0 0 0 rgba($primary-color, 0.7);
   }
+
   70% {
     transform: scale(1.05);
     box-shadow: 0 0 0 10px rgba($primary-color, 0);
   }
+
   100% {
     transform: scale(1);
     box-shadow: 0 0 0 0 rgba($primary-color, 0);
