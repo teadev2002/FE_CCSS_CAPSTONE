@@ -70,6 +70,20 @@ const MyHistoryService = {
       throw error;
     }
   },
+  cancelContract: async (contractId, reason) => {
+    try {
+      const response = await apiClient.put(
+        `/api/Contract?contracId=${contractId}&status=Cancel&reason=${reason}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error(
+        "Error updating contract status:",
+        error.response ? error.response.data : error.message
+      );
+      throw error;
+    }
+  },
   getCharacterById: async (characterId) => {
     try {
       const response = await apiClient.get(`/api/Character/${characterId}`);
@@ -289,6 +303,20 @@ const MyHistoryService = {
     } catch (error) {
       console.error(
         "Error fetching task by cosplayer ID in contract:",
+        error.response?.data || error.message
+      );
+      throw error;
+    }
+  },
+  getTaskByContractId: async (contractId) => {
+    try {
+      const response = await apiClient.get(
+        `/api/Task/GetAllTaskByContractId?contractId=${contractId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error(
+        "Error fetching task",
         error.response?.data || error.message
       );
       throw error;

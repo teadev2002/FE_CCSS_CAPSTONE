@@ -94,6 +94,9 @@ const EditRefund = ({ refund }) => {
       );
 
       toast.success("Refund updated successfully.");
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
       handleCloseModal();
     } catch (error) {
       console.error("Error updating refund:", error);

@@ -581,7 +581,7 @@ const ManageAssignTask = () => {
                 >
                   <Card className="mat-details-card">
                     <Card.Body>
-                      <Card.Title>Request: {request.name}</Card.Title>
+                      <strong>Event: {request.name} </strong>
                       <Card.Text>
                         <strong>Status:</strong> {request.status}
                         <br />
@@ -594,12 +594,11 @@ const ManageAssignTask = () => {
                         {request.range ? `${request.range} VND` : "N/A"}
                       </Card.Text>
                       <Button
-                        variant="info"
                         onClick={() => handleViewAssignedRequest(request)}
                         disabled={isLoading}
                         className="mat-view-button"
                       >
-                        <Eye size={20} className="mat-icon" /> View
+                        <Eye size={20} className="mat-icon" />
                       </Button>
                     </Card.Body>
                   </Card>
