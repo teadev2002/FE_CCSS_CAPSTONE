@@ -1,13 +1,17 @@
+/// thong bao
+
 import React, { useState, useEffect } from "react";
 import { Table, Form, Card } from "react-bootstrap";
 import { Button, Modal, Dropdown, Pagination, Spin, Menu, Input } from "antd";
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
+import { Bell, ArrowUp, ArrowDown } from "lucide-react";
 import "react-toastify/dist/ReactToastify.css";
 import "antd/dist/reset.css";
-import { ArrowUp, ArrowDown } from "lucide-react";
 import "../../../styles/Manager/ManageRequest.scss";
 import RequestService from "../../../services/ManageServicePages/ManageRequestService/RequestService.js";
+import navbarService from "../../../components/Nav/navbarService.js";
+import { jwtDecode } from "jwt-decode";
 import ViewManageRentalCostume from "./ViewManageRentalCostume";
 import ViewManageEventOrganize from "./ViewManageEventOrganize.js";
 import ViewManageRentCosplayer from "./ViewManageRentCosplayer";
@@ -25,7 +29,6 @@ const ManageRequest = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [currentItem, setCurrentItem] = useState(null);
   const [formData, setFormData] = useState({ status: "", reason: "" });
-
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteItemId, setDeleteItemId] = useState(null);
   const [deleteReason, setDeleteReason] = useState("");
@@ -35,12 +38,28 @@ const ManageRequest = () => {
   const [searchRequest, setSearchRequest] = useState("");
   const [sortRequest, setSortRequest] = useState({
     field: "statusRequest",
-    order: "asc",
+    order: " ",
   });
   const [currentPageRequest, setCurrentPageRequest] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const rowsPerPageOptions = [10, 20, 50];
   const [selectedService, setSelectedService] = useState("All");
+  const [notifications, setNotifications] = useState([]);
+  const [persistedNotifications, setPersistedNotifications] = useState([]);
+
+  const getUserInfoFromToken = () => {
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        return { id: decoded?.Id, role: decoded?.role };
+      } catch (error) {
+        console.error("Error decoding token:", error);
+        return { id: null, role: null };
+      }
+    }
+    return { id: null, role: null };
+  };
 
   const getRequestDateRange = (charactersListResponse) => {
     if (!charactersListResponse || charactersListResponse.length === 0) {
@@ -67,7 +86,89 @@ const ManageRequest = () => {
     return { startDate, endDate };
   };
 
+  const fetchNotifications = async (accountId) => {
+    try {
+      const notificationData = await navbarService.getNotification(accountId);
+      const sortedNewNotifications = notificationData.sort((a, b) =>
+        b.createdAt && a.createdAt
+          ? new Date(b.createdAt) - new Date(a.createdAt)
+          : b.id - a.id
+      );
+      const unreadNotifications = sortedNewNotifications.filter(
+        (n) => !n.isRead
+      );
+      const readNotifications = persistedNotifications
+        .filter((n) => n.isRead)
+        .slice(0, 10);
+      const updatedNotifications = [
+        ...unreadNotifications,
+        ...readNotifications,
+      ];
+      setNotifications(updatedNotifications);
+      setPersistedNotifications(updatedNotifications);
+    } catch (error) {
+      console.error("Failed to fetch notifications:", error);
+      setNotifications(persistedNotifications);
+      toast.error("Failed to load notifications", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+    }
+  };
+
+  const markNotificationsAsSeen = async () => {
+    try {
+      const unreadNotifications = notifications.filter(
+        (notification) => !notification.isRead
+      );
+      if (unreadNotifications.length === 0) return;
+
+      await Promise.all(
+        unreadNotifications.map((notification) =>
+          navbarService.seenNotification(notification.id)
+        )
+      );
+
+      const updatedNotifications = notifications.map((notification) => ({
+        ...notification,
+        isRead: true,
+      }));
+      const sortedNotifications = updatedNotifications.sort((a, b) =>
+        b.createdAt && a.createdAt
+          ? new Date(b.createdAt) - new Date(a.createdAt)
+          : b.id - a.id
+      );
+      const limitedNotifications = sortedNotifications.slice(0, 10);
+      setNotifications(limitedNotifications);
+      setPersistedNotifications(limitedNotifications);
+
+      const { id } = getUserInfoFromToken();
+      if (id) {
+        await fetchNotifications(id);
+      }
+    } catch (error) {
+      console.error("Failed to mark notifications as seen:", error);
+      const updatedNotifications = notifications.map((notification) => ({
+        ...notification,
+        isRead: true,
+      }));
+      const sortedNotifications = updatedNotifications.sort((a, b) =>
+        b.createdAt && a.createdAt
+          ? new Date(b.createdAt) - new Date(a.createdAt)
+          : b.id - a.id
+      );
+      const limitedNotifications = sortedNotifications.slice(0, 10);
+      setNotifications(limitedNotifications);
+      setPersistedNotifications(limitedNotifications);
+      toast.error("Failed to mark notifications as seen", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+    }
+  };
+
   useEffect(() => {
+    const { id } = getUserInfoFromToken();
     const fetchRequests = async () => {
       try {
         const data = await RequestService.getAllRequests();
@@ -114,7 +215,15 @@ const ManageRequest = () => {
         setLoading(false);
       }
     };
+
     fetchRequests();
+    if (id) {
+      fetchNotifications(id);
+      const intervalId = setInterval(() => {
+        fetchNotifications(id);
+      }, 5000);
+      return () => clearInterval(intervalId);
+    }
   }, []);
 
   const mapStatus = (status) => {
@@ -209,13 +318,11 @@ const ManageRequest = () => {
       setCurrentItem(item);
       setFormData({ status: item.statusRequest, reason: "" });
       setShowModal(true);
-      console.log("Mở modal với item:", item, "showModal:", true);
     } catch (error) {
       setIsEditing(true);
       setCurrentItem(item);
       setFormData({ status: item.statusRequest, reason: "" });
       setShowModal(true);
-      console.log("Mở modal (lỗi API) với item:", item, "showModal:", true);
     }
   };
 
@@ -270,31 +377,25 @@ const ManageRequest = () => {
       return;
     }
     try {
-      // Chỉ kiểm tra charactersListResponse nếu serviceId là S002
       if (currentItem.serviceId === "S002") {
-        // Gọi API getRequestByRequestId để kiểm tra charactersListResponse
         const requestData = await RequestService.getRequestByRequestId(
           currentItem.id
         );
         const charactersList = requestData.charactersListResponse || [];
-
-        // Kiểm tra trạng thái của các character và lấy tên cosplayer
         const nonAcceptedCharacters = [];
         for (const char of charactersList) {
           if (char.status !== "Accept") {
-            // Gọi API để lấy tên cosplayer
             const cosplayerData =
               await RequestService.getNameCosplayerInRequestByCosplayerId(
                 char.cosplayerId
               );
             nonAcceptedCharacters.push({
-              name: cosplayerData.name || char.characterName, // Dùng name nếu có, nếu không dùng characterName
+              name: cosplayerData.name || char.characterName,
             });
           }
         }
 
         if (nonAcceptedCharacters.length > 0) {
-          // Hiển thị toast lỗi với tên các cosplayer chưa chấp nhận
           const cosplayerNames = nonAcceptedCharacters
             .map((char) => char.name)
             .join(", ");
@@ -305,19 +406,11 @@ const ManageRequest = () => {
         }
       }
 
-      // Nếu serviceId không phải S002 hoặc tất cả cosplayer đã chấp nhận, tiếp tục cập nhật trạng thái
       const result = await RequestService.checkAndUpdateRequestStatus(
         currentItem.id,
         requestStatus,
         formData.reason
       );
-      console.log("Gửi form:", {
-        id: currentItem.id,
-        status: formData.status,
-        requestStatus,
-        reason: formData.reason,
-      });
-      console.log("Kết quả API:", result);
 
       if (result.success) {
         const updatedRequests = requests.map((req) =>
@@ -336,10 +429,11 @@ const ManageRequest = () => {
         toast.error(result.message, { autoClose: 5000 });
       }
     } catch (error) {
-      toast.error(error.message || "Không thể cập nhật trạng thái yêu cầu");
+      toast.error(error.message || "Cannot update request status");
       console.error("Lỗi API:", error);
     }
   };
+
   const handleDelete = async () => {
     if (!deleteReason.trim()) {
       toast.error("Reason is required when deleting a request");
@@ -419,6 +513,43 @@ const ManageRequest = () => {
                     ▼
                   </Button>
                 </Dropdown>
+
+                <div className="bell-notification">
+                  <div className="dropdown-toggle">
+                    <Bell size={20} onClick={markNotificationsAsSeen} />
+                    {notifications.filter((n) => !n.isRead).length > 0 && (
+                      <span className="notification-badge">
+                        {notifications.filter((n) => !n.isRead).length}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="dropdown-menu dropdown-menu-notifications">
+                    {notifications.length > 0 ? (
+                      notifications.map((notification) => (
+                        <div
+                          key={notification.id}
+                          className={`dropdown-item notification-item ${
+                            notification.isRead ? "read" : "unread"
+                          }`}
+                        >
+                          <div className="notification-content">
+                            {!notification.isRead && (
+                              <span className="notification-new-label">
+                                New
+                              </span>
+                            )}
+                            <p className="notification-message">
+                              {notification.message || "Unnamed notification"}
+                            </p>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="dropdown-item">No new notifications</div>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
             <Table striped bordered hover responsive>
@@ -591,8 +722,8 @@ const ManageRequest = () => {
               required
             >
               <option value="">Select Status</option>
-              <option value="Browsed">Browsed </option>
-              <option value="Cancel">Cancel </option>
+              <option value="Browsed">Browsed</option>
+              <option value="Cancel">Cancel</option>
             </Form.Select>
           </Form.Group>
           {formData.status === "Cancel" && (

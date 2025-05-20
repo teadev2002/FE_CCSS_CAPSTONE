@@ -182,4 +182,60 @@
       }
     }
   }
+
+  
+.bell-notification {
+  position: relative;
+  display: inline-block;
+  
+  .dropdown-toggle {
+    position: relative;
+    cursor: pointer;
+
+    .notification-badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background-color: red;
+      color: white;
+      border-radius: 50%;
+      padding: 2px 6px;
+      font-size: 12px;
+    }
+  }
+   .notification-new-label{
+    background-color: red;
+    color: white;
+    padding: 5px;
+    border-radius: 5px;
+  }
+  .notification-message{
+    color: white;
+  word-wrap: break-word;       // ✅ Tự ngắt từ dài
+  white-space: normal;         // ✅ Cho phép xuống dòng
+  overflow-wrap: break-word;   // ✅ Hỗ trợ thêm cho trình duyệt mới
+  margin: 4px 0 0;             // (Tùy chỉnh cho đẹp)
+  }
+
+  .dropdown-menu-notifications {
+    display: none;
+    position: absolute;
+    top: 120%;
+    right: 0;
+    width: 300px;
+    background-color: #2a2a2a;
+    color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    padding: 10px 0;
+    z-index: 10;
+  }
+
+  &:hover .dropdown-menu-notifications {
+    display: block;
+    opacity: 0.9;
+  }
+}
+
+
 }
