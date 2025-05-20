@@ -1106,7 +1106,10 @@ export function Navbar() {
         .filter((n) => n.isRead)
         .slice(0, 10);
       // Cập nhật danh sách hiển thị
-      const updatedNotifications = [...unreadNotifications, ...readNotifications];
+      const updatedNotifications = [
+        ...unreadNotifications,
+        ...readNotifications,
+      ];
       setNotifications(updatedNotifications);
       // Cập nhật danh sách lưu trữ
       setPersistedNotifications(updatedNotifications);
@@ -1244,6 +1247,15 @@ export function Navbar() {
       setTimeout(() => navigate("/login"), 2100);
     } else {
       navigate(`/my-event-organize/${id}`);
+    }
+  };
+  const goToMyCustomerCharacter = () => {
+    const { id } = getUserInfoFromToken();
+    if (!id) {
+      toast.warn("You are not logged in!");
+      setTimeout(() => navigate("/login"), 2100);
+    } else {
+      navigate(`/my-customer-character/${id}`);
     }
   };
 
@@ -1427,6 +1439,12 @@ export function Navbar() {
                         className="dropdown-item"
                       >
                         My Event Organization
+                      </div>
+                      <div
+                        onClick={goToMyCustomerCharacter}
+                        className="dropdown-item"
+                      >
+                        My Character
                       </div>
                       <div
                         onClick={goToMyPurchaseHistory}

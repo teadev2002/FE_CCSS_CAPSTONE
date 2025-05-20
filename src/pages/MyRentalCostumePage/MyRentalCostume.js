@@ -2376,7 +2376,6 @@ const MyRentalCostume = () => {
           contractId={selectedContractId}
         />
       </Container>
-      <MyCustomerCharacter />
     </div>
   );
 };
