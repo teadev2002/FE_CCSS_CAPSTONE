@@ -1,13 +1,10 @@
-// còn lỗi và update
-//boot
-
 import React, { useState, useEffect } from "react";
+import { Card, Form } from "react-bootstrap";
+import { Button } from "antd";
+import { toast } from "react-toastify";
 import CharacterList from "./CharacterList";
 import CharacterForm from "./CharacterForm";
-import { Card } from "react-bootstrap"; // Chỉ giữ Card, bỏ Button Bootstrap
-import { Button } from "antd"; // Sử dụng Ant Design Button
 import CharacterService from "../../../services/ManageServicePages/ManageCharacterService/CharacterService";
-import { toast } from "react-toastify";
 import "../../../styles/Manager/ManageCharacter.scss";
 
 const ManageCharacter = () => {
@@ -17,6 +14,7 @@ const ManageCharacter = () => {
   const [currentCharacter, setCurrentCharacter] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     fetchCharacters();
@@ -30,6 +28,7 @@ const ManageCharacter = () => {
       setError(null);
     } catch (err) {
       setError(err.message);
+      toast.error("Failed to load characters.");
     } finally {
       setLoading(false);
     }
@@ -43,18 +42,12 @@ const ManageCharacter = () => {
         const data = await CharacterService.getCharacterById(
           character.characterId
         );
-        console.log("API Response for character:", data);
-        setCurrentCharacter({
-          ...data,
-          imageFiles: [],
-        });
+        setCurrentCharacter({ ...data, imageFiles: [] });
         setError(null);
       } catch (err) {
         setError(err.message);
-        setCurrentCharacter({
-          ...character,
-          imageFiles: [],
-        });
+        setCurrentCharacter({ ...character, imageFiles: [] });
+        toast.error("Failed to load character details.");
       } finally {
         setLoading(false);
       }
@@ -82,10 +75,8 @@ const ManageCharacter = () => {
         toast.success("Character added successfully!");
       }
       await fetchCharacters();
-      setError(null);
       handleCloseModal();
     } catch (err) {
-      setError(err.message);
       toast.error(
         `Failed to ${isEditing ? "update" : "add"} character: ${err.message}`
       );
@@ -99,10 +90,8 @@ const ManageCharacter = () => {
     try {
       await CharacterService.deleteCharacter(characterId);
       setCharacters(characters.filter((c) => c.characterId !== characterId));
-      setError(null);
       toast.success("Character deleted successfully!");
     } catch (err) {
-      setError(err.message);
       toast.error(`Failed to delete character: ${err.message}`);
     } finally {
       setLoading(false);
@@ -117,6 +106,15 @@ const ManageCharacter = () => {
           <Card.Body>
             <div className="table-header">
               <h3>Characters</h3>
+              <Form.Control
+                type="text"
+                placeholder="Search by name or description..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="search-input"
+                aria-label="Search characters"
+                style={{ width: "50%" }}
+              />
               <Button
                 type="primary"
                 onClick={() => handleShowModal()}
@@ -131,6 +129,7 @@ const ManageCharacter = () => {
               onEdit={handleShowModal}
               onDelete={handleDelete}
               loading={loading}
+              searchTerm={searchTerm}
             />
             {openModal && (
               <CharacterForm

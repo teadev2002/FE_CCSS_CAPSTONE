@@ -1,24 +1,21 @@
-//boot
-import React, { useState } from "react";
-import Table from "react-bootstrap/Table";
-import Pagination from "react-bootstrap/Pagination";
-import Form from "react-bootstrap/Form";
-import CharacterActions from "./CharacterActions";
-import { Image } from "antd"; // Import Image từ Ant Design
+import React, { useState, useMemo } from "react";
+import { Table } from "react-bootstrap";
+import { Pagination, Image, Select, Button, Popconfirm, Spin } from "antd";
+import { ArrowUp, ArrowDown } from "lucide-react";
+import { toast } from "react-toastify";
 
-const CharacterList = ({ characters, onEdit, onDelete }) => {
-  // State cho tìm kiếm
-  const [searchTerm, setSearchTerm] = useState("");
-
-  // State cho phân trang
+const CharacterList = ({
+  characters,
+  onEdit,
+  onDelete,
+  loading,
+  searchTerm,
+}) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-
-  // State cho sắp xếp
   const [sortField, setSortField] = useState(null);
-  const [sortOrder, setSortOrder] = useState("asc"); // "asc" hoặc "desc"
+  const [sortOrder, setSortOrder] = useState("asc");
 
-  // Các field có thể sắp xếp
   const sortableFields = [
     "price",
     "quantity",
@@ -28,231 +25,181 @@ const CharacterList = ({ characters, onEdit, onDelete }) => {
     "minWeight",
   ];
 
-  // Logic tìm kiếm
-  const filteredCharacters = characters.filter((character) => {
-    const searchLower = searchTerm.toLowerCase();
-    return (
-      (character.characterName &&
-        character.characterName.toLowerCase().includes(searchLower)) ||
-      (character.description &&
-        character.description.toLowerCase().includes(searchLower))
-    );
-  });
+  const filteredCharacters = useMemo(() => {
+    return characters.filter((character) => {
+      const searchLower = searchTerm.toLowerCase();
+      return (
+        (character.characterName &&
+          character.characterName.toLowerCase().includes(searchLower)) ||
+        (character.description &&
+          character.description.toLowerCase().includes(searchLower))
+      );
+    });
+  }, [characters, searchTerm]);
 
-  // Logic sắp xếp
-  const sortedCharacters = [...filteredCharacters].sort((a, b) => {
-    if (!sortField) return 0;
+  const sortedCharacters = useMemo(() => {
+    if (!sortField) return filteredCharacters;
+    return [...filteredCharacters].sort((a, b) => {
+      const valueA = a[sortField] ?? 0;
+      const valueB = b[sortField] ?? 0;
+      return sortOrder === "asc" ? valueA - valueB : valueB - valueA;
+    });
+  }, [filteredCharacters, sortField, sortOrder]);
 
-    const valueA = a[sortField];
-    const valueB = b[sortField];
-
-    if (sortOrder === "asc") {
-      return valueA > valueB ? 1 : -1;
-    } else {
-      return valueA < valueB ? 1 : -1;
-    }
-  });
-
-  // Logic phân trang
   const totalRows = sortedCharacters.length;
   const totalPages = Math.ceil(totalRows / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
-  const endIndex = startIndex + rowsPerPage;
-  const paginatedCharacters = sortedCharacters.slice(startIndex, endIndex);
+  const paginatedCharacters = sortedCharacters.slice(
+    startIndex,
+    startIndex + rowsPerPage
+  );
 
-  // Xử lý khi thay đổi số rows mỗi trang
-  const handleRowsPerPageChange = (e) => {
-    setRowsPerPage(Number(e.target.value));
-    setCurrentPage(1); // Reset về trang đầu tiên
-  };
-
-  // Xử lý khi nhấn nút phân trang
-  const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
-  };
-
-  // Xử lý khi nhấn vào tiêu đề cột để sắp xếp
   const handleSort = (field) => {
     if (sortField === field) {
-      // Nếu đang sắp xếp theo field này, đảo ngược thứ tự
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
     } else {
-      // Nếu sắp xếp field mới, mặc định là tăng dần
       setSortField(field);
       setSortOrder("asc");
     }
-    setCurrentPage(1); // Reset về trang đầu tiên khi sắp xếp
+    setCurrentPage(1);
   };
 
-  // Xử lý khi thay đổi ô tìm kiếm
-  const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
-    setCurrentPage(1); // Reset về trang đầu tiên khi tìm kiếm
+  const handleRowsPerPageChange = (value) => {
+    setRowsPerPage(value);
+    setCurrentPage(1);
   };
-
-  // Tạo các nút phân trang
-  const paginationItems = [];
-  for (let number = 1; number <= totalPages; number++) {
-    paginationItems.push(
-      <Pagination.Item
-        key={number}
-        active={number === currentPage}
-        onClick={() => handlePageChange(number)}
-      >
-        {number}
-      </Pagination.Item>
-    );
-  }
 
   return (
-    <div
-      className="table-responsive"
-      style={{ width: "90%", margin: "0 auto" }}
-    >
-      {/* Ô tìm kiếm */}
-      <div className="mb-3">
-        <Form.Control
-          type="text"
-          placeholder="Search by name or description..."
-          value={searchTerm}
-          onChange={handleSearchChange}
-          className="w-50 mx-auto"
-        />
-      </div>
-
-      <div className="d-flex justify-content-between mb-3">
-        <div>
-          <Form.Label>Rows per page:</Form.Label>
-          <Form.Select
-            value={rowsPerPage}
-            onChange={handleRowsPerPageChange}
-            style={{ width: "auto", display: "inline-block", marginLeft: 8 }}
-          >
-            <option value={5}>5</option>
-            <option value={10}>10</option>
-            <option value={15}>15</option>
-            <option value={25}>25</option>
-          </Form.Select>
+    <div className="character-list">
+      {loading ? (
+        <div className="loading-spinner">
+          {" "}
+          <Spin className="loading-spinner" />
         </div>
-        <div>
-          Showing {startIndex + 1} to {Math.min(endIndex, totalRows)} of{" "}
-          {totalRows} entries
-        </div>
-      </div>
-
-      <Table striped bordered hover className="shadow-sm">
-        <thead>
-          <tr>
-            <th className="text-center">Character Name</th>
-            <th className="text-center">Description</th>
-            <th
-              className="text-center"
-              style={{ cursor: "pointer" }}
-              onClick={() => handleSort("price")}
-            >
-              Price ($){" "}
-              {sortField === "price" && (sortOrder === "asc" ? "↑" : "↓")}
-            </th>
-            <th
-              className="text-center"
-              style={{ cursor: "pointer" }}
-              onClick={() => handleSort("quantity")}
-            >
-              Quantity{" "}
-              {sortField === "quantity" && (sortOrder === "asc" ? "↑" : "↓")}
-            </th>
-            <th
-              className="text-center"
-              style={{ cursor: "pointer" }}
-              onClick={() => handleSort("maxHeight")}
-            >
-              Max Height (cm){" "}
-              {sortField === "maxHeight" && (sortOrder === "asc" ? "↑" : "↓")}
-            </th>
-            <th
-              className="text-center"
-              style={{ cursor: "pointer" }}
-              onClick={() => handleSort("maxWeight")}
-            >
-              Max Weight (kg){" "}
-              {sortField === "maxWeight" && (sortOrder === "asc" ? "↑" : "↓")}
-            </th>
-            <th
-              className="text-center"
-              style={{ cursor: "pointer" }}
-              onClick={() => handleSort("minHeight")}
-            >
-              Min Height (cm){" "}
-              {sortField === "minHeight" && (sortOrder === "asc" ? "↑" : "↓")}
-            </th>
-            <th
-              className="text-center"
-              style={{ cursor: "pointer" }}
-              onClick={() => handleSort("minWeight")}
-            >
-              Min Weight (kg){" "}
-              {sortField === "minWeight" && (sortOrder === "asc" ? "↑" : "↓")}
-            </th>
-            <th className="text-center">Images</th>
-            <th className="text-center">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {paginatedCharacters.map((character) => (
-            <tr key={character.characterId}>
-              <td className="text-center">{character.characterName}</td>
-              <td className="text-center">{character.description}</td>
-              <td className="text-center">{character.price}</td>
-              <td className="text-center">{character.quantity}</td>
-              <td className="text-center">{character.maxHeight}</td>
-              <td className="text-center">{character.maxWeight}</td>
-              <td className="text-center">{character.minHeight}</td>
-              <td className="text-center">{character.minWeight}</td>
-              <td className="text-center">
-                {character.images && character.images.length > 0 ? (
-                  <div className="d-flex flex-wrap justify-content-center">
-                    <Image.PreviewGroup
-                      preview={{
-                        onChange: (current, prev) =>
-                          console.log(
-                            `Current image index: ${current}, Previous image index: ${prev}`
-                          ),
-                      }}
-                    >
-                      {character.images.map((image, index) => (
-                        <Image
-                          key={index}
-                          src={image.urlImage}
-                          alt={`Image ${index + 1}`}
-                          width={50}
-                          height={50}
-                          style={{ objectFit: "cover", margin: "0 4px 4px 0" }}
-                          preview={{
-                            mask: "Zoom", // Hiển thị nút "Zoom" khi hover
-                          }}
-                        />
+      ) : (
+        <>
+          <Table striped bordered hover responsive>
+            <thead>
+              <tr>
+                <th>Character Name</th>
+                <th>Description</th>
+                {sortableFields.map((field) => (
+                  <th
+                    key={field}
+                    onClick={() => handleSort(field)}
+                    style={{ cursor: "pointer" }}
+                  >
+                    {field.charAt(0).toUpperCase() +
+                      field.slice(1).replace(/([A-Z])/g, " $1")}
+                    {sortField === field &&
+                      (sortOrder === "asc" ? (
+                        <ArrowUp size={16} />
+                      ) : (
+                        <ArrowDown size={16} />
                       ))}
-                    </Image.PreviewGroup>
-                  </div>
-                ) : (
-                  "No images"
-                )}
-              </td>
-              <td className="text-center">
-                <CharacterActions
-                  row={character}
-                  onEdit={onEdit}
-                  onDelete={onDelete}
-                />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
-
-      <div className="d-flex justify-content-center mt-3">
-        <Pagination>{paginationItems}</Pagination>
-      </div>
+                  </th>
+                ))}
+                <th>Images</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {paginatedCharacters.length > 0 ? (
+                paginatedCharacters.map((character) => (
+                  <tr key={character.characterId}>
+                    <td>{character.characterName}</td>
+                    <td>{character.description}</td>
+                    <td>{character.price}</td>
+                    <td>{character.quantity}</td>
+                    <td>{character.maxHeight}</td>
+                    <td>{character.maxWeight}</td>
+                    <td>{character.minHeight}</td>
+                    <td>{character.minWeight}</td>
+                    <td>
+                      {character.images && character.images.length > 0 ? (
+                        <div className="image-gallery">
+                          <Image.PreviewGroup>
+                            {character.images.map((image, index) => (
+                              <Image
+                                key={index}
+                                src={image.urlImage}
+                                alt={`Image ${index + 1}`}
+                                width={80}
+                                height={80}
+                                style={{ objectFit: "cover", marginRight: 8 }}
+                              />
+                            ))}
+                          </Image.PreviewGroup>
+                        </div>
+                      ) : (
+                        "No images"
+                      )}
+                    </td>
+                    <td>
+                      <Button
+                        type="primary"
+                        onClick={() => onEdit(character)}
+                        style={{ marginRight: 8 }}
+                        aria-label="Edit character"
+                      >
+                        Edit
+                      </Button>
+                      <Popconfirm
+                        title="Are you sure to delete this character?"
+                        onConfirm={() => onDelete(character.characterId)}
+                        okText="Yes"
+                        cancelText="No"
+                      >
+                        <Button
+                          type="primary"
+                          danger
+                          aria-label="Delete character"
+                        >
+                          Delete
+                        </Button>
+                      </Popconfirm>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={10} className="text-center">
+                    No characters found
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </Table>
+          <div className="pagination-controls d-flex justify-content-between align-items-center mt-3">
+            <div className="rows-per-page">
+              <span>Rows per page:</span>
+              <Select
+                value={rowsPerPage}
+                onChange={handleRowsPerPageChange}
+                style={{ width: 80, marginLeft: 8 }}
+              >
+                {[5, 10, 15, 25].map((value) => (
+                  <Select.Option key={value} value={value}>
+                    {value}
+                  </Select.Option>
+                ))}
+              </Select>
+            </div>
+            <Pagination
+              current={currentPage}
+              total={totalRows}
+              pageSize={rowsPerPage}
+              onChange={setCurrentPage}
+              showSizeChanger={false}
+            />
+            <span>
+              Showing {startIndex + 1} to{" "}
+              {Math.min(startIndex + rowsPerPage, totalRows)} of {totalRows}{" "}
+              entries
+            </span>
+          </div>
+        </>
+      )}
     </div>
   );
 };
