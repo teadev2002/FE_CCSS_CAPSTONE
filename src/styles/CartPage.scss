@@ -17,9 +17,11 @@
       0% {
         background-position: 0% 50%;
       }
+
       50% {
         background-position: 100% 50%;
       }
+
       100% {
         background-position: 0% 50%;
       }
@@ -205,24 +207,41 @@
           display: flex;
           justify-content: space-between;
           color: #4a4a4a;
-          margin-bottom: 0.5rem;
+          margin-bottom: 0.75rem;
+          font-size: 1.1rem;
 
           strong {
             color: #22668a;
+            font-weight: 600;
+          }
+
+          /* Định dạng Subtotal, Delivery Fee, Total */
+          &:nth-child(1),
+          /* Subtotal */
+          &:nth-child(2),
+          /* Delivery Fee */
+          &:nth-child(4)
+
+          /* Total */
+            {
+            border-top: 1px solid #e0e0e0;
+            padding-top: 0.5rem;
+          }
+
+          &:nth-child(4) {
+            /* Total */
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: #510545;
+
+            strong {
+              color: #510545;
+            }
           }
         }
 
         hr {
           border-color: #e0e0e0;
-        }
-
-        .total {
-          font-size: 1.3rem;
-          font-weight: 600;
-
-          strong {
-            color: #f85caa;
-          }
         }
       }
 
@@ -280,7 +299,6 @@
 
         &.is-invalid {
           border-color: #dc3545 !important;
-          /* Giữ biểu tượng lỗi mặc định của Bootstrap */
           background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
           background-repeat: no-repeat;
           background-position: right calc(0.375em + 0.1875rem) center;
@@ -336,6 +354,8 @@
       padding: 1.5rem;
 
       .summary-details {
+        margin-bottom: 2rem;
+
         h5 {
           color: #510545;
           font-weight: 600;
@@ -343,23 +363,98 @@
         }
 
         .summary-item {
+          display: block;
+          color: #4a4a4a;
+          margin-bottom: 0.5rem;
           font-size: 1rem;
-          color: #4a4a4a;
+
+          strong {
+            color: #22668a;
+            font-weight: 600;
+          }
         }
 
-        hr {
-          border-color: #e0e0e0;
-          margin: 1rem 0;
+        .buyer-info {
+          margin-bottom: 1.5rem;
+
+          p {
+            display: flex;
+            justify-content: space-between;
+            color: #4a4a4a;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+
+            strong {
+              color: #22668a;
+              font-weight: 600;
+              min-width: 120px;
+            }
+          }
         }
 
-        .total {
-          font-size: 1.2rem;
-          color: #4a4a4a;
+        .divider {
+          border: 0;
+          height: 1px;
+          background: repeating-linear-gradient(90deg,
+              #510545 0,
+              #510545 5px,
+              transparent 5px,
+              transparent 10px);
+          margin: 1.5rem 0;
         }
 
-        .summary-info {
-          font-size: 1rem;
-          color: #4a4a4a;
+        .price-info {
+          p {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+            padding: 0.5rem 0;
+            font-size: 1.1rem;
+            transition: color 0.3s ease;
+
+            strong {
+              font-weight: 600;
+              min-width: 120px;
+            }
+
+            &.subtotal,
+            &.delivery-fee {
+              color: #22668a;
+              border-top: 1px solid #e0e0e0;
+
+              strong {
+                color: #22668a;
+              }
+
+              &:hover {
+                color: #1a5276;
+
+                strong {
+                  color: #1a5276;
+                }
+              }
+            }
+
+            &.total {
+              color: #510545;
+              font-weight: 700;
+              font-size: 1.3rem;
+              border-top: 2px solid #510545;
+
+              strong {
+                color: #510545;
+                font-weight: 700;
+              }
+
+              &:hover {
+                color: #3d0338;
+
+                strong {
+                  color: #3d0338;
+                }
+              }
+            }
+          }
         }
       }
 

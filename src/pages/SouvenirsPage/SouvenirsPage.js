@@ -1,3 +1,4 @@
+// Nhập các thư viện và component cần thiết
 import React, { useState, useEffect } from "react";
 import { Search } from "lucide-react";
 import { Modal, Button, Form, Carousel } from "react-bootstrap";
@@ -16,8 +17,9 @@ import { jwtDecode } from "jwt-decode";
 import { Pagination } from "antd";
 
 const SouvenirsPage = () => {
+  // Khởi tạo các state
   const [searchTerm, setSearchTerm] = useState("");
-  const [searchError, setSearchError] = useState(""); // Lỗi cho search
+  const [searchError, setSearchError] = useState("");
   const [showSouvenirModal, setShowSouvenirModal] = useState(false);
   const [selectedSouvenir, setSelectedSouvenir] = useState(null);
   const [quantity, setQuantity] = useState(1);
@@ -34,12 +36,12 @@ const SouvenirsPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(8);
   const [phone, setPhone] = useState("");
-  const [phoneError, setPhoneError] = useState(""); // Lỗi cho trường hợp không bắt đầu bằng 0
+  const [phoneError, setPhoneError] = useState("");
   const [address, setAddress] = useState("");
-  const [addressError, setAddressError] = useState(""); // Lỗi cho address
-  const [provinceError, setProvinceError] = useState(""); // Lỗi cho province
-  const [districtError, setDistrictError] = useState(""); // Lỗi cho district
-  const [wardError, setWardError] = useState(""); // Lỗi cho ward
+  const [addressError, setAddressError] = useState("");
+  const [provinceError, setProvinceError] = useState("");
+  const [districtError, setDistrictError] = useState("");
+  const [wardError, setWardError] = useState("");
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
   const [wards, setWards] = useState([]);
@@ -48,13 +50,19 @@ const SouvenirsPage = () => {
   const [selectedWard, setSelectedWard] = useState("");
   const [toDistrictId, setToDistrictId] = useState("");
   const [toWardCode, setToWardCode] = useState("");
+  const [description, setDescription] = useState("");
+  const [descriptionError, setDescriptionError] = useState("");
+  const [deliveryFee, setDeliveryFee] = useState(0);
+  const [tempOrderId, setTempOrderId] = useState(null); // Lưu orderId tạm thời
 
   const navigate = useNavigate();
 
+  // Hàm định dạng giá tiền sang VND
   const formatPrice = (price) => {
     return `${price.toLocaleString("vi-VN")} VND`;
   };
 
+  // Lấy thông tin tài khoản từ token
   const getAccountInfoFromToken = () => {
     const accessToken = localStorage.getItem("accessToken");
     if (accessToken) {
@@ -72,6 +80,7 @@ const SouvenirsPage = () => {
     return null;
   };
 
+  // Lấy danh sách sản phẩm
   const fetchProducts = async () => {
     try {
       const combinedData = await ProductService.getCombinedProductData();
@@ -83,6 +92,7 @@ const SouvenirsPage = () => {
     }
   };
 
+  // Lấy danh sách tỉnh/thành phố
   const fetchProvinces = async () => {
     try {
       const provincesData = await ProductDeliveryService.getProvinces();
@@ -94,6 +104,7 @@ const SouvenirsPage = () => {
     }
   };
 
+  // Lấy danh sách quận/huyện
   const fetchDistricts = async (provinceId) => {
     try {
       const districtsData = await ProductDeliveryService.getDistricts(provinceId);
@@ -110,6 +121,7 @@ const SouvenirsPage = () => {
     }
   };
 
+  // Lấy danh sách phường/xã
   const fetchWards = async (districtId) => {
     try {
       const wardsData = await ProductDeliveryService.getWards(districtId);
@@ -123,6 +135,7 @@ const SouvenirsPage = () => {
     }
   };
 
+  // Khởi tạo dữ liệu khi component mount
   useEffect(() => {
     const accountInfo = getAccountInfoFromToken();
     if (accountInfo) {
@@ -145,12 +158,14 @@ const SouvenirsPage = () => {
     };
   }, []);
 
+  // Mở modal chi tiết sản phẩm
   const handleSouvenirShow = (souvenir) => {
     setSelectedSouvenir(souvenir);
     setShowSouvenirModal(true);
     console.log("Opening souvenir modal for:", souvenir.name);
   };
 
+  // Đóng modal và reset state
   const handleSouvenirClose = () => {
     setShowSouvenirModal(false);
     setSelectedSouvenir(null);
@@ -171,11 +186,14 @@ const SouvenirsPage = () => {
     setProvinceError("");
     setDistrictError("");
     setWardError("");
-    setDistricts([]);
-    setWards([]);
+    setDescription("");
+    setDescriptionError("");
+    setDeliveryFee(0);
+    setTempOrderId(null); // Reset tempOrderId
     console.log("Closing souvenir modal");
   };
 
+  // Tăng số lượng sản phẩm
   const handleIncrease = () => {
     if (selectedSouvenir && quantity < selectedSouvenir.quantity) {
       setQuantity((prev) => prev + 1);
@@ -184,6 +202,7 @@ const SouvenirsPage = () => {
     }
   };
 
+  // Giảm số lượng sản phẩm
   const handleDecrease = () => {
     if (quantity > 1) {
       setQuantity((prev) => prev - 1);
@@ -192,6 +211,7 @@ const SouvenirsPage = () => {
     }
   };
 
+  // Mở modal thông tin giao hàng
   const handleBuyNow = () => {
     setShowDeliveryModal(true);
     console.log("Opening delivery modal");
@@ -203,6 +223,7 @@ const SouvenirsPage = () => {
     }, 100);
   };
 
+  // Thêm sản phẩm vào giỏ hàng
   const handleAddToCart = async () => {
     if (!accountId || !cartId) {
       toast.error("Please log in to add items to your cart!");
@@ -220,7 +241,7 @@ const SouvenirsPage = () => {
     }
   };
 
-  // Validate phone number
+  // Xác thực số điện thoại
   const validatePhoneNumber = (value) => {
     if (!value) {
       return "Phone number is required.";
@@ -231,9 +252,9 @@ const SouvenirsPage = () => {
     return "";
   };
 
+  // Xử lý thay đổi số điện thoại
   const handlePhoneChange = (e) => {
     const value = e.target.value;
-    // Chỉ cho phép số và tối đa 11 số
     if (/^\d*$/.test(value) && value.length <= 11) {
       setPhone(value);
       const error = validatePhoneNumber(value);
@@ -245,7 +266,7 @@ const SouvenirsPage = () => {
     }
   };
 
-  // Validate address
+  // Xác thực địa chỉ
   const validateAddress = (value) => {
     if (!value) {
       return "Address is required.";
@@ -256,13 +277,13 @@ const SouvenirsPage = () => {
     if (value.length > 100) {
       return "Address must not exceed 100 characters.";
     }
-    // Ngăn các ký tự đặc biệt không mong muốn
     if (/[<>{}!@#$%^&*()+=[\]|\\:;"'?~`]/.test(value)) {
       return "Address contains invalid special characters.";
     }
     return "";
   };
 
+  // Xử lý thay đổi địa chỉ
   const handleAddressChange = (e) => {
     const value = e.target.value;
     setAddress(value);
@@ -270,7 +291,26 @@ const SouvenirsPage = () => {
     setAddressError(error);
   };
 
-  // Validate province, district, ward
+  // Xác thực mô tả
+  const validateDescription = (value) => {
+    if (value && value.length > 200) {
+      return "Description must not exceed 200 characters.";
+    }
+    if (value && /[<>{}!@#$%^&*()+=[\]|\\:;"'?~`]/.test(value)) {
+      return "Description contains invalid special characters.";
+    }
+    return "";
+  };
+
+  // Xử lý thay đổi mô tả
+  const handleDescriptionChange = (e) => {
+    const value = e.target.value;
+    setDescription(value);
+    const error = validateDescription(value);
+    setDescriptionError(error);
+  };
+
+  // Xác thực tỉnh/thành phố
   const validateProvince = (value) => {
     if (!value) {
       return "Please select a province/city.";
@@ -282,6 +322,7 @@ const SouvenirsPage = () => {
     return "";
   };
 
+  // Xác thực quận/huyện
   const validateDistrict = (value) => {
     if (!value) {
       return "Please select a district.";
@@ -293,6 +334,7 @@ const SouvenirsPage = () => {
     return "";
   };
 
+  // Xác thực phường/xã
   const validateWard = (value) => {
     if (!value) {
       return "Please select a ward.";
@@ -304,6 +346,7 @@ const SouvenirsPage = () => {
     return "";
   };
 
+  // Xử lý thay đổi tỉnh/thành phố
   const handleProvinceChange = (e) => {
     const value = e.target.value;
     setSelectedProvince(value);
@@ -323,6 +366,7 @@ const SouvenirsPage = () => {
     }
   };
 
+  // Xử lý thay đổi quận/huyện
   const handleDistrictChange = (e) => {
     const value = e.target.value;
     setSelectedDistrict(value);
@@ -341,6 +385,7 @@ const SouvenirsPage = () => {
     }
   };
 
+  // Xử lý thay đổi phường/xã
   const handleWardChange = (e) => {
     const value = e.target.value;
     setSelectedWard(value);
@@ -351,7 +396,7 @@ const SouvenirsPage = () => {
     setToWardCode(wardCode);
   };
 
-  // Validate search
+  // Xác thực tìm kiếm
   const validateSearch = (value) => {
     if (value.length > 50) {
       return "Search term must not exceed 50 characters.";
@@ -362,6 +407,7 @@ const SouvenirsPage = () => {
     return "";
   };
 
+  // Xử lý thay đổi tìm kiếm
   const handleSearchChange = (e) => {
     const value = e.target.value;
     const error = validateSearch(value);
@@ -373,6 +419,7 @@ const SouvenirsPage = () => {
     }
   };
 
+  // Xác nhận thông tin giao hàng
   const handleDeliveryConfirm = () => {
     console.log("Delivery info check:", {
       phone,
@@ -382,29 +429,31 @@ const SouvenirsPage = () => {
       selectedWard,
       toDistrictId,
       toWardCode,
+      description,
     });
 
-    // Kiểm tra các trường bắt buộc và hợp lệ
     const phoneErr = validatePhoneNumber(phone);
     const addressErr = validateAddress(address);
     const provinceErr = validateProvince(selectedProvince);
     const districtErr = validateDistrict(selectedDistrict);
     const wardErr = validateWard(selectedWard);
+    const descriptionErr = validateDescription(description);
 
     setPhoneError(phoneErr);
     setAddressError(addressErr);
     setProvinceError(provinceErr);
     setDistrictError(districtErr);
     setWardError(wardErr);
+    setDescriptionError(descriptionErr);
 
-    if (phoneErr || addressErr || provinceErr || districtErr || wardErr || !toWardCode) {
+    if (phoneErr || addressErr || provinceErr || districtErr || wardErr || descriptionErr) {
       const errors = [
         phoneErr,
         addressErr,
         provinceErr,
         districtErr,
         wardErr,
-        !toWardCode ? "Please fill in all delivery information, including ward!" : "",
+        descriptionErr,
       ].filter(Boolean);
       toast.error(errors.join(" "));
       console.error("Validation errors:", errors);
@@ -416,8 +465,8 @@ const SouvenirsPage = () => {
       address,
       toDistrictId,
       toWardCode,
+      description,
     });
-    // Không đặt showDeliveryModal thành false để giữ form
     setShowPaymentModal(true);
     setTimeout(() => {
       const paymentModal = document.getElementById("payment-modal");
@@ -427,22 +476,42 @@ const SouvenirsPage = () => {
     }, 100);
   };
 
-  const handleConfirmPurchase = () => {
+  // Xác nhận mua hàng và tính phí giao hàng
+  const handleConfirmPurchase = async () => {
     if (!paymentMethod) {
       toast.error("Please select a payment method!");
       return;
     }
-    console.log("Payment method selected:", paymentMethod);
-    setShowPaymentModal(false);
-    setShowSummaryModal(true);
-    setTimeout(() => {
-      const summaryModal = document.getElementById("summary-modal");
-      if (summaryModal) {
-        summaryModal.scrollIntoView({ behavior: "smooth", block: "start" });
+    try {
+      const orderId = await createOrder();
+      console.log("OrderId:", orderId);
+      setTempOrderId(orderId);
+
+      let fee = 0;
+      try {
+        fee = await ProductDeliveryService.calculateDeliveryFee(orderId);
+      } catch (feeError) {
+        console.error("Failed to calculate delivery fee:", feeError);
+        toast.warn("Unable to calculate delivery fee. Proceeding with 0 VND.");
       }
-    }, 100);
+      setDeliveryFee(fee);
+      console.log("Delivery fee:", fee);
+
+      setShowPaymentModal(false);
+      setShowSummaryModal(true);
+      setTimeout(() => {
+        const summaryModal = document.getElementById("summary-modal");
+        if (summaryModal) {
+          summaryModal.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }, 100);
+    } catch (error) {
+      console.error("Error in handleConfirmPurchase:", error);
+      toast.error(error.message);
+    }
   };
 
+  // Tạo đơn hàng
   const createOrder = async () => {
     try {
       const orderData = {
@@ -451,6 +520,7 @@ const SouvenirsPage = () => {
         phone: phone,
         to_district_id: toDistrictId,
         to_ward_code: toWardCode,
+        description: description || null,
         orderProducts: [
           {
             productId: selectedSouvenir.id,
@@ -462,7 +532,7 @@ const SouvenirsPage = () => {
       console.log("Order payload:", orderData);
       const response = await apiClient.post("/api/Order", orderData);
       console.log("Order response:", response.data);
-      return response.data;
+      return response.data; // Trả về orderId
     } catch (error) {
       console.error("Create order error:", error.response?.data || error.message);
       toast.error(error.response?.data?.message || "Failed to create order");
@@ -470,8 +540,10 @@ const SouvenirsPage = () => {
     }
   };
 
+  // Xác nhận cuối cùng để thanh toán
   const handleFinalConfirm = async () => {
-    const totalAmount = selectedSouvenir.price * quantity;
+    const productTotal = selectedSouvenir.price * quantity;
+    const totalAmount = productTotal + deliveryFee;
 
     if (!accountId) {
       toast.error("Please log in to proceed with payment!");
@@ -479,8 +551,8 @@ const SouvenirsPage = () => {
     }
 
     try {
-      const orderpaymentId = await createOrder();
-      console.log("OrderpaymentId:", orderpaymentId);
+      const orderId = tempOrderId || (await createOrder());
+      console.log("OrderId:", orderId);
 
       const paymentData = {
         fullName: accountName || "Unknown",
@@ -492,7 +564,7 @@ const SouvenirsPage = () => {
         ticketId: null,
         ticketQuantity: null,
         contractId: null,
-        orderpaymentId: orderpaymentId,
+        orderpaymentId: orderId,
         isWeb: true,
       };
       console.log("Payment payload:", paymentData);
@@ -518,6 +590,7 @@ const SouvenirsPage = () => {
     }
   };
 
+  // Quay lại modal thanh toán
   const handleBackToPayment = () => {
     setShowSummaryModal(false);
     setShowPaymentModal(true);
@@ -530,43 +603,51 @@ const SouvenirsPage = () => {
     }, 100);
   };
 
+  // Quay lại modal giao hàng
   const handleBackToDelivery = () => {
     setShowPaymentModal(false);
     setShowDeliveryModal(true);
     console.log("Back to delivery modal");
   };
 
+  // Lọc danh sách sản phẩm theo tìm kiếm
   const filteredSouvenirs = products.filter((souvenir) =>
     souvenir.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Phân trang sản phẩm
   const startIndex = (currentPage - 1) * pageSize;
   const endIndex = startIndex + pageSize;
   const paginatedSouvenirs = filteredSouvenirs.slice(startIndex, endIndex);
 
+  // Xử lý thay đổi trang
   const handlePageChange = (page, pageSize) => {
     setCurrentPage(page);
     setPageSize(pageSize);
   };
 
+  // Lấy tên tỉnh/thành phố
   const getProvinceName = (provinceId) => {
     const province = provinces.find((p) => String(p.provinceId) === String(provinceId));
     console.log("getProvinceName:", { provinceId, provinceIdType: typeof provinceId, province });
     return province ? province.provinceName : "N/A";
   };
 
+  // Lấy tên quận/huyện
   const getDistrictName = (districtId) => {
     const district = districts.find((d) => String(d.districtId) === String(districtId));
     console.log("getDistrictName:", { districtId, districtIdType: typeof districtId, district });
     return district ? district.districtName : "N/A";
   };
 
+  // Lấy tên phường/xã
   const getWardName = (wardCode) => {
     const ward = wards.find((w) => String(w.wardCode) === String(wardCode));
     console.log("getWardName:", { wardCode, wardCodeType: typeof wardCode, ward });
     return ward ? ward.wardName : "N/A";
   };
 
+  // Hiển thị khi đang tải
   if (loading) {
     return (
       <div className="text-center py-5">
@@ -577,6 +658,7 @@ const SouvenirsPage = () => {
     );
   }
 
+  // Hiển thị khi có lỗi
   if (error) {
     return (
       <div className="text-center py-5 text-danger">
@@ -588,6 +670,7 @@ const SouvenirsPage = () => {
     );
   }
 
+  // Giao diện chính
   return (
     <div className="costume-rental-page min-vh-100">
       <div className="hero-section text-white py-5">
@@ -748,7 +831,6 @@ const SouvenirsPage = () => {
                   </div>
                 </div>
 
-                {/* Luôn hiển thị form Delivery Information khi đã bấm Buy Now */}
                 {showDeliveryModal && (
                   <div className="fest-purchase-form mt-4">
                     <h5>Delivery Information</h5>
@@ -777,6 +859,20 @@ const SouvenirsPage = () => {
                         />
                         {addressError && (
                           <Form.Text className="text-danger">{addressError}</Form.Text>
+                        )}
+                      </Form.Group>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Description (Optional)</Form.Label>
+                        <Form.Control
+                          as="textarea"
+                          rows={3}
+                          placeholder="Enter any delivery notes or special requests (optional)"
+                          value={description}
+                          onChange={handleDescriptionChange}
+                          isInvalid={!!descriptionError}
+                        />
+                        {descriptionError && (
+                          <Form.Text className="text-danger">{descriptionError}</Form.Text>
                         )}
                       </Form.Group>
                       <Form.Group className="mb-3">
@@ -852,7 +948,6 @@ const SouvenirsPage = () => {
                   </div>
                 )}
 
-                {/* Hiển thị Payment Method bên dưới Delivery Information */}
                 {showPaymentModal && (
                   <div className="fest-purchase-form mt-4" id="payment-modal">
                     <h5>Select Payment Method</h5>
@@ -889,39 +984,56 @@ const SouvenirsPage = () => {
                   </div>
                 )}
 
-                {/* Hiển thị Order Summary bên dưới Payment Method */}
                 {showSummaryModal && (
                   <div className="fest-purchase-form mt-4 summary-modal" id="summary-modal">
-                    <h5>Order Summary</h5>
+                    <h5>Order Review</h5>
                     <div className="summary-details">
-                      <p>
-                        <strong>Product:</strong> {selectedSouvenir.name} x {quantity}
+                      <h6>Items</h6>
+                      <p className="summary-item">
+                        <strong>{selectedSouvenir.name} x {quantity}</strong>: {formatPrice(selectedSouvenir.price * quantity)}
                       </p>
-                      <p>
-                        <strong>Total:</strong> {formatPrice(selectedSouvenir.price * quantity)}
-                      </p>
-                      <p>
-                        <strong>Phone:</strong> {phone}
-                      </p>
-                      <p>
-                        <strong>Address:</strong> {address}
-                      </p>
-                      <p>
-                        <strong>Province:</strong> {getProvinceName(selectedProvince)}
-                      </p>
-                      <p>
-                        <strong>District:</strong> {getDistrictName(selectedDistrict)}
-                      </p>
-                      <p>
-                        <strong>Ward:</strong> {getWardName(selectedWard)}
-                      </p>
-                      <p>
-                        <strong>Payment Method:</strong> {paymentMethod}
-                      </p>
+                      <h6 className="mt-3">Delivery Information</h6>
+                      <div className="buyer-info">
+                        <p>
+                          <strong>Phone:</strong> {phone}
+                        </p>
+                        <p>
+                          <strong>Address:</strong> {address}
+                        </p>
+                        {description && (
+                          <p>
+                            <strong>Description:</strong> {description}
+                          </p>
+                        )}
+                        <p>
+                          <strong>Province:</strong> {getProvinceName(selectedProvince)}
+                        </p>
+                        <p>
+                          <strong>District:</strong> {getDistrictName(selectedDistrict)}
+                        </p>
+                        <p>
+                          <strong>Ward:</strong> {getWardName(selectedWard)}
+                        </p>
+                        <p>
+                          <strong>Payment Method:</strong> {paymentMethod}
+                        </p>
+                      </div>
+                      <hr className="divider" />
+                      <div className="price-info">
+                        <p className="subtotal">
+                          <strong>Subtotal:</strong> {formatPrice(selectedSouvenir.price * quantity)}
+                        </p>
+                        <p className="delivery-fee">
+                          <strong>Delivery Fee:</strong> {formatPrice(deliveryFee)}
+                        </p>
+                        <p className="total">
+                          <strong>Total:</strong> {formatPrice(selectedSouvenir.price * quantity + deliveryFee)}
+                        </p>
+                      </div>
                     </div>
                     <div className="summary-actions">
                       <Button
-                        variant="success"
+                        variant="primary"
                         onClick={handleFinalConfirm}
                         className="me-2 fest-buy-ticket-btn"
                       >

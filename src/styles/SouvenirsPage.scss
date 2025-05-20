@@ -17,11 +17,9 @@
       0% {
         background-position: 0% 50%;
       }
-
       50% {
         background-position: 100% 50%;
       }
-
       100% {
         background-position: 0% 50%;
       }
@@ -385,70 +383,6 @@
           }
         }
 
-        .fest-purchase-form.summary-modal {
-          background: white;
-          border-radius: 0.5rem;
-          padding: 2rem;
-          box-shadow: 0 4px 20px rgba(81, 5, 69, 0.15);
-          transition: transform 0.3s ease;
-
-          h5 {
-            color: #510545;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
-            text-transform: uppercase;
-          }
-
-          .summary-details {
-            margin-bottom: 2rem;
-
-            p {
-              display: flex;
-              justify-content: space-between;
-              color: #4a4a4a;
-              margin-bottom: 0.75rem;
-              font-size: 1.1rem;
-
-              strong {
-                color: #22668a;
-                font-weight: 600;
-              }
-            }
-          }
-
-          .summary-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 1rem;
-
-            .fest-buy-ticket-btn {
-              background: linear-gradient(135deg, #510545, #22668a);
-              border: none;
-              padding: 0.75rem 2rem;
-              font-weight: 600;
-              transition: all 0.3s ease;
-
-              &:hover {
-                background: linear-gradient(135deg, #22668a, #510545);
-                transform: translateY(-2px);
-              }
-            }
-
-            .btn-secondary {
-              background: #e0e0e0;
-              color: #4a4a4a;
-              border: none;
-              padding: 0.75rem 2rem;
-              transition: all 0.3s ease;
-
-              &:hover {
-                background: #d0d0d0;
-                transform: translateY(-2px);
-              }
-            }
-          }
-        }
-
         .fest-ticket-section {
           h5 {
             color: #510545;
@@ -488,7 +422,7 @@
             transition: all 0.3s ease;
 
             &:hover {
-              opacity: 0.9;
+              background: linear-gradient(135deg, #22668a, #510545);
               transform: translateY(-2px);
             }
           }
@@ -501,6 +435,12 @@
           h5 {
             color: #510545;
             margin-bottom: 1rem;
+            font-weight: 600;
+          }
+
+          h6 {
+            color: #510545;
+            margin-bottom: 0.75rem;
             font-weight: 600;
           }
 
@@ -524,7 +464,6 @@
 
             &.is-invalid {
               border-color: #dc3545 !important;
-              /* Giữ biểu tượng lỗi mặc định của Bootstrap */
               background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
               background-repeat: no-repeat;
               background-position: right calc(0.375em + 0.1875rem) center;
@@ -541,17 +480,142 @@
             opacity: 0.9;
           }
 
-          .fest-confirm-purchase-btn {
-            background: linear-gradient(135deg, #28a745, #218838);
-            border: none;
-            padding: 0.6rem 1.5rem;
-            font-weight: 600;
-            width: 100%;
-            transition: all 0.3s ease;
+          &.summary-modal {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(81, 5, 69, 0.15);
+            transition: transform 0.3s ease;
 
-            &:hover {
-              opacity: 0.9;
-              transform: translateY(-2px);
+            .summary-details {
+              margin-bottom: 2rem;
+
+              .summary-item {
+                display: block;
+                color: #4a4a4a;
+                margin-bottom: 0.5rem;
+                font-size: 1rem;
+
+                strong {
+                  color: #22668a;
+                  font-weight: 600;
+                }
+              }
+
+              .buyer-info {
+                margin-bottom: 1.5rem;
+
+                p {
+                  display: flex;
+                  justify-content: space-between;
+                  color: #4a4a4a;
+                  margin-bottom: 0.5rem;
+                  font-size: 1rem;
+
+                  strong {
+                    color: #22668a;
+                    font-weight: 600;
+                    min-width: 120px;
+                  }
+                }
+              }
+
+              .divider {
+                border: 0;
+                height: 1px;
+                background: repeating-linear-gradient(
+                  90deg,
+                  #510545 0,
+                  #510545 5px,
+                  transparent 5px,
+                  transparent 10px
+                );
+                margin: 1.5rem 0;
+              }
+
+              .price-info {
+                p {
+                  display: flex;
+                  justify-content: space-between;
+                  margin-bottom: 0.75rem;
+                  padding: 0.5rem 0;
+                  font-size: 1.1rem;
+                  transition: color 0.3s ease;
+
+                  strong {
+                    font-weight: 600;
+                    min-width: 120px;
+                  }
+
+                  &.subtotal,
+                  &.delivery-fee {
+                    color: #22668a;
+                    border-top: 1px solid #e0e0e0;
+
+                    strong {
+                      color: #22668a;
+                    }
+
+                    &:hover {
+                      color: #1a5276;
+                      strong {
+                        color: #1a5276;
+                      }
+                    }
+                  }
+
+                  &.total {
+                    color: #510545;
+                    font-weight: 700;
+                    font-size: 1.3rem;
+                    border-top: 2px solid #510545;
+
+                    strong {
+                      color: #510545;
+                      font-weight: 700;
+                    }
+
+                    &:hover {
+                      color: #3d0338;
+                      strong {
+                        color: #3d0338;
+                      }
+                    }
+                  }
+                }
+              }
+            }
+
+            .summary-actions {
+              display: flex;
+              justify-content: flex-end;
+              gap: 1rem;
+
+              .fest-buy-ticket-btn {
+                background: linear-gradient(135deg, #510545, #22668a);
+                border: none;
+                padding: 0.75rem 2rem;
+                font-weight: 600;
+                transition: all 0.3s ease;
+
+                &:hover {
+                  background: linear-gradient(135deg, #22668a, #510545);
+                  transform: translateY(-2px);
+                }
+              }
+
+              .btn-secondary {
+                background: #e0e0e0;
+                color: #4a4a4a;
+                border: none;
+                padding: 0.75rem 2rem;
+                transition: all 0.3s ease;
+
+                &:hover {
+                  background: #d0d0d0;
+                  transform: translateY(-2px);
+                }
+              }
             }
           }
         }

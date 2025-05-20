@@ -1,3 +1,4 @@
+// Nhập các thư viện và component cần thiết
 import React, { useState, useEffect } from "react";
 import { Trash2 } from "lucide-react";
 import { Button, Form, Modal } from "react-bootstrap";
@@ -14,6 +15,7 @@ import LinearProgress from "@mui/material/LinearProgress";
 import { jwtDecode } from "jwt-decode";
 
 const CartPage = () => {
+  // Khởi tạo các state
   const [cartItems, setCartItems] = useState([]);
   const [selectedItems, setSelectedItems] = useState({});
   const [loading, setLoading] = useState(true);
@@ -26,12 +28,12 @@ const CartPage = () => {
   const [accountName, setAccountName] = useState(null);
   const [cartId, setCartId] = useState(null);
   const [phone, setPhone] = useState("");
-  const [phoneError, setPhoneError] = useState(""); // Lỗi cho trường hợp không bắt đầu bằng 0
+  const [phoneError, setPhoneError] = useState("");
   const [address, setAddress] = useState("");
-  const [addressError, setAddressError] = useState(""); // Lỗi cho address
-  const [provinceError, setProvinceError] = useState(""); // Lỗi cho province
-  const [districtError, setDistrictError] = useState(""); // Lỗi cho district
-  const [wardError, setWardError] = useState(""); // Lỗi cho ward
+  const [addressError, setAddressError] = useState("");
+  const [provinceError, setProvinceError] = useState("");
+  const [districtError, setDistrictError] = useState("");
+  const [wardError, setWardError] = useState("");
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
   const [wards, setWards] = useState([]);
@@ -40,12 +42,19 @@ const CartPage = () => {
   const [selectedWard, setSelectedWard] = useState("");
   const [toDistrictId, setToDistrictId] = useState("");
   const [toWardCode, setToWardCode] = useState("");
+  const [description, setDescription] = useState(""); // Thêm mô tả
+  const [descriptionError, setDescriptionError] = useState(""); // Lỗi mô tả
+  const [deliveryFee, setDeliveryFee] = useState(0); // Phí giao hàng
+  const [tempOrderId, setTempOrderId] = useState(null); // Lưu orderId tạm thời
+
   const navigate = useNavigate();
 
+  // Hàm định dạng giá tiền sang VND
   const formatPrice = (price) => {
     return `${price.toLocaleString("vi-VN")} VND`;
   };
 
+  // Lấy thông tin tài khoản từ token
   const getAccountInfoFromToken = () => {
     const accessToken = localStorage.getItem("accessToken");
     if (accessToken) {
@@ -64,6 +73,7 @@ const CartPage = () => {
     return null;
   };
 
+  // Lấy dữ liệu giỏ hàng
   const fetchCart = async () => {
     const accountInfo = getAccountInfoFromToken();
     if (accountInfo) {
@@ -108,6 +118,7 @@ const CartPage = () => {
     }
   };
 
+  // Lấy danh sách tỉnh/thành phố
   const fetchProvinces = async () => {
     try {
       const provincesData = await ProductDeliveryService.getProvinces();
@@ -119,6 +130,7 @@ const CartPage = () => {
     }
   };
 
+  // Lấy danh sách quận/huyện
   const fetchDistricts = async (provinceId) => {
     try {
       const districtsData = await ProductDeliveryService.getDistricts(provinceId);
@@ -135,6 +147,7 @@ const CartPage = () => {
     }
   };
 
+  // Lấy danh sách phường/xã
   const fetchWards = async (districtId) => {
     try {
       const wardsData = await ProductDeliveryService.getWards(districtId);
@@ -148,6 +161,7 @@ const CartPage = () => {
     }
   };
 
+  // Khởi tạo dữ liệu khi component mount
   useEffect(() => {
     fetchCart();
     fetchProvinces();
@@ -157,6 +171,7 @@ const CartPage = () => {
     };
   }, []);
 
+  // Tăng số lượng sản phẩm
   const handleIncrease = async (cartProductId, currentQuantity) => {
     const item = cartItems.find((i) => i.cartProductId === cartProductId);
     if (parseInt(item.quantitySelected, 10) < parseInt(item.initialQuantity, 10)) {
@@ -176,6 +191,7 @@ const CartPage = () => {
     }
   };
 
+  // Giảm số lượng sản phẩm
   const handleDecrease = async (cartProductId, currentQuantity) => {
     if (currentQuantity > 1) {
       try {
@@ -192,6 +208,7 @@ const CartPage = () => {
     }
   };
 
+  // Xóa sản phẩm khỏi giỏ hàng
   const handleRemove = async (cartProductId) => {
     try {
       await CartService.removeProductFromCart(cartId, [{ cartProductId }]);
@@ -203,6 +220,7 @@ const CartPage = () => {
     }
   };
 
+  // Chọn sản phẩm để thanh toán
   const handleSelectItem = (cartProductId) => {
     setSelectedItems((prev) => ({
       ...prev,
@@ -210,12 +228,14 @@ const CartPage = () => {
     }));
   };
 
+  // Tính tổng tiền sản phẩm đã chọn
   const calculateTotal = () => {
     return cartItems
       .filter((item) => selectedItems[item.cartProductId])
       .reduce((total, item) => total + item.price * item.quantitySelected, 0);
   };
 
+  // Bắt đầu thanh toán
   const handleCheckout = () => {
     const selectedCount = Object.values(selectedItems).filter(Boolean).length;
     if (selectedCount === 0) {
@@ -225,7 +245,7 @@ const CartPage = () => {
     setShowDeliveryModal(true);
   };
 
-  // Validate phone number
+  // Xác thực số điện thoại
   const validatePhoneNumber = (value) => {
     if (!value) {
       return "Phone number is required.";
@@ -236,9 +256,9 @@ const CartPage = () => {
     return "";
   };
 
+  // Xử lý thay đổi số điện thoại
   const handlePhoneChange = (e) => {
     const value = e.target.value;
-    // Chỉ cho phép số và tối đa 11 số
     if (/^\d*$/.test(value) && value.length <= 11) {
       setPhone(value);
       const error = validatePhoneNumber(value);
@@ -250,7 +270,7 @@ const CartPage = () => {
     }
   };
 
-  // Validate address
+  // Xác thực địa chỉ
   const validateAddress = (value) => {
     if (!value) {
       return "Address is required.";
@@ -261,13 +281,13 @@ const CartPage = () => {
     if (value.length > 100) {
       return "Address must not exceed 100 characters.";
     }
-    // Ngăn các ký tự đặc biệt không mong muốn
     if (/[<>{}!@#$%^&*()+=[\]|\\:;"'?~`]/.test(value)) {
       return "Address contains invalid special characters.";
     }
     return "";
   };
 
+  // Xử lý thay đổi địa chỉ
   const handleAddressChange = (e) => {
     const value = e.target.value;
     setAddress(value);
@@ -275,7 +295,26 @@ const CartPage = () => {
     setAddressError(error);
   };
 
-  // Validate province, district, ward
+  // Xác thực mô tả
+  const validateDescription = (value) => {
+    if (value && value.length > 200) {
+      return "Description must not exceed 200 characters.";
+    }
+    if (value && /[<>{}!@#$%^&*()+=[\]|\\:;"'?~`]/.test(value)) {
+      return "Description contains invalid special characters.";
+    }
+    return "";
+  };
+
+  // Xử lý thay đổi mô tả
+  const handleDescriptionChange = (e) => {
+    const value = e.target.value;
+    setDescription(value);
+    const error = validateDescription(value);
+    setDescriptionError(error);
+  };
+
+  // Xác thực tỉnh/thành phố
   const validateProvince = (value) => {
     if (!value) {
       return "Please select a province/city.";
@@ -287,6 +326,7 @@ const CartPage = () => {
     return "";
   };
 
+  // Xác thực quận/huyện
   const validateDistrict = (value) => {
     if (!value) {
       return "Please select a district.";
@@ -298,6 +338,7 @@ const CartPage = () => {
     return "";
   };
 
+  // Xác thực phường/xã
   const validateWard = (value) => {
     if (!value) {
       return "Please select a ward.";
@@ -309,6 +350,7 @@ const CartPage = () => {
     return "";
   };
 
+  // Xử lý thay đổi tỉnh/thành phố
   const handleProvinceChange = (e) => {
     const value = e.target.value;
     setSelectedProvince(value);
@@ -328,6 +370,7 @@ const CartPage = () => {
     }
   };
 
+  // Xử lý thay đổi quận/huyện
   const handleDistrictChange = (e) => {
     const value = e.target.value;
     setSelectedDistrict(value);
@@ -346,6 +389,7 @@ const CartPage = () => {
     }
   };
 
+  // Xử lý thay đổi phường/xã
   const handleWardChange = (e) => {
     const value = e.target.value;
     setSelectedWard(value);
@@ -356,6 +400,7 @@ const CartPage = () => {
     setToWardCode(wardCode);
   };
 
+  // Xác nhận thông tin giao hàng
   const handleDeliveryConfirm = () => {
     console.log("Delivery info check:", {
       phone,
@@ -365,29 +410,31 @@ const CartPage = () => {
       selectedWard,
       toDistrictId,
       toWardCode,
+      description,
     });
 
-    // Kiểm tra các trường bắt buộc và hợp lệ
     const phoneErr = validatePhoneNumber(phone);
     const addressErr = validateAddress(address);
     const provinceErr = validateProvince(selectedProvince);
     const districtErr = validateDistrict(selectedDistrict);
     const wardErr = validateWard(selectedWard);
+    const descriptionErr = validateDescription(description);
 
     setPhoneError(phoneErr);
     setAddressError(addressErr);
     setProvinceError(provinceErr);
     setDistrictError(districtErr);
     setWardError(wardErr);
+    setDescriptionError(descriptionErr);
 
-    if (phoneErr || addressErr || provinceErr || districtErr || wardErr || !toWardCode) {
+    if (phoneErr || addressErr || provinceErr || districtErr || wardErr || descriptionErr) {
       const errors = [
         phoneErr,
         addressErr,
         provinceErr,
         districtErr,
         wardErr,
-        !toWardCode ? "Please fill in all delivery information, including ward!" : "",
+        descriptionErr,
       ].filter(Boolean);
       toast.error(errors.join(" "));
       console.error("Validation errors:", errors);
@@ -399,6 +446,7 @@ const CartPage = () => {
       address,
       toDistrictId,
       toWardCode,
+      description,
     });
     setShowDeliveryModal(false);
     setShowPaymentModal(true);
@@ -410,22 +458,42 @@ const CartPage = () => {
     }, 100);
   };
 
-  const handleConfirmPurchase = () => {
+  // Xác nhận thanh toán và tính phí giao hàng
+  const handleConfirmPurchase = async () => {
     if (!paymentMethod) {
       toast.error("Please select a payment method!");
       return;
     }
-    console.log("Payment method selected:", paymentMethod);
-    setShowPaymentModal(false);
-    setShowSummaryModal(true);
-    setTimeout(() => {
-      const summaryModal = document.getElementById("cart-summary-modal");
-      if (summaryModal) {
-        summaryModal.scrollIntoView({ behavior: "smooth", block: "start" });
+    try {
+      const orderId = await createOrder();
+      console.log("OrderId:", orderId);
+      setTempOrderId(orderId);
+
+      let fee = 0;
+      try {
+        fee = await ProductDeliveryService.calculateDeliveryFee(orderId);
+      } catch (feeError) {
+        console.error("Failed to calculate delivery fee:", feeError);
+        toast.warn("Unable to calculate delivery fee. Proceeding with 0 VND.");
       }
-    }, 100);
+      setDeliveryFee(fee);
+      console.log("Delivery fee:", fee);
+
+      setShowPaymentModal(false);
+      setShowSummaryModal(true);
+      setTimeout(() => {
+        const summaryModal = document.getElementById("cart-summary-modal");
+        if (summaryModal) {
+          summaryModal.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }, 100);
+    } catch (error) {
+      console.error("Error in handleConfirmPurchase:", error);
+      toast.error(error.message);
+    }
   };
 
+  // Tạo đơn hàng
   const createOrder = async () => {
     const selectedCart = cartItems.filter((item) => selectedItems[item.cartProductId]);
     try {
@@ -435,6 +503,7 @@ const CartPage = () => {
         phone: phone,
         to_district_id: toDistrictId,
         to_ward_code: toWardCode,
+        description: description || null,
         orderProducts: selectedCart.map((item) => ({
           productId: item.id,
           quantity: item.quantitySelected,
@@ -451,9 +520,11 @@ const CartPage = () => {
     }
   };
 
+  // Xác nhận cuối cùng để thanh toán
   const handleFinalConfirm = async () => {
     const selectedCart = cartItems.filter((item) => selectedItems[item.cartProductId]);
-    const totalAmount = calculateTotal();
+    const productTotal = calculateTotal();
+    const totalAmount = productTotal + deliveryFee;
 
     if (!accountId) {
       toast.error("Please log in to proceed with payment!");
@@ -461,7 +532,8 @@ const CartPage = () => {
     }
 
     try {
-      const orderpaymentId = await createOrder();
+      const orderId = tempOrderId || (await createOrder());
+      console.log("OrderId:", orderId);
 
       const orderInfo = `Purchase: ${selectedCart
         .map((item) => `${item.name} (${item.quantitySelected})`)
@@ -477,7 +549,7 @@ const CartPage = () => {
         ticketId: null,
         ticketQuantity: null,
         contractId: null,
-        orderpaymentId: orderpaymentId,
+        orderpaymentId: orderId,
         isWeb: true,
       };
       console.log("Payment payload:", paymentData);
@@ -503,24 +575,27 @@ const CartPage = () => {
     }
   };
 
+  // Quay lại modal thanh toán
   const handleBackToPayment = () => {
     setShowSummaryModal(false);
     setShowPaymentModal(true);
     console.log("Back to payment modal");
     setTimeout(() => {
-      const paymentModal = document.getId("cart-payment-modal");
+      const paymentModal = document.getElementById("cart-payment-modal");
       if (paymentModal) {
         paymentModal.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     }, 100);
   };
 
+  // Quay lại modal giao hàng
   const handleBackToDelivery = () => {
     setShowPaymentModal(false);
     setShowDeliveryModal(true);
     console.log("Back to delivery modal");
   };
 
+  // Đóng tất cả modal và reset state
   const handleCloseModals = () => {
     setShowDeliveryModal(false);
     setShowPaymentModal(false);
@@ -540,30 +615,39 @@ const CartPage = () => {
     setPaymentMethod(null);
     setDistricts([]);
     setWards([]);
+    setDescription("");
+    setDescriptionError("");
+    setDeliveryFee(0);
+    setTempOrderId(null);
   };
 
+  // Chuyển hướng đến trang đăng nhập
   const handleLoginRedirect = () => {
     navigate("/login");
   };
 
+  // Lấy tên tỉnh/thành phố
   const getProvinceName = (provinceId) => {
     const province = provinces.find((p) => String(p.provinceId) === String(provinceId));
     console.log("getProvinceName:", { provinceId, provinceIdType: typeof provinceId, province });
     return province ? province.provinceName : "N/A";
   };
 
+  // Lấy tên quận/huyện
   const getDistrictName = (districtId) => {
     const district = districts.find((d) => String(d.districtId) === String(districtId));
     console.log("getDistrictName:", { districtId, districtIdType: typeof districtId, district });
     return district ? district.districtName : "N/A";
   };
 
+  // Lấy tên phường/xã
   const getWardName = (wardCode) => {
     const ward = wards.find((w) => String(w.wardCode) === String(wardCode));
     console.log("getWardName:", { wardCode, wardCodeType: typeof wardCode, ward });
     return ward ? ward.wardName : "N/A";
   };
 
+  // Hiển thị khi đang tải
   if (loading) {
     return (
       <div className="text-center py-5">
@@ -574,6 +658,7 @@ const CartPage = () => {
     );
   }
 
+  // Hiển thị khi có lỗi
   if (error) {
     return (
       <div className="text-center py-5 text-danger">
@@ -587,6 +672,7 @@ const CartPage = () => {
     );
   }
 
+  // Giao diện chính
   return (
     <div className="cart-page min-vh-100">
       <div className="container py-5">
@@ -662,11 +748,11 @@ const CartPage = () => {
                   <strong>Subtotal:</strong> {formatPrice(calculateTotal())}
                 </p>
                 <p>
-                  <strong>Shipping:</strong> Free
+                  <strong>Delivery Fee:</strong> {formatPrice(deliveryFee)}
                 </p>
                 <hr />
                 <p className="total">
-                  <strong>Total:</strong> {formatPrice(calculateTotal())}
+                  <strong>Total:</strong> {formatPrice(calculateTotal() + deliveryFee)}
                 </p>
               </div>
               <Button className="checkout-btn" onClick={handleCheckout}>
@@ -711,6 +797,20 @@ const CartPage = () => {
                 />
                 {addressError && (
                   <Form.Text className="text-danger">{addressError}</Form.Text>
+                )}
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>Description (Optional)</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={3}
+                  placeholder="Enter any delivery notes or special requests (optional)"
+                  value={description}
+                  onChange={handleDescriptionChange}
+                  isInvalid={!!descriptionError}
+                />
+                {descriptionError && (
+                  <Form.Text className="text-danger">{descriptionError}</Form.Text>
                 )}
               </Form.Group>
               <Form.Group className="mb-3">
@@ -830,7 +930,7 @@ const CartPage = () => {
           id="cart-summary-modal"
         >
           <Modal.Header closeButton>
-            <Modal.Title>Order Summary</Modal.Title>
+            <Modal.Title>Order Review</Modal.Title>
           </Modal.Header>
           <Modal.Body>
             <div className="summary-details">
@@ -838,67 +938,50 @@ const CartPage = () => {
               {cartItems
                 .filter((item) => selectedItems[item.cartProductId])
                 .map((item) => (
-                  <div
-                    key={item.cartProductId}
-                    className="summary-item"
-                    style={{ marginBottom: '0.5rem' }}
-                  >
-                    <span style={{ marginRight: '0.5rem' }}>
-                      {item.name} x {item.quantitySelected},
-                    </span>
-                    <span>Price: {formatPrice(item.price * item.quantitySelected)}</span>
-                  </div>
+                  <p key={item.cartProductId} className="summary-item">
+                    <strong>{item.name} x {item.quantitySelected}</strong>: {formatPrice(item.price * item.quantitySelected)}
+                  </p>
                 ))}
-              <hr />
-              <div
-                className="total"
-                style={{ marginBottom: '0.5rem' }}
-              >
-                <span style={{ marginRight: '0.25rem' }}>Total:</span>
-                <span>{formatPrice(calculateTotal())}</span>
+
+              <h5 className="mt-4">Delivery Information</h5>
+              <div className="buyer-info">
+                <p>
+                  <strong>Phone:</strong> {phone}
+                </p>
+                <p>
+                  <strong>Address:</strong> {address}
+                </p>
+                {description && (
+                  <p>
+                    <strong>Description:</strong> {description}
+                  </p>
+                )}
+                <p>
+                  <strong>Province:</strong> {getProvinceName(selectedProvince)}
+                </p>
+                <p>
+                  <strong>District:</strong> {getDistrictName(selectedDistrict)}
+                </p>
+                <p>
+                  <strong>Ward:</strong> {getWardName(selectedWard)}
+                </p>
+                <p>
+                  <strong>Payment Method:</strong> {paymentMethod}
+                </p>
               </div>
-              <h5 className="mt-3">Delivery Information</h5>
-              <div
-                className="summary-info"
-                style={{ marginBottom: '0.5rem' }}
-              >
-                <span style={{ marginRight: '0.25rem' }}>Phone:</span>
-                <span>{phone}</span>
-              </div>
-              <div
-                className="summary-info"
-                style={{ marginBottom: '0.5rem' }}
-              >
-                <span style={{ marginRight: '0.25rem' }}>Address:</span>
-                <span>{address}</span>
-              </div>
-              <div
-                className="summary-info"
-                style={{ marginBottom: '0.5rem' }}
-              >
-                <span style={{ marginRight: '0.25rem' }}>Province:</span>
-                <span>{getProvinceName(selectedProvince)}</span>
-              </div>
-              <div
-                className="summary-info"
-                style={{ marginBottom: '0.5rem' }}
-              >
-                <span style={{ marginRight: '0.25rem' }}>District:</span>
-                <span>{getDistrictName(selectedDistrict)}</span>
-              </div>
-              <div
-                className="summary-info"
-                style={{ marginBottom: '0.5rem' }}
-              >
-                <span style={{ marginRight: '0.25rem' }}>Ward:</span>
-                <span>{getWardName(selectedWard)}</span>
-              </div>
-              <div
-                className="summary-info"
-                style={{ marginBottom: '0.5rem' }}
-              >
-                <span style={{ marginRight: '0.25rem' }}>Payment Method:</span>
-                <span>{paymentMethod}</span>
+
+              <hr className="divider" />
+
+              <div className="price-info">
+                <p className="subtotal">
+                  <strong>Subtotal:</strong> {formatPrice(calculateTotal())}
+                </p>
+                <p className="delivery-fee">
+                  <strong>Delivery Fee:</strong> {formatPrice(deliveryFee)}
+                </p>
+                <p className="total">
+                  <strong>Total:</strong> {formatPrice(calculateTotal() + deliveryFee)}
+                </p>
               </div>
             </div>
             <div className="summary-actions">
