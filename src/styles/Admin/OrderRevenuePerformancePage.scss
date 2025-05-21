@@ -1,13 +1,13 @@
 .order-revenue {
-  padding: 1.5rem; // Giảm padding từ 2rem 3rem để cân đối
+  padding: 1.5rem;
   background: #f8f9fa;
   min-height: 100vh;
   animation: fadeIn 0.5s ease-in;
-  margin-left: 70px; // Thay margin: 0 30vh thành margin-left: 70px
-  margin-right: 0; // Loại bỏ margin phải để tận dụng không gian
+  margin-left: 70px;
+  margin-right: 0;
 
   h1 {
-    margin-bottom: 2rem; // Giảm từ 2.5rem để gọn hơn
+    margin-bottom: 2rem;
     color: #1a1a2e;
     font-weight: 700;
     font-size: 2.25rem;
@@ -98,7 +98,7 @@
     }
 
     .card-body {
-      padding: 1.5rem; // Giảm từ 2rem để cân đối
+      padding: 1.5rem;
       display: flex;
       align-items: center;
     }
@@ -146,12 +146,12 @@
     border-radius: 16px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
     background: white;
-    margin-bottom: 1.5rem; // Giảm từ 2rem để gọn hơn
+    margin-bottom: 1.5rem;
 
     .card-header {
       background: #fff;
       border-bottom: none;
-      padding: 1.25rem; // Giảm từ 1.5rem để cân đối
+      padding: 1.25rem;
 
       h5 {
         color: #1a1a2e;
@@ -161,7 +161,7 @@
     }
 
     .card-body {
-      padding: 1.5rem; // Giảm từ 2rem để cân đối
+      padding: 1.5rem;
 
       .text-muted {
         text-align: center;
@@ -169,15 +169,22 @@
         color: #6c757d;
       }
 
+      .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
       .table {
         margin-bottom: 0;
+        min-width: 900px; // Đảm bảo bảng đủ rộng cho 7 cột
 
         th,
         td {
           vertical-align: middle;
-          padding: 0.75rem; // Giảm từ 1rem để bảng gọn hơn
+          padding: 0.75rem;
           text-align: center;
           transition: all 0.3s ease;
+          white-space: nowrap; // Ngăn wrap văn bản
         }
 
         thead {
@@ -219,9 +226,9 @@
   }
 
   @media (max-width: 768px) {
-    padding: 1rem; // Giảm từ 1.5rem để phù hợp mobile
-    margin-left: 70px; // Giữ margin-left: 70px trên mobile
-    margin-right: 0; // Loại bỏ margin phải
+    padding: 1rem;
+    margin-left: 70px;
+    margin-right: 0;
 
     h1 {
       font-size: 1.75rem;
@@ -244,18 +251,18 @@
     }
 
     .card-body {
-      padding: 1rem; // Giảm từ 1.5rem để gọn hơn trên mobile
+      padding: 1rem;
     }
 
     .card {
-      margin-bottom: 1rem; // Giảm từ 1.5rem để tiết kiệm không gian
+      margin-bottom: 1rem;
     }
 
     .table {
 
       th,
       td {
-        padding: 0.5rem; // Giảm thêm trên mobile
+        padding: 0.5rem;
       }
     }
   }

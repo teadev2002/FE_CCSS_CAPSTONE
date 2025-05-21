@@ -1,5 +1,3 @@
-// src/pages/UserAnalyticsPage.jsx
-
 import React, { useState, useEffect } from "react";
 import { Card, Row, Col, Table, ProgressBar, Dropdown } from "react-bootstrap";
 import { Line } from "react-chartjs-2";
@@ -60,6 +58,9 @@ const UserAnalyticsPage = () => {
     month: { labels: [], datasets: [] },
     year: { labels: [], datasets: [] },
   });
+
+  // Trạng thái cho Top 5 Accounts
+  const [topAccounts, setTopAccounts] = useState([]);
 
   // Dữ liệu giả lập cho Top 5 khách hàng sử dụng dịch vụ nhiều nhất
   const topCustomersByUsage = [
@@ -186,6 +187,21 @@ const UserAnalyticsPage = () => {
   // Định dạng giá thuê cosplayer
   const formatHourlyRate = (rate) => {
     return `${rate.toLocaleString("vi-VN")}/h VND`;
+  };
+
+  // Định dạng giá tiền VND
+  const formatPrice = (price) => {
+    if (typeof price !== "number" || price == null) return "0 VND";
+    return `${price.toLocaleString("vi-VN")} VND`;
+  };
+
+  // Lấy URL avatar từ accountImages
+  const getAvatarUrl = (accountImages) => {
+    if (!Array.isArray(accountImages) || accountImages.length === 0) {
+      return "https://via.placeholder.com/40"; // Placeholder image
+    }
+    const avatarImage = accountImages.find((img) => img.isAvatar) || accountImages[0];
+    return avatarImage.urlImage || "https://via.placeholder.com/40";
   };
 
   // Lấy dữ liệu sử dụng dịch vụ từ API
@@ -404,6 +420,21 @@ const UserAnalyticsPage = () => {
     fetchTopCosplayersByRating();
   }, [ratingFilter]);
 
+  // Lấy dữ liệu Top 5 Accounts
+  useEffect(() => {
+    const fetchTopAccounts = async () => {
+      try {
+        const data = await UserAnalyticsService.getTopAccounts();
+        setTopAccounts(Array.isArray(data) ? data.slice(0, 5) : []);
+      } catch (error) {
+        toast.error(error.message || "Failed to load top accounts");
+        setTopAccounts([]);
+      }
+    };
+
+    fetchTopAccounts();
+  }, []);
+
   // Lấy dữ liệu sử dụng dịch vụ và xu hướng
   useEffect(() => {
     fetchServiceUsage();
@@ -554,35 +585,49 @@ const UserAnalyticsPage = () => {
         <Col lg={12}>
           <Card className="mb-4">
             <Card.Header>
-              <h5>Top 5 Customers by Service Usage</h5>
+              <h5>Top 5 Accounts</h5>
             </Card.Header>
             <Card.Body>
-              <Table responsive>
-                <thead>
-                  <tr>
-                    <th>Rank</th>
-                    <th>Name</th>
-                    <th>Services Used</th>
-                    <th>Membership</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {topCustomersByUsage.map((customer, index) => (
-                    <tr key={customer.id}>
-                      <td>#{index + 1}</td>
-                      <td>{customer.name}</td>
-                      <td>
-                        <p>Costume Rental: {customer.servicesUsed.costumeRental}</p>
-                        <p>Hire Cosplayers: {customer.servicesUsed.hireCosplayers}</p>
-                        <p>Event Organization: {customer.servicesUsed.eventOrganization}</p>
-                        <p>Buy Souvenirs: {customer.servicesUsed.buySouvenirs}</p>
-                        <p>Buy Festival Tickets: {customer.servicesUsed.buyFestivalTickets}</p>
-                      </td>
-                      <td>{customer.membership}</td>
+              {topAccounts.length === 0 ? (
+                <p className="text-muted">No accounts found.</p>
+              ) : (
+                <Table responsive>
+                  <thead>
+                    <tr>
+                      <th className="text-center">Rank</th>
+                      <th className="text-center">Avatar</th>
+                      <th className="text-center">Account ID</th>
+                      <th className="text-center">Full Name</th>
+                      <th className="text-center">Total Contracts</th>
+                      <th className="text-center">Total Payment</th>
                     </tr>
-                  ))}
-                </tbody>
-              </Table>
+                  </thead>
+                  <tbody>
+                    {topAccounts.map((account, index) => (
+                      <tr key={account.accountId}>
+                        <td className="text-center">#{index + 1}</td>
+                        <td className="text-center">
+                          <img
+                            src={getAvatarUrl(account.accountImages)}
+                            alt="Avatar"
+                            className="avatar-image"
+                            style={{
+                              width: "40px",
+                              height: "40px",
+                              borderRadius: "50%",
+                              objectFit: "cover",
+                            }}
+                          />
+                        </td>
+                        <td className="text-center">{account.accountId}</td>
+                        <td className="text-center">{account.fullName}</td>
+                        <td className="text-center">{account.totalContracts}</td>
+                        <td className="text-center">{formatPrice(account.totalPaymentAmount)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
+              )}
             </Card.Body>
           </Card>
         </Col>

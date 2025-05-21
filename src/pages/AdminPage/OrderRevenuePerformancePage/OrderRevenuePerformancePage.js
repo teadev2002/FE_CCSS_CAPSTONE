@@ -16,66 +16,70 @@ import {
 } from "chart.js";
 import "../../../styles/Admin/OrderRevenuePerformancePage.scss";
 
-// Đăng ký các thành phần cần thiết cho Chart.js
 Chart.register(CategoryScale, LinearScale, PointElement, LineElement);
 
 const OrderRevenuePerformancePage = () => {
-  // State cho bộ lọc
   const [filterType, setFilterType] = useState(3); // Mặc định: This Year
   const [revenueSource, setRevenueSource] = useState(3); // Mặc định: Total
-
-  // State cho dữ liệu API revenue
   const [revenueData, setRevenueData] = useState({
     totalRevenue: 0,
     paymentResponse: [],
   });
-
-  // State cho dữ liệu API biểu đồ
   const [chartData, setChartData] = useState({
     dailyRevenue: [],
     monthlyRevenue: [],
   });
-
+  const [payments, setPayments] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Hàm định dạng giá tiền VND
+  // Format price to VND
   const formatPrice = (price) => {
     if (typeof price !== "number" || price == null) return "0 VND";
     return `${price.toLocaleString("vi-VN")} VND`;
   };
 
-  // Hàm chuyển đổi trạng thái
+  // Get status text
   const getStatusText = (status) => {
     switch (status) {
-      case 1:
+      case "Complete":
         return "Completed";
-      case 0:
+      case "Pending":
         return "Pending";
-      case 2:
+      case "Canceled":
         return "Canceled";
       default:
-        return "Unknown";
+        return status || "Unknown";
     }
   };
 
-  // Hàm chuyển đổi mục đích
-  const getPurposeText = (purpose) => {
-    switch (purpose) {
-      case 0:
-        return "Buy tickets";
-      case 1:
-        return "Pay contract deposit";
-      case 2:
-        return "Finalize the contract";
-      case 3:
-        return "Buy product";
+  // Format purpose text
+  const formatPurposeText = (purpose) => {
+    if (!purpose) return "N/A";
+    const purposeLower = purpose.toLowerCase();
+    switch (purposeLower) {
+      case "buy tickets":
+        return "Buy Tickets";
+      case "pay contract deposit":
+        return "Contract Deposit";
+      case "finalize the contract":
+        return "Contract Settlement";
+      case "order":
+        return "Order";
+      case "festival":
+        return "Festival";
+      case "service":
+        return "Contract Service";
       default:
-        return "Unknown";
+        // Format chuỗi bất kỳ thành viết hoa chữ đầu mỗi từ
+        return purposeLower
+          .split(" ")
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(" ");
     }
   };
 
-  // Gọi API revenue
+  // Fetch revenue data
   useEffect(() => {
     const fetchRevenueData = async () => {
       setIsLoading(true);
@@ -94,7 +98,7 @@ const OrderRevenuePerformancePage = () => {
     fetchRevenueData();
   }, [filterType, revenueSource]);
 
-  // Gọi API biểu đồ (chỉ gọi khi filterType là 1, 2, hoặc 3)
+  // Fetch chart data
   useEffect(() => {
     if (filterType === 0) {
       setChartData({ dailyRevenue: [], monthlyRevenue: [] });
@@ -121,25 +125,43 @@ const OrderRevenuePerformancePage = () => {
     fetchChartData();
   }, [filterType, revenueSource]);
 
-  // Tính doanh thu chi tiết từng dịch vụ trên FE
+  // Fetch payment data
+  useEffect(() => {
+    const fetchPayments = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const data = await RevenueService.getPayments();
+        setPayments(data || []);
+      } catch (error) {
+        setError(error.message);
+        setPayments([]);
+        toast.error(error.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchPayments();
+  }, []);
+
+  // Calculate revenue by service
   const calculateRevenueByService = () => {
     const payments = revenueData.paymentResponse || [];
-
-    // Khởi tạo doanh thu cho từng dịch vụ
     let festivalTicketSales = 0;
     let souvenirSales = 0;
     let contractServicesTotal = 0;
 
-    // Tính tổng doanh thu theo purpose
     payments.forEach((payment) => {
-      if (payment.purpose === 0) {
-        // Buy tickets → Festival Ticket Sales
+      const purpose = payment.purpose?.toLowerCase();
+      if (purpose === "festival" || purpose === "buy tickets") {
         festivalTicketSales += payment.amount;
-      } else if (payment.purpose === 3) {
-        // Buy product → Souvenir Sales
+      } else if (purpose === "order") {
         souvenirSales += payment.amount;
-      } else if (payment.purpose === 1 || payment.purpose === 2) {
-        // Pay contract deposit hoặc Finalize the contract → Contract Services
+      } else if (
+        purpose === "service" ||
+        purpose === "pay contract deposit" ||
+        purpose === "finalize the contract"
+      ) {
         contractServicesTotal += payment.amount;
       }
     });
@@ -151,13 +173,12 @@ const OrderRevenuePerformancePage = () => {
     ];
   };
 
-  // Chuẩn bị dữ liệu cho biểu đồ
+  // Prepare chart data
   const prepareChartData = () => {
     let labels = [];
     let data = [];
 
     if (filterType === 1) {
-      // This Week: Hiển thị 7 ngày gần nhất
       const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
       labels = days;
       data = new Array(7).fill(0);
@@ -167,7 +188,6 @@ const OrderRevenuePerformancePage = () => {
         data[dayIndex] = item.totalRevenue || 0;
       });
     } else if (filterType === 2) {
-      // This Month: Hiển thị ngày trong tháng
       const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
       labels = Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString());
       data = new Array(daysInMonth).fill(0);
@@ -177,7 +197,6 @@ const OrderRevenuePerformancePage = () => {
         data[day] = item.totalRevenue || 0;
       });
     } else if (filterType === 3) {
-      // This Year: Hiển thị các tháng
       const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
       labels = months;
       data = new Array(12).fill(0);
@@ -213,7 +232,7 @@ const OrderRevenuePerformancePage = () => {
     };
   };
 
-  // Tùy chọn biểu đồ
+  // Chart options
   const chartOptions = {
     maintainAspectRatio: false,
     scales: {
@@ -248,7 +267,7 @@ const OrderRevenuePerformancePage = () => {
     },
   };
 
-  // Các lựa chọn cho dropdown
+  // Dropdown options
   const filterTypeOptions = [
     { value: 0, label: "Today" },
     { value: 1, label: "This Week" },
@@ -259,18 +278,17 @@ const OrderRevenuePerformancePage = () => {
   const revenueSourceOptions = [
     { value: 0, label: "Order" },
     { value: 1, label: "Festival" },
-    { value: 2, label: "Service" },
+    { value: 2, label: "Contract Service" }, // Sửa từ Service thành Contract Service
     { value: 3, label: "Total" },
   ];
 
-  // Lấy dữ liệu doanh thu chi tiết từng dịch vụ
   const revenueByService = calculateRevenueByService();
 
   return (
     <div className="order-revenue">
       <h1>Order & Revenue Performance</h1>
 
-      {/* Bộ lọc */}
+      {/* Filters */}
       <Row className="mb-4">
         <Col md={6}>
           <Form.Group>
@@ -315,7 +333,7 @@ const OrderRevenuePerformancePage = () => {
         </Col>
       </Row>
 
-      {/* Hiển thị loading hoặc lỗi */}
+      {/* Loading or error */}
       {isLoading && (
         <Box sx={{ width: "100%", marginY: 2 }}>
           <LinearProgress />
@@ -325,7 +343,7 @@ const OrderRevenuePerformancePage = () => {
 
       {!isLoading && !error && (
         <>
-          {/* Tổng doanh thu và doanh thu từng dịch vụ */}
+          {/* Total revenue and revenue by service */}
           <Row className="mb-4">
             <Col md={12} lg={4}>
               <Card className="total-revenue-card mb-4">
@@ -372,7 +390,7 @@ const OrderRevenuePerformancePage = () => {
             </Col>
           </Row>
 
-          {/* Biểu đồ xu hướng doanh thu */}
+          {/* Revenue trend chart */}
           <Card className="mb-4">
             <Card.Header>
               <h5>Revenue Trend</h5>
@@ -389,53 +407,59 @@ const OrderRevenuePerformancePage = () => {
             </Card.Body>
           </Card>
 
-          {/* Danh sách giao dịch */}
+          {/* Transaction Details */}
           <Card className="mb-4">
             <Card.Header>
               <h5>Transaction Details</h5>
             </Card.Header>
             <Card.Body>
-              {revenueData.paymentResponse.length === 0 ? (
-                <p className="text-muted">No transactions found for the selected filters.</p>
+              {payments.length === 0 ? (
+                <p className="text-muted">No transactions found.</p>
               ) : (
-                <Table striped bordered hover responsive>
-                  <thead>
-                    <tr>
-                      <th className="text-center">Payment ID</th>
-                      <th className="text-center">Status</th>
-                      <th className="text-center">Purpose</th>
-                      <th className="text-center">Amount</th>
-                      <th className="text-center">Created At</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {revenueData.paymentResponse.map((payment) => (
-                      <tr key={payment.paymentId}>
-                        <td className="text-center">{payment.paymentId}</td>
-                        <td className="text-center">
-                          <span
-                            className={
-                              getStatusText(payment.status).toLowerCase() === "completed"
-                                ? "status-completed"
-                                : getStatusText(payment.status).toLowerCase() === "canceled"
+                <div className="table-responsive">
+                  <Table striped bordered hover responsive>
+                    <thead>
+                      <tr>
+                        <th className="text-center">Payment ID</th>
+                        <th className="text-center">Type</th>
+                        <th className="text-center">Status</th>
+                        <th className="text-center">Purpose</th>
+                        <th className="text-center">Amount</th>
+                        <th className="text-center">Transaction ID</th>
+                        <th className="text-center">Created At</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {payments.map((payment) => (
+                        <tr key={payment.paymentId}>
+                          <td className="text-center">{payment.paymentId}</td>
+                          <td className="text-center">{payment.type || "N/A"}</td>
+                          <td className="text-center">
+                            <span
+                              className={
+                                getStatusText(payment.status).toLowerCase() === "completed"
+                                  ? "status-completed"
+                                  : getStatusText(payment.status).toLowerCase() === "canceled"
                                   ? "status-cancel"
                                   : ""
-                            }
-                          >
-                            {getStatusText(payment.status)}
-                          </span>
-                        </td>
-                        <td className="text-center">{getPurposeText(payment.purpose)}</td>
-                        <td className="text-center">{formatPrice(payment.amount)}</td>
-                        <td className="text-center">
-                          {payment.creatAt && !isNaN(new Date(payment.creatAt))
-                            ? new Date(payment.creatAt).toLocaleString("en-US")
-                            : "Invalid Date"}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </Table>
+                              }
+                            >
+                              {getStatusText(payment.status)}
+                            </span>
+                          </td>
+                          <td className="text-center">{formatPurposeText(payment.purpose)}</td>
+                          <td className="text-center">{formatPrice(payment.amount)}</td>
+                          <td className="text-center">{payment.transactionId || "N/A"}</td>
+                          <td className="text-center">
+                            {payment.creatAt && !isNaN(new Date(payment.creatAt))
+                              ? new Date(payment.creatAt).toLocaleString("en-US")
+                              : "Invalid Date"}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </Table>
+                </div>
               )}
             </Card.Body>
           </Card>
