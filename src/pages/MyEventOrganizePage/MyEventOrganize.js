@@ -1891,6 +1891,9 @@ const MyEventOrganize = () => {
     setIsDepositModalVisible(false);
     setDepositAmount(null);
     setSelectedRequestId(null);
+    setTimeout(() => {
+      window.location.reload();
+    }, 700);
   };
 
   const handlePaymentRequest = (contract) => {
@@ -2677,20 +2680,20 @@ const MyEventOrganize = () => {
                                 {request.name} {getStatusBadge(request.status)}
                               </h3>
                             </div>
-                            <div className="text-muted small mt-1">
+                            <div>
                               <Calendar size={16} className="me-1" />
                               Start Date: {request.startDate}
                             </div>
-                            <div className="text-muted small mt-1">
+                            <div>
                               <Calendar size={16} className="me-1" />
                               End Date: {request.endDate}
                             </div>
-                            <div className="text-muted small mt-1">
+                            <div>
                               <DollarSign size={16} className="me-1" />
                               Total Price:{" "}
                               {(request.price || 0).toLocaleString()} VND
                             </div>
-                            <div className="text-muted small mt-1">
+                            <div>
                               <MapPin size={16} className="me-1" />
                               Location: {request.location}
                             </div>
@@ -2838,15 +2841,14 @@ const MyEventOrganize = () => {
                               {item.contractName} {getStatusBadge(item.status)}
                             </h3>
                           </div>
-                          <div className="text-muted small mt-1">
-                            <Calendar size={16} className="me-1" />
-                            Start Date: {item.startDate}
-                          </div>
-                          <div className="text-muted small mt-1">
-                            <Calendar size={16} className="me-1" />
-                            End Date: {item.endDate}
-                          </div>
-                          <div className="text-muted small mt-1">
+                          {item.packageName && (
+                            <div>
+                              <Package size={16} className="me-1" />
+                              Package Name: {item.packageName}
+                            </div>
+                          )}
+
+                          <div>
                             <DollarSign size={16} className="me-1" />
                             Total Price: {(
                               item.price || 0
@@ -2854,39 +2856,45 @@ const MyEventOrganize = () => {
                             VND
                           </div>
                           {item.deposit && (
-                            <div className="text-muted small mt-1">
-                              <CircleDollarSign size={16} className="me-1" />
+                            <div>
+                              <DollarSign size={16} className="me-1" />
                               Deposit: {item.deposit}%
                             </div>
                           )}
                           {item.status === "Deposited" && (
-                            <div className="text-muted small mt-1">
+                            <div>
                               <DollarSign size={16} className="me-1" />
                               Amount: {(item.amount || 0).toLocaleString()} VND
                             </div>
                           )}
-                          {item.packageName && (
-                            <div className="text-muted small mt-1">
-                              <Package size={16} className="me-1" />
-                              Package Name: {item.packageName}
-                            </div>
-                          )}
-                          <div className="text-muted small mt-1">
-                            <MapPin size={16} className="me-1" />
-                            Location: {item.location}
+                          <div>
+                            <Calendar size={16} className="me-1" />
+                            Start Date: {item.startDate}
                           </div>
-                          {item.createBy && (
-                            <div className="text-muted small mt-1">
-                              <User size={16} className="me-1" />
-                              Created By: {item.createBy}
-                            </div>
-                          )}
+                          <div>
+                            <Calendar size={16} className="me-1" />
+                            End Date: {item.endDate}
+                          </div>
                           {item.createDate && (
-                            <div className="text-muted small mt-1">
+                            <div>
                               <Calendar size={16} className="me-1" />
                               Create Date: {item.createDate}
                             </div>
                           )}
+                          {item.createBy && (
+                            <div>
+                              <User size={16} className="me-1" />
+                              Created By: {item.createBy}
+                            </div>
+                          )}
+
+                          {item.location && (
+                            <div>
+                              <MapPin size={16} className="me-1" />
+                              Location: {item.location}
+                            </div>
+                          )}
+
                           {item.status === "Cancel" && item.reason && (
                             <div
                               className="reason-text mt-1"
@@ -2912,17 +2920,18 @@ const MyEventOrganize = () => {
                           <Eye size={16} className="me-1" />
                           View
                         </Button>
-                        {onAction && item.status === "Created" && (
-                          <Button
-                            type="default"
-                            className="btn-action"
-                            onClick={() => onAction(item)}
-                            aria-label={actionLabel}
-                          >
-                            {actionIcon}
-                            {actionLabel}
-                          </Button>
-                        )}
+                        {(onAction && item.status === "Created") ||
+                          (item.status === "Deposited" && (
+                            <Button
+                              type="default"
+                              className="btn-action"
+                              onClick={() => onAction(item)}
+                              aria-label={actionLabel}
+                            >
+                              {actionIcon}
+                              {actionLabel}
+                            </Button>
+                          ))}
                         {item.urlPdf &&
                           typeof item.urlPdf === "string" &&
                           item.urlPdf.trim() !== "" && (

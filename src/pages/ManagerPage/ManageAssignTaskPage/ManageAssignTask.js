@@ -531,7 +531,7 @@ const ManageAssignTask = () => {
                 >
                   <Card className="mat-details-card">
                     <Card.Body>
-                      <Card.Title>Request: {request.name}</Card.Title>
+                      <strong>Request: {request.name} </strong>
                       <Card.Text>
                         <strong>Status:</strong> {request.status}
                         <br />

@@ -865,10 +865,13 @@ const MyHistory = () => {
                             <Calendar size={16} className="me-1" />
                             End Date: {formatDate(item.endDate)}
                           </div>
-                          <div>
-                            <MapPin size={16} className="me-1" />
-                            Location: {item.location || "N/A"}
-                          </div>
+                          {item.location && (
+                            <div>
+                              <MapPin size={16} className="me-1" />
+                              Location: {item.location || "N/A"}
+                            </div>
+                          )}
+
                           {item.status === "Cancel" && item.reason && (
                             <div className="reason-text mt-1">
                               <FileText size={16} className="me-1" />
@@ -1420,7 +1423,7 @@ const MyHistory = () => {
 
         {/* View Feedback Modal */}
         <Modal
-          title={`Feedback for Contract ${viewFeedbackData.contractId}`}
+          title={`Your Feedback`}
           open={isViewFeedbackModalVisible}
           onCancel={() => {
             setIsViewFeedbackModalVisible(false);
@@ -1454,8 +1457,7 @@ const MyHistory = () => {
                     </p>
                     {feedback.createdAt && (
                       <p>
-                        <strong>Submitted:</strong>{" "}
-                        {dayjs(feedback.createdAt).format("DD/MM/YYYY HH:mm")}
+                        <strong>Submitted:</strong> {feedback.createdAt}
                       </p>
                     )}
                     <Form.Group className="mb-3">

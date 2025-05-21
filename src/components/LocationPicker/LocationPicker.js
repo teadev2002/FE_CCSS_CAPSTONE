@@ -1,6 +1,196 @@
-// src/components/LocationPicker.js
+// // src/components/LocationPicker.js
+// import React, { useState, useEffect, useCallback } from "react";
+// import { Select, Flex, Spin } from "antd";
+// import { toast } from "react-toastify";
+// import LocationPickerService from "./LocationPickerService";
+
+// const { Option } = Select;
+
+// const LocationPicker = ({ value, onChange, required = true }) => {
+//   const [districts, setDistricts] = useState([]);
+//   const [streets, setStreets] = useState([]);
+//   const [selectedDistrict, setSelectedDistrict] = useState(null);
+//   const [selectedStreet, setSelectedStreet] = useState(null);
+//   const [loading, setLoading] = useState(false);
+//   const [hasUserInteracted, setHasUserInteracted] = useState(false);
+//   const [houseNumber, setHouseNumber] = useState("");
+//   // Fetch districts on mount
+//   useEffect(() => {
+//     const fetchDistricts = async () => {
+//       setLoading(true);
+//       try {
+//         const data = await LocationPickerService.getDistricts();
+//         setDistricts(data);
+//         if (data.length === 0) {
+//           toast.warn("No districts available. Please try again later.");
+//         }
+//       } catch (error) {
+//         setDistricts([]);
+//         toast.error("Failed to load districts.");
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+//     fetchDistricts();
+//   }, []);
+
+//   // Fetch streets when district changes
+//   useEffect(() => {
+//     if (selectedDistrict) {
+//       const fetchStreets = async () => {
+//         setLoading(true);
+//         try {
+//           const data = await LocationPickerService.getStreets(selectedDistrict);
+//           setStreets(data);
+//           setSelectedStreet(null); // Reset street selection
+//           console.log("Streets state:", data);
+//         } catch (error) {
+//           setStreets([]);
+//           setSelectedStreet(null);
+//           toast.error("Failed to load streets.");
+//         } finally {
+//           setLoading(false);
+//         }
+//       };
+//       fetchStreets();
+//     } else {
+//       setStreets([]);
+//       setSelectedStreet(null);
+//     }
+//   }, [selectedDistrict]);
+
+//   // Update parent with formatted location
+//   useEffect(() => {
+//     if (selectedDistrict && selectedStreet) {
+//       const district = districts.find((d) => d.id === selectedDistrict);
+//       const street = streets.find((s) => s.id === selectedStreet);
+//       if (district?.name && street?.name) {
+//         const location = `${street.name}, ${district.name}, TP.HCM`;
+//         console.log("Location updated:", location, {
+//           districtId: selectedDistrict,
+//           streetId: selectedStreet,
+//         });
+//         onChange?.(location);
+//       } else {
+//         console.warn("Invalid district or street:", { district, street });
+//       }
+//     } else if (!required) {
+//       onChange?.("");
+//     }
+//   }, [
+//     selectedDistrict,
+//     selectedStreet,
+//     districts,
+//     streets,
+//     onChange,
+//     required,
+//   ]);
+
+//   // Parse initial value (only if no user interaction)
+//   const parseInitialValue = useCallback(() => {
+//     if (value && districts.length && !hasUserInteracted) {
+//       const parts = value.split(", ");
+//       if (parts.length === 3 && parts[2] === "TP.HCM") {
+//         const districtName = parts[1];
+//         const districtMatch = districts.find((d) => d.name === districtName);
+//         if (districtMatch && selectedDistrict !== districtMatch.id) {
+//           setSelectedDistrict(districtMatch.id);
+//           console.log("Pre-filled district:", districtMatch.id);
+//         }
+//       }
+//     }
+//   }, [value, districts, hasUserInteracted, selectedDistrict]);
+
+//   useEffect(() => {
+//     parseInitialValue();
+//   }, [parseInitialValue]);
+
+//   useEffect(() => {
+//     if (
+//       value &&
+//       selectedDistrict &&
+//       streets.length &&
+//       !selectedStreet &&
+//       !hasUserInteracted
+//     ) {
+//       const parts = value.split(", ");
+//       if (parts.length === 3 && parts[2] === "TP.HCM") {
+//         const streetName = parts[0];
+//         const currentDistrict = districts.find(
+//           (d) => d.id === selectedDistrict
+//         );
+//         if (currentDistrict?.name === parts[1]) {
+//           const streetMatch = streets.find((s) => s.name === streetName);
+//           if (streetMatch) {
+//             setSelectedStreet(streetMatch.id);
+//             console.log("Pre-filled street:", streetMatch.id);
+//           } else {
+//             console.log("Invalid street in value:", streetName);
+//           }
+//         }
+//       }
+//     }
+//   }, [value, selectedDistrict, streets, hasUserInteracted]);
+
+//   return (
+//     <Flex>
+//       <Select
+//         style={{ width: "50%", minWidth: 150 }}
+//         placeholder="Select district"
+//         value={selectedDistrict}
+//         onChange={(value) => {
+//           console.log("Selected district:", value);
+//           setSelectedDistrict(value);
+//           setHasUserInteracted(true);
+//         }}
+//         loading={loading}
+//         disabled={loading}
+//         // showSearch
+//         filterOption={(input, option) =>
+//           option.children.toLowerCase().includes(input.toLowerCase())
+//         }
+//         notFoundContent={loading ? <Spin size="small" /> : "No districts found"}
+//       >
+//         {districts.map((district) => (
+//           <Option key={district.id} value={district.id}>
+//             {district.name}
+//           </Option>
+//         ))}
+//       </Select>{" "}
+//       &nbsp;&nbsp; &nbsp;&nbsp;
+//       <Select
+//         style={{ width: "50%", minWidth: 150 }}
+//         placeholder="Select street"
+//         value={selectedStreet}
+//         onChange={(value) => {
+//           console.log("Selected street:", {
+//             id: value,
+//             name: streets.find((s) => s.id === value)?.name,
+//           });
+//           setSelectedStreet(value);
+//           setHasUserInteracted(true);
+//         }}
+//         loading={loading}
+//         disabled={loading || !selectedDistrict || streets.length === 0}
+//         showSearch
+//         filterOption={(input, option) =>
+//           option.children.toLowerCase().includes(input.toLowerCase())
+//         }
+//         notFoundContent={loading ? <Spin size="small" /> : "No streets found"}
+//       >
+//         {streets.map((street) => (
+//           <Option key={street.id} value={street.id}>
+//             {street.name}
+//           </Option>
+//         ))}
+//       </Select>
+//     </Flex>
+//   );
+// };
+
+// export default LocationPicker;
 import React, { useState, useEffect, useCallback } from "react";
-import { Select, Flex, Spin } from "antd";
+import { Select, Flex, Spin, Input } from "antd";
 import { toast } from "react-toastify";
 import LocationPickerService from "./LocationPickerService";
 
@@ -11,6 +201,7 @@ const LocationPicker = ({ value, onChange, required = true }) => {
   const [streets, setStreets] = useState([]);
   const [selectedDistrict, setSelectedDistrict] = useState(null);
   const [selectedStreet, setSelectedStreet] = useState(null);
+  const [houseNumber, setHouseNumber] = useState(""); // Thêm state cho số nhà
   const [loading, setLoading] = useState(false);
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
 
@@ -61,25 +252,30 @@ const LocationPicker = ({ value, onChange, required = true }) => {
 
   // Update parent with formatted location
   useEffect(() => {
-    if (selectedDistrict && selectedStreet) {
+    if (selectedDistrict && selectedStreet && houseNumber.trim()) {
       const district = districts.find((d) => d.id === selectedDistrict);
       const street = streets.find((s) => s.id === selectedStreet);
       if (district?.name && street?.name) {
-        const location = `${street.name}, ${district.name}, TP.HCM`;
+        const location = `${houseNumber}, ${street.name}, ${district.name}, TP.HCM`;
         console.log("Location updated:", location, {
           districtId: selectedDistrict,
           streetId: selectedStreet,
+          houseNumber,
         });
         onChange?.(location);
       } else {
         console.warn("Invalid district or street:", { district, street });
+        onChange?.("");
       }
     } else if (!required) {
+      onChange?.("");
+    } else {
       onChange?.("");
     }
   }, [
     selectedDistrict,
     selectedStreet,
+    houseNumber,
     districts,
     streets,
     onChange,
@@ -90,12 +286,16 @@ const LocationPicker = ({ value, onChange, required = true }) => {
   const parseInitialValue = useCallback(() => {
     if (value && districts.length && !hasUserInteracted) {
       const parts = value.split(", ");
-      if (parts.length === 3 && parts[2] === "TP.HCM") {
-        const districtName = parts[1];
+      if (parts.length === 4 && parts[3] === "TP.HCM") {
+        const houseNum = parts[0];
+        const streetName = parts[1];
+        const districtName = parts[2];
         const districtMatch = districts.find((d) => d.name === districtName);
         if (districtMatch && selectedDistrict !== districtMatch.id) {
           setSelectedDistrict(districtMatch.id);
+          setHouseNumber(houseNum);
           console.log("Pre-filled district:", districtMatch.id);
+          console.log("Pre-filled house number:", houseNum);
         }
       }
     }
@@ -114,12 +314,12 @@ const LocationPicker = ({ value, onChange, required = true }) => {
       !hasUserInteracted
     ) {
       const parts = value.split(", ");
-      if (parts.length === 3 && parts[2] === "TP.HCM") {
-        const streetName = parts[0];
+      if (parts.length === 4 && parts[3] === "TP.HCM") {
+        const streetName = parts[1];
         const currentDistrict = districts.find(
           (d) => d.id === selectedDistrict
         );
-        if (currentDistrict?.name === parts[1]) {
+        if (currentDistrict?.name === parts[2]) {
           const streetMatch = streets.find((s) => s.name === streetName);
           if (streetMatch) {
             setSelectedStreet(streetMatch.id);
@@ -133,9 +333,9 @@ const LocationPicker = ({ value, onChange, required = true }) => {
   }, [value, selectedDistrict, streets, hasUserInteracted]);
 
   return (
-    <Flex>
+    <Flex gap={8}>
       <Select
-        style={{ width: "50%", minWidth: 150 }}
+        style={{ width: "33%", minWidth: 150 }}
         placeholder="Select district"
         value={selectedDistrict}
         onChange={(value) => {
@@ -145,7 +345,6 @@ const LocationPicker = ({ value, onChange, required = true }) => {
         }}
         loading={loading}
         disabled={loading}
-        // showSearch
         filterOption={(input, option) =>
           option.children.toLowerCase().includes(input.toLowerCase())
         }
@@ -156,10 +355,9 @@ const LocationPicker = ({ value, onChange, required = true }) => {
             {district.name}
           </Option>
         ))}
-      </Select>{" "}
-      &nbsp;&nbsp; &nbsp;&nbsp;
+      </Select>
       <Select
-        style={{ width: "50%", minWidth: 150 }}
+        style={{ width: "33%", minWidth: 150 }}
         placeholder="Select street"
         value={selectedStreet}
         onChange={(value) => {
@@ -184,6 +382,17 @@ const LocationPicker = ({ value, onChange, required = true }) => {
           </Option>
         ))}
       </Select>
+      <Input
+        style={{ width: "33%", minWidth: 100 }}
+        placeholder="Enter house number (e.g., 123)"
+        value={houseNumber}
+        onChange={(e) => {
+          setHouseNumber(e.target.value);
+          setHasUserInteracted(true);
+        }}
+        allowClear
+        required={true}
+      />
     </Flex>
   );
 };
