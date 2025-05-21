@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Card, Row, Col, Image, Collapse, Pagination, Spin } from "antd";
-import { DollarSign, Calendar } from "lucide-react";
+import { DollarSign, Calendar, MapPin } from "lucide-react";
 import { toast } from "react-toastify";
 import dayjs from "dayjs";
 import PropTypes from "prop-types";
@@ -147,6 +147,7 @@ const ViewManageRentalCostume = ({
     endDate,
     totalDate,
     charactersListResponse,
+    location,
   } = requestData;
 
   // Calculate total price of all costumes
@@ -213,6 +214,13 @@ const ViewManageRentalCostume = ({
             </div>
           </Col>
           <Col xs={24} md={12}>
+            <div className="detail-item">
+              <strong>Location:</strong>
+              <p>
+                <MapPin size={16} style={{ marginRight: 4 }} />
+                {location}
+              </p>
+            </div>
             <div className="detail-item">
               <strong>Start Date:</strong>
               <p>

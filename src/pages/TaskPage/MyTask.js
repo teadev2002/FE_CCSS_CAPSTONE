@@ -433,29 +433,32 @@ const MyTask = () => {
                                   <div className="flex-grow-1">
                                     <div className="d-flex justify-content-between align-items-start">
                                       <h3 className="task-title mb-0">
-                                        {task.taskName || "N/A"}
+                                        {task.taskName || "N/A"} &nbsp;
+                                        <Badge
+                                          bg={
+                                            statusColors[task.status] ||
+                                            "secondary"
+                                          }
+                                        >
+                                          {task.status || "Unknown"}
+                                        </Badge>
                                       </h3>
-                                      <Badge
-                                        bg={
-                                          statusColors[task.status] ||
-                                          "secondary"
-                                        }
-                                      >
-                                        {task.status || "Unknown"}
-                                      </Badge>
                                     </div>
-                                    <div className="text-muted small">
+                                    <div>
+                                      {" "}
+                                      <strong>Location: </strong>
                                       {task.location || "N/A"}
                                     </div>
-                                    <p className="description mt-2 mb-0">
+                                    <div>
+                                      <strong> Description: </strong>
                                       {task.description || "N/A"}
-                                    </p>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
                               <div className="text-md-end">
                                 <div className="d-flex gap-3 align-items-start justify-content-md-end flex-column flex-md-row">
-                                  <div className="text-muted small text-md-end">
+                                  <div>
                                     <div>
                                       <strong> Date:</strong>{" "}
                                       {parseDateTime(task.startDate).date} To{" "}
@@ -468,16 +471,18 @@ const MyTask = () => {
                                       } To {parseDateTime(task.endDate).time}
                                     </div>
                                     <div>
-                                      Created:{" "}
+                                      <strong> Created:</strong>{" "}
                                       {formatDate(task.createDate) || "N/A"}
                                     </div>
                                   </div>
-                                  <Badge
-                                    bg={task.isActive ? "success" : "danger"}
-                                    className="mt-2 mt-md-0"
-                                  >
-                                    {task.isActive ? "Yes" : "No"}
-                                  </Badge>
+                                  <h5>
+                                    <Badge
+                                      bg={task.isActive ? "success" : "danger"}
+                                      className="mt-2 mt-md-0"
+                                    >
+                                      {task.isActive ? "Yes" : "No"}
+                                    </Badge>
+                                  </h5>
                                 </div>
                                 <div className="mt-2 text-muted small"></div>
                               </div>
@@ -600,7 +605,7 @@ const MyTask = () => {
                   </div>
                 </div>{" "}
                 &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp;
-                &nbsp; &nbsp; &nbsp;
+                &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp;
                 <div className="detail-item">
                   <User size={20} className="icon" />
                   <div>
@@ -620,7 +625,7 @@ const MyTask = () => {
                     </p>
                   </div>{" "}
                   &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp;
-                  &nbsp; &nbsp; &nbsp;
+                  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp;
                   <div className="mt-2">
                     <Clock size={20} className="icon" />
                     <p>
@@ -632,7 +637,7 @@ const MyTask = () => {
                   </div>
                 </div>
               </div>
-              <div className="loc-des d-flex align-items-center">
+              <div className="loc-des d-block align-items-center">
                 <div className="detail-item">
                   <MapPin size={20} className="icon" />
                   <div>
@@ -640,8 +645,6 @@ const MyTask = () => {
                     <p>{selectedTask.location || "N/A"}</p>
                   </div>
                 </div>{" "}
-                &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp;
-                &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
                 <div className="detail-item">
                   <FileText size={20} className="icon" />
                   <div>
@@ -659,7 +662,8 @@ const MyTask = () => {
                     <p>{formatDate(selectedTask.createDate)}</p>
                   </div>
                 </div>{" "}
-                &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp;
+                &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp;
+                &nbsp; &nbsp; &nbsp;&nbsp;
                 <div className="detail-item">
                   <Clock size={20} className="icon" />
                   <div>

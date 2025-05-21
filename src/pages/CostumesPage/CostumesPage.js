@@ -3350,7 +3350,7 @@ const CostumesPage = () => {
                         onChange={(e) => setSelectedStreet(e.target.value)}
                         disabled={streets.length === 0 || !selectedDistrict}
                         aria-label="Select street"
-                        style={{ width: "150%" }}
+                        style={{ width: "100%" }}
                       >
                         <option value="">Select a street</option>
                         {streets.map((street) => (

@@ -27,6 +27,7 @@ import {
   Banknote,
   Star,
   Edit,
+  MapPin,
 } from "lucide-react";
 import MyHistoryService from "../../services/HistoryService/MyHistoryService";
 import EditRequestHireCosplayer from "./EditRequestHireCosplayer";
@@ -849,20 +850,24 @@ const MyHistory = () => {
                               {getStatusBadge(item.status)}
                             </h3>
                           </div>
-                          <div className="text-muted small mt-1">
+                          <div>
                             <DollarSign size={16} className="me-1" />
                             Total Price: {(
                               item.price || 0
                             ).toLocaleString()}{" "}
                             VND
                           </div>
-                          <div className="text-muted small mt-1">
+                          <div>
                             <Calendar size={16} className="me-1" />
                             Start Date: {formatDate(item.startDate)}
                           </div>
-                          <div className="text-muted small mt-1">
+                          <div>
                             <Calendar size={16} className="me-1" />
                             End Date: {formatDate(item.endDate)}
+                          </div>
+                          <div>
+                            <MapPin size={16} className="me-1" />
+                            Location: {item.location || "N/A"}
                           </div>
                           {item.status === "Cancel" && item.reason && (
                             <div className="reason-text mt-1">
@@ -1041,16 +1046,16 @@ const MyHistory = () => {
                                       {getStatusBadge(contract.status)}
                                     </h3>
                                   </div>
-                                  <div className="text-muted small mt-1">
+                                  <div>
                                     <DollarSign size={16} className="me-1" />
                                     Total Price:{" "}
                                     {(contract.price || 0).toLocaleString()} VND
                                   </div>
-                                  <div className="text-muted small mt-1">
+                                  <div>
                                     <Calendar size={16} className="me-1" />
                                     Start Date: {formatDate(contract.startDate)}
                                   </div>
-                                  <div className="text-muted small mt-1">
+                                  <div>
                                     <Calendar size={16} className="me-1" />
                                     End Date: {formatDate(contract.endDate)}
                                   </div>
@@ -1160,16 +1165,16 @@ const MyHistory = () => {
                                       {getStatusBadge(contract.status)}
                                     </h3>
                                   </div>
-                                  <div className="text-muted small mt-1">
+                                  <div>
                                     <DollarSign size={16} className="me-1" />
                                     Total Price:{" "}
                                     {(contract.price || 0).toLocaleString()} VND
                                   </div>
-                                  <div className="text-muted small mt-1">
+                                  <div>
                                     <Calendar size={16} className="me-1" />
                                     Start Date: {formatDate(contract.startDate)}
                                   </div>
-                                  <div className="text-muted small mt-1">
+                                  <div>
                                     <Banknote size={16} className="me-1" />
                                     Remaining Amount:{" "}
                                     {(

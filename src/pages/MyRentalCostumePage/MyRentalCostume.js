@@ -1192,7 +1192,15 @@ import "../../styles/MyRentalCostume.scss";
 import MyRentalCostumeService from "../../services/MyRentalCostumeService/MyRentalCostumeService.js";
 import PaymentService from "../../services/PaymentService/PaymentService.js";
 import RefundService from "../../services/RefundService/RefundService.js";
-import { FileText, DollarSign, Calendar, Eye, File, User } from "lucide-react";
+import {
+  FileText,
+  DollarSign,
+  Calendar,
+  Eye,
+  File,
+  User,
+  MapPin,
+} from "lucide-react";
 import dayjs from "dayjs";
 import { useDebounce } from "use-debounce";
 import MyCustomerCharacter from "../MyCustomerCharacterPage/MyCustomerCharacter.js";
@@ -1942,21 +1950,25 @@ const MyRentalCostume = () => {
                                   <h3 className="rental-title">
                                     {req.name} {getStatusBadge(req.status)}
                                   </h3>
-                                  <div className="text-muted small">
+                                  <div>
                                     <DollarSign size={16} /> Price:{" "}
                                     {(req.price || 0).toLocaleString()} VND
                                   </div>
-                                  <div className="text-muted small">
+                                  <div>
                                     <DollarSign size={16} /> Deposit:{" "}
                                     {(req.deposit || 0).toLocaleString()} VND
                                   </div>
-                                  <div className="text-muted small">
+                                  <div>
                                     <Calendar size={16} /> Start Date:{" "}
                                     {req.startDate}
                                   </div>
-                                  <div className="text-muted small">
+                                  <div>
                                     <Calendar size={16} /> Return Date:{" "}
                                     {req.endDate}
+                                  </div>
+                                  <div>
+                                    <MapPin size={16} /> Location:{" "}
+                                    {req.location}
                                   </div>
                                   {req.reason && (
                                     <div className="small">
@@ -2046,38 +2058,38 @@ const MyRentalCostume = () => {
                                     {contract.contractName}{" "}
                                     {getStatusBadge(contract.status)}
                                   </h3>
-                                  <div className="text-muted small">
+                                  <div>
                                     <User size={16} /> Contract Owner:{" "}
                                     {contract.createBy}
                                   </div>
-                                  <div className="text-muted small">
+                                  <div>
                                     <DollarSign size={16} /> Deposit:{" "}
                                     {(contract.deposit || 0).toLocaleString()}{" "}
                                     VND
                                   </div>
-                                  <div className="text-muted small">
+                                  <div>
                                     <DollarSign size={16} /> Total Hire Price:{" "}
                                     {(contract.price || 0).toLocaleString()} VND
                                   </div>
-                                  <div className="text-muted small">
+                                  <div>
                                     <DollarSign size={16} /> Refund Amount:{" "}
                                     {(contract.amount || 0).toLocaleString()}{" "}
                                     VND
                                   </div>
-                                  <div className="text-muted small">
+                                  <div>
                                     <Calendar size={16} /> Start Date:{" "}
                                     {contract.startDate}
                                   </div>
-                                  <div className="text-muted small">
+                                  <div>
                                     <Calendar size={16} /> Return Date:{" "}
                                     {contract.endDate}
                                   </div>
-                                  <div className="text-muted small">
+                                  <div>
                                     <Calendar size={16} /> Created Date:{" "}
                                     {contract.createDate}
                                   </div>
                                   {contract.reason && (
-                                    <div className="text-muted small">
+                                    <div>
                                       <FileText size={16} />{" "}
                                       <strong style={{ color: "red" }}>
                                         Reason: {contract.reason}
@@ -2206,19 +2218,19 @@ const MyRentalCostume = () => {
                                       Refund Status{" "}
                                       {getStatusBadge(refund.status)}
                                     </h3>
-                                    <div className="text-muted small">
+                                    <div>
                                       <DollarSign size={16} /> Price Damage:{" "}
                                       {(refund.price || 0).toLocaleString()} VND
                                     </div>
-                                    <div className="text-muted small">
+                                    <div>
                                       <DollarSign size={16} /> Refund Amount:{" "}
                                       {(refund.amount || 0).toLocaleString()}
                                     </div>
-                                    <div className="text-muted small">
+                                    <div>
                                       <FileText size={16} /> Description:{" "}
                                       {refund.description || "N/A"}
                                     </div>
-                                    <div className="text-muted small">
+                                    <div>
                                       <Calendar size={16} /> Created Date:{" "}
                                       {refund.createDate}
                                     </div>
