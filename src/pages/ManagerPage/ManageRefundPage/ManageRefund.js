@@ -377,6 +377,7 @@ const ManageRefund = () => {
                                 showModal={showEditModal}
                                 setShowModal={setShowEditModal}
                                 setSelectedRefund={setSelectedRefund}
+                                disabled={refund.status === "Paid"}
                               />
                             </div>
                           </td>

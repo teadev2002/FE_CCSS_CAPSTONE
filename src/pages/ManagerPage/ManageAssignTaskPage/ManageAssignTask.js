@@ -489,7 +489,7 @@ const ManageAssignTask = () => {
   return (
     <div className="mat-page-wrapper">
       <Container className="mat-container">
-        <h1 className="mat-title">Task Assignment Management</h1>
+        <h1 className="mat-title">Task Assignment </h1>
 
         <Tabs
           activeKey={activeTab}
@@ -547,7 +547,7 @@ const ManageAssignTask = () => {
                         variant="primary"
                         onClick={() => handleAssignTaskClick(request)}
                         disabled={isLoading}
-                        className="mat-assign-button"
+                        className="mat-assign-button btn-info"
                       >
                         Assign Task
                       </Button>

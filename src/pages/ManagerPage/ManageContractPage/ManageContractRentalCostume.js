@@ -60,12 +60,12 @@ const ManageContractRentalCostume = () => {
   const [searchContract, setSearchContract] = useState("");
   const [searchRequest, setSearchRequest] = useState("");
   const [sortContract, setSortContract] = useState({
-    field: "status",
-    order: "asc",
+    field: " ",
+    order: " ",
   });
   const [sortRequest, setSortRequest] = useState({
-    field: "statusRequest",
-    order: "asc",
+    field: " ",
+    order: " ",
   });
   const [currentPageContract, setCurrentPageContract] = useState(1);
   const [currentPageRequest, setCurrentPageRequest] = useState(1);
