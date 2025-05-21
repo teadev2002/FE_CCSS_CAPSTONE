@@ -138,32 +138,32 @@
       margin-bottom: 10px;
     }
 
-    .ticket-details {
+    .ticket-details,
+    .transaction-details,
+    .order-products,
+    .order-summary {
       background: #f9f9f9;
       border-radius: 8px;
       padding: 15px;
       border: 1px solid #e0e0e0;
       margin-bottom: 15px;
-    }
 
-    .event-details {
-      background: #f5f5f5;
-      border-radius: 8px;
-      padding: 15px;
-      border: 1px solid #e0e0e0;
-
-      .event-title {
-        font-size: 1.2rem;
-        font-weight: 600;
-        color: #510545;
+      .text-muted {
         margin-bottom: 10px;
-        border-bottom: 1px solid #510545;
-        padding-bottom: 5px;
       }
     }
 
+    .event-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #510545;
+      margin-bottom: 10px;
+      border-bottom: 1px solid #510545;
+      padding-bottom: 5px;
+    }
+
     .product-item {
-      background: #f9f9f9;
+      background: #ffffff;
       border-radius: 8px;
       padding: 15px;
       margin-bottom: 15px;
@@ -179,6 +179,23 @@
     .order-summary {
       padding-top: 10px;
       border-top: 1px dashed #510545;
+
+      .text-muted {
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+
+        strong {
+          color: #510545;
+          font-weight: 600;
+        }
+
+        &:last-child {
+          font-size: 1.1rem;
+          font-weight: 700;
+          color: #22668a;
+        }
+      }
     }
 
     .text-muted {
@@ -206,6 +223,7 @@
 
         &:hover {
           border-color: #510545;
+
           a {
             color: #510545;
           }

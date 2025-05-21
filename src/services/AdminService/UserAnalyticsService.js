@@ -148,6 +148,23 @@ const UserAnalyticsService = {
       throw new Error(errorMessage);
     }
   },
+
+  // Lấy top 5 tài khoản
+  getTopAccounts: async () => {
+    try {
+      console.log(`Fetching top 5 accounts...`);
+      const response = await apiClient.get("/api/DashBoard/top-accounts");
+      console.log(`GetTopAccounts response:`, response.data);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching top 5 accounts:`, error.response?.data || error);
+      const errorMessage =
+        error.response?.data?.notification ||
+        error.response?.data?.message ||
+        "Failed to fetch top 5 accounts";
+      throw new Error(errorMessage);
+    }
+  },
 };
 
 export default UserAnalyticsService;
