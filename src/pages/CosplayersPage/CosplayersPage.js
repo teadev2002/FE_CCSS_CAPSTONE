@@ -4312,7 +4312,7 @@ const CosplayersPage = () => {
                 </Col>
                 <Col xs={24} sm={8}>
                   <Input
-                    placeholder="Enter house number (e.g., 123)"
+                    placeholder="Enter Address (e.g., 123)"
                     value={houseNumber}
                     onChange={(e) => setHouseNumber(e.target.value)}
                     style={{ width: "100%", marginBottom: "16px" }}

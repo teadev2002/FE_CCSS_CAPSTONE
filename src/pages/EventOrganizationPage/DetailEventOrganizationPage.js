@@ -5715,19 +5715,19 @@ const DetailEventOrganizationPage = () => {
                                 className="range-track"
                                 style={{
                                   ...props.style,
-                                  background: `linear-gradient(to right, #007bff ${
+                                  background: `linear-gradient(to right,rgb(255, 255, 255) ${
                                     ((priceRange[0] - 15000) /
                                       (50000 - 15000)) *
                                     100
-                                  }%, #ddd ${
+                                  }%, grey ${
                                     ((priceRange[0] - 15000) /
                                       (50000 - 15000)) *
                                     100
-                                  }%, #ddd ${
+                                  }%, grey ${
                                     ((priceRange[1] - 15000) /
                                       (50000 - 15000)) *
                                     100
-                                  }%, #007bff ${
+                                  }%,rgb(255, 255, 255) ${
                                     ((priceRange[1] - 15000) /
                                       (50000 - 15000)) *
                                     100
@@ -5743,6 +5743,7 @@ const DetailEventOrganizationPage = () => {
                                 className="range-thumb"
                                 style={{
                                   ...props.style,
+                                  backgroundColor: "black",
                                 }}
                               />
                             )}
