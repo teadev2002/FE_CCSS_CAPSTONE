@@ -14,7 +14,7 @@ import SourvenirService from "../../../services/ManageServicePages/ManageSouveni
 import "../../../styles/Manager/ManageSouvenir.scss";
 import { Image, Popconfirm, message, Button } from "antd";
 import { toast } from "react-toastify";
-import { ArrowUp, ArrowDown } from "lucide-react";
+import { ArrowUp, ArrowDown, PlusCircle } from "lucide-react"; // Import PlusCircle từ lucide-react
 import Box from "@mui/material/Box";
 import LinearProgress from "@mui/material/LinearProgress";
 
@@ -152,7 +152,8 @@ const ManageSouvenir = () => {
   };
 
   const handleFileChange = (e) => {
-    setSelectedFiles(Array.from(e.target.files));
+    const files = Array.from(e.target.files);
+    setSelectedFiles(files);
   };
 
   const handleSwitchChange = (e) => {
@@ -206,14 +207,14 @@ const ManageSouvenir = () => {
     try {
       await SourvenirService.deleteProduct(productId);
       await fetchProducts();
-      message.success("Product deleted successfully!");
+      message.success("Product disabled successfully!");
     } catch (error) {
       setError(
         error.response?.data?.message ||
         error.message ||
-        "Failed to delete souvenir."
+        "Failed to disable souvenir."
       );
-      message.error("Failed to delete souvenir.");
+      message.error("Failed to disable souvenir.");
     } finally {
       setIsLoading(false);
     }
@@ -262,7 +263,20 @@ const ManageSouvenir = () => {
               <Button
                 type="primary"
                 onClick={() => handleShowModal()}
+                style={{
+                  padding: "20px 7px", // Chỉnh kích thước nút Add New Souvenir tại đây
+                  fontSize: "14px",
+                  borderRadius: "4px",
+                  background: "linear-gradient(135deg, #510545, #22668a)",
+                  border: "none",
+                  color: "#fff",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+                onMouseEnter={(e) => (e.target.style.background = "linear-gradient(135deg, #22668a, #510545)")}
+                onMouseLeave={(e) => (e.target.style.background = "linear-gradient(135deg, #510545, #22668a)")}
               >
+                <PlusCircle size={16} style={{ marginRight: "8px" }} />
                 Add New Souvenir
               </Button>
             </div>
@@ -317,7 +331,7 @@ const ManageSouvenir = () => {
                           className="sortable"
                           onClick={() => handleSort("price")}
                         >
-                          Price ($)
+                          Price (VND)
                           {sortSouvenir.field === "price" ? (
                             sortSouvenir.order === "asc" ? (
                               <ArrowUp size={16} />
@@ -397,9 +411,9 @@ const ManageSouvenir = () => {
                           <td className="text-center">{product.productName}</td>
                           <td className="text-center">{product.description?.length > 50 ? `${product.description.substring(0, 50)}...` : product.description}</td>
                           <td className="text-center">{product.quantity}</td>
-                          <td className="text-center">{product.price?.toFixed(2)}</td>
-                          <td className="text-center">{product.createDate ? new Date(product.createDate).toLocaleDateString() : "N/A"}</td>
-                          <td className="text-center">{product.updateDate ? new Date(product.updateDate).toLocaleDateString() : "N/A"}</td>
+                          <td className="text-center">{product.price ? Number(product.price).toLocaleString("vi-VN") : "0"}</td>
+                          <td className="text-center">{product.createDate ? new Date(product.createDate).toLocaleDateString("vi-VN") : "N/A"}</td>
+                          <td className="text-center">{product.updateDate ? new Date(product.updateDate).toLocaleDateString("vi-VN") : "N/A"}</td>
                           <td className="text-center">{product.isActive ? "Yes" : "No"}</td>
                           <td className="text-center">
                             <Image
@@ -416,20 +430,44 @@ const ManageSouvenir = () => {
                               type="primary"
                               size="small"
                               onClick={() => handleShowModal(product)}
-                              style={{ marginRight: "8px" }}
+                              style={{
+                                padding: "17px 14px", // Chỉnh kích thước nút Edit tại đây
+                                fontSize: "14px",
+                                borderRadius: "4px",
+                                background: "linear-gradient(135deg, #510545, #22668a)",
+                                border: "none",
+                                color: "#fff",
+                                marginRight: "8px",
+                              }}
+                              onMouseEnter={(e) => (e.target.style.background = "linear-gradient(135deg, #22668a, #510545)")}
+                              onMouseLeave={(e) => (e.target.style.background = "linear-gradient(135deg, #510545, #22668a)")}
                             >
                               Edit
                             </Button>
                             <Popconfirm
-                              title="Delete the product"
-                              description="Are you sure to delete this product?"
+                              title="Disable the product"
+                              description="Are you sure to disable this product?"
                               onConfirm={() => handleDelete(product.productId)}
                               onCancel={() => message.info("Cancelled")}
                               okText="Yes"
                               cancelText="No"
                             >
-                              <Button type="primary" danger size="small">
-                                Delete
+                              <Button
+                                type="primary"
+                                danger
+                                size="small"
+                                style={{
+                                  padding: "17px 14px", // Chỉnh kích thước nút Disable tại đây
+                                  fontSize: "14px",
+                                  borderRadius: "4px",
+                                  background: "#d32f2f",
+                                  border: "none",
+                                  color: "#fff",
+                                }}
+                                onMouseEnter={(e) => (e.target.style.background = "#b71c1c")}
+                                onMouseLeave={(e) => (e.target.style.background = "#d32f2f")}
+                              >
+                                Disable
                               </Button>
                             </Popconfirm>
                           </td>
@@ -501,7 +539,6 @@ const ManageSouvenir = () => {
         show={showModal}
         onHide={handleCloseModal}
         centered
-        backdrop="static"
         className="souvenir-modal"
       >
         <Modal.Header closeButton={!isLoading}>
@@ -514,6 +551,22 @@ const ManageSouvenir = () => {
             <p className="error-message">{error}</p>
           )}
           <Form onSubmit={handleSubmit}>
+            {isEditing && currentProduct && (
+              <Form.Group className="mb-3">
+                <Form.Label>Product Image (View Only)</Form.Label>
+                <div>
+                  <Image
+                    width={200} // Chỉnh kích thước hình trong modal Edit tại đây
+                    height={200} // Chỉnh kích thước hình trong modal Edit tại đây
+                    src={currentProduct.displayImageUrl}
+                    alt={formData.productName || "Product"}
+                    onError={handleImageError}
+                    style={{ objectFit: "cover" }}
+                    preview={false} // Tắt preview của Ant Design
+                  />
+                </div>
+              </Form.Group>
+            )}
             <Form.Group className="mb-3">
               <Form.Label>Product Name</Form.Label>
               <Form.Control
@@ -557,7 +610,7 @@ const ManageSouvenir = () => {
               </Col>
               <Col md={6}>
                 <Form.Group className="mb-3">
-                  <Form.Label>Price ($)</Form.Label>
+                  <Form.Label>Price (VND)</Form.Label>
                   <Form.Control
                     type="number"
                     name="price"
@@ -565,10 +618,15 @@ const ManageSouvenir = () => {
                     onChange={handleInputChange}
                     required
                     min="0"
-                    step="0.01"
+                    step="1"
                     disabled={isLoading}
-                    placeholder="0.00"
+                    placeholder="0"
                   />
+                  {formData.price && (
+                    <Form.Text className="text-muted">
+                      Formatted: {Number(formData.price).toLocaleString("vi-VN")} VND
+                    </Form.Text>
+                  )}
                 </Form.Group>
               </Col>
             </Row>
@@ -578,9 +636,28 @@ const ManageSouvenir = () => {
                 <Form.Control
                   type="file"
                   multiple
+                  accept="image/*"
                   onChange={handleFileChange}
                   disabled={isLoading}
                 />
+                {selectedFiles.length > 0 && (
+                  <div style={{ marginTop: "10px" }}>
+                    <Form.Label>Selected Images (View Only)</Form.Label>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+                      {selectedFiles.map((file, index) => (
+                        <Image
+                          key={index}
+                          width={200} // Chỉnh kích thước hình trong modal Add tại đây
+                          height={200} // Chỉnh kích thước hình trong modal Add tại đây
+                          src={URL.createObjectURL(file)}
+                          alt={`Selected ${index + 1}`}
+                          style={{ objectFit: "cover" }}
+                          preview={false} // Tắt preview của Ant Design
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
               </Form.Group>
             )}
             <Form.Group className="mb-3">
@@ -601,6 +678,16 @@ const ManageSouvenir = () => {
             type="default"
             onClick={handleCloseModal}
             disabled={isLoading}
+            style={{
+              padding: "5px 12px", // Chỉnh kích thước nút Cancel tại đây
+              fontSize: "14px",
+              borderRadius: "4px",
+              background: "#e0e0e0",
+              border: "none",
+              color: "#333",
+            }}
+            onMouseEnter={(e) => (e.target.style.background = "#d0d0d0")}
+            onMouseLeave={(e) => (e.target.style.background = "#e0e0e0")}
           >
             Cancel
           </Button>
@@ -608,6 +695,16 @@ const ManageSouvenir = () => {
             type="primary"
             onClick={handleSubmit}
             disabled={isLoading}
+            style={{
+              padding: "5px 12px", // Chỉnh kích thước nút Add/Update tại đây
+              fontSize: "14px",
+              borderRadius: "4px",
+              background: "linear-gradient(135deg, #510545, #22668a)",
+              border: "none",
+              color: "#fff",
+            }}
+            onMouseEnter={(e) => (e.target.style.background = "linear-gradient(135deg, #22668a, #510545)")}
+            onMouseLeave={(e) => (e.target.style.background = "linear-gradient(135deg, #510545, #22668a)")}
           >
             {isLoading
               ? "Saving..."
