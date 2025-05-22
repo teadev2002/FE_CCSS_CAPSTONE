@@ -7,7 +7,7 @@ import {
   Pagination,
   Dropdown,
 } from "react-bootstrap";
-import { Button, Popconfirm, Image, Descriptions, List, Select } from "antd";
+import { Button, Popconfirm, Image, Descriptions, List, Select, Alert } from "antd";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { ArrowUp, ArrowDown, PlusCircle } from "lucide-react";
@@ -17,7 +17,6 @@ import { DatePicker } from "antd";
 import dayjs from "dayjs";
 import { jwtDecode } from "jwt-decode";
 import ProfileService from "../../../services/ProfileService/ProfileService";
-
 
 const { RangePicker: DateRangePicker } = DatePicker;
 const { Option } = Select;
@@ -39,11 +38,14 @@ const ManageAllFestivals = () => {
     description: "",
     dateRange: null,
     location: "",
-    tickets: [{ quantity: 0, price: 0, description: "", ticketType: 0 }],
+    tickets: [{ ticketId: null, quantity: 0, price: 0, description: "", ticketType: 0 }],
     selectedCosplayers: [],
     eventActivities: [],
     imageFiles: [],
     imagePreviews: [],
+    existingImages: [],
+    imagesDeleted: [],
+    initialImageIds: [], // Thêm để lưu danh sách imageId ban đầu
   });
   const [searchTerm, setSearchTerm] = useState("");
   const [sortFestival, setSortFestival] = useState({
@@ -53,6 +55,11 @@ const ManageAllFestivals = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const rowsPerPageOptions = [10, 20, 30];
+
+  // Format ngày theo chuẩn Việt Nam
+  const formatDateVN = (dateString) => {
+    return dayjs(dateString).format("DD/MM/YYYY");
+  };
 
   useEffect(() => {
     if (isCreateModalVisible || isDetailsModalVisible) {
@@ -89,7 +96,7 @@ const ManageAllFestivals = () => {
 
   useEffect(() => {
     if (selectedCharacterId && formData.dateRange) {
-      if (typeof selectedCharacterId !== 'string' || !selectedCharacterId) {
+      if (typeof selectedCharacterId !== "string" || !selectedCharacterId) {
         toast.error("Invalid character ID");
         setCosplayers([]);
         return;
@@ -112,12 +119,12 @@ const ManageAllFestivals = () => {
             startDateTime,
             endDateTime
           );
-          const selectedCosplayerIds = formData.selectedCosplayers.map(sc => sc.cosplayerId);
+          const selectedCosplayerIds = formData.selectedCosplayers.map((sc) => sc.cosplayerId);
           const filteredCosplayers = cosplayerData.filter(
-            cosplayer => !selectedCosplayerIds.includes(cosplayer.accountId)
+            (cosplayer) => !selectedCosplayerIds.includes(cosplayer.accountId)
           );
           console.log("Filtered Cosplayers:", filteredCosplayers);
-          filteredCosplayers.forEach(cosplayer => {
+          filteredCosplayers.forEach((cosplayer) => {
             console.log(`Cosplayer ${cosplayer.name} images:`, cosplayer.images);
           });
           if (Array.isArray(filteredCosplayers) && filteredCosplayers.length === 0) {
@@ -159,7 +166,7 @@ const ManageAllFestivals = () => {
           item.startDate.toLowerCase().includes(search.toLowerCase()) ||
           item.endDate.toLowerCase().includes(search.toLowerCase()) ||
           item.createDate.toLowerCase().includes(search.toLowerCase()) ||
-          (item.createBy && item.createBy.toLowerCase().includes(search.toLowerCase())) // Thêm tìm kiếm theo createBy
+          (item.createBy && item.createBy.toLowerCase().includes(search.toLowerCase()))
       );
     }
     return filtered.sort((a, b) => {
@@ -194,35 +201,92 @@ const ManageAllFestivals = () => {
       description: "",
       dateRange: null,
       location: "",
-      tickets: [{ quantity: 0, price: 0, description: "", ticketType: 0 }],
+      tickets: [{ ticketId: null, quantity: 0, price: 0, description: "", ticketType: 0 }],
       selectedCosplayers: [],
       eventActivities: [],
       imageFiles: [],
       imagePreviews: [],
+      existingImages: [],
+      imagesDeleted: [],
+      initialImageIds: [],
     });
     setSelectedCharacterId(null);
     setCosplayers([]);
     setIsCreateModalVisible(true);
   };
 
-  const showEditModal = (record) => {
-    setIsEditMode(true);
-    setSelectedFestival(record);
-    setFormData({
-      eventName: record.eventName,
-      description: record.description,
-      dateRange: [
-        dayjs(record.startDate, "YYYY-MM-DD HH:mm:ss"),
-        dayjs(record.endDate, "YYYY-MM-DD HH:mm:ss"),
-      ],
-      location: record.location,
-      tickets: [{ quantity: 0, price: 0, description: "", ticketType: 0 }],
-      selectedCosplayers: [],
-      eventActivities: [],
-      imageFiles: [],
-      imagePreviews: [],
-    });
-    setIsCreateModalVisible(true);
+  const showEditModal = async (record) => {
+    try {
+      const eventData = await ManageAllFestivalsService.getEventById(record.eventId);
+
+      // Gộp các vé cùng loại
+      const ticketsByType = eventData.ticket.reduce((acc, t) => {
+        const type = t.ticketType;
+        if (!acc[type]) {
+          acc[type] = {
+            ticketId: t.ticketId,
+            quantity: t.quantity,
+            price: t.price,
+            description: t.description,
+            ticketType: type,
+          };
+        } else {
+          acc[type].quantity += t.quantity;
+          acc[type].price = t.price;
+          acc[type].description = t.description;
+        }
+        return acc;
+      }, {});
+      const tickets = Object.values(ticketsByType);
+
+      // Lấy danh sách cosplayer hiện có để hiển thị nhưng không cho chỉnh sửa
+      const selectedCosplayers = eventData.eventCharacterResponses.map((ec) => ({
+        characterId: ec.characterId,
+        cosplayerId: ec.cosplayerId,
+        cosplayerName: ec.cosplayerName || "Unknown",
+        description: ec.description || "Cosplayer for event",
+      }));
+
+      // Lấy dữ liệu activities
+      const eventActivities = eventData.eventActivityResponse.map((act) => ({
+        activityId: act.activityId,
+        description: act.description || "",
+        createBy: act.createBy || "",
+      }));
+
+      // Lấy danh sách ảnh hiện có và lưu initialImageIds
+      const existingImages = eventData.eventImageResponses.map((img) => ({
+        imageId: img.imageId,
+        imageUrl: img.imageUrl,
+      }));
+      const initialImageIds = existingImages.map((img) => img.imageId);
+
+      setFormData({
+        eventName: eventData.eventName,
+        description: eventData.description,
+        dateRange: [
+          dayjs(eventData.startDate, "YYYY-MM-DD HH:mm:ss"),
+          dayjs(eventData.endDate, "YYYY-MM-DD HH:mm:ss"),
+        ],
+        location: eventData.location,
+        tickets: tickets.length > 0 ? tickets : [{ ticketId: null, quantity: 0, price: 0, description: "", ticketType: 0 }],
+        selectedCosplayers, // Giữ cosplayer hiện có
+        eventActivities,
+        imageFiles: [],
+        imagePreviews: [],
+        existingImages,
+        imagesDeleted: [],
+        initialImageIds, // Lưu danh sách imageId ban đầu
+      });
+
+      setSelectedCharacterId(null);
+      setCosplayers([]);
+      setIsEditMode(true);
+      setSelectedFestival(record);
+      setIsCreateModalVisible(true);
+    } catch (error) {
+      toast.error(error.message || "Failed to load event data for editing");
+    }
   };
 
   const showDetailsModal = async (record) => {
@@ -234,7 +298,7 @@ const ManageAllFestivals = () => {
           const cosplayer = await ManageAllFestivalsService.getCosplayerByEventCharacterId(
             ec.eventCharacterId
           );
-          const character = characters.find(char => char.characterId === ec.characterId);
+          const character = characters.find((char) => char.characterId === ec.characterId);
           console.log("Cosplayer data:", cosplayer);
           return {
             eventCharacterId: ec.eventCharacterId,
@@ -248,8 +312,8 @@ const ManageAllFestivals = () => {
         })
       );
 
-      const updatedActivities = eventData.eventActivityResponse.map(activity => {
-        const matchingActivity = activities.find(act => act.activityId === activity.activityId);
+      const updatedActivities = eventData.eventActivityResponse.map((activity) => {
+        const matchingActivity = activities.find((act) => act.activityId === activity.activityId);
         console.log(`Activity ${activity.activityId}:`, { matchingActivity, description: matchingActivity?.description });
         return {
           ...activity,
@@ -257,7 +321,27 @@ const ManageAllFestivals = () => {
         };
       });
 
-      setEventDetails({ ...eventData, cosplayers, eventActivityResponse: updatedActivities });
+      // Gộp vé trong chi tiết sự kiện
+      const ticketsByType = eventData.ticket.reduce((acc, t) => {
+        const type = t.ticketType;
+        if (!acc[type]) {
+          acc[type] = {
+            ticketId: t.ticketId,
+            quantity: t.quantity,
+            price: t.price,
+            description: t.description,
+            ticketType: type,
+          };
+        } else {
+          acc[type].quantity += t.quantity;
+          acc[type].price = t.price;
+          acc[type].description = t.description;
+        }
+        return acc;
+      }, {});
+      const tickets = Object.values(ticketsByType);
+
+      setEventDetails({ ...eventData, cosplayers, eventActivityResponse: updatedActivities, ticket: tickets });
       setIsDetailsModalVisible(true);
     } catch (error) {
       toast.error(error.message || "Failed to load event details");
@@ -272,11 +356,14 @@ const ManageAllFestivals = () => {
       description: "",
       dateRange: null,
       location: "",
-      tickets: [{ quantity: 0, price: 0, description: "", ticketType: 0 }],
+      tickets: [{ ticketId: null, quantity: 0, price: 0, description: "", ticketType: 0 }],
       selectedCosplayers: [],
       eventActivities: [],
       imageFiles: [],
       imagePreviews: [],
+      existingImages: [],
+      imagesDeleted: [],
+      initialImageIds: [],
     });
     setSelectedCharacterId(null);
     setCosplayers([]);
@@ -292,7 +379,7 @@ const ManageAllFestivals = () => {
       setFormData((prev) => ({ ...prev, dateRange: null }));
       setSelectedCharacterId(null);
       setCosplayers([]);
-      setCharacters([]); // Reset characters khi bỏ chọn date range
+      setCharacters([]);
       return;
     }
 
@@ -319,8 +406,8 @@ const ManageAllFestivals = () => {
     }
 
     setFormData((prev) => ({ ...prev, dateRange: dates }));
-    setSelectedCharacterId(null); // Reset character khi thay đổi date range
-    setCosplayers([]); // Reset cosplayers
+    setSelectedCharacterId(null);
+    setCosplayers([]);
   };
 
   const disabledDate = (current) => {
@@ -368,7 +455,7 @@ const ManageAllFestivals = () => {
 
   const handleImageFilesChange = (e) => {
     const files = Array.from(e.target.files);
-    const newPreviews = files.map(file => URL.createObjectURL(file));
+    const newPreviews = files.map((file) => URL.createObjectURL(file));
     setFormData((prev) => ({
       ...prev,
       imageFiles: [...prev.imageFiles, ...files],
@@ -377,9 +464,9 @@ const ManageAllFestivals = () => {
   };
 
   const addMoreImages = () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
     input.multiple = true;
     input.onchange = handleImageFilesChange;
     input.click();
@@ -396,6 +483,19 @@ const ManageAllFestivals = () => {
         ...prev,
         imageFiles: updatedFiles,
         imagePreviews: updatedPreviews,
+      };
+    });
+  };
+
+  const removeExistingImage = (imageId) => {
+    setFormData((prev) => {
+      const updatedExistingImages = prev.existingImages.filter((img) => img.imageId !== imageId);
+      const updatedImagesDeleted = [...prev.imagesDeleted, { imageId }];
+      console.log(`Removing image with imageId=${imageId}, imagesDeleted:`, updatedImagesDeleted);
+      return {
+        ...prev,
+        existingImages: updatedExistingImages,
+        imagesDeleted: updatedImagesDeleted,
       };
     });
   };
@@ -465,7 +565,8 @@ const ManageAllFestivals = () => {
       errors.push("At least one cosplayer is required");
     if (formData.eventActivities.length === 0)
       errors.push("At least one activity is required");
-    if (formData.imageFiles.length === 0) errors.push("At least one image is required");
+    if (formData.existingImages.length === 0 && formData.imageFiles.length === 0)
+      errors.push("At least one image is required");
     return errors;
   };
 
@@ -482,7 +583,6 @@ const ManageAllFestivals = () => {
       const token = localStorage.getItem("accessToken");
       let createBy = "Unknown User";
 
-      // Kiểm tra và lấy accountId từ token
       if (token) {
         try {
           const decodedToken = jwtDecode(token);
@@ -496,7 +596,6 @@ const ManageAllFestivals = () => {
           if (!accountId) {
             console.warn("No accountId found in decoded token");
           } else {
-            // Gọi API để lấy thông tin hồ sơ, giống ProfilePage
             try {
               const profileData = await ProfileService.getProfileById(accountId);
               createBy = profileData.name || "Unknown User";
@@ -515,15 +614,30 @@ const ManageAllFestivals = () => {
         toast.warn("No access token available");
       }
 
-      // Tạo dữ liệu sự kiện với createBy đã lấy
+      // Tính toán imagesDeleted từ initialImageIds
+      const imagesDeleted = formData.initialImageIds
+        .filter((id) => !formData.existingImages.some((img) => img.imageId === id))
+        .map((imageId) => ({ imageId }));
+      console.log("Computed imagesDeleted:", imagesDeleted);
+
       const eventData = {
         eventName: formData.eventName,
         description: formData.description,
         location: formData.location,
-        startDate: startDate.toISOString(),
-        endDate: endDate.toISOString(),
         createBy: createBy,
-        ticket: formData.tickets,
+        ticket: formData.tickets.map((t) => {
+          const ticketData = {
+            quantity: t.quantity,
+            price: t.price,
+            description: t.description,
+            ticketType: t.ticketType,
+          };
+          if (isEditMode && t.ticketId) {
+            ticketData.ticketId = t.ticketId;
+          }
+          return ticketData;
+        }),
+        imagesDeleted,
         eventCharacterRequest: formData.selectedCosplayers.map((sc) => ({
           characterId: sc.characterId,
           cosplayerId: sc.cosplayerId,
@@ -532,33 +646,39 @@ const ManageAllFestivals = () => {
         eventActivityRequests: formData.eventActivities,
       };
 
+      if (!isEditMode) {
+        eventData.startDate = startDate.toISOString();
+        eventData.endDate = endDate.toISOString();
+      }
+
       const eventJson = JSON.stringify(eventData, null, 0);
       console.log("Event JSON before sending:", eventJson);
       console.log("Image files before sending:", formData.imageFiles);
+      console.log("ImagesDeleted before sending:", imagesDeleted);
+      console.log("EventCharacterRequest before sending:", formData.selectedCosplayers);
 
-      // Gửi yêu cầu tạo sự kiện
-      await ManageAllFestivalsService.addEvent(eventJson, formData.imageFiles);
+      if (isEditMode) {
+        await ManageAllFestivalsService.updateEvent(
+          selectedFestival.eventId,
+          eventJson,
+          formData.imageFiles
+        );
+        toast.success("Festival updated successfully!");
+        // Kiểm tra dữ liệu sau cập nhật
+        const updatedEvent = await ManageAllFestivalsService.getEventById(selectedFestival.eventId);
+        console.log("Updated event details:", updatedEvent);
+      } else {
+        await ManageAllFestivalsService.addEvent(eventJson, formData.imageFiles);
+        toast.success("Festival created successfully!");
+      }
 
-      // Cập nhật danh sách festivals
       const updatedFestivals = await ManageAllFestivalsService.getAllEvents(searchTerm);
       setFestivals(updatedFestivals);
-      toast.success("Festival created successfully!");
-
       handleCancel();
     } catch (error) {
-      console.error("Error adding event:", error);
-      toast.error(error.message || "Failed to save festival");
+      console.error("Error submitting event:", error);
+      toast.error(error.message || `Failed to ${isEditMode ? "update" : "create"} festival`);
     }
-  };
-
-  const handleDelete = (eventId) => {
-    Modal.confirm({
-      title: "Are you sure you want to delete this festival?",
-      onOk: () => {
-        setFestivals(festivals.filter((f) => f.eventId !== eventId));
-        toast.success("Festival deleted successfully!");
-      },
-    });
   };
 
   const handleSearch = (e) => {
@@ -581,6 +701,19 @@ const ManageAllFestivals = () => {
     setCurrentPage(1);
   };
 
+  const isAddTicketDisabled = () => {
+    const ticketTypes = formData.tickets.map((ticket) => ticket.ticketType);
+    return ticketTypes.includes(0) && ticketTypes.includes(1);
+  };
+
+  const getAvailableTicketTypes = (currentIndex) => {
+    const ticketTypes = formData.tickets.map((ticket, index) => (index !== currentIndex ? ticket.ticketType : null)).filter((type) => type !== null);
+    if (ticketTypes.length === 0) {
+      return [0, 1];
+    }
+    return ticketTypes.includes(0) ? [1] : [0];
+  };
+
   return (
     <div className="manage-festivals">
       <h2 className="manage-festivals-title">Manage Festivals</h2>
@@ -596,8 +729,25 @@ const ManageAllFestivals = () => {
                 onChange={handleSearch}
                 className="search-input"
               />
-              <Button type="primary" size="large" onClick={showCreateModal}>
-                Add New Festival
+              <Button
+                type="primary"
+                size="large"
+                onClick={showCreateModal}
+                style={{
+                  background: "linear-gradient(135deg, #510545, #22668a)",
+                  border: "none",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "5px",
+                }}
+                onMouseEnter={(e) =>
+                  (e.target.style.background = "linear-gradient(135deg, #22668a, #510545)")
+                }
+                onMouseLeave={(e) =>
+                  (e.target.style.background = "linear-gradient(135deg, #510545, #22668a)")
+                }
+              >
+                <PlusCircle size={16} /> Add New Festival
               </Button>
             </div>
             <Table striped bordered hover responsive>
@@ -687,40 +837,39 @@ const ManageAllFestivals = () => {
                         : festival.description}
                     </td>
                     <td className="text-center">{festival.location}</td>
-                    <td className="text-center">{festival.startDate.split("T")[0]}</td>
-                    <td className="text-center">{festival.endDate.split("T")[0]}</td>
-                    <td className="text-center">
-                      <td className="text-center">{festival.createDate.split("T")[0]}</td>
-                    </td>
+                    <td className="text-center">{formatDateVN(festival.startDate)}</td>
+                    <td className="text-center">{formatDateVN(festival.endDate)}</td>
+                    <td className="text-center">{formatDateVN(festival.createDate)}</td>
                     <td className="text-center">{festival.createBy || "Unknown"}</td>
-                    <td className="text-center">
+                    <td className="text-center" style={{ display: "flex", justifyContent: "center", gap: "8px" }}>
                       <Button
                         type="primary"
-                        size="small"
+                        size="middle"
                         onClick={() => showEditModal(festival)}
-                        style={{ marginRight: 8 }}
+                        style={{
+                          background: "linear-gradient(135deg, #510545, #22668a)",
+                          border: "none",
+                        }}
+                        onMouseEnter={(e) =>
+                          (e.target.style.background = "linear-gradient(135deg, #22668a, #510545)")
+                        }
+                        onMouseLeave={(e) =>
+                          (e.target.style.background = "linear-gradient(135deg, #510545, #22668a)")
+                        }
                       >
                         Edit
                       </Button>
-                      <Popconfirm
-                        title="Are you sure to delete this festival?"
-                        onConfirm={() => handleDelete(festival.eventId)}
-                        okText="Yes"
-                        cancelText="No"
-                      >
-                        <Button
-                          type="primary"
-                          danger
-                          size="small"
-                          style={{ marginRight: 8 }}
-                        >
-                          Delete
-                        </Button>
-                      </Popconfirm>
                       <Button
                         type="default"
-                        size="small"
+                        size="middle"
                         onClick={() => showDetailsModal(festival)}
+                        style={{
+                          background: "#e0e0e0",
+                          border: "none",
+                          color: "#333",
+                        }}
+                        onMouseEnter={(e) => (e.target.style.background = "#d0d0d0")}
+                        onMouseLeave={(e) => (e.target.style.background = "#e0e0e0")}
                       >
                         Details
                       </Button>
@@ -741,6 +890,14 @@ const ManageAllFestivals = () => {
                     <Dropdown.Toggle
                       variant="secondary"
                       id="dropdown-rows-per-page"
+                      style={{
+                        padding: "4px 8px",
+                        fontSize: "14px",
+                        borderRadius: "4px",
+                        background: "#e0e0e0",
+                        border: "none",
+                        color: "#333",
+                      }}
                     >
                       {rowsPerPage}
                     </Dropdown.Toggle>
@@ -844,7 +1001,16 @@ const ManageAllFestivals = () => {
                   zIndex: 9999,
                 }}
                 popupStyle={{ zIndex: 9999 }}
+                disabled={isEditMode}
               />
+              {isEditMode && (
+                <Alert
+                  message="Note: The date and time range cannot be modified to ensure consistency for ticket holders."
+                  type="info"
+                  showIcon
+                  style={{ marginTop: "10px" }}
+                />
+              )}
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>Location</Form.Label>
@@ -867,6 +1033,7 @@ const ManageAllFestivals = () => {
                   onChange={setSelectedCharacterId}
                   value={selectedCharacterId}
                   dropdownStyle={{ zIndex: 9999 }}
+                  disabled={isEditMode} // Vô hiệu hóa khi chỉnh sửa
                 >
                   {characters.map((char) => (
                     <Option key={char.characterId} value={char.characterId}>
@@ -874,8 +1041,16 @@ const ManageAllFestivals = () => {
                     </Option>
                   ))}
                 </Select>
+                {isEditMode && (
+                  <Alert
+                    message="Note: Cosplayers cannot be modified after the festival is created to ensure ticket holders meet their expected cosplayers."
+                    type="info"
+                    showIcon
+                    style={{ marginTop: "10px" }}
+                  />
+                )}
 
-                {selectedCharacterId && (
+                {selectedCharacterId && !isEditMode && (
                   <div className="character-info mt-3">
                     {characters
                       .filter((char) => char.characterId === selectedCharacterId)
@@ -905,7 +1080,7 @@ const ManageAllFestivals = () => {
                   </div>
                 )}
 
-                {selectedCharacterId && cosplayers.length > 0 && (
+                {selectedCharacterId && cosplayers.length > 0 && !isEditMode && (
                   <div className="cosplayer-grid mt-3">
                     <h5>Available Cosplayers</h5>
                     <div
@@ -980,7 +1155,15 @@ const ManageAllFestivals = () => {
                               fontSize: "12px",
                               padding: "2px 8px",
                               borderRadius: "4px",
+                              background: "linear-gradient(135deg, #510545, #22668a)",
+                              border: "none",
                             }}
+                            onMouseEnter={(e) =>
+                              (e.target.style.background = "linear-gradient(135deg, #22668a, #510545)")
+                            }
+                            onMouseLeave={(e) =>
+                              (e.target.style.background = "linear-gradient(135deg, #510545, #22668a)")
+                            }
                           >
                             Add
                           </Button>
@@ -989,7 +1172,7 @@ const ManageAllFestivals = () => {
                     </div>
                   </div>
                 )}
-                {selectedCharacterId && cosplayers.length === 0 && (
+                {selectedCharacterId && cosplayers.length === 0 && !isEditMode && (
                   <p className="mt-2">No cosplayers available for this character.</p>
                 )}
 
@@ -1000,16 +1183,20 @@ const ManageAllFestivals = () => {
                     const character = characters.find((c) => c.characterId === item.characterId);
                     return (
                       <List.Item
-                        actions={[
-                          <Button
-                            type="primary"
-                            danger
-                            size="small"
-                            onClick={() => handleRemoveCosplayer(index)}
-                          >
-                            Remove
-                          </Button>,
-                        ]}
+                        actions={
+                          !isEditMode
+                            ? [
+                              <Button
+                                type="primary"
+                                danger
+                                size="small"
+                                onClick={() => handleRemoveCosplayer(index)}
+                              >
+                                Remove
+                              </Button>,
+                            ]
+                            : []
+                        }
                       >
                         <List.Item.Meta
                           title={`Character: ${character?.characterName || item.characterId}`}
@@ -1033,12 +1220,7 @@ const ManageAllFestivals = () => {
                       min="0"
                       value={ticket.quantity}
                       onChange={(e) =>
-                        handleArrayChange(
-                          "tickets",
-                          index,
-                          "quantity",
-                          Number(e.target.value)
-                        )
+                        handleArrayChange("tickets", index, "quantity", Number(e.target.value))
                       }
                       placeholder="Quantity"
                       required
@@ -1051,12 +1233,7 @@ const ManageAllFestivals = () => {
                       min="0"
                       value={ticket.price}
                       onChange={(e) =>
-                        handleArrayChange(
-                          "tickets",
-                          index,
-                          "price",
-                          Number(e.target.value)
-                        )
+                        handleArrayChange("tickets", index, "price", Number(e.target.value))
                       }
                       placeholder="Price"
                       required
@@ -1068,12 +1245,7 @@ const ManageAllFestivals = () => {
                       type="text"
                       value={ticket.description}
                       onChange={(e) =>
-                        handleArrayChange(
-                          "tickets",
-                          index,
-                          "description",
-                          e.target.value
-                        )
+                        handleArrayChange("tickets", index, "description", e.target.value)
                       }
                       placeholder="Description"
                       required
@@ -1084,17 +1256,15 @@ const ManageAllFestivals = () => {
                     <Form.Select
                       value={ticket.ticketType}
                       onChange={(e) =>
-                        handleArrayChange(
-                          "tickets",
-                          index,
-                          "ticketType",
-                          Number(e.target.value)
-                        )
+                        handleArrayChange("tickets", index, "ticketType", Number(e.target.value))
                       }
                       required
                     >
-                      <option value={0}>Normal</option>
-                      <option value={1}>Premium</option>
+                      {getAvailableTicketTypes(index).map((type) => (
+                        <option key={type} value={type}>
+                          {type === 0 ? "Normal" : "Premium"}
+                        </option>
+                      ))}
                     </Form.Select>
                   </Form.Group>
                 </div>
@@ -1103,11 +1273,28 @@ const ManageAllFestivals = () => {
                 variant="outline-primary"
                 onClick={() =>
                   addArrayItem("tickets", {
+                    ticketId: null,
                     quantity: 0,
                     price: 0,
                     description: "",
-                    ticketType: 0,
+                    ticketType: formData.tickets[0]?.ticketType === 0 ? 1 : 0,
                   })
+                }
+                disabled={isAddTicketDisabled()}
+                style={{
+                  background: isAddTicketDisabled()
+                    ? "#d0d0d0"
+                    : "linear-gradient(135deg, #510545, #22668a)",
+                  border: "none",
+                  color: "#fff",
+                }}
+                onMouseEnter={(e) =>
+                  !isAddTicketDisabled() &&
+                  (e.target.style.background = "linear-gradient(135deg, #22668a, #510545)")
+                }
+                onMouseLeave={(e) =>
+                  !isAddTicketDisabled() &&
+                  (e.target.style.background = "linear-gradient(135deg, #510545, #22668a)")
                 }
               >
                 <PlusCircle size={16} className="me-1" /> Add Ticket
@@ -1122,14 +1309,11 @@ const ManageAllFestivals = () => {
                 placeholder="Select activities"
                 onChange={handleActivityChange}
                 optionLabelProp="label"
+                value={formData.eventActivities.map((act) => act.activityId)}
                 dropdownStyle={{ zIndex: 9999 }}
               >
                 {activities.map((act) => (
-                  <Option
-                    key={act.activityId}
-                    value={act.activityId}
-                    label={act.name}
-                  >
+                  <Option key={act.activityId} value={act.activityId} label={act.name}>
                     {act.name} - {act.description}
                   </Option>
                 ))}
@@ -1137,17 +1321,67 @@ const ManageAllFestivals = () => {
             </Form.Group>
 
             <Form.Group className="mb-3">
-              <Form.Label>Images (Select one or more images)</Form.Label>
+              <Form.Label>Images</Form.Label>
+              {isEditMode && formData.existingImages.length > 0 && (
+                <div style={{ marginBottom: "10px" }}>
+                  <strong>Existing Images:</strong>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexWrap: "wrap",
+                      gap: "10px",
+                      marginTop: "10px",
+                    }}
+                  >
+                    {formData.existingImages.map((image) => (
+                      <div
+                        key={image.imageId}
+                        style={{
+                          position: "relative",
+                          width: "100px",
+                          height: "100px",
+                        }}
+                      >
+                        <img
+                          src={image.imageUrl}
+                          alt={`existing-${image.imageId}`}
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                            borderRadius: "5px",
+                          }}
+                        />
+                        <Button
+                          type="primary"
+                          danger
+                          size="small"
+                          onClick={() => removeExistingImage(image.imageId)}
+                          style={{
+                            position: "absolute",
+                            top: "5px",
+                            right: "5px",
+                            fontSize: "10px",
+                            padding: "2px 5px",
+                          }}
+                        >
+                          X
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               <Form.Control
                 type="file"
                 multiple
                 onChange={handleImageFilesChange}
                 accept="image/*"
-                required={!formData.imageFiles.length}
+                required={formData.existingImages.length === 0 && formData.imageFiles.length === 0}
               />
               {formData.imagePreviews.length > 0 && (
                 <div style={{ marginTop: "10px" }}>
-                  <strong>Selected Images:</strong>
+                  <strong>New Images:</strong>
                   <div
                     style={{
                       display: "flex",
@@ -1198,7 +1432,18 @@ const ManageAllFestivals = () => {
               <Button
                 variant="outline-primary"
                 onClick={addMoreImages}
-                style={{ marginTop: "10px" }}
+                style={{
+                  marginTop: "10px",
+                  background: "linear-gradient(135deg, #510545, #22668a)",
+                  border: "none",
+                  color: "#fff",
+                }}
+                onMouseEnter={(e) =>
+                  (e.target.style.background = "linear-gradient(135deg, #22668a, #510545)")
+                }
+                onMouseLeave={(e) =>
+                  (e.target.style.background = "linear-gradient(135deg, #510545, #22668a)")
+                }
               >
                 <PlusCircle size={16} className="me-1" /> Add More Images
               </Button>
@@ -1206,10 +1451,33 @@ const ManageAllFestivals = () => {
           </Form>
         </Modal.Body>
         <Modal.Footer>
-          <Button type="default" onClick={handleCancel}>
+          <Button
+            type="default"
+            onClick={handleCancel}
+            style={{
+              background: "#e0e0e0",
+              border: "none",
+              color: "#333",
+            }}
+            onMouseEnter={(e) => (e.target.style.background = "#d0d0d0")}
+            onMouseLeave={(e) => (e.target.style.background = "#e0e0e0")}
+          >
             Cancel
           </Button>
-          <Button type="primary" onClick={handleSubmit}>
+          <Button
+            type="primary"
+            onClick={handleSubmit}
+            style={{
+              background: "linear-gradient(135deg, #510545, #22668a)",
+              border: "none",
+            }}
+            onMouseEnter={(e) =>
+              (e.target.style.background = "linear-gradient(135deg, #22668a, #510545)")
+            }
+            onMouseLeave={(e) =>
+              (e.target.style.background = "linear-gradient(135deg, #510545, #22668a)")
+            }
+          >
             {isEditMode ? "Update" : "Create"}
           </Button>
         </Modal.Footer>
@@ -1228,7 +1496,7 @@ const ManageAllFestivals = () => {
         <Modal.Body>
           {eventDetails && (
             <div>
-              <h3 style={{ marginTop: 16, fontSize: "22px", fontWeight: 600 }}>
+              <h3 style={{ marginTop: 16, fontSize: "22px", fontWeight: 600, color: "#510545" }}>
                 Event Images
               </h3>
               <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
@@ -1239,7 +1507,7 @@ const ManageAllFestivals = () => {
 
               <Descriptions
                 title={
-                  <span style={{ fontSize: "22px", fontWeight: 600 }}>
+                  <span style={{ fontSize: "22px", fontWeight: 600, color: "#510545" }}>
                     Event Information
                   </span>
                 }
@@ -1257,20 +1525,20 @@ const ManageAllFestivals = () => {
                   {eventDetails.location}
                 </Descriptions.Item>
                 <Descriptions.Item label="Start Date">
-                  {new Date(eventDetails.startDate).toLocaleDateString()}
+                  {formatDateVN(eventDetails.startDate)}
                 </Descriptions.Item>
                 <Descriptions.Item label="End Date">
-                  {new Date(eventDetails.endDate).toLocaleDateString()}
+                  {formatDateVN(eventDetails.endDate)}
                 </Descriptions.Item>
                 <Descriptions.Item label="Create Date">
-                  {new Date(eventDetails.createDate).toLocaleDateString()}
+                  {formatDateVN(eventDetails.createDate)}
                 </Descriptions.Item>
                 <Descriptions.Item label="Created By">
                   {eventDetails.createBy || "Unknown"}
                 </Descriptions.Item>
               </Descriptions>
 
-              <h3 style={{ marginTop: 16, fontSize: "22px", fontWeight: 600 }}>
+              <h3 style={{ marginTop: 16, fontSize: "22px", fontWeight: 600, color: "#510545" }}>
                 Activities
               </h3>
               <List
@@ -1279,7 +1547,7 @@ const ManageAllFestivals = () => {
                   <List.Item>
                     <Descriptions bordered column={1}>
                       <Descriptions.Item label="Name">
-                        {activity.activity.name}
+                        {activity.activity?.name || activity.activityId}
                       </Descriptions.Item>
                       <Descriptions.Item label="Description">
                         {activity.description}
@@ -1289,7 +1557,7 @@ const ManageAllFestivals = () => {
                 )}
               />
 
-              <h3 style={{ marginTop: 16, fontSize: "22px", fontWeight: 600 }}>
+              <h3 style={{ marginTop: 16, fontSize: "22px", fontWeight: 600, color: "#510545" }}>
                 Cosplayers
               </h3>
               <List
@@ -1311,7 +1579,7 @@ const ManageAllFestivals = () => {
                 )}
               />
 
-              <h3 style={{ marginTop: 16, fontSize: "22px", fontWeight: 600 }}>
+              <h3 style={{ marginTop: 16, fontSize: "22px", fontWeight: 600, color: "#510545" }}>
                 Tickets
               </h3>
               <List
@@ -1338,6 +1606,21 @@ const ManageAllFestivals = () => {
             </div>
           )}
         </Modal.Body>
+        <Modal.Footer>
+          <Button
+            type="default"
+            onClick={handleCancel}
+            style={{
+              background: "#e0e0e0",
+              border: "none",
+              color: "#333",
+            }}
+            onMouseEnter={(e) => (e.target.style.background = "#d0d0d0")}
+            onMouseLeave={(e) => (e.target.style.background = "#e0e0e0")}
+          >
+            Close
+          </Button>
+        </Modal.Footer>
       </Modal>
     </div>
   );

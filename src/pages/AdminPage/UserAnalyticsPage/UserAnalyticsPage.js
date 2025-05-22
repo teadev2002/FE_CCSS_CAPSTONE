@@ -34,10 +34,6 @@ const UserAnalyticsPage = () => {
   // Trạng thái cho điểm trung bình của cosplayer
   const [averageCosplayerRating, setAverageCosplayerRating] = useState(0);
 
-  // Trạng thái cho Top 5 Cosplayers theo điểm
-  const [topCosplayersByRating, setTopCosplayersByRating] = useState([]);
-  const [ratingFilter, setRatingFilter] = useState(0);
-
   // Trạng thái cho sử dụng dịch vụ
   const [serviceUsage, setServiceUsage] = useState({
     customers: {
@@ -126,15 +122,6 @@ const UserAnalyticsPage = () => {
     },
   ];
 
-  // Dữ liệu giả lập cho Top 5 cosplayer theo lượt đặt
-  const topCosplayersByBookings = [
-    { id: 1, name: "Alex Mercer", bookings: 89, rating: 4.9 },
-    { id: 2, name: "Nương Phạm", bookings: 82, rating: 4.8 },
-    { id: 3, name: "Katie Bell", bookings: 75, rating: 4.7 },
-    { id: 4, name: "Minh Anh", bookings: 70, rating: 4.6 },
-    { id: 5, name: "James Carter", bookings: 65, rating: 4.5 },
-  ];
-
   // Ánh xạ mã vai trò (roleId) với tên vai trò
   const roleMapping = {
     R001: "admins",
@@ -172,14 +159,6 @@ const UserAnalyticsPage = () => {
     { value: "today", label: "Today" },
     { value: "month", label: "This Month" },
     { value: "year", label: "This Year" },
-  ];
-
-  // Các tùy chọn bộ lọc cho Top 5 Cosplayers by Rating
-  const ratingFilterOptions = [
-    { value: 0, label: "Today" },
-    { value: 1, label: "This Week" },
-    { value: 2, label: "This Month" },
-    { value: 3, label: "This Year" },
   ];
 
   // --- Hàm xử lý logic ---
@@ -403,23 +382,6 @@ const UserAnalyticsPage = () => {
     fetchAccounts();
   }, []);
 
-  // Lấy dữ liệu Top 5 Cosplayers theo điểm
-  useEffect(() => {
-    const fetchTopCosplayersByRating = async () => {
-      try {
-        const data = await UserAnalyticsService.getTop5PopularCosplayers(ratingFilter);
-        const sortedCosplayers = Array.isArray(data)
-          ? data.sort((a, b) => b.averageStar - a.averageStar).slice(0, 5)
-          : [];
-        setTopCosplayersByRating(sortedCosplayers);
-      } catch (error) {
-        toast.error(error.message || "Failed to load top cosplayers by rating");
-      }
-    };
-
-    fetchTopCosplayersByRating();
-  }, [ratingFilter]);
-
   // Lấy dữ liệu Top 5 Accounts
   useEffect(() => {
     const fetchTopAccounts = async () => {
@@ -489,98 +451,7 @@ const UserAnalyticsPage = () => {
         </Card>
       </div>
 
-      {/* Phần Top 5 */}
-      <Row>
-        <Col lg={6}>
-          <Card className="mb-4">
-            <Card.Header className="d-flex justify-content-between align-items-center">
-              <h5>Top 5 Cosplayers by Rating</h5>
-              <Dropdown onSelect={(value) => setRatingFilter(Number(value))}>
-                <Dropdown.Toggle variant="secondary" id="dropdown-rating-filter">
-                  {ratingFilterOptions.find((opt) => opt.value === ratingFilter)?.label}
-                </Dropdown.Toggle>
-                <Dropdown.Menu>
-                  {ratingFilterOptions.map((option) => (
-                    <Dropdown.Item key={option.value} eventKey={option.value}>
-                      {option.label}
-                    </Dropdown.Item>
-                  ))}
-                </Dropdown.Menu>
-              </Dropdown>
-            </Card.Header>
-            <Card.Body>
-              <Table responsive>
-                <thead>
-                  <tr>
-                    <th>Rank</th>
-                    <th>Name</th>
-                    <th>Rating</th>
-                    <th>Email</th>
-                    <th>Height</th>
-                    <th>Weight</th>
-                    <th>Hourly Rate</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {topCosplayersByRating.map((cosplayer, index) => (
-                    <tr key={cosplayer.accountId}>
-                      <td>#{index + 1}</td>
-                      <td>{cosplayer.name}</td>
-                      <td>
-                        <div className="rating-cell">
-                          {cosplayer.averageStar || "N/A"}
-                          {cosplayer.averageStar && (
-                            <Star size={14} className="star-filled ms-1" />
-                          )}
-                        </div>
-                      </td>
-                      <td>{cosplayer.email}</td>
-                      <td>{cosplayer.height} cm</td>
-                      <td>{cosplayer.weight} kg</td>
-                      <td>{formatHourlyRate(cosplayer.salaryIndex)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </Table>
-            </Card.Body>
-          </Card>
-        </Col>
-        <Col lg={6}>
-          <Card className="mb-4">
-            <Card.Header>
-              <h5>Top 5 Cosplayers by Bookings</h5>
-            </Card.Header>
-            <Card.Body>
-              <Table responsive>
-                <thead>
-                  <tr>
-                    <th>Rank</th>
-                    <th>Name</th>
-                    <th>Bookings</th>
-                    <th>Rating</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {topCosplayersByBookings.map((cosplayer, index) => (
-                    <tr key={cosplayer.id}>
-                      <td>#{index + 1}</td>
-                      <td>{cosplayer.name}</td>
-                      <td>{cosplayer.bookings}</td>
-                      <td>
-                        <div className="rating-cell">
-                          {cosplayer.rating}
-                          <Star size={14} className="star-filled ms-1" />
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </Table>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-
+      {/* Phần Top 5 Accounts */}
       <Row>
         <Col lg={12}>
           <Card className="mb-4">
@@ -660,7 +531,7 @@ const UserAnalyticsPage = () => {
             </div>
             <ProgressBar now={20} variant="warning" />
           </div>
-          <div className="service-usage-item">
+          <div className= "service-usage-item">
             <div className="d-flex justify-content-between mb-1">
               <span>Buy Souvenirs</span>
               <span>{serviceUsage.customers.buySouvenirs.toLocaleString()}</span>

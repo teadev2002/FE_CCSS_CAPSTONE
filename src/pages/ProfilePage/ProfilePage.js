@@ -1221,20 +1221,33 @@ const getCurrentUserInfo = () => {
 };
 
 // Định dạng ngày hiển thị
+// Định dạng ngày hiển thị
 const formatDateForDisplay = (dateString) => {
   if (!dateString) return "N/A";
-  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-  if (dateRegex.test(dateString)) {
+
+  // Kiểm tra định dạng YYYY-MM-DD
+  const dateRegexYYYYMMDD = /^\d{4}-\d{2}-\d{2}$/;
+  if (dateRegexYYYYMMDD.test(dateString)) {
     const [year, month, day] = dateString.split("-");
-    return `${day}/${month}/${year}`;
+    return `${day}/${month}/${year}`; // Chuyển sang DD/MM/YYYY
   }
+
+  // Kiểm tra định dạng DD/MM/YYYY
+  const dateRegexDDMMYYYY = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+  if (dateRegexDDMMYYYY.test(dateString)) {
+    const [day, month, year] = dateString.split("/");
+    return `${day}/${month}/${year}`; // Giữ nguyên DD/MM/YYYY
+  }
+
+  // Thử parse ngày bằng new Date
   const date = new Date(dateString);
   if (!isNaN(date.getTime())) {
     const day = String(date.getDate()).padStart(2, "0");
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
+    return `${day}/${month}/${year}`; // Trả về DD/MM/YYYY
   }
+
   return "N/A";
 };
 
@@ -1284,6 +1297,13 @@ const ProfilePage = () => {
         const date = new Date(profileData.birthday);
         if (!isNaN(date.getTime())) {
           formattedBirthday = date.toISOString().split("T")[0];
+        } else {
+          // Xử lý định dạng DD/MM/YYYY
+          const dateRegexDDMMYYYY = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+          if (dateRegexDDMMYYYY.test(profileData.birthday)) {
+            const [day, month, year] = profileData.birthday.split("/");
+            formattedBirthday = `${year}-${month}-${day}`; // Chuyển sang YYYY-MM-DD
+          }
         }
       }
       setFormData({
@@ -1421,7 +1441,7 @@ const ProfilePage = () => {
       return {
         averageStar: 0,
         starCounts: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
-        totalVotes: 0, // [THAY ĐỔI] Thêm totalVotes
+        totalVotes: 0,
       };
     }
 
@@ -1433,12 +1453,12 @@ const ProfilePage = () => {
       starCounts[fb.star] = (starCounts[fb.star] || 0) + 1;
     });
 
-    const totalVotes = feedbacks.length; // [THAY ĐỔI] Tính tổng số vote
+    const totalVotes = feedbacks.length;
 
     return { averageStar, starCounts, totalVotes };
   };
 
-  const { averageStar, starCounts, totalVotes } = calculateFeedbackStats(); // [THAY ĐỔI] Lấy totalVotes
+  const { averageStar, starCounts, totalVotes } = calculateFeedbackStats();
 
   if (loading) return <div></div>;
   if (error)
@@ -1743,7 +1763,6 @@ const ProfilePage = () => {
                     <div className="average-star">
                       <Star size={24} className="star-icon" />
                       <span>{averageStar} Stars (Average)</span>
-                      {/* [THAY ĐỔI] Thêm tổng số vote */}
                       <span className="total-votes">
                         • {totalVotes} {totalVotes === 1 ? "vote" : "votes"}
                       </span>
@@ -1756,8 +1775,7 @@ const ProfilePage = () => {
                             <div
                               className="progress-fill"
                               style={{
-                                width: `${(starCounts[star] / feedbacks.length) * 100
-                                  }%`,
+                                width: `${(starCounts[star] / feedbacks.length) * 100}%`,
                               }}
                             ></div>
                           </div>
