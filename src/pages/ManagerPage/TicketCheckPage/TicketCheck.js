@@ -10,25 +10,20 @@ import "../../../styles/Manager/TicketCheck.scss";
 const { Option } = Select;
 
 const TicketCheck = () => {
-  // State cho form nhập liệu
   const [formData, setFormData] = useState({
     ticketCode: "",
     quantity: "",
   });
 
-  // State cho danh sách event và event được chọn
   const [events, setEvents] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
 
-  // State cho số liệu vé
   const [totalInitial, setTotalInitial] = useState(null);
   const [totalRemaining, setTotalRemaining] = useState(null);
   const [isOutOfQuantity, setIsOutOfQuantity] = useState(false);
 
-  // State cho loading và lỗi
   const [isLoading, setIsLoading] = useState(false);
 
-  // Lấy danh sách event khi component mount
   useEffect(() => {
     const fetchEvents = async () => {
       setIsLoading(true);
@@ -44,7 +39,6 @@ const TicketCheck = () => {
     fetchEvents();
   }, []);
 
-  // Xử lý chọn event
   const handleEventChange = (value) => {
     setSelectedEvent(value);
     setFormData({ ticketCode: "", quantity: "" });
@@ -53,26 +47,21 @@ const TicketCheck = () => {
     setTotalRemaining(null);
   };
 
-  // Xử lý khi nhập liệu
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
     setIsOutOfQuantity(false);
   };
 
-  // Xử lý clear form
   const handleClear = () => {
     setFormData({ ticketCode: "", quantity: "" });
     setIsOutOfQuantity(false);
-    // Không reset selectedEvent
   };
 
-  // Xử lý kiểm tra vé qua API
   const handleCheckTicket = async (e) => {
     e.preventDefault();
     const { ticketCode, quantity } = formData;
 
-    // Validation cơ bản
     if (!selectedEvent) {
       toast.error("Please select an event.");
       return;
@@ -90,7 +79,6 @@ const TicketCheck = () => {
 
     setIsLoading(true);
     try {
-      // Gọi TicketCheckService
       const response = await TicketCheckService.checkTicket({
         eventId: selectedEvent,
         ticketCode: ticketCode.trim(),
@@ -99,7 +87,6 @@ const TicketCheck = () => {
 
       const { notification, totalInitialTickets, totalRemainingTickets } = response;
 
-      // Xử lý theo notification
       switch (notification) {
         case "Check Success":
           toast.success(`Successfully checked ${parsedQuantity} ticket(s) for code ${ticketCode}.`);
@@ -124,7 +111,6 @@ const TicketCheck = () => {
           toast.error("Unexpected response from server.");
       }
     } catch (error) {
-      // Kiểm tra lỗi từ server
       const errorMessage = error.message;
       switch (errorMessage) {
         case "Ticket not found":
@@ -206,8 +192,18 @@ const TicketCheck = () => {
                       htmlType="submit"
                       size="large"
                       disabled={isOutOfQuantity || isLoading}
-                      style={{ marginRight: "10px" }}
+                      style={{
+                        padding: "5px 12px", // Chỉnh kích thước nút Check Tickets tại đây
+                        fontSize: "14px", // Có thể tăng font-size, ví dụ: "16px"
+                        borderRadius: "4px",
+                        background: "linear-gradient(135deg, #510545, #22668a)",
+                        border: "none",
+                        color: "#fff",
+                        marginRight: "10px",
+                      }}
                       loading={isLoading}
+                      onMouseEnter={(e) => (e.target.style.background = "linear-gradient(135deg, #22668a, #510545)")}
+                      onMouseLeave={(e) => (e.target.style.background = "linear-gradient(135deg, #510545, #22668a)")}
                     >
                       Check Tickets
                     </Button>
@@ -216,6 +212,16 @@ const TicketCheck = () => {
                       size="large"
                       onClick={handleClear}
                       disabled={isLoading}
+                      style={{
+                        padding: "5px 12px", // Chỉnh kích thước nút Clear tại đây
+                        fontSize: "14px", // Có thể tăng font-size, ví dụ: "16px"
+                        borderRadius: "4px",
+                        background: "#e0e0e0",
+                        border: "none",
+                        color: "#333",
+                      }}
+                      onMouseEnter={(e) => (e.target.style.background = "#d0d0d0")}
+                      onMouseLeave={(e) => (e.target.style.background = "#e0e0e0")}
                     >
                       Clear
                     </Button>

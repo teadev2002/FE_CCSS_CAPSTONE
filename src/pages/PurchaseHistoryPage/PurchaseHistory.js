@@ -422,6 +422,15 @@ const PurchaseHistory = () => {
                                   <strong>Total:</strong> {formatPrice(total)}
                                 </div>
                               </div>
+                              <p
+                                style={{
+                                  color: 'red',
+                                  fontStyle: 'italic',
+                                  fontSize: '18px'
+                                }}
+                              >
+                                * The item will be delivered within 3-5 days from the order date, please check your phone regularly
+                              </p>
                               <div style={{ margin: "20px 0", padding: "15px", background: "#f5f5f5", borderRadius: "8px" }}>
                                 <h5 style={{ fontSize: "18px", fontWeight: 600, color: "#510545", marginBottom: "15px" }}>
                                   Delivery Progress

@@ -326,7 +326,7 @@ const ManageOrderProduct = () => {
                       </th>
                       <th className="text-center">
                         <span className="sortable" onClick={() => handleSort("productNames")}>
-                          Product Names
+                          Product Name
                           {sortOrder.field === "productNames" ? (
                             sortOrder.order === "asc" ? <ArrowUp size={16} /> : <ArrowDown size={16} />
                           ) : (
@@ -384,7 +384,7 @@ const ManageOrderProduct = () => {
                           )}
                         </span>
                       </th>
-                      <th className="text-center">Action</th>
+                      <th className="text-center">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -406,7 +406,7 @@ const ManageOrderProduct = () => {
                           </Badge>
                         </td>
                         <td className="text-center">
-                          {new Date(order.orderDate).toLocaleDateString("en-US")}
+                          {new Date(order.orderDate).toLocaleDateString("vi-VN")}
                         </td>
                         <td className="text-center action-column">
                           <div
@@ -590,7 +590,7 @@ const ManageOrderProduct = () => {
                   <p style={{ margin: "10px 0", fontSize: "17px" }}><strong>Description:</strong> {selectedOrder.description}</p>
                   <p style={{ margin: "10px 0", fontSize: "17px" }}>
                     <strong>Order Date:</strong>{" "}
-                    {new Date(selectedOrder.orderDate).toLocaleDateString("en-US")}
+                    {new Date(selectedOrder.orderDate).toLocaleDateString("vi-VN")}
                   </p>
                   <div className="order-summary">
                     <p style={{ margin: "10px 0", fontSize: "17px" }}>

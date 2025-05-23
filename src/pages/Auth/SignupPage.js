@@ -341,6 +341,7 @@ import AuthService from "../../services/AuthService";
 import ModalConfirmSignUp from "./ModalConfirmSignUp";
 
 const SignupPage = () => {
+  // Khởi tạo state cho formData chứa thông tin người dùng nhập
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -349,10 +350,14 @@ const SignupPage = () => {
     birthday: "", // Giá trị từ input type="date" (YYYY-MM-DD)
     phone: "",
   });
+  // Khởi tạo state để lưu trữ lỗi của form
   const [errors, setErrors] = useState({});
+  // State để điều khiển hiển thị modal xác nhận đăng ký
   const [showModal, setShowModal] = useState(false);
+  // Hook để điều hướng trang
   const navigate = useNavigate();
 
+  // Hàm xử lý khi người dùng nhập dữ liệu vào form
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({ ...prevData, [name]: value }));
@@ -367,6 +372,14 @@ const SignupPage = () => {
     return `${day}/${month}/${year}`; // Trả về định dạng DD/MM/YYYY
   };
 
+  // Hàm tính ngày tối đa cho phép chọn (cách hiện tại 18 năm)
+  const getMaxDate = () => {
+    const today = new Date();
+    const maxDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+    return maxDate.toISOString().split("T")[0]; // Định dạng YYYY-MM-DD
+  };
+
+  // Hàm kiểm tra dữ liệu form
   const validateForm = () => {
     const newErrors = {};
 
@@ -403,11 +416,11 @@ const SignupPage = () => {
     if (!formData.birthday) {
       newErrors.birthday = "Birthday is required.";
     } else {
-      // So sánh ngày sinh với ngày hiện tại
+      // Lấy ngày hiện tại (dựa trên thời gian hệ thống)
       const today = new Date();
       const birthday = new Date(formData.birthday);
 
-      // Kiểm tra ngày không trong tương lai
+      // Kiểm tra ngày sinh không được trong tương lai
       if (birthday > today) {
         newErrors.birthday = "Birthday cannot be in the future.";
       }
@@ -416,11 +429,13 @@ const SignupPage = () => {
     return newErrors;
   };
 
+  // Hàm xử lý khi submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = validateForm();
     setErrors(newErrors);
 
+    // Nếu không có lỗi, gửi dữ liệu đăng ký
     if (Object.keys(newErrors).length === 0) {
       try {
         // Định dạng birthday từ YYYY-MM-DD sang DD/MM/YYYY
@@ -577,7 +592,11 @@ const SignupPage = () => {
                       value={formData.birthday}
                       onChange={handleInputChange}
                       placeholder="Select Birthday"
+                      max={getMaxDate()} // Giới hạn ngày chọn tối đa để đảm bảo đủ 18 tuổi
                     />
+                    <Form.Text className="text-danger">
+                      You must be 18 years or older to use this service.
+                    </Form.Text>
                   </Form.Group>
                 </div>
 

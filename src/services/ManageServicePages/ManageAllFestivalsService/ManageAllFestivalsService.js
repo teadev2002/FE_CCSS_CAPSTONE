@@ -21,7 +21,7 @@ const ManageAllFestivalsService = {
 
   getEventById: async (eventId) => {
     try {
-      console.log(`Fetching event: eventId=${eventId}`);
+      console.log(`Fetching event with eventId=${eventId}`);
       const response = await apiClient.get(`/api/Event/GetEvent/${eventId}`);
       console.log("GetEventById response:", response.data);
       return response.data;
@@ -37,7 +37,7 @@ const ManageAllFestivalsService = {
 
   getCosplayerByEventCharacterId: async (eventCharacterId) => {
     try {
-      console.log(`Fetching cosplayer: eventCharacterId=${eventCharacterId}`);
+      console.log(`Fetching cosplayer with eventCharacterId=${eventCharacterId}`);
       const response = await apiClient.get(
         `/api/Account/GetAccountByEventCharacterId/${eventCharacterId}`
       );
@@ -45,7 +45,7 @@ const ManageAllFestivalsService = {
       return response.data;
     } catch (error) {
       console.error(
-        `Error fetching cosplayer ${eventCharacterId}:`,
+        `Error fetching cosplayer with eventCharacterId=${eventCharacterId}:`,
         error.response?.data || error
       );
       const errorMessage =
@@ -61,7 +61,6 @@ const ManageAllFestivalsService = {
       console.log("Adding new event with eventJson:", eventJson);
       console.log("Image files:", imageFiles);
 
-      // Tạo FormData chỉ để gửi ImageUrl
       const formData = new FormData();
       imageFiles.forEach((file, index) => {
         if (file) {
@@ -69,12 +68,10 @@ const ManageAllFestivalsService = {
         }
       });
 
-      // Log nội dung FormData để debug
       for (let pair of formData.entries()) {
-        console.log(`${pair[0]}:`, pair[1]);
+        console.log(`FormData entry - ${pair[0]}:`, pair[1]);
       }
 
-      // Gửi eventJson qua query string
       const response = await apiClient.post(
         `/api/Event/AddEvent?eventJson=${encodeURIComponent(eventJson)}`,
         formData,
@@ -96,13 +93,54 @@ const ManageAllFestivalsService = {
     }
   },
 
+  updateEvent: async (eventId, eventJson, imageFiles) => {
+    try {
+      console.log(`Updating event with eventId=${eventId}, eventJson:`, eventJson);
+      const parsedJson = JSON.parse(eventJson);
+      console.log("Images to delete:", parsedJson.imagesDeleted);
+      console.log("EventCharacterRequest:", parsedJson.eventCharacterRequest);
+      console.log("New image files:", imageFiles);
+
+      const formData = new FormData();
+      imageFiles.forEach((file, index) => {
+        if (file) {
+          formData.append("ImageUrl", file);
+          console.log(`FormData entry - ImageUrl[${index}]:`, file);
+        }
+      });
+
+      for (let pair of formData.entries()) {
+        console.log(`FormData entry - ${pair[0]}:`, pair[1]);
+      }
+
+      const response = await apiClient.put(
+        `/api/Event/UpdateEvent/${eventId}?eventJson=${encodeURIComponent(eventJson)}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      console.log("UpdateEvent response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error(`Error updating event ${eventId}:`, error.response?.data || error);
+      const errorMessage =
+        error.response?.data?.notification ||
+        error.response?.data?.message ||
+        "Failed to update event";
+      throw new Error(errorMessage);
+    }
+  },
+
   getAllCharacters: async (startDate, endDate) => {
     try {
       console.log(`Fetching characters with startDate=${startDate}, endDate=${endDate}...`);
       const response = await apiClient.get("/api/Character/GetCharactersByDate", {
         params: {
-          startDate: startDate, // Định dạng DD/MM/YYYY
-          endDate: endDate,     // Định dạng DD/MM/YYYY
+          startDate: startDate,
+          endDate: endDate,
         },
       });
       console.log("GetCharactersByDate response:", response.data);

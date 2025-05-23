@@ -1,5 +1,3 @@
-// src/pages/AccountManagementPage.jsx
-
 import React, { useState, useEffect } from "react";
 import { Card, Row, Col, Table, Form, InputGroup, Button, Dropdown, Modal } from "react-bootstrap";
 import { Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Star, Eye, Lock, Unlock } from "lucide-react";
@@ -204,6 +202,16 @@ const AccountManagementPage = () => {
   const handleViewDetails = async (accountId) => {
     try {
       const accountData = await AccountManagementService.getAccountById(accountId);
+      // Log dữ liệu images để debug
+      console.log("Images from API:", accountData.images);
+      // Loại bỏ hình ảnh trùng lặp dựa trên urlImage
+      if (accountData.images && Array.isArray(accountData.images)) {
+        const uniqueImages = Array.from(
+          new Map(accountData.images.map((img) => [img.urlImage, img])).values()
+        );
+        accountData.images = uniqueImages;
+        console.log("Unique images after deduplication:", uniqueImages);
+      }
       setSelectedAccount(accountData);
       setShowModal(true);
     } catch (error) {
@@ -311,12 +319,12 @@ const AccountManagementPage = () => {
     const statusFilterOptions = [
       { value: "all", label: "All Accounts" },
       { value: "active", label: "Active Accounts" },
-      { value: "blocked", label: "Disabled Accounts" }, // Changed "Blocked" to "Disabled"
+      { value: "blocked", label: "Disabled Accounts" },
     ];
 
     return (
       <Col lg={12}>
-        <Card className="mb-4">
+        <Card className="mb-5 account-table-card">
           <Card.Header className="d-flex justify-content-between align-items-center">
             <h5>{title}</h5>
             <Dropdown onSelect={(value) => handleStatusFilterChange(role, value)}>
@@ -391,8 +399,8 @@ const AccountManagementPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {paginatedAccounts.map((account) => (
-                  <tr key={account.accountId}>
+                {paginatedAccounts.map((account, index) => (
+                  <tr key={account.accountId} className={index % 2 === 0 ? "even-row" : "odd-row"}>
                     <td className="col-id">{account.accountId}</td>
                     <td className="col-name">{account.name}</td>
                     <td className="col-email">{account.email}</td>
@@ -551,7 +559,7 @@ const AccountManagementPage = () => {
         centered
         size="lg"
         style={{
-          zIndex: 1050, // Consistent z-index for modal
+          zIndex: 1050,
         }}
       >
         <Modal.Header
@@ -810,17 +818,17 @@ const AccountManagementPage = () => {
                     style={{
                       display: "flex",
                       flexWrap: "wrap",
-                      gap: "1.5rem", // Spacing between images
+                      gap: "1.5rem",
                       marginTop: "1rem",
                     }}
                   >
                     {selectedAccount.images.map((img, index) => (
                       <img
-                        key={index}
+                        key={`${img.urlImage}-${index}`} // Sử dụng urlImage và index làm key để đảm bảo duy nhất
                         src={img.urlImage}
                         alt={`Account image ${index + 1}`}
                         style={{
-                          width: "250px", // Increased size for better visibility
+                          width: "250px",
                           height: "250px",
                           objectFit: "cover",
                           borderRadius: "12px",
@@ -917,7 +925,7 @@ const AccountManagementPage = () => {
         centered
         size="sm"
         style={{
-          zIndex: 1050, // Consistent z-index for confirm modal
+          zIndex: 1050,
         }}
       >
         <Modal.Header

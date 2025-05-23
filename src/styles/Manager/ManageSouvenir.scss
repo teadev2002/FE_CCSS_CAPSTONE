@@ -49,15 +49,22 @@
         padding: 5px 10px;
 
         &:focus {
-          border-color: #007bff;
-          box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+          border-color: #510545;
+          box-shadow: 0 0 5px rgba(81, 5, 69, 0.3);
         }
       }
 
-      .ant-btn-primary {
+      .add-souvenir-btn.ant-btn-primary {
         padding: 5px 10px;
         font-size: 14px;
         border-radius: 4px;
+        background: linear-gradient(135deg, #510545, #22668a);
+        border: none;
+        color: #fff;
+
+        &:hover {
+          background: linear-gradient(135deg, #22668a, #510545);
+        }
       }
     }
 
@@ -80,9 +87,9 @@
       }
 
       thead {
-        background-color: #f5f5f5;
+        background: linear-gradient(135deg, #510545, #22668a);
         font-weight: bold;
-        color: #333;
+        color: #fff;
 
         .sortable {
           cursor: pointer;
@@ -92,7 +99,7 @@
           gap: 5px;
 
           &:hover {
-            background-color: #f5f5f5;
+            background-color: rgba(255, 255, 255, 0.1);
           }
 
           .default-sort-icon {
@@ -105,11 +112,30 @@
         background-color: #f0f0f0;
       }
 
-      .ant-btn {
+      .edit-btn.ant-btn-primary {
         padding: 5px 10px;
         font-size: 14px;
         border-radius: 4px;
-        text-transform: none;
+        background: #2a7da2;
+        border: none;
+        color: #fff;
+
+        &:hover {
+          background: #1f5e7a;
+        }
+      }
+
+      .delete-btn.ant-btn-primary.ant-btn-danger {
+        padding: 5px 10px;
+        font-size: 14px;
+        border-radius: 4px;
+        background: #a71d5d;
+        border: none;
+        color: #fff;
+
+        &:hover {
+          background: #82174a;
+        }
       }
     }
 
@@ -144,6 +170,13 @@
               padding: 4px 8px;
               font-size: 14px;
               border-radius: 4px;
+              background: #e0e0e0;
+              border: none;
+              color: #333;
+
+              &:hover {
+                background: #d0d0d0;
+              }
             }
 
             .dropdown-menu {
@@ -152,6 +185,10 @@
               .dropdown-item {
                 font-size: 14px;
                 padding: 4px 8px;
+
+                &:hover {
+                  background-color: #f0f0f0;
+                }
               }
             }
           }
@@ -166,11 +203,17 @@
             padding: 4px 8px;
             font-size: 14px;
             border-radius: 4px;
+            color: #510545;
+
+            &:hover {
+              background-color: #f0f0f0;
+            }
           }
 
           &.active .page-link {
-            background-color: #007bff;
-            border-color: #007bff;
+            background: linear-gradient(135deg, #510545, #22668a);
+            border-color: #510545;
+            color: #fff;
           }
         }
       }
@@ -180,22 +223,27 @@
   .souvenir-modal {
     .modal-content {
       border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
 
     .modal-header {
-      background-color: #f8f9fa;
-      border-bottom: 1px solid #dee2e6;
+      background: linear-gradient(135deg, #510545, #22668a);
+      border-bottom: none;
       padding: 10px 15px;
-    }
+      color: #fff;
 
-    .modal-title {
-      font-size: 20px;
-      font-weight: 600;
+      .modal-title {
+        font-size: 20px;
+        font-weight: 600;
+      }
+
+      .btn-close {
+        filter: brightness(0) invert(1);
+      }
     }
 
     .modal-body {
       padding: 15px;
-      text-align: center;
 
       .form-group {
         margin-bottom: 12px;
@@ -214,8 +262,8 @@
           font-size: 14px;
 
           &:focus {
-            border-color: #007bff;
-            box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+            border-color: #510545;
+            box-shadow: 0 0 5px rgba(81, 5, 69, 0.3);
           }
 
           &[disabled] {
@@ -234,11 +282,30 @@
       border-top: 1px solid #dee2e6;
       padding: 10px 15px;
 
-      .ant-btn {
+      .cancel-btn.ant-btn-default {
         padding: 5px 12px;
         font-size: 14px;
         border-radius: 4px;
-        text-transform: none;
+        background: #e0e0e0;
+        border: none;
+        color: #333;
+
+        &:hover {
+          background: #d0d0d0;
+        }
+      }
+
+      .save-btn.ant-btn-primary {
+        padding: 5px 12px;
+        font-size: 14px;
+        border-radius: 4px;
+        background: linear-gradient(135deg, #510545, #22668a);
+        border: none;
+        color: #fff;
+
+        &:hover {
+          background: linear-gradient(135deg, #22668a, #510545);
+        }
       }
     }
   }
