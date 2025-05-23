@@ -1,4 +1,4 @@
-//============================= edit task========================//
+// đổi vị trí update status====================================================
 import React, { useState, useEffect } from "react";
 import {
   Container,
@@ -47,21 +47,20 @@ const MyTask = () => {
   const [calendarDays, setCalendarDays] = useState([]);
   const [accountName, setAccountName] = useState(null);
   const [isLoadingAccount, setIsLoadingAccount] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState("");
   const itemsPerPage = 5;
-
+  const [selectedStatus, setSelectedStatus] = useState(null);
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const validStatuses = [
-    "Pending",
-    "Assignment",
-    "Progressing",
-    "Completed",
-    "Cancel",
-  ];
-
+  const validStatuses = ["Assignment", "Progressing", "Completed"];
+  const getAllowedStatuses = (currentStatus) => {
+    if (currentStatus === "Assignment") {
+      return ["Progressing"];
+    } else if (currentStatus === "Progressing") {
+      return ["Completed"];
+    }
+    return []; // No status changes allowed for Completed
+  };
   const parseDateTime = (dateString) => {
     if (!dateString || typeof dateString !== "string") {
       return { date: "N/A", time: "N/A" };
@@ -300,28 +299,38 @@ const MyTask = () => {
     }
   }, [selectedTask?.accountId]);
 
-  const handleTaskClick = (task) => {
-    setSelectedTask(task);
+  const handleTaskClick = async (task) => {
+    setIsLoading(true);
+    try {
+      const taskData = await TaskService.getTaskById(task.taskId);
+      setSelectedTask(taskData);
+      setSelectedStatus(taskData.status); // Set initial status
+    } catch (error) {
+      console.error("Error fetching task details:", error.message);
+      toast.error(error.message || "Failed to load task details.", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      setSelectedTask(task);
+      setSelectedStatus(task.status); // Fallback
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleCloseTaskDetail = () => {
     setSelectedTask(null);
     setAccountName(null);
-  };
-
-  const handleEditTask = () => {
-    setSelectedStatus(selectedTask.status);
-    setShowEditModal(true);
-  };
-
-  const handleCloseEditModal = () => {
-    setShowEditModal(false);
-    setSelectedStatus("");
+    setSelectedStatus(null);
   };
 
   const handleUpdateStatus = async () => {
-    if (!selectedTask || !selectedStatus) {
-      toast.error("Invalid task or status.", {
+    if (
+      !selectedTask ||
+      !selectedStatus ||
+      selectedStatus === selectedTask.status
+    ) {
+      toast.warn("Please select a different status.", {
         position: "top-right",
         autoClose: 3000,
       });
@@ -337,17 +346,25 @@ const MyTask = () => {
       );
       toast.success("Task status updated successfully!", {
         position: "top-right",
-        autoClose: 3000,
+        autoClose: 2000,
       });
 
+      // Update the task in the tasks list
       const updatedTasks = tasks.map((task) =>
         task.taskId === selectedTask.taskId
           ? { ...task, status: selectedStatus }
           : task
       );
       setTasks(updatedTasks);
-      setSelectedTask({ ...selectedTask, status: selectedStatus });
-      handleCloseEditModal();
+      // Fetch the updated task data
+      const updatedTaskData = await TaskService.getTaskById(
+        selectedTask.taskId
+      );
+      setSelectedTask(updatedTaskData);
+      setSelectedStatus(updatedTaskData.status);
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     } catch (error) {
       console.error("Error updating task status:", error.message);
       toast.error(error.message || "Failed to update task status.", {
@@ -358,7 +375,6 @@ const MyTask = () => {
       setIsLoading(false);
     }
   };
-
   const handlePageChange = (newPage) => {
     setPage(newPage);
   };
@@ -432,7 +448,7 @@ const MyTask = () => {
                                   </div>
                                   <div className="flex-grow-1">
                                     <div className="d-flex justify-content-between align-items-start">
-                                      <h3 className="task-title mb-0">
+                                      <h1 className="task-title mb-0">
                                         {task.taskName || "N/A"} &nbsp;
                                         <Badge
                                           bg={
@@ -442,16 +458,16 @@ const MyTask = () => {
                                         >
                                           {task.status || "Unknown"}
                                         </Badge>
-                                      </h3>
+                                      </h1>
                                     </div>
-                                    <div>
-                                      {" "}
+
+                                    <div className="fs-6">
+                                      <strong>Description: </strong>
+                                      {task.description || "N/A"}
+                                    </div>
+                                    <div className="fs-6">
                                       <strong>Location: </strong>
                                       {task.location || "N/A"}
-                                    </div>
-                                    <div>
-                                      <strong> Description: </strong>
-                                      {task.description || "N/A"}
                                     </div>
                                   </div>
                                 </div>
@@ -459,18 +475,18 @@ const MyTask = () => {
                               <div className="text-md-end">
                                 <div className="d-flex gap-3 align-items-start justify-content-md-end flex-column flex-md-row">
                                   <div>
-                                    <div>
+                                    <div className="fs-6">
                                       <strong> Date:</strong>{" "}
                                       {parseDateTime(task.startDate).date} To{" "}
                                       {parseDateTime(task.endDate).date}
                                     </div>
-                                    <div>
+                                    <div className="fs-6">
                                       <strong> Time: </strong>
                                       {
                                         parseDateTime(task.startDate).time
                                       } To {parseDateTime(task.endDate).time}
                                     </div>
-                                    <div>
+                                    <div className="fs-6">
                                       <strong> Created:</strong>{" "}
                                       {formatDate(task.createDate) || "N/A"}
                                     </div>
@@ -484,7 +500,6 @@ const MyTask = () => {
                                     </Badge>
                                   </h5>
                                 </div>
-                                <div className="mt-2 text-muted small"></div>
                               </div>
                             </div>
                           </Card.Body>
@@ -577,7 +592,16 @@ const MyTask = () => {
                               className="task"
                               style={{ backgroundColor: task.color }}
                             >
-                              {task.taskName}
+                              <span className="fs-6">
+                                Name Char: {task.taskName}{" "}
+                              </span>{" "}
+                              <br />
+                              <span>
+                                {" "}
+                                Time: {parseDateTime(task.startDate).time}{" "}
+                              </span>{" "}
+                              To
+                              <span> {parseDateTime(task.endDate).time}</span>
                             </div>
                           ))}
                         </div>
@@ -652,7 +676,15 @@ const MyTask = () => {
                     <p>{selectedTask.description || "N/A"}</p>
                   </div>
                 </div>
+                <div className="detail-item">
+                  <Tag size={20} className="icon" />
+                  <div>
+                    <strong> Status </strong>
+                    <p>{selectedTask.status || "N/A"}</p>
+                  </div>
+                </div>
               </div>
+
               <hr className="divider" />
               <div className="d-flex  align-items-center detail-grid">
                 <div className="detail-item">
@@ -672,71 +704,67 @@ const MyTask = () => {
                   </div>
                 </div>
               </div>
+              <hr className="divider" />
+              <div className="mt-4">
+                <Form.Group controlId="taskStatus">
+                  <Form.Label>
+                    <strong>Update Status</strong>
+                  </Form.Label>
+                  <Form.Select
+                    value={selectedStatus || ""}
+                    onChange={(e) => setSelectedStatus(e.target.value)}
+                    disabled={selectedTask?.status === "Completed" || isLoading}
+                  >
+                    <option value="">Select a status</option>
+                    {getAllowedStatuses(selectedTask?.status).map((status) => (
+                      <option key={status} value={status}>
+                        {status}
+                      </option>
+                    ))}
+                  </Form.Select>
+                </Form.Group>
+                <Button
+                  variant="primary"
+                  className="mt-2"
+                  onClick={handleUpdateStatus}
+                  disabled={
+                    !selectedStatus ||
+                    selectedStatus === selectedTask?.status ||
+                    isLoading ||
+                    selectedTask?.status === "Completed"
+                  }
+                >
+                  {isLoading ? (
+                    <>
+                      <Spinner
+                        as="span"
+                        animation="border"
+                        size="sm"
+                        role="status"
+                        aria-hidden="true"
+                      />{" "}
+                      Updating...
+                    </>
+                  ) : (
+                    "Update Status"
+                  )}
+                </Button>
+              </div>
             </Modal.Body>
             <Modal.Footer>
-              <Button variant="secondary" onClick={handleCloseTaskDetail}>
+              {/* <Button variant="secondary" onClick={handleCloseTaskDetail}>
                 Close
-              </Button>
+              </Button> */}
               <Button
                 variant="primary"
                 className="edit-button"
-                onClick={handleEditTask}
-                disabled={isLoading}
+                disabled={isLoading || selectedTask.status === "Completed"}
               >
                 Edit Task
               </Button>
             </Modal.Footer>
           </Modal>
         )}
-
-        <Modal show={showEditModal} onHide={handleCloseEditModal} centered>
-          <Modal.Header closeButton>
-            <Modal.Title>Edit Task Status</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <Form>
-              <Form.Group controlId="taskStatus">
-                <Form.Label>Select Status</Form.Label>
-                <Form.Select
-                  value={selectedStatus}
-                  onChange={(e) => setSelectedStatus(e.target.value)}
-                >
-                  <option value="">Select a status</option>
-                  {validStatuses.map((status) => (
-                    <option key={status} value={status}>
-                      {status}
-                    </option>
-                  ))}
-                </Form.Select>
-              </Form.Group>
-            </Form>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="secondary" onClick={handleCloseEditModal}>
-              Cancel
-            </Button>
-            <Button
-              variant="primary"
-              onClick={handleUpdateStatus}
-              disabled={!selectedStatus || isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Spinner
-                    as="span"
-                    animation="border"
-                    size="sm"
-                    role="status"
-                    aria-hidden="true"
-                  />{" "}
-                  Updating...
-                </>
-              ) : (
-                "Update Status"
-              )}
-            </Button>
-          </Modal.Footer>
-        </Modal>
       </Container>
       <RequestCharacter />
     </div>

@@ -23,6 +23,7 @@ import {
   Tag,
   CheckCircle,
   XCircle,
+  MapPin,
 } from "lucide-react";
 import TaskService from "../../services/TaskService/TaskService";
 import { useParams, useNavigate } from "react-router-dom";
@@ -34,24 +35,32 @@ const RequestCharacter = () => {
   const [statusFilter, setStatusFilter] = useState("All Status");
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [cosplayerName, setCosplayerName] = useState("N/A"); // Lưu tên cosplayer từ profile
-  const [selectedStatus, setSelectedStatus] = useState(null); // Lưu trạng thái được chọn trong modal
+  const [cosplayerName, setCosplayerName] = useState("N/A");
+  const [selectedStatus, setSelectedStatus] = useState(null);
+
   const itemsPerPage = 5;
 
-  const { id } = useParams(); // Lấy id từ URL params (/MyTask/:id)
+  const { id } = useParams();
   const accountId = id;
   const navigate = useNavigate();
 
-  // Danh sách trạng thái từ enum RequestCharacterStatus
-  const validStatuses = ["None", "Pending", "Accept", "Busy", "Cancel"];
+  const validStatuses = [
+    { label: "Accept", value: 2 },
+    { label: "Busy", value: 3 },
+  ];
+  const space = (
+    <>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    </>
+  );
 
-  // Màu sắc cho từng trạng thái
   const statusColors = {
     None: "secondary",
     Pending: "warning",
     Accept: "success",
-    Busy: "danger",
-    Cancel: "dark",
+    Busy: "dark",
+    Cancel: "danger",
   };
 
   const parseDateTime = (dateString) => {
@@ -74,21 +83,15 @@ const RequestCharacter = () => {
     }
   };
 
-  // Ánh xạ giá trị enum RequestCharacterStatus
   const getStatusLabel = (status) => {
+    console.log("getStatusLabel received status:", status);
     switch (status) {
-      case 0:
-        return "None";
-      case 1:
-        return "Pending";
       case 2:
         return "Accept";
       case 3:
         return "Busy";
-      case 4:
-        return "Cancel";
       default:
-        return "Unknown";
+        return "Cancel";
     }
   };
 
@@ -111,19 +114,73 @@ const RequestCharacter = () => {
 
       setIsLoading(true);
       try {
-        // Lấy thông tin profile để lấy name
         const profile = await TaskService.getProfileById(accountId);
         setCosplayerName(profile.name || "N/A");
-
-        // Lấy danh sách request characters
         const data = await TaskService.getRequestCharactersByCosplayer(
           accountId
         );
-        setRequestCharacters(data);
-        toast.success("Request characters loaded successfully!", {
-          position: "top-right",
-          autoClose: 3000,
-        });
+        // Fetch requestId, location, contract details, and request details for each request
+        const updatedData = await Promise.all(
+          data.map(async (request) => {
+            try {
+              // Step 1: Get requestId from getRequestCharacterById
+              const requestCharacterDetails =
+                await TaskService.getRequestCharacterById(
+                  request.requestCharacterId
+                );
+              const requestId = requestCharacterDetails.requestId;
+              if (!requestId) {
+                console.warn(
+                  `No requestId found for requestCharacterId: ${request.requestCharacterId}`
+                );
+                return {
+                  ...request,
+                  location: "N/A",
+                  contractStatus: "N/A",
+                  contractReason: "N/A",
+                  requestStatus: "N/A",
+                  requestReason: "N/A",
+                };
+              }
+              // Step 2: Get location and status using requestId
+              const requestDetails = await TaskService.getRequestByRequestId(
+                requestId
+              );
+              // Step 3: Get contract details
+              const contractDetails =
+                await TaskService.GetContractByRequestCharacterId(
+                  request.requestCharacterId
+                );
+              return {
+                ...request,
+                location: requestDetails.location || "N/A",
+                contractStatus: contractDetails?.status || "N/A",
+                contractReason: contractDetails?.reason || "N/A",
+                requestStatus: requestDetails.status || "N/A",
+                requestReason: requestDetails.reason || "N/A",
+              };
+            } catch (error) {
+              console.error(
+                `Error fetching details for requestCharacterId: ${request.requestCharacterId}`,
+                error
+              );
+              return {
+                ...request,
+                location: "N/A",
+                contractStatus: "N/A",
+                contractReason: "N/A",
+                requestStatus: "N/A",
+                requestReason: "N/A",
+              };
+            }
+          })
+        );
+        // Filter out requests with contractStatus "Deposited"
+        const filteredData = updatedData.filter(
+          (request) => request.contractStatus !== "Deposited"
+        );
+        setRequestCharacters(filteredData);
+        console.log("Request characters loaded successfully!");
       } catch (error) {
         if (error.response && error.response.status === 404) {
           toast.error("No data found for this account.", {
@@ -169,12 +226,32 @@ const RequestCharacter = () => {
   const handleRequestClick = async (request) => {
     setIsLoading(true);
     try {
+      // Step 1: Get request character details including requestId
       const data = await TaskService.getRequestCharacterById(
         request.requestCharacterId
       );
-      // Gắn thêm cosplayerName và đặt selectedStatus về trạng thái hiện tại
-      setSelectedRequest({ ...data, cosplayerName });
-      setSelectedStatus(data.status); // Đặt trạng thái ban đầu
+      const requestId = data.requestId;
+      if (!requestId) {
+        throw new Error(
+          `No requestId found for requestCharacterId: ${request.requestCharacterId}`
+        );
+      }
+      // Step 2: Get location and status using requestId
+      const requestDetails = await TaskService.getRequestByRequestId(requestId);
+      // Step 3: Get contract details
+      const contractDetails = await TaskService.GetContractByRequestCharacterId(
+        request.requestCharacterId
+      );
+      setSelectedRequest({
+        ...data,
+        cosplayerName,
+        location: requestDetails.location || "N/A",
+        contractStatus: contractDetails?.status || "N/A",
+        contractReason: contractDetails?.reason || "N/A",
+        requestStatus: requestDetails.status || "N/A",
+        requestReason: requestDetails.reason || "N/A",
+      });
+      setSelectedStatus(data.status);
     } catch (error) {
       toast.error(
         error.message || "Failed to load request character details.",
@@ -187,10 +264,9 @@ const RequestCharacter = () => {
       setIsLoading(false);
     }
   };
-
   const handleCloseRequestDetail = () => {
     setSelectedRequest(null);
-    setSelectedStatus(null); // Reset selectedStatus khi đóng modal
+    setSelectedStatus(null);
   };
 
   const handlePageChange = (newPage) => {
@@ -208,30 +284,34 @@ const RequestCharacter = () => {
 
     setIsLoading(true);
     try {
+      console.log("Sending status to backend:", selectedStatus);
       await TaskService.updateRequestCharacterStatus(
         selectedRequest.requestCharacterId,
         selectedStatus
       );
-      // Cập nhật danh sách requestCharacters
       const updatedData = await TaskService.getRequestCharactersByCosplayer(
         accountId
       );
       setRequestCharacters(updatedData);
-      // Cập nhật selectedRequest
       const updatedDetail = await TaskService.getRequestCharacterById(
         selectedRequest.requestCharacterId
       );
+      console.log("Received status from backend:", updatedDetail.status);
       setSelectedRequest({ ...updatedDetail, cosplayerName });
+      setSelectedStatus(updatedDetail.status);
       toast.success("Request character status updated successfully!", {
         position: "top-right",
-        autoClose: 3000,
+        autoClose: 2000,
       });
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     } catch (error) {
       toast.error(
         error.message || "Failed to update request character status.",
         {
           position: "top-right",
-          autoClose: 3000,
+          autoClose: 2000,
         }
       );
     } finally {
@@ -264,8 +344,8 @@ const RequestCharacter = () => {
               >
                 <option>All Status</option>
                 {validStatuses.map((status) => (
-                  <option key={status} value={status}>
-                    {status}
+                  <option key={status.value} value={status.label}>
+                    {status.label}
                   </option>
                 ))}
               </Form.Select>
@@ -303,40 +383,75 @@ const RequestCharacter = () => {
                               <div className="flex-grow-1">
                                 <div className="d-flex justify-content-between align-items-start">
                                   <h3 className="request-title mb-0">
-                                    {request.characterName || "N/A"}
+                                    Character: {request.characterName || "N/A"}{" "}
+                                    {request.requestStatus === "Cancel" ||
+                                    request.contractStatus === "Cancel" ? (
+                                      ""
+                                    ) : (
+                                      <Badge
+                                        bg={
+                                          statusColors[
+                                            getStatusLabel(request.status)
+                                          ] || "danger"
+                                        }
+                                      >
+                                        {getStatusLabel(request.status) ||
+                                          "Cancel"}
+                                      </Badge>
+                                    )}
                                   </h3>
-                                  <Badge
-                                    bg={
-                                      statusColors[
-                                        getStatusLabel(request.status)
-                                      ] || "secondary"
-                                    }
-                                  >
-                                    {getStatusLabel(request.status) ||
-                                      "Unknown"}
-                                  </Badge>
                                 </div>
-                                <div className="text-muted small">
-                                  Cosplayer Name: {cosplayerName}
+                                <div>
+                                  <strong>Cosplayer Name: </strong>
+                                  {cosplayerName}
                                 </div>
-                                <p className="description mt-2 mb-0">
+                                <div>
+                                  <strong>Description: </strong>
                                   {request.description || "No description"}
-                                </p>
+                                </div>
+                                <div>
+                                  <strong>Location: </strong>
+                                  {request.location || "N/A"}
+                                </div>
+                                {request.contractStatus === "Cancel" && (
+                                  <div style={{ color: "red" }}>
+                                    <strong>Contract Status: </strong>
+                                    Cancel
+                                    {request.contractReason && (
+                                      <>
+                                        {" ("}
+                                        <span>{request.contractReason}</span>
+                                        {")"}
+                                      </>
+                                    )}
+                                  </div>
+                                )}
+                                {request.requestStatus === "Cancel" && (
+                                  <div style={{ color: "red" }}>
+                                    <strong>Request Status: </strong>
+                                    Cancel
+                                    {request.requestReason && (
+                                      <>
+                                        {" ("}
+                                        <span>{request.requestReason}</span>
+                                        {")"}
+                                      </>
+                                    )}
+                                  </div>
+                                )}
                               </div>
                             </div>
                           </div>
                           <div className="text-md-end">
                             <div className="d-flex gap-3 align-items-start justify-content-md-end flex-column flex-md-row">
-                              <div className="text-muted small text-md-end">
+                              <div>
                                 <div>
-                                  <strong> Total remuneration:</strong>{" "}
+                                  <strong>Total remuneration:</strong>{" "}
                                   {request.totalPrice.toLocaleString()} VND
                                 </div>
                                 <div>
-                                  <strong>Quantity:</strong> {request.quantity}
-                                </div>
-                                <div>
-                                  Created: {request.createDate || "N/A"}
+                                  <strong>Created:</strong>{" "}
+                                  {request.createDate || "N/A"}
                                 </div>
                               </div>
                             </div>
@@ -382,16 +497,15 @@ const RequestCharacter = () => {
               <Modal.Title>{selectedRequest.characterName}</Modal.Title>
             </Modal.Header>
             <Modal.Body className="modal-body">
-              <div className="char-cos d-flex ">
+              <div className="char-cos d-flex">
                 <div className="detail-item">
                   <Tag size={20} className="icon" />
                   <div>
                     <strong>Character Name</strong>
                     <p>{selectedRequest.characterName || "N/A"}</p>
                   </div>
-                </div>{" "}
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
-                &nbsp; &nbsp;
+                </div>
+                {space}
                 <div className="detail-item">
                   <User size={20} className="icon" />
                   <div>
@@ -409,63 +523,103 @@ const RequestCharacter = () => {
                     (date, index) => (
                       <div
                         key={date.requestDateId}
-                        className="mt-2  d-flex  align-items-center"
+                        className="mt-2 d-flex align-items-center"
                       >
                         <p>
                           <strong>Date {index + 1}: </strong>
                           <br />
-                          {parseDateTime(date.startDate).date}&nbsp;&nbsp;
+                          {parseDateTime(date.startDate).date}
                         </p>
-                        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp;
-                        &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+                        {space} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                         <p>
                           <strong>Time:</strong> <br />
                           {parseDateTime(date.startDate).time} to{" "}
                           {parseDateTime(date.endDate).time} ({date.totalHour}{" "}
                           hours)
                         </p>
-                        {/* <p>
-                          <strong>Status:</strong> {getStatusLabel(date.status)}
-                        </p> */}
                       </div>
                     )
                   )}
                 </div>
-                <div className="rem-des d-flex">
-                  <div className="detail-item">
-                    <Tag size={20} className="icon" />
-                    <div>
-                      <strong>Total remuneration</strong>
-                      <p>{selectedRequest.totalPrice.toLocaleString()} VND</p>
-                    </div>
+              </div>
+              <div className="rem-des d-flex">
+                <div className="detail-item">
+                  <Tag size={20} className="icon" />
+                  <div>
+                    <strong>Total remuneration</strong>
+                    <p>{selectedRequest.totalPrice.toLocaleString()} VND</p>
                   </div>
-                  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
-                  <div className="detail-item">
-                    <FileText size={20} className="icon" />
-                    <div>
-                      <strong>Description</strong>
-                      <p>{selectedRequest.description || "No description"}</p>
-                    </div>
+                </div>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <div className="detail-item">
+                  <FileText size={20} className="icon" />
+                  <div>
+                    <strong>Description</strong>
+                    <p>{selectedRequest.description || "No description"}</p>
                   </div>
                 </div>
               </div>
+              <div className="detail-item">
+                <MapPin size={20} className="icon" />
+                <div>
+                  <strong>Location</strong>
+                  <p>{selectedRequest.location || "N/A"}</p>
+                </div>
+              </div>
+              {selectedRequest.contractStatus === "Cancel" && (
+                <div className="detail-item">
+                  <Tag size={20} className="icon" />
+                  <div>
+                    <strong>Contract Status</strong>
+                    <p>
+                      Cancel
+                      {selectedRequest.contractReason && (
+                        <>
+                          {" ("}
+                          <span>{selectedRequest.contractReason}</span>
+                          {")"}
+                        </>
+                      )}
+                    </p>
+                  </div>
+                </div>
+              )}
+              {selectedRequest.requestStatus === "Cancel" && (
+                <div className="detail-item">
+                  <Tag size={20} className="icon" />
+                  <div style={{ color: "red" }}>
+                    <strong>Request Status</strong>
+                    <p>
+                      Cancel
+                      {selectedRequest.requestReason && (
+                        <>
+                          {" ("}
+                          <span>{selectedRequest.requestReason}</span>
+                          {")"}
+                        </>
+                      )}
+                    </p>
+                  </div>
+                </div>
+              )}
               <hr className="divider" />
               <div className="detail-grid">
-                <div className="date  d-flex justify-content-between align-items-center">
+                <div className="date d-flex justify-content-between align-items-center">
                   <div className="detail-item">
                     <Clock size={20} className="icon" />
                     <div>
                       <strong>Created</strong>
                       <p>{selectedRequest.createDate || "N/A"}</p>
                     </div>
-                  </div>{" "}
+                  </div>
                   <div className="detail-item">
                     <Clock size={20} className="icon" />
                     <div>
                       <strong>Updated</strong>
-                      <p>{selectedRequest.updateDate || "N/A"}</p>
+                      <p>{selectedRequest.updateDate || "..."}</p>
                     </div>
-                  </div>{" "}
+                  </div>
                   <div className="detail-item">
                     {selectedRequest.status === 2 ? (
                       <CheckCircle size={20} className="icon-success" />
@@ -481,32 +635,38 @@ const RequestCharacter = () => {
                   </div>
                 </div>
               </div>
-              {/* Thêm phần cập nhật trạng thái */}
-              <div className="mt-4">
-                <Form.Group controlId="statusSelect">
-                  <Form.Label>
-                    <strong>Update Status</strong>
-                  </Form.Label>
-                  <Form.Select
-                    value={selectedStatus ?? selectedRequest.status}
-                    onChange={(e) => setSelectedStatus(Number(e.target.value))}
+              {selectedRequest.requestStatus === "Cancel" ||
+              selectedRequest.contractStatus === "Cancel" ? (
+                ""
+              ) : (
+                <div className="mt-4">
+                  <Form.Group controlId="statusSelect">
+                    <Form.Label>
+                      <strong>Update Status</strong>
+                    </Form.Label>
+                    <Form.Select
+                      value={selectedStatus ?? selectedRequest.status}
+                      onChange={(e) =>
+                        setSelectedStatus(Number(e.target.value))
+                      }
+                    >
+                      {validStatuses.map((status) => (
+                        <option key={status.value} value={status.value}>
+                          {status.label}
+                        </option>
+                      ))}
+                    </Form.Select>
+                  </Form.Group>
+                  <Button
+                    variant="primary"
+                    className="mt-2"
+                    onClick={handleUpdateStatus}
+                    disabled={isLoading}
                   >
-                    {validStatuses.map((status, index) => (
-                      <option key={status} value={index}>
-                        {status}
-                      </option>
-                    ))}
-                  </Form.Select>
-                </Form.Group>
-                <Button
-                  variant="primary"
-                  className="mt-2"
-                  onClick={handleUpdateStatus}
-                  disabled={isLoading}
-                >
-                  {isLoading ? "Updating..." : "Update Status"}
-                </Button>
-              </div>
+                    {isLoading ? "Updating..." : "Update Status"}
+                  </Button>
+                </div>
+              )}
             </Modal.Body>
             <Modal.Footer>
               <Button variant="secondary" onClick={handleCloseRequestDetail}>

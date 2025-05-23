@@ -83,7 +83,10 @@ const HireCosplayerService = {
   },
   ChangeCosplayer: async (data) => {
     try {
-      const response = await apiClient.post(`/api/Account/characterId`, data);
+      const response = await apiClient.post(
+        `/api/Account/GetAccountByCharacterAndDateForCreateEvent`,
+        data
+      );
       return response.data;
     } catch (error) {
       console.error("Error changing cosplayer:", error);

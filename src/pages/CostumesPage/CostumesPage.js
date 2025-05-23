@@ -4659,7 +4659,7 @@ const CostumesPage = () => {
                     <Form.Group style={{ flex: 1 }}>
                       <Form.Control
                         type="text"
-                        placeholder="Enter Address, Street"
+                        placeholder="Enter Address, Street ..."
                         value={houseNumber}
                         onChange={(e) => setHouseNumber(e.target.value)}
                         aria-label="House number"

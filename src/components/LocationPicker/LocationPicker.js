@@ -384,7 +384,7 @@ const LocationPicker = ({ value, onChange, required = true }) => {
       </Select>
       <Input
         style={{ width: "33%", minWidth: 100 }}
-        placeholder="Enter house number (e.g., 123)"
+        placeholder="Enter Address, Street ..."
         value={houseNumber}
         onChange={(e) => {
           setHouseNumber(e.target.value);
