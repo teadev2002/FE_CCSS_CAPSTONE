@@ -1143,7 +1143,12 @@ const SouvenirsPage = () => {
   const fetchProducts = async () => {
     try {
       const combinedData = await ProductService.getCombinedProductData();
-      setProducts(combinedData);
+      // Thêm kiểm tra an toàn cho image
+      const normalizedData = combinedData.map((product) => ({
+        ...product,
+        image: product.image || "https://via.placeholder.com/200",
+      }));
+      setProducts(normalizedData);
       setLoading(false);
     } catch (err) {
       setError(err.message);
@@ -1682,7 +1687,7 @@ const SouvenirsPage = () => {
             <div className="costume-card" key={souvenir.id}>
               <div className="card-image">
                 <img
-                  src={souvenir.image}
+                  src={souvenir.image || "https://via.placeholder.com/200"}
                   alt={souvenir.name}
                   className="img-fluid"
                 />
@@ -1740,7 +1745,7 @@ const SouvenirsPage = () => {
                   <div className="carousel-image-container">
                     <img
                       className="d-block w-100"
-                      src={selectedSouvenir.image}
+                      src={selectedSouvenir.image || "https://via.placeholder.com/200"}
                       alt={selectedSouvenir.name}
                     />
                   </div>
@@ -1823,19 +1828,6 @@ const SouvenirsPage = () => {
                         )}
                       </Form.Group>
                       <Form.Group className="mb-3">
-                        <Form.Label>Address (Street, House Number)</Form.Label>
-                        <Form.Control
-                          type="text"
-                          placeholder="Enter street and house number"
-                          value={address}
-                          onChange={handleAddressChange}
-                          isInvalid={!!addressError}
-                        />
-                        {addressError && (
-                          <Form.Text className="text-danger">{addressError}</Form.Text>
-                        )}
-                      </Form.Group>
-                      <Form.Group className="mb-3">
                         <Form.Label>Description (Optional)</Form.Label>
                         <Form.Control
                           as="textarea"
@@ -1909,6 +1901,19 @@ const SouvenirsPage = () => {
                         </Form.Select>
                         {wardError && (
                           <Form.Text className="text-danger">{wardError}</Form.Text>
+                        )}
+                      </Form.Group>
+                      <Form.Group className="mb-3">
+                        <Form.Label>Address (Street, House Number)</Form.Label>
+                        <Form.Control
+                          type="text"
+                          placeholder="Enter street and house number"
+                          value={address}
+                          onChange={handleAddressChange}
+                          isInvalid={!!addressError}
+                        />
+                        {addressError && (
+                          <Form.Text className="text-danger">{addressError}</Form.Text>
                         )}
                       </Form.Group>
                       <Button
@@ -2003,17 +2008,15 @@ const SouvenirsPage = () => {
                         <p className="total">
                           <strong>Total:</strong> {formatPrice(selectedSouvenir.price * quantity + deliveryFee)}
                         </p>
-                        {/* Added delivery note */}
                         <p
                           style={{
                             color: 'red',
                             fontStyle: 'italic',
-                            fontSize: '18px' 
+                            fontSize: '18px'
                           }}
                         >
                           * The item will be delivered within 3-5 days from the order date, please check your phone regularly
                         </p>
-
                       </div>
                     </div>
                     <div className="summary-actions">
