@@ -4,7 +4,7 @@ const BASE_URL = "https://localhost:7071";
 // const BASE_URL = "http://192.168.1.8:5295";
 
 // const BASE_URL =
-//   "https://beccss-brhnhugne7d5d3aj.southeastasia-01.azurewebsites.net";
+//   "https://ccsswebsite-dwezcuaxdkbyhwcc.southeastasia-01.azurewebsites.net";
 const apiClient = axios.create({
   baseURL: BASE_URL,
   headers: {

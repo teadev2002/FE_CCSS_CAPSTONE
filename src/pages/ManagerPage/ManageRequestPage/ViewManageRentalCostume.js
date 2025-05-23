@@ -212,6 +212,12 @@ const ViewManageRentalCostume = ({
                   : "0"}
               </p>
             </div>
+            {requestData.reason !== null && (
+              <div className="detail-item" style={{ color: "red" }}>
+                <strong>Reason: </strong>
+                <p>{requestData.reason}</p>
+              </div>
+            )}
           </Col>
           <Col xs={24} md={12}>
             <div className="detail-item">

@@ -1981,7 +1981,7 @@ const MyEventOrganize = () => {
         (task) => task.status === "Completed"
       );
       if (!allTasksCompleted) {
-        toast.error(
+        toast.warn(
           "Cannot proceed with remaining payment: Not all tasks are completed."
         );
         return;
@@ -2920,18 +2920,18 @@ const MyEventOrganize = () => {
                           <Eye size={16} className="me-1" />
                           View
                         </Button>
-                        {(onAction && item.status === "Created") ||
-                          (item.status === "Deposited" && (
-                            <Button
-                              type="default"
-                              className="btn-action"
-                              onClick={() => onAction(item)}
-                              aria-label={actionLabel}
-                            >
-                              {actionIcon}
-                              {actionLabel}
-                            </Button>
-                          ))}
+                        {(item.status === "Created" ||
+                          item.status === "Deposited") && (
+                          <Button
+                            type="default"
+                            className="btn-action"
+                            onClick={() => onAction(item)}
+                            aria-label={actionLabel}
+                          >
+                            {actionIcon}
+                            {actionLabel}
+                          </Button>
+                        )}
                         {item.urlPdf &&
                           typeof item.urlPdf === "string" &&
                           item.urlPdf.trim() !== "" && (

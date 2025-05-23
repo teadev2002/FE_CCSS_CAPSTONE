@@ -557,7 +557,7 @@ const ViewManageRentCosplayer = ({ requestId }) => {
               <p>No characters requested.</p>
             )}
             {modalData.status === "Cancel" && modalData.reason && (
-              <h4 className="reason-text">
+              <h4 className="reason-text" style={{ color: "red" }}>
                 <strong>Reason:</strong>{" "}
                 <span style={{ color: "red" }}>{modalData.reason}</span>
               </h4>

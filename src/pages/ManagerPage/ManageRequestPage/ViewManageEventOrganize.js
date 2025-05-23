@@ -461,7 +461,17 @@ const ViewManageEventOrganize = ({ requestId }) => {
               <div className="d-flex align-items-center gap-3">
                 <FileText size={24} />
                 <h3 className="mb-0">{formattedData.name}</h3>
-                {getStatusBadge(formattedData.status)}
+                <h3
+                  className={` mt-2 ${
+                    formattedData.status === "Browsed"
+                      ? "text-success"
+                      : formattedData.status === "Pending"
+                      ? "text-dark"
+                      : "text-danger"
+                  }`}
+                >
+                  <strong>{formattedData.status}</strong>
+                </h3>
               </div>
             </Col>
             <Col md={6}>
@@ -489,6 +499,23 @@ const ViewManageEventOrganize = ({ requestId }) => {
                 <strong>Unit Hire Price Range Cosplayer:</strong>{" "}
                 {formattedData.range ? `${formattedData.range} VND` : "N/A"}
               </p>
+              {formattedData.status === "Cancel" && (
+                <p
+                  className="mb-2"
+                  style={{
+                    color:
+                      formattedData.status === "Cancel" ? "red" : "inherit",
+                  }}
+                >
+                  <strong>Request Status:</strong>{" "}
+                  <span>
+                    {formattedData.status || "N/A"}
+                    {formattedData.status === "Cancel" && formattedData.reason
+                      ? ` (${formattedData.reason})`
+                      : ""}
+                  </span>
+                </p>
+              )}
             </Col>
             <Col md={6}>
               <p className="mb-2">

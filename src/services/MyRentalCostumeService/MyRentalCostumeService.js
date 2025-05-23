@@ -241,5 +241,29 @@ const MyRentalCostumeService = {
       throw error;
     }
   },
+  getContractByContractId: async (contractId) => {
+    try {
+      const response = await apiClient.get(
+        `/api/Contract/contractId/${contractId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching contract by contract ID:", error);
+      throw error;
+    }
+  },
+  UpdateRequestStatusById: async (id, requestStatus, reason = "") => {
+    try {
+      let url = `/api/Request/Status?requestId=${id}&requestStatus=${requestStatus}`;
+      if (requestStatus === 2 && reason) {
+        url += `&reason=${encodeURIComponent(reason)}`;
+      }
+      const response = await apiClient.put(url);
+      return response.data;
+    } catch (error) {
+      console.error("Error updating request status:", error);
+      throw error;
+    }
+  },
 };
 export default MyRentalCostumeService;
