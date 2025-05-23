@@ -1011,6 +1011,484 @@
 
 //------------------------------------------------------------------------------------------------------//
 
+// import React, { useState, useEffect, useRef } from "react";
+// import { Link, NavLink, useNavigate } from "react-router-dom";
+// import {
+//   Home,
+//   Users,
+//   Phone,
+//   Info,
+//   ShoppingBag,
+//   Calendar,
+//   Shirt,
+//   Store,
+//   CircleUser,
+//   Aperture,
+//   Bell,
+// } from "lucide-react";
+// import Logo from "../../assets/img/CCSSlogo.png";
+// import "../../styles/nav.scss";
+// import AuthService from "../../services/AuthService.js";
+// import CartService from "../../services/CartService/CartService";
+// import navbarService from "./navbarService.js";
+// import { jwtDecode } from "jwt-decode";
+// import { toast } from "react-toastify";
+
+// export function Navbar() {
+//   const navigate = useNavigate();
+//   const [userId, setUserId] = useState(null);
+//   const [userRole, setUserRole] = useState(null);
+//   const [notifications, setNotifications] = useState([]);
+//   const [persistedNotifications, setPersistedNotifications] = useState([]); // Lưu trữ thông báo cũ trên FE
+//   const [cartCount, setCartCount] = useState(0);
+//   const callCountRef = useRef(0);
+
+//   // Hàm lấy thông tin người dùng từ token
+//   const getUserInfoFromToken = () => {
+//     const token = localStorage.getItem("accessToken");
+//     if (token) {
+//       try {
+//         const decoded = jwtDecode(token);
+//         console.log("Decoded token in Navbar:", decoded);
+//         return {
+//           id: decoded?.Id,
+//           role: decoded?.role,
+//         };
+//       } catch (error) {
+//         console.error("Error decoding token:", error);
+//         return { id: null, role: null };
+//       }
+//     }
+//     console.warn("No accessToken found in localStorage");
+//     return { id: null, role: null };
+//   };
+
+//   // Cập nhật số lượng sản phẩm trong giỏ hàng
+//   const updateCartCount = async () => {
+//     try {
+//       const { id } = getUserInfoFromToken();
+//       if (!id) {
+//         const savedCart = localStorage.getItem("cartItems");
+//         const cartItems = savedCart ? JSON.parse(savedCart) : [];
+//         setCartCount(cartItems.length);
+//         return;
+//       }
+//       const cartData = await CartService.getCartByAccountId(id);
+//       const totalQuantity = cartData.listCartProduct.reduce(
+//         (total, item) => total + item.quantity,
+//         0
+//       );
+//       setCartCount(totalQuantity);
+//     } catch (error) {
+//       console.error("Error updating cart count:", error);
+//       const savedCart = localStorage.getItem("cartItems");
+//       const cartItems = savedCart ? JSON.parse(savedCart) : [];
+//       setCartCount(cartItems.length);
+//     }
+//   };
+
+//   // Lấy danh sách thông báo và gộp với thông báo đã lưu
+//   const fetchNotifications = async (accountId) => {
+//     try {
+//       const notificationData = await navbarService.getNotification(accountId);
+//       // Sắp xếp thông báo mới từ API
+//       const sortedNewNotifications = notificationData.sort((a, b) =>
+//         b.createdAt && a.createdAt
+//           ? new Date(b.createdAt) - new Date(a.createdAt)
+//           : b.id - a.id
+//       );
+//       // Lọc thông báo chưa đọc từ API
+//       const unreadNotifications = sortedNewNotifications.filter(
+//         (n) => !n.isRead
+//       );
+//       // Gộp với thông báo đã lưu (lấy tối đa 10 đã đọc)
+//       const readNotifications = persistedNotifications
+//         .filter((n) => n.isRead)
+//         .slice(0, 10);
+//       // Cập nhật danh sách hiển thị
+//       const updatedNotifications = [
+//         ...unreadNotifications,
+//         ...readNotifications,
+//       ];
+//       setNotifications(updatedNotifications);
+//       // Cập nhật danh sách lưu trữ
+//       setPersistedNotifications(updatedNotifications);
+//     } catch (error) {
+//       console.error("Failed to fetch notifications:", error);
+//       // Nếu API lỗi, giữ danh sách đã lưu
+//       setNotifications(persistedNotifications);
+//       toast.error("Failed to load notifications", {
+//         position: "top-right",
+//         autoClose: 3000,
+//       });
+//     }
+//   };
+
+//   // Đánh dấu thông báo đã đọc
+//   const markNotificationsAsSeen = async () => {
+//     try {
+//       const unreadNotifications = notifications.filter(
+//         (notification) => !notification.isRead
+//       );
+//       if (unreadNotifications.length === 0) return;
+
+//       // Gọi API để đánh dấu đã đọc
+//       await Promise.all(
+//         unreadNotifications.map((notification) =>
+//           navbarService.seenNotification(notification.id)
+//         )
+//       );
+
+//       // Cập nhật state trên FE: đánh dấu tất cả thông báo chưa đọc thành đã đọc
+//       const updatedNotifications = notifications.map((notification) => ({
+//         ...notification,
+//         isRead: true,
+//       }));
+//       // Sắp xếp lại: mới nhất ở trên
+//       const sortedNotifications = updatedNotifications.sort((a, b) =>
+//         b.createdAt && a.createdAt
+//           ? new Date(b.createdAt) - new Date(a.createdAt)
+//           : b.id - a.id
+//       );
+//       // Lấy tối đa 10 thông báo đã đọc
+//       const limitedNotifications = sortedNotifications.slice(0, 10);
+//       setNotifications(limitedNotifications);
+//       setPersistedNotifications(limitedNotifications);
+
+//       // Làm mới từ API nếu cần
+//       if (userId) {
+//         await fetchNotifications(userId);
+//       }
+//     } catch (error) {
+//       console.error("Failed to mark notifications as seen:", error);
+//       // Nếu API lỗi, vẫn cập nhật state trên FE
+//       const updatedNotifications = notifications.map((notification) => ({
+//         ...notification,
+//         isRead: true,
+//       }));
+//       const sortedNotifications = updatedNotifications.sort((a, b) =>
+//         b.createdAt && a.createdAt
+//           ? new Date(b.createdAt) - new Date(a.createdAt)
+//           : b.id - a.id
+//       );
+//       const limitedNotifications = sortedNotifications.slice(0, 10);
+//       setNotifications(limitedNotifications);
+//       setPersistedNotifications(limitedNotifications);
+//       toast.error("Failed to mark notifications as seen", {
+//         position: "top-right",
+//         autoClose: 3000,
+//       });
+//     }
+//   };
+
+//   // Khởi tạo dữ liệu khi component mount
+//   useEffect(() => {
+//     const { id, role } = getUserInfoFromToken();
+//     setUserId(id);
+//     setUserRole(role);
+
+//     if (id) {
+//       fetchNotifications(id);
+//       callCountRef.current = 1;
+
+//       const intervalId = setInterval(() => {
+//         fetchNotifications(id);
+//         callCountRef.current += 1;
+//       }, 5000);
+
+//       return () => clearInterval(intervalId);
+//     }
+
+//     if (id && role !== "Cosplayer") {
+//       updateCartCount();
+//       window.addEventListener("storage", updateCartCount);
+//       return () => window.removeEventListener("storage", updateCartCount);
+//     }
+//   }, []);
+
+//   // Điều hướng đến trang hồ sơ
+//   const goToProfile = () => {
+//     const { id } = getUserInfoFromToken();
+//     if (!id) {
+//       toast.warn("You are not logged in!");
+//       setTimeout(() => navigate("/login"), 2100);
+//     } else {
+//       navigate(`/user-profile/${id}`);
+//     }
+//   };
+
+//   // Điều hướng đến lịch sử thuê
+//   const goToMyHistory = () => {
+//     const { id } = getUserInfoFromToken();
+//     if (!id) {
+//       toast.warn("You are not logged in!");
+//       setTimeout(() => navigate("/login"), 2100);
+//     } else {
+//       navigate(`/my-history/${id}`);
+//     }
+//   };
+
+//   // Điều hướng đến trang thuê trang phục
+//   const goToMyRentalCostume = () => {
+//     const { id } = getUserInfoFromToken();
+//     if (!id) {
+//       toast.warn("You are not logged in!");
+//       setTimeout(() => navigate("/login"), 2100);
+//     } else {
+//       navigate(`/my-rental-costume/${id}`);
+//     }
+//   };
+
+//   // Điều hướng đến trang tổ chức sự kiện
+//   const goToMyEventOrganize = () => {
+//     const { id } = getUserInfoFromToken();
+//     if (!id) {
+//       toast.warn("You are not logged in!");
+//       setTimeout(() => navigate("/login"), 2100);
+//     } else {
+//       navigate(`/my-event-organize/${id}`);
+//     }
+//   };
+//   const goToMyCustomerCharacter = () => {
+//     const { id } = getUserInfoFromToken();
+//     if (!id) {
+//       toast.warn("You are not logged in!");
+//       setTimeout(() => navigate("/login"), 2100);
+//     } else {
+//       navigate(`/my-customer-character/${id}`);
+//     }
+//   };
+
+//   // Điều hướng đến lịch sử mua hàng
+//   const goToMyPurchaseHistory = () => {
+//     const { id } = getUserInfoFromToken();
+//     if (!id) {
+//       toast.warn("You are not logged in!");
+//       setTimeout(() => navigate("/login"), 2100);
+//     } else {
+//       navigate(`/my-purchase-history/${id}`);
+//     }
+//   };
+
+//   // Điều hướng đến trang nhiệm vụ (dành cho Cosplayer)
+//   const goToMyTask = () => {
+//     const { id, role } = getUserInfoFromToken();
+//     if (!id) {
+//       toast.warn("You are not logged in!");
+//       setTimeout(() => navigate("/login"), 2100);
+//       return;
+//     }
+//     if (role === "Cosplayer") {
+//       navigate(`/my-task/${id}`);
+//     } else {
+//       toast.error("You do not have permission to access My Task.", {
+//         position: "top-right",
+//         autoClose: 3000,
+//       });
+//     }
+//   };
+
+//   // Xử lý đăng xuất
+//   const handleLogout = () => {
+//     AuthService.logout();
+//     setUserId(null);
+//     setUserRole(null);
+//     setCartCount(0);
+//     setNotifications([]);
+//     setPersistedNotifications([]); // Xóa thông báo khi đăng xuất
+//     navigate("/login");
+//   };
+
+//   return (
+//     <nav className="navbar">
+//       <div className="container mx-auto flex items-center justify-between h-24 px-4">
+//         {/* Thêm placeholder cho Cosplayer để giữ layout */}
+//         <div className="brand-container flex items-center">
+//           {userRole !== "Cosplayer" && (
+//             <Link to="/" className="flex items-center">
+//               <img src={Logo} alt="CCSS Logo" className="brand-logo h-12" />
+//             </Link>
+//           )}
+//         </div>
+
+//         <div className="nav-menu">
+//           {userRole !== "Cosplayer" && (
+//             <>
+//               {userId ? (
+//                 <>
+//                   {[
+//                     { to: "/services", label: "Services", Icon: ShoppingBag },
+//                     { to: "/costumes", label: "Costumes", Icon: Shirt },
+//                     { to: "/cosplayers", label: "Cosplayers", Icon: Users },
+//                     {
+//                       to: "/event",
+//                       label: "Event Organization",
+//                       Icon: Aperture,
+//                     },
+//                     { to: "/festivals", label: "Festivals", Icon: Calendar },
+//                     { to: "/souvenirs-shop", label: "Souvenirs", Icon: Store },
+//                     { to: "/about", label: "About Us", Icon: Info },
+//                   ].map(({ to, label, Icon }) => (
+//                     <div key={to} className="dropdown-container">
+//                       <NavLink
+//                         to={to}
+//                         className={({ isActive }) =>
+//                           `nav-link ${isActive ? "nav-link-active" : ""}`
+//                         }
+//                       >
+//                         <Icon size={20} />
+//                         <span>{label}</span>
+//                       </NavLink>
+//                     </div>
+//                   ))}
+//                 </>
+//               ) : (
+//                 <>
+//                   {[
+//                     { to: "/services", label: "Services", Icon: ShoppingBag },
+//                     { to: "/about", label: "About Us", Icon: Info },
+//                   ].map(({ to, label, Icon }) => (
+//                     <div key={to} className="dropdown-container">
+//                       <NavLink
+//                         to={to}
+//                         className={({ isActive }) =>
+//                           `nav-link ${isActive ? "nav-link-active" : ""}`
+//                         }
+//                       >
+//                         <Icon size={20} />
+//                         <span>{label}</span>
+//                       </NavLink>
+//                     </div>
+//                   ))}
+//                 </>
+//               )}
+//             </>
+//           )}
+
+//           {userId && (
+//             <div className="dropdown-container notification-container">
+//               <div
+//                 className="dropdown-toggle"
+//                 onClick={markNotificationsAsSeen}
+//               >
+//                 <Bell size={20} />
+//                 {notifications.filter((n) => !n.isRead).length > 0 && (
+//                   <span className="notification-badge">
+//                     {notifications.filter((n) => !n.isRead).length}
+//                   </span>
+//                 )}
+//               </div>
+//               <div className="dropdown-menu dropdown-menu-notifications">
+//                 {notifications.length > 0 ? (
+//                   notifications.map((notification) => (
+//                     <div
+//                       key={notification.id}
+//                       className={`dropdown-item notification-item ${
+//                         notification.isRead ? "read" : "unread"
+//                       }`}
+//                     >
+//                       <div className="notification-content">
+//                         {!notification.isRead && (
+//                           <span className="notification-new-label">New</span>
+//                         )}
+//                         <p className="notification-message">
+//                           {notification.message || "Unnamed notification"}
+//                         </p>
+//                       </div>
+//                     </div>
+//                   ))
+//                 ) : (
+//                   <div className="dropdown-item">No new notifications</div>
+//                 )}
+//               </div>
+//             </div>
+//           )}
+
+//           <div className="dropdown-container">
+//             <div className="dropdown-toggle">
+//               <CircleUser size={20} />
+//             </div>
+//             <div className="dropdown-menu dropdown-menu-user">
+//               {userId ? (
+//                 <>
+//                   <div onClick={goToProfile} className="dropdown-item">
+//                     Profile
+//                   </div>
+//                   {userRole === "Cosplayer" ? (
+//                     <>
+//                       <div onClick={goToMyTask} className="dropdown-item">
+//                         My Task
+//                       </div>
+//                       <div onClick={handleLogout} className="dropdown-item">
+//                         Log Out
+//                       </div>
+//                     </>
+//                   ) : (
+//                     <>
+//                       <div onClick={goToMyHistory} className="dropdown-item">
+//                         My Rental Cosplayer
+//                       </div>
+//                       <div
+//                         onClick={goToMyRentalCostume}
+//                         className="dropdown-item"
+//                       >
+//                         My Rental Costume
+//                       </div>
+//                       <div
+//                         onClick={goToMyEventOrganize}
+//                         className="dropdown-item"
+//                       >
+//                         My Event Organization
+//                       </div>
+//                       <div
+//                         onClick={goToMyCustomerCharacter}
+//                         className="dropdown-item"
+//                       >
+//                         My Character
+//                       </div>
+//                       <div
+//                         onClick={goToMyPurchaseHistory}
+//                         className="dropdown-item"
+//                       >
+//                         Purchase History
+//                       </div>
+//                       <Link to="/cart" className="dropdown-item cart-item">
+//                         Cart
+//                         {cartCount > 0 && (
+//                           <span className="cart-badge">{cartCount}</span>
+//                         )}
+//                       </Link>
+//                       <Link
+//                         to="/login"
+//                         className="dropdown-item"
+//                         onClick={handleLogout}
+//                       >
+//                         Log Out
+//                       </Link>
+//                     </>
+//                   )}
+//                 </>
+//               ) : (
+//                 <>
+//                   <Link to="/login" className="dropdown-item">
+//                     Log In
+//                   </Link>
+//                 </>
+//               )}
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+//     </nav>
+//   );
+// }
+
+// export default Navbar;
+
+//------------------------------------------------------------------------------------------------------//
+
+//sửa đổi vào 23/05/2025
+
 import React, { useState, useEffect, useRef } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import {
@@ -1039,7 +1517,7 @@ export function Navbar() {
   const [userId, setUserId] = useState(null);
   const [userRole, setUserRole] = useState(null);
   const [notifications, setNotifications] = useState([]);
-  const [persistedNotifications, setPersistedNotifications] = useState([]); // Lưu trữ thông báo cũ trên FE
+  const [persistedNotifications, setPersistedNotifications] = useState([]);
   const [cartCount, setCartCount] = useState(0);
   const callCountRef = useRef(0);
 
@@ -1063,64 +1541,78 @@ export function Navbar() {
     return { id: null, role: null };
   };
 
-  // Cập nhật số lượng sản phẩm trong giỏ hàng
+  // Hàm cập nhật tổng số lượng món hàng trong giỏ hàng
   const updateCartCount = async () => {
     try {
       const { id } = getUserInfoFromToken();
+      console.log("Updating cart count for userId:", id); // Debug
       if (!id) {
+        // Nếu không có người dùng đăng nhập, lấy giỏ hàng từ localStorage
         const savedCart = localStorage.getItem("cartItems");
         const cartItems = savedCart ? JSON.parse(savedCart) : [];
-        setCartCount(cartItems.length);
+        console.log("Cart items from localStorage:", cartItems); // Debug
+        const totalQuantity = cartItems.reduce(
+          (total, item) => total + (item.quantity || 0),
+          0
+        );
+        console.log("Total quantity from localStorage:", totalQuantity); // Debug
+        setCartCount(totalQuantity);
         return;
       }
+      // Lấy dữ liệu giỏ hàng từ API
       const cartData = await CartService.getCartByAccountId(id);
-      const totalQuantity = cartData.listCartProduct.reduce(
-        (total, item) => total + item.quantity,
+      console.log("Cart data from API:", cartData); // Debug
+      // Kiểm tra listCartProduct có tồn tại và là mảng
+      const listCartProduct = Array.isArray(cartData?.listCartProduct)
+        ? cartData.listCartProduct
+        : [];
+      // Tính tổng số lượng món hàng
+      const totalQuantity = listCartProduct.reduce(
+        (total, item) => total + (item.quantity || 0),
         0
       );
+      console.log("Total quantity from API:", totalQuantity); // Debug
       setCartCount(totalQuantity);
     } catch (error) {
       console.error("Error updating cart count:", error);
+      // Fallback về localStorage nếu API lỗi
       const savedCart = localStorage.getItem("cartItems");
       const cartItems = savedCart ? JSON.parse(savedCart) : [];
-      setCartCount(cartItems.length);
+      console.log("Fallback cart items from localStorage:", cartItems); // Debug
+      const totalQuantity = cartItems.reduce(
+        (total, item) => total + (item.quantity || 0),
+        0
+      );
+      console.log("Fallback total quantity:", totalQuantity); // Debug
+      setCartCount(totalQuantity);
     }
   };
 
-  // Lấy danh sách thông báo và gộp với thông báo đã lưu
+  // Lấy danh sách thông báo
   const fetchNotifications = async (accountId) => {
     try {
       const notificationData = await navbarService.getNotification(accountId);
-      // Sắp xếp thông báo mới từ API
       const sortedNewNotifications = notificationData.sort((a, b) =>
         b.createdAt && a.createdAt
           ? new Date(b.createdAt) - new Date(a.createdAt)
           : b.id - a.id
       );
-      // Lọc thông báo chưa đọc từ API
       const unreadNotifications = sortedNewNotifications.filter(
         (n) => !n.isRead
       );
-      // Gộp với thông báo đã lưu (lấy tối đa 10 đã đọc)
       const readNotifications = persistedNotifications
         .filter((n) => n.isRead)
         .slice(0, 10);
-      // Cập nhật danh sách hiển thị
       const updatedNotifications = [
         ...unreadNotifications,
         ...readNotifications,
       ];
       setNotifications(updatedNotifications);
-      // Cập nhật danh sách lưu trữ
       setPersistedNotifications(updatedNotifications);
     } catch (error) {
       console.error("Failed to fetch notifications:", error);
-      // Nếu API lỗi, giữ danh sách đã lưu
       setNotifications(persistedNotifications);
-      toast.error("Failed to load notifications", {
-        position: "top-right",
-        autoClose: 3000,
-      });
+      toast.error("Failed to load notifications");
     }
   };
 
@@ -1132,52 +1624,31 @@ export function Navbar() {
       );
       if (unreadNotifications.length === 0) return;
 
-      // Gọi API để đánh dấu đã đọc
       await Promise.all(
         unreadNotifications.map((notification) =>
           navbarService.seenNotification(notification.id)
         )
       );
 
-      // Cập nhật state trên FE: đánh dấu tất cả thông báo chưa đọc thành đã đọc
       const updatedNotifications = notifications.map((notification) => ({
         ...notification,
         isRead: true,
       }));
-      // Sắp xếp lại: mới nhất ở trên
       const sortedNotifications = updatedNotifications.sort((a, b) =>
         b.createdAt && a.createdAt
           ? new Date(b.createdAt) - new Date(a.createdAt)
           : b.id - a.id
       );
-      // Lấy tối đa 10 thông báo đã đọc
       const limitedNotifications = sortedNotifications.slice(0, 10);
       setNotifications(limitedNotifications);
       setPersistedNotifications(limitedNotifications);
 
-      // Làm mới từ API nếu cần
       if (userId) {
         await fetchNotifications(userId);
       }
     } catch (error) {
       console.error("Failed to mark notifications as seen:", error);
-      // Nếu API lỗi, vẫn cập nhật state trên FE
-      const updatedNotifications = notifications.map((notification) => ({
-        ...notification,
-        isRead: true,
-      }));
-      const sortedNotifications = updatedNotifications.sort((a, b) =>
-        b.createdAt && a.createdAt
-          ? new Date(b.createdAt) - new Date(a.createdAt)
-          : b.id - a.id
-      );
-      const limitedNotifications = sortedNotifications.slice(0, 10);
-      setNotifications(limitedNotifications);
-      setPersistedNotifications(limitedNotifications);
-      toast.error("Failed to mark notifications as seen", {
-        position: "top-right",
-        autoClose: 3000,
-      });
+      toast.error("Failed to mark notifications as seen");
     }
   };
 
@@ -1201,12 +1672,21 @@ export function Navbar() {
 
     if (id && role !== "Cosplayer") {
       updateCartCount();
-      window.addEventListener("storage", updateCartCount);
-      return () => window.removeEventListener("storage", updateCartCount);
+      // Lắng nghe sự kiện storageUpdate
+      const handleStorageUpdate = () => {
+        console.log("Storage update event triggered"); // Debug
+        updateCartCount();
+      };
+      window.addEventListener("storageUpdate", handleStorageUpdate);
+      window.addEventListener("storage", handleStorageUpdate);
+      return () => {
+        window.removeEventListener("storageUpdate", handleStorageUpdate);
+        window.removeEventListener("storage", handleStorageUpdate);
+      };
     }
   }, []);
 
-  // Điều hướng đến trang hồ sơ
+  // Điều hướng đến các trang
   const goToProfile = () => {
     const { id } = getUserInfoFromToken();
     if (!id) {
@@ -1217,7 +1697,6 @@ export function Navbar() {
     }
   };
 
-  // Điều hướng đến lịch sử thuê
   const goToMyHistory = () => {
     const { id } = getUserInfoFromToken();
     if (!id) {
@@ -1228,7 +1707,6 @@ export function Navbar() {
     }
   };
 
-  // Điều hướng đến trang thuê trang phục
   const goToMyRentalCostume = () => {
     const { id } = getUserInfoFromToken();
     if (!id) {
@@ -1239,7 +1717,6 @@ export function Navbar() {
     }
   };
 
-  // Điều hướng đến trang tổ chức sự kiện
   const goToMyEventOrganize = () => {
     const { id } = getUserInfoFromToken();
     if (!id) {
@@ -1249,6 +1726,7 @@ export function Navbar() {
       navigate(`/my-event-organize/${id}`);
     }
   };
+
   const goToMyCustomerCharacter = () => {
     const { id } = getUserInfoFromToken();
     if (!id) {
@@ -1259,7 +1737,6 @@ export function Navbar() {
     }
   };
 
-  // Điều hướng đến lịch sử mua hàng
   const goToMyPurchaseHistory = () => {
     const { id } = getUserInfoFromToken();
     if (!id) {
@@ -1270,7 +1747,6 @@ export function Navbar() {
     }
   };
 
-  // Điều hướng đến trang nhiệm vụ (dành cho Cosplayer)
   const goToMyTask = () => {
     const { id, role } = getUserInfoFromToken();
     if (!id) {
@@ -1281,10 +1757,7 @@ export function Navbar() {
     if (role === "Cosplayer") {
       navigate(`/my-task/${id}`);
     } else {
-      toast.error("You do not have permission to access My Task.", {
-        position: "top-right",
-        autoClose: 3000,
-      });
+      toast.error("You do not have permission to access My Task.");
     }
   };
 
@@ -1295,14 +1768,13 @@ export function Navbar() {
     setUserRole(null);
     setCartCount(0);
     setNotifications([]);
-    setPersistedNotifications([]); // Xóa thông báo khi đăng xuất
+    setPersistedNotifications([]);
     navigate("/login");
   };
 
   return (
     <nav className="navbar">
       <div className="container mx-auto flex items-center justify-between h-24 px-4">
-        {/* Thêm placeholder cho Cosplayer để giữ layout */}
         <div className="brand-container flex items-center">
           {userRole !== "Cosplayer" && (
             <Link to="/" className="flex items-center">
@@ -1383,9 +1855,8 @@ export function Navbar() {
                   notifications.map((notification) => (
                     <div
                       key={notification.id}
-                      className={`dropdown-item notification-item ${
-                        notification.isRead ? "read" : "unread"
-                      }`}
+                      className={`dropdown-item notification-item ${notification.isRead ? "read" : "unread"
+                        }`}
                     >
                       <div className="notification-content">
                         {!notification.isRead && (
@@ -1407,6 +1878,30 @@ export function Navbar() {
           <div className="dropdown-container">
             <div className="dropdown-toggle">
               <CircleUser size={20} />
+              {/* Hiển thị badge tổng số lượng món hàng với inline style */}
+              {cartCount > 0 && userRole !== "Cosplayer" && (
+                <span
+                  style={{
+                    position: "absolute",
+                    top: "-8px",
+                    right: "-8px",
+                    background: "#f85caa",
+                    color: "white",
+                    fontSize: "0.7rem",
+                    fontWeight: 700,
+                    borderRadius: "50%",
+                    width: "20px",
+                    height: "20px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    boxShadow: "0 2px 5px rgba(0, 0, 0, 0.3)",
+                    zIndex: 100,
+                  }}
+                >
+                  {cartCount}
+                </span>
+              )}
             </div>
             <div className="dropdown-menu dropdown-menu-user">
               {userId ? (

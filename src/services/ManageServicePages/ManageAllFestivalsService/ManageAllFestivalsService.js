@@ -192,6 +192,42 @@ const ManageAllFestivalsService = {
       throw new Error(errorMessage);
     }
   },
+
+  getProvinces: async () => {
+    try {
+      console.log("Fetching provinces...");
+      const response = await apiClient.get("/api/Delivery/provinces");
+      console.log("GetProvinces response:", response.data);
+      return response.data.data;
+    } catch (error) {
+      console.error("Error fetching provinces:", error.response?.data || error);
+      throw new Error("Failed to fetch provinces");
+    }
+  },
+
+  getDistricts: async (provinceId) => {
+    try {
+      console.log(`Fetching districts for provinceId=${provinceId}...`);
+      const response = await apiClient.post(`/api/Delivery/districts/${provinceId}`);
+      console.log("GetDistricts response:", response.data);
+      return response.data.data;
+    } catch (error) {
+      console.error("Error fetching districts:", error.response?.data || error);
+      throw new Error("Failed to fetch districts");
+    }
+  },
+
+  getWards: async (districtId) => {
+    try {
+      console.log(`Fetching wards for districtId=${districtId}...`);
+      const response = await apiClient.post(`/api/Delivery/wards/${districtId}`);
+      console.log("GetWards response:", response.data);
+      return response.data.data;
+    } catch (error) {
+      console.error("Error fetching wards:", error.response?.data || error);
+      throw new Error("Failed to fetch wards");
+    }
+  },
 };
 
 export default ManageAllFestivalsService;

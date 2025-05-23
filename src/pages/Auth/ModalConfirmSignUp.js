@@ -55,22 +55,18 @@ const ModalConfirmSignUp = ({ show, onHide, email }) => {
   return (
     <Modal
       show={show}
-      onHide={onHide}
+      onHide={() => { }}
       centered
-      backdrop="static"
-      keyboard={true}
+      backdrop="static" // Không cho phép đóng khi click ra ngoài
+      keyboard={false}  // Không cho phép ESC
     >
-      <Modal.Header closeButton>
+      <Modal.Header>
         <Modal.Title>Verify Your Signup</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <Form onSubmit={handleSubmit}>
-          {/* Hidden email field (for reference, not visible to user) */}
-          <Form.Group
-            className="mb-3"
-            controlId="formEmail"
-            style={{ display: "none" }}
-          >
+          {/* Hidden email field */}
+          <Form.Group className="mb-3" controlId="formEmail" style={{ display: "none" }}>
             <Form.Label>Email</Form.Label>
             <Form.Control type="email" value={email} readOnly />
           </Form.Group>
@@ -92,6 +88,15 @@ const ModalConfirmSignUp = ({ show, onHide, email }) => {
 
           <Button variant="primary" type="submit" className="w-100">
             Verify
+          </Button>
+
+          {/* Optional: Cancel button to go back */}
+          <Button
+            variant="secondary"
+            onClick={onHide}
+            className="w-100 mt-2"
+          >
+            Cancel
           </Button>
         </Form>
       </Modal.Body>

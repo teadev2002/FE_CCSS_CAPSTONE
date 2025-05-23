@@ -1,9 +1,436 @@
+// .manage-festivals {
+//   padding: 10px;
+//   background: url("https://i.pinimg.com/originals/d2/ad/3f/d2ad3f633977d1ec518916b5c4fe5acd.jpg") no-repeat center center fixed;
+//   background-size: cover;
+//   min-height: 100vh;
+
+//   .manage-festivals-title {
+//     font-size: 32px;
+//     font-weight: bold;
+//     margin-bottom: 15px;
+//     text-align: center;
+//     color: #ffffff;
+//     background: transparent;
+//   }
+
+//   .content-container {
+//     display: flex;
+//     padding: 10px;
+//   }
+
+//   .manage-festivals-card {
+//     width: 90%;
+//     margin: 10px auto;
+//     box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.2);
+//     background: #fff;
+//     border-radius: 15px;
+//     opacity: 0.9;
+
+//     .card-body {
+//       padding: 15px;
+//     }
+
+//     .table-header {
+//       display: flex;
+//       align-items: center;
+//       justify-content: space-between;
+//       margin-bottom: 10px;
+
+//       h3 {
+//         font-size: 20px;
+//         font-weight: 600;
+//         margin: 0;
+//       }
+
+//       .search-input {
+//         width: 40%;
+//         border-radius: 5px;
+//         border: 1px solid #ced4da;
+//         padding: 5px 10px;
+
+//         &:focus {
+//           border-color: #510545;
+//           box-shadow: 0 0 5px rgba(81, 5, 69, 0.3);
+//         }
+//       }
+
+//       .ant-btn-primary {
+//         padding: 5px 10px;
+//         font-size: 14px;
+//         border-radius: 4px;
+//         background: linear-gradient(135deg, #510545, #22668a);
+//         border: none;
+//         display: flex;
+//         alignItems: "center";
+//         gap: 5px;
+
+//         &:hover {
+//           background: linear-gradient(135deg, #22668a, #510545);
+//         }
+//       }
+//     }
+
+//     .table {
+//       margin-bottom: 0;
+
+//       th,
+//       td {
+//         vertical-align: middle;
+//         padding: 8px;
+//         text-align: center;
+//       }
+
+//       thead {
+//         background: linear-gradient(135deg, #510545, #22668a);
+//         font-weight: bold;
+//         color: #fff;
+
+//         .sortable {
+//           cursor: pointer;
+//           display: flex;
+//           justify-content: center;
+//           align-items: center;
+//           gap: 5px;
+
+//           &:hover {
+//             background-color: rgba(255, 255, 255, 0.1);
+//           }
+
+//           .default-sort-icon {
+//             opacity: 0.5;
+//           }
+//         }
+//       }
+
+//       tbody tr:hover {
+//         background-color: #f0f0f0;
+//       }
+
+//       .ant-btn {
+//         padding: 5px 10px;
+//         font-size: 14px;
+//         border-radius: 4px;
+//         text-transform: none;
+//         display: flex;
+//         align-items: center;
+//         gap: 5px;
+
+//         &.ant-btn-primary {
+//           background: linear-gradient(135deg, #510545, #22668a);
+//           border: none;
+
+//           &:hover {
+//             background: linear-gradient(135deg, #22668a, #510545);
+//           }
+//         }
+
+//         &.ant-btn-default {
+//           background: #e0e0e0;
+//           border: none;
+//           color: #333;
+
+//           &:hover {
+//             background: #d0d0d0;
+//           }
+//         }
+//       }
+//     }
+
+//     .pagination-controls {
+//       margin-top: 10px;
+//       display: flex;
+//       justify-content: space-between;
+//       align-items: center;
+
+//       .pagination-info {
+//         display: flex;
+//         align-items: center;
+//         gap: 20px;
+
+//         span {
+//           font-size: 14px;
+//           color: #333;
+//         }
+
+//         .rows-per-page {
+//           display: flex;
+//           align-items: center;
+//           gap: 5px;
+
+//           span {
+//             font-size: 14px;
+//             color: #333;
+//           }
+
+//           .dropdown {
+//             .btn-secondary {
+//               padding: 4px 8px;
+//               font-size: 14px;
+//               border-radius: 4px;
+//               background: #e0e0e0;
+//               border: none;
+//               color: #333;
+
+//               &:hover {
+//                 background: #d0d0d0;
+//               }
+//             }
+
+//             .dropdown-menu {
+//               min-width: 60px;
+
+//               .dropdown-item {
+//                 font-size: 14px;
+//                 padding: 4px 8px;
+
+//                 &:hover {
+//                   background-color: #f0f0f0;
+//                 }
+//               }
+//             }
+//           }
+//         }
+//       }
+
+//       .pagination {
+//         margin: 0;
+
+//         .page-item {
+//           .page-link {
+//             padding: 4px 8px;
+//             font-size: 14px;
+//             border-radius: 4px;
+//             color: #510545;
+
+//             &:hover {
+//               background-color: #f0f0f0;
+//             }
+//           }
+
+//           &.active .page-link {
+//             background: linear-gradient(135deg, #510545, #22668a);
+//             border-color: #510545;
+//             color: #fff;
+//           }
+//         }
+//       }
+//     }
+//   }
+
+//   .festival-modal {
+//     .modal-content {
+//       border-radius: 8px;
+//       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+//     }
+
+//     .modal-header {
+//       background: linear-gradient(135deg, #510545, #22668a);
+//       color: #fff;
+//       border-bottom: none;
+//       padding: 10px 15px;
+
+//       .modal-title {
+//         font-size: 24px;
+//         font-weight: 600;
+//       }
+
+//       .btn-close {
+//         filter: brightness(0) invert(1);
+//       }
+//     }
+
+//     .modal-body {
+//       padding: 15px;
+
+//       .form-group {
+//         margin-bottom: 12px;
+
+//         label {
+//           font-weight: 500;
+//           color: #333;
+//           margin-bottom: 4px;
+//           display: block;
+//         }
+
+//         .form-control {
+//           border-radius: 5px;
+//           border: 1px solid #ced4da;
+//           padding: 6px 10px;
+//           font-size: 16px;
+
+//           &:focus {
+//             border-color: #510545;
+//             box-shadow: 0 0 5px rgba(81, 5, 69, 0.3);
+//           }
+//         }
+
+//         textarea.form-control {
+//           resize: vertical;
+//           min-height: 80px;
+//         }
+
+//         .ant-select {
+//           .ant-select-selector {
+//             border-radius: 5px;
+//             border: 1px solid #ced4da;
+//             padding: 6px 10px;
+//             font-size: 16px;
+
+//             &:focus {
+//               border-color: #510545;
+//               box-shadow: 0 0 5px rgba(81, 5, 69, 0.3);
+//             }
+//           }
+//         }
+
+//         .image-container {
+//           display: flex;
+//           flex-wrap: wrap;
+//           gap: 10px;
+//           margin-top: 10px;
+
+//           .image-item {
+//             position: relative;
+//             width: 100px;
+//             height: 100px;
+
+//             img {
+//               width: 100%;
+//               height: 100%;
+//               object-fit: cover;
+//               border-radius: 5px;
+//               border: 1px solid #e0e0e0;
+//             }
+
+//             .remove-btn {
+//               position: absolute;
+//               top: 5px;
+//               right: 5px;
+//               font-size: 10px;
+//               padding: 2px 5px;
+//               border-radius: 4px;
+//               background: #ff4d4f;
+//               border: none;
+
+//               &:hover {
+//                 background: #d9363e;
+//               }
+//             }
+//           }
+//         }
+
+//         .add-more-btn {
+//           margin-top: 10px;
+//           padding: 5px 10px;
+//           font-size: 14px;
+//           border-radius: 4px;
+//           background: linear-gradient(135deg, #510545, #22668a);
+//           border: none;
+
+//           &:hover {
+//             background: linear-gradient(135deg, #22668a, #510545);
+//           }
+//         }
+//       }
+
+//       .cosplayer-grid {
+//         .ant-btn-primary {
+//           background: linear-gradient(135deg, #510545, #22668a);
+//           border: none;
+
+//           &:hover {
+//             background: linear-gradient(135deg, #22668a, #510545);
+//           }
+//         }
+
+//         .ant-btn-dangerous {
+//           background: #ff4d4f;
+//           border: none;
+
+//           &:hover {
+//             background: #d9363e;
+//           }
+//         }
+//       }
+//     }
+
+//     .modal-footer {
+//       border-top: 1px solid #dee2e6;
+//       padding: 10px 15px;
+
+//       .ant-btn {
+//         padding: 5px 12px;
+//         font-size: 14px;
+//         border-radius: 4px;
+//         text-transform: none;
+
+//         &.ant-btn-default {
+//           background: #e0e0e0;
+//           border: none;
+//           color: #333;
+
+//           &:hover {
+//             background: #d0d0d0;
+//           }
+//         }
+
+//         &.ant-btn-primary {
+//           background: linear-gradient(135deg, #510545, #22668a);
+//           border: none;
+
+//           &:hover {
+//             background: linear-gradient(135deg, #22668a, #510545);
+//           }
+//         }
+//       }
+//     }
+//   }
+
+//   .ant-descriptions {
+//     .ant-descriptions-title {
+//       font-size: 22px;
+//       font-weight: 600;
+//       color: #510545;
+//     }
+
+//     .ant-descriptions-item-label {
+//       font-weight: 500;
+//       width: 150px;
+//       background: #f9f9f9;
+//       color: #333;
+//     }
+
+//     .ant-descriptions-item-content {
+//       font-size: 16px;
+//       color: #333;
+//     }
+//   }
+
+//   .ant-list {
+//     .ant-list-item {
+//       padding: 8px 0;
+//       border-bottom: 1px solid #e0e0e0;
+
+//       .ant-descriptions-item-label {
+//         background: #f9f9f9;
+//       }
+//     }
+//   }
+// }
+
+//----------------------------------------------------------------------------------------//
+
+//sửa 24/05/2025
+
+/* Định dạng chính cho component quản lý lễ hội */
 .manage-festivals {
+  /* Căn chỉnh padding và background */
   padding: 10px;
   background: url("https://i.pinimg.com/originals/d2/ad/3f/d2ad3f633977d1ec518916b5c4fe5acd.jpg") no-repeat center center fixed;
   background-size: cover;
   min-height: 100vh;
 
+  /* Tiêu đề chính */
   .manage-festivals-title {
     font-size: 32px;
     font-weight: bold;
@@ -13,11 +440,13 @@
     background: transparent;
   }
 
+  /* Container nội dung */
   .content-container {
     display: flex;
     padding: 10px;
   }
 
+  /* Card chứa bảng dữ liệu */
   .manage-festivals-card {
     width: 90%;
     margin: 10px auto;
@@ -30,6 +459,7 @@
       padding: 15px;
     }
 
+    /* Đầu bảng */
     .table-header {
       display: flex;
       align-items: center;
@@ -42,6 +472,7 @@
         margin: 0;
       }
 
+      /* Ô tìm kiếm */
       .search-input {
         width: 40%;
         border-radius: 5px;
@@ -54,6 +485,7 @@
         }
       }
 
+      /* Nút thêm lễ hội */
       .ant-btn-primary {
         padding: 5px 10px;
         font-size: 14px;
@@ -61,7 +493,7 @@
         background: linear-gradient(135deg, #510545, #22668a);
         border: none;
         display: flex;
-        alignItems: "center";
+        align-items: center;
         gap: 5px;
 
         &:hover {
@@ -70,6 +502,7 @@
       }
     }
 
+    /* Bảng dữ liệu */
     .table {
       margin-bottom: 0;
 
@@ -85,6 +518,7 @@
         font-weight: bold;
         color: #fff;
 
+        /* Cột có thể sắp xếp */
         .sortable {
           cursor: pointer;
           display: flex;
@@ -106,6 +540,7 @@
         background-color: #f0f0f0;
       }
 
+      /* Nút trong bảng */
       .ant-btn {
         padding: 5px 10px;
         font-size: 14px;
@@ -136,6 +571,7 @@
       }
     }
 
+    /* Điều khiển phân trang */
     .pagination-controls {
       margin-top: 10px;
       display: flex;
@@ -152,6 +588,7 @@
           color: #333;
         }
 
+        /* Chọn số hàng mỗi trang */
         .rows-per-page {
           display: flex;
           align-items: center;
@@ -192,6 +629,7 @@
         }
       }
 
+      /* Phân trang */
       .pagination {
         margin: 0;
 
@@ -217,6 +655,7 @@
     }
   }
 
+  /* Modal tạo/sửa/chi tiết */
   .festival-modal {
     .modal-content {
       border-radius: 8px;
@@ -252,6 +691,7 @@
           display: block;
         }
 
+        /* Định dạng input */
         .form-control {
           border-radius: 5px;
           border: 1px solid #ced4da;
@@ -264,11 +704,13 @@
           }
         }
 
+        /* Định dạng textarea */
         textarea.form-control {
           resize: vertical;
           min-height: 80px;
         }
 
+        /* Định dạng select của Ant Design */
         .ant-select {
           .ant-select-selector {
             border-radius: 5px;
@@ -283,6 +725,20 @@
           }
         }
 
+        /* Định dạng input của Ant Design */
+        .ant-input {
+          border-radius: 5px;
+          border: 1px solid #ced4da;
+          padding: 6px 10px;
+          font-size: 16px;
+
+          &:focus {
+            border-color: #510545;
+            box-shadow: 0 0 5px rgba(81, 5, 69, 0.3);
+          }
+        }
+
+        /* Container ảnh */
         .image-container {
           display: flex;
           flex-wrap: wrap;
@@ -319,6 +775,7 @@
           }
         }
 
+        /* Nút thêm ảnh */
         .add-more-btn {
           margin-top: 10px;
           padding: 5px 10px;
@@ -333,6 +790,7 @@
         }
       }
 
+      /* Lưới cosplayer */
       .cosplayer-grid {
         .ant-btn-primary {
           background: linear-gradient(135deg, #510545, #22668a);
@@ -354,6 +812,7 @@
       }
     }
 
+    /* Footer modal */
     .modal-footer {
       border-top: 1px solid #dee2e6;
       padding: 10px 15px;
@@ -386,6 +845,7 @@
     }
   }
 
+  /* Định dạng bảng mô tả */
   .ant-descriptions {
     .ant-descriptions-title {
       font-size: 22px;
@@ -396,23 +856,155 @@
     .ant-descriptions-item-label {
       font-weight: 500;
       width: 150px;
-      background: #f9f9f9;
+      background: #f5f5f5;
       color: #333;
+      padding: 8px;
     }
 
     .ant-descriptions-item-content {
-      font-size: 16px;
+      padding: 8px;
       color: #333;
+      background: #fff;
+    }
+
+    /* Đường viền cho bảng mô tả */
+    &.ant-descriptions-bordered .ant-descriptions-item-label,
+    &.ant-descriptions-bordered .ant-descriptions-item-content {
+      border: 1px solid #dee2e6;
     }
   }
 
+  /* Định dạng danh sách */
   .ant-list {
     .ant-list-item {
-      padding: 8px 0;
+      padding: 10px 0;
       border-bottom: 1px solid #e0e0e0;
 
-      .ant-descriptions-item-label {
-        background: #f9f9f9;
+      &:last-child {
+        border-bottom: none;
+      }
+
+      /* Định dạng meta của danh sách */
+      .ant-list-item-meta {
+        .ant-list-item-meta-title {
+          font-weight: 500;
+          color: #333;
+        }
+
+        .ant-list-item-meta-description {
+          color: #666;
+        }
+      }
+
+      /* Nút hành động trong danh sách */
+      .ant-btn {
+        padding: 4px 8px;
+        font-size: 12px;
+        border-radius: 4px;
+
+        &.ant-btn-primary.ant-btn-dangerous {
+          background: #ff4d4f;
+          border: none;
+
+          &:hover {
+            background: #d9363e;
+          }
+        }
+      }
+    }
+  }
+
+  /* Định dạng ảnh trong chi tiết sự kiện */
+  .ant-image {
+    img {
+      border-radius: 5px;
+      border: 1px solid #e0e0e0;
+      object-fit: cover;
+    }
+  }
+
+  /* Định dạng cảnh báo */
+  .ant-alert {
+    border-radius: 5px;
+    font-size: 14px;
+
+    &.ant-alert-info {
+      background-color: #e6f7ff;
+      border-color: #91d5ff;
+
+      .ant-alert-message {
+        color: #096dd9;
+      }
+    }
+  }
+
+  /* Định dạng container nhân vật */
+  .character-info {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    background: #fff;
+
+    img {
+      border-radius: 5px;
+      border: 1px solid #e0e0e0;
+    }
+
+    div {
+      p {
+        margin: 0;
+        color: #666;
+      }
+
+      strong {
+        color: #333;
+      }
+    }
+  }
+
+  /* Định dạng lưới cosplayer */
+  .cosplayer-grid {
+    h5 {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    /* Container của lưới */
+    div[style*="grid-template-columns"] {
+      border: 1px solid #e0e0e0;
+      border-radius: 5px;
+      background: #fafafa;
+
+      /* Mỗi mục trong lưới */
+      >div {
+        transition: transform 0.2s;
+
+        &:hover {
+          transform: scale(1.05);
+        }
+
+        /* Container ảnh cosplayer */
+        >div[style*="border-radius: 50%"] {
+          border: 1px solid #e0e0e0;
+        }
+
+        p {
+          margin: 0;
+          font-size: 14px;
+          font-weight: 500;
+          color: #333;
+        }
+
+        /* Nút thêm cosplayer */
+        .ant-btn-primary {
+          font-size: 12px;
+          padding: 2px 8px;
+          border-radius: 4px;
+        }
       }
     }
   }
