@@ -1034,6 +1034,7 @@ const ViewContractEventOrganize = ({ requestId }) => {
     [cosplayerTasks]
   );
 
+  // Trong useEffect
   useEffect(() => {
     const fetchRequestAndPackage = async () => {
       if (!requestId) {
@@ -1160,15 +1161,18 @@ const ViewContractEventOrganize = ({ requestId }) => {
               await MyEventOrganizeService.getAllContractByAccountId(
                 data.accountId
               );
+            console.log("Contracts:", contracts);
             const matchingContract = contracts.find(
               (c) => c.requestId === requestId
             );
+            console.log("Matching Contract:", matchingContract);
             if (matchingContract?.contractId) {
               const contractDetails =
                 await MyEventOrganizeService.getContractByContractId(
                   matchingContract.contractId
                 );
-              setContractData(contractDetails);
+              console.log("Contract Details:", contractDetails);
+              setContractData(contractDetails || { status: "N/A" });
             } else {
               setContractData(null);
             }
@@ -1270,20 +1274,20 @@ const ViewContractEventOrganize = ({ requestId }) => {
 
                 <h3
                   className={`mt-2 ${
-                    contractData?.status === "Created"
+                    contractData && contractData.status === "Created"
                       ? "text-primary"
-                      : contractData?.status === "Deposited"
+                      : contractData && contractData.status === "Deposited"
                       ? "text-warning"
-                      : contractData?.status === "Completed"
+                      : contractData && contractData.status === "Completed"
                       ? "text-success"
-                      : contractData?.status === "Feedbacked"
+                      : contractData && contractData.status === "Feedbacked"
                       ? "text-success"
-                      : contractData?.status === "Cancel"
+                      : contractData && contractData.status === "Cancel"
                       ? "text-danger"
                       : "text-muted"
                   }`}
                 >
-                  <strong>{contractData?.status || "No Contract"}</strong>
+                  <strong>{contractData?.status || "Browsed"}</strong>
                 </h3>
               </div>
             </Col>
@@ -1312,7 +1316,7 @@ const ViewContractEventOrganize = ({ requestId }) => {
                 <strong>Unit Hire Price Range Cosplayer:</strong>{" "}
                 {formattedData.range ? `${formattedData.range} VND` : "N/A"}
               </p>
-              {contractData.status === "Cancel" && (
+              {contractData && contractData.status === "Cancel" && (
                 <p
                   className="mb-2"
                   style={{

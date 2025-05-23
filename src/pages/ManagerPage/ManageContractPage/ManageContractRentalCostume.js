@@ -749,7 +749,10 @@ const ManageContractRentalCostume = () => {
                               onClick={() =>
                                 handleShowDeliveryModal(con.contractId)
                               }
-                              disabled={con.status === "Created"}
+                              disabled={
+                                con.status === "Created" ||
+                                con.status === "Cancel"
+                              }
                             >
                               {con.status === "Created"
                                 ? "Wait Payment"
