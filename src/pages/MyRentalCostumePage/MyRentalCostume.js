@@ -1,4 +1,4 @@
-// bỏ lọc tabs 2 và 3===============================================================================================
+// them cancelcontract ====================================================================================================
 // import React, { useState, useEffect } from "react";
 // import { Container, Row, Col, Form, Card, Badge } from "react-bootstrap";
 // import {
@@ -19,7 +19,15 @@
 // import MyRentalCostumeService from "../../services/MyRentalCostumeService/MyRentalCostumeService.js";
 // import PaymentService from "../../services/PaymentService/PaymentService.js";
 // import RefundService from "../../services/RefundService/RefundService.js";
-// import { FileText, DollarSign, Calendar, Eye, File, User } from "lucide-react";
+// import {
+//   FileText,
+//   DollarSign,
+//   Calendar,
+//   Eye,
+//   File,
+//   User,
+//   MapPin,
+// } from "lucide-react";
 // import dayjs from "dayjs";
 // import { useDebounce } from "use-debounce";
 // import MyCustomerCharacter from "../MyCustomerCharacterPage/MyCustomerCharacter.js";
@@ -53,8 +61,11 @@
 //   const [isRefundModalVisible, setIsRefundModalVisible] = useState(false);
 //   const [isDetailModalVisible, setIsDetailModalVisible] = useState(false);
 //   const [isDeliveryModalVisible, setIsDeliveryModalVisible] = useState(false);
+//   const [isCancelModalVisible, setIsCancelModalVisible] = useState(false);
 //   const [selectedRequestId, setSelectedRequestId] = useState(null);
 //   const [selectedContractId, setSelectedContractId] = useState(null);
+//   const [cancelContractId, setCancelContractId] = useState(null);
+//   const [cancelReason, setCancelReason] = useState("");
 //   const [modalData, setModalData] = useState({
 //     name: "",
 //     description: "",
@@ -71,7 +82,7 @@
 //   });
 //   const [paymentAmount, setPaymentAmount] = useState(0);
 //   const [currentCharacterPage, setCurrentCharacterPage] = useState(1);
-//   const [sortField, setSortField] = useState("date");
+//   const [sortField, setSortField] = useState("normal");
 //   const [sortOrder, setSortOrder] = useState("desc");
 //   const [statusFilters, setStatusFilters] = useState({
 //     Pending: true,
@@ -120,6 +131,9 @@
 //   };
 
 //   const sortData = (data, field, order) => {
+//     if (field === "normal") {
+//       return [...data]; // Return data as-is, no sorting
+//     }
 //     return [...data].sort((a, b) => {
 //       let valueA, valueB;
 //       if (field === "price") {
@@ -128,9 +142,6 @@
 //       } else if (field === "deposit") {
 //         valueA = a.deposit || 0;
 //         valueB = b.deposit || 0;
-//       } else if (field === "date") {
-//         valueA = dayjs(a.startDate || a.createDate, "DD/MM/YYYY").unix() || 0;
-//         valueB = dayjs(b.startDate || b.createDate, "DD/MM/YYYY").unix() || 0;
 //       }
 //       return order === "asc" ? valueA - valueB : valueB - valueA;
 //     });
@@ -143,6 +154,52 @@
 //     } catch (error) {
 //       console.error("Error fetching request details:", error);
 //       throw error;
+//     }
+//   };
+
+//   const handleCancelContract = (contractId) => {
+//     setCancelContractId(contractId);
+//     setCancelReason("");
+//     setIsCancelModalVisible(true);
+//   };
+
+//   const handleCancelConfirm = async () => {
+//     if (!cancelReason.trim()) {
+//       toast.error("Please provide a reason for cancellation!");
+//       return;
+//     }
+//     setLoading(true);
+//     try {
+//       const encodedReason = encodeURIComponent(cancelReason);
+//       await MyRentalCostumeService.cancelContract(
+//         cancelContractId,
+//         encodedReason
+//       );
+//       toast.success("Contract canceled successfully!");
+//       const contractData =
+//         await MyRentalCostumeService.getAllContractByAccountId(accountId);
+//       const formattedContracts = Array.isArray(contractData)
+//         ? contractData.map((contract) => ({
+//             ...contract,
+//             startDate: formatDate(contract.startDate),
+//             endDate: formatDate(contract.endDate),
+//             price: contract.price || 0,
+//             deposit: contract.deposit || 0,
+//             amount: contract.amount || 0,
+//             reason: contract.reason || null,
+//           }))
+//         : [];
+//       setContracts(formattedContracts);
+//     } catch (error) {
+//       const errorMessage =
+//         error.response?.data?.message ||
+//         "Failed to cancel contract. Please try again.";
+//       toast.error(errorMessage);
+//     } finally {
+//       setLoading(false);
+//       setIsCancelModalVisible(false);
+//       setCancelContractId(null);
+//       setCancelReason("");
 //     }
 //   };
 
@@ -192,6 +249,7 @@
 //           price: contract.price || 0,
 //           deposit: contract.deposit || 0,
 //           amount: contract.amount || 0,
+//           reason: contract.reason || null,
 //         }));
 //         setContracts(formattedContracts);
 //       } catch (error) {
@@ -255,78 +313,6 @@
 //     sortOrder,
 //     statusFilters,
 //   ]);
-
-//   // lọc tab 2 & 3
-
-//   // useEffect(() => {
-//   //   const filterDepositContracts = async () => {
-//   //     setLoading(true);
-//   //     try {
-//   //       const data = await MyRentalCostumeService.getAllContractByAccountId(
-//   //         accountId
-//   //       );
-//   //       const contractsArray = Array.isArray(data) ? data : [];
-//   //       const refundedContractIds = refunds.map((refund) => refund.contractId);
-//   //       const filtered = await Promise.all(
-//   //         contractsArray.map(async (contract) => {
-//   //           try {
-//   //             const request = await getRequestByRequestId(contract.requestId);
-//   //             if (
-//   //               request.serviceId === "S001" &&
-//   //               !refundedContractIds.includes(contract.contractId)
-//   //             ) {
-//   //               return {
-//   //                 ...contract,
-//   //                 startDate: formatDate(contract.startDate),
-//   //                 endDate: formatDate(contract.endDate),
-//   //                 price: contract.price || 0,
-//   //                 deposit: contract.deposit || request.deposit || 0,
-//   //                 reason: contract.reason
-//   //                   ? contract.reason.trim().toLowerCase()
-//   //                   : "",
-//   //                 amount: contract.amount || 0,
-//   //                 createBy: contract.createBy || "",
-//   //                 createDate: formatDate(contract.createDate) || "",
-//   //               };
-//   //             }
-//   //             return null;
-//   //           } catch (error) {
-//   //             console.error(
-//   //               `Error fetching request ${contract.requestId}:`,
-//   //               error
-//   //             );
-//   //             return null;
-//   //           }
-//   //         })
-//   //       );
-//   //       let validContracts = filtered
-//   //         .filter((contract) => contract !== null)
-//   //         .filter(
-//   //           (contract) =>
-//   //             (contract?.contractName?.toLowerCase?.() || "").includes(
-//   //               debouncedSearchTerm.toLowerCase()
-//   //             ) || (contract?.startDate || "").includes(debouncedSearchTerm)
-//   //         )
-//   //         .filter((contract) => contractStatusFilters[contract.status]);
-//   //       validContracts = sortData(validContracts, sortField, sortOrder);
-//   //       setFilteredDepositContracts(validContracts);
-//   //       setCurrentDepositPage(1);
-//   //     } catch (error) {
-//   //       console.error("Failed to fetch deposit contracts:", error);
-//   //       toast.error("Failed to load deposit contracts.");
-//   //     } finally {
-//   //       setLoading(false);
-//   //     }
-//   //   };
-//   //   if (accountId) filterDepositContracts();
-//   // }, [
-//   //   debouncedSearchTerm,
-//   //   accountId,
-//   //   sortField,
-//   //   sortOrder,
-//   //   contractStatusFilters,
-//   //   refunds,
-//   // ]);
 
 //   useEffect(() => {
 //     const filterDepositContracts = async () => {
@@ -392,6 +378,7 @@
 //     sortOrder,
 //     contractStatusFilters,
 //   ]);
+
 //   useEffect(() => {
 //     let filtered = refunds
 //       .filter(
@@ -437,6 +424,24 @@
 //     setSelectedRequestId(requestId);
 //     try {
 //       const requestDetails = await getRequestByRequestId(requestId);
+
+//       // Kiểm tra trạng thái của request
+//       const requestStatus = requestDetails.status;
+//       if (requestStatus === "Browsed") {
+//         setIsEditModalVisible(false);
+//         toast.info("Status request has changed, please reload the page!");
+//         setLoading(false);
+//         return;
+//       } else if (requestStatus === "Pending") {
+//         setIsEditModalVisible(true);
+//       } else {
+//         // Xử lý các trạng thái khác nếu cần
+//         setIsEditModalVisible(false);
+//         toast.warn("Request status does not allow editing.");
+//         setLoading(false);
+//         return;
+//       }
+
 //       const characters = requestDetails.charactersListResponse || [];
 
 //       const characterDetailsPromises = characters.map(async (char) => {
@@ -493,16 +498,15 @@
 //         },
 //       });
 
-//       setIsEditModalVisible(true);
 //       setCurrentCharacterPage(1);
 //     } catch (error) {
 //       console.error("Failed to fetch request details:", error);
 //       toast.error("Failed to load request details.");
+//       setIsEditModalVisible(false); // Đảm bảo modal không hiển thị nếu có lỗi
 //     } finally {
 //       setLoading(false);
 //     }
 //   };
-
 //   const handleSubmitEdit = (
 //     response,
 //     newPrice,
@@ -575,6 +579,7 @@
 //               price: contract.price || 0,
 //               deposit: contract.deposit || 0,
 //               amount: contract.amount || 0,
+//               reason: contract.reason || null,
 //             }))
 //           : []
 //       );
@@ -662,6 +667,8 @@
 //       Refund: "info",
 //       Completed: "success",
 //       Paid: "success",
+//       Expired: "danger",
+//       RefundOverdue: "warning",
 //     };
 //     return <Badge bg={statusColors[status] || "warning"}>{status}</Badge>;
 //   };
@@ -706,9 +713,9 @@
 //                 value={sortField}
 //                 onChange={(value) => setSortField(value)}
 //               >
+//                 <Option value="normal">Normal</Option>
 //                 <Option value="price">Sort by Price</Option>
 //                 <Option value="deposit">Sort by Deposit</Option>
-//                 <Option value="date">Sort by Date</Option>
 //               </Select>
 //             </Col>
 //             <Col md={3}>
@@ -770,21 +777,25 @@
 //                                   <h3 className="rental-title">
 //                                     {req.name} {getStatusBadge(req.status)}
 //                                   </h3>
-//                                   <div className="text-muted small">
+//                                   <div>
 //                                     <DollarSign size={16} /> Price:{" "}
 //                                     {(req.price || 0).toLocaleString()} VND
 //                                   </div>
-//                                   <div className="text-muted small">
+//                                   <div>
 //                                     <DollarSign size={16} /> Deposit:{" "}
 //                                     {(req.deposit || 0).toLocaleString()} VND
 //                                   </div>
-//                                   <div className="text-muted small">
+//                                   <div>
 //                                     <Calendar size={16} /> Start Date:{" "}
 //                                     {req.startDate}
 //                                   </div>
-//                                   <div className="text-muted small">
+//                                   <div>
 //                                     <Calendar size={16} /> Return Date:{" "}
 //                                     {req.endDate}
+//                                   </div>
+//                                   <div>
+//                                     <MapPin size={16} /> Location:{" "}
+//                                     {req.location}
 //                                   </div>
 //                                   {req.reason && (
 //                                     <div className="small">
@@ -874,40 +885,38 @@
 //                                     {contract.contractName}{" "}
 //                                     {getStatusBadge(contract.status)}
 //                                   </h3>
-//                                   <div className="text-muted small">
+//                                   <div>
 //                                     <User size={16} /> Contract Owner:{" "}
 //                                     {contract.createBy}
 //                                   </div>
-
-//                                   <div className="text-muted small">
+//                                   <div>
 //                                     <DollarSign size={16} /> Deposit:{" "}
 //                                     {(contract.deposit || 0).toLocaleString()}{" "}
 //                                     VND
 //                                   </div>
-//                                   <div className="text-muted small">
+//                                   <div>
 //                                     <DollarSign size={16} /> Total Hire Price:{" "}
 //                                     {(contract.price || 0).toLocaleString()} VND
 //                                   </div>
-//                                   <div className="text-muted small">
+//                                   <div>
 //                                     <DollarSign size={16} /> Refund Amount:{" "}
 //                                     {(contract.amount || 0).toLocaleString()}{" "}
 //                                     VND
 //                                   </div>
-//                                   <div className="text-muted small">
+//                                   <div>
 //                                     <Calendar size={16} /> Start Date:{" "}
 //                                     {contract.startDate}
 //                                   </div>
-//                                   <div className="text-muted small">
+//                                   <div>
 //                                     <Calendar size={16} /> Return Date:{" "}
 //                                     {contract.endDate}
 //                                   </div>
-//                                   <div className="text-muted small">
+//                                   <div>
 //                                     <Calendar size={16} /> Created Date:{" "}
 //                                     {contract.createDate}
 //                                   </div>
-
 //                                   {contract.reason && (
-//                                     <div className="text-muted small">
+//                                     <div>
 //                                       <FileText size={16} />{" "}
 //                                       <strong style={{ color: "red" }}>
 //                                         Reason: {contract.reason}
@@ -922,12 +931,14 @@
 //                                 <i>Refund Processing</i>
 //                               )}
 //                               {contract.status === "Created" && (
-//                                 <Button
-//                                   className="btn-deposit"
-//                                   onClick={() => handlePayment(contract)}
-//                                 >
-//                                   <DollarSign size={16} /> Pay Now
-//                                 </Button>
+//                                 <>
+//                                   <Button
+//                                     className="btn-deposit"
+//                                     onClick={() => handlePayment(contract)}
+//                                   >
+//                                     <DollarSign size={16} /> Pay Now
+//                                   </Button>
+//                                 </>
 //                               )}
 //                               <Button
 //                                 className="btn-detail"
@@ -947,7 +958,6 @@
 //                                   <Eye size={16} /> View Delivery
 //                                 </Button>
 //                               )}
-
 //                               <Button
 //                                 className="btn-pdf"
 //                                 disabled={!contract.urlPdf}
@@ -957,6 +967,21 @@
 //                               >
 //                                 <File size={16} /> View Contract PDF
 //                               </Button>
+//                               {contract.status === "Created" && (
+//                                 <>
+//                                   <Button
+//                                     type="default"
+//                                     className="btn-cancel btn-outline-danger"
+//                                     onClick={() =>
+//                                       handleCancelContract(contract.contractId)
+//                                     }
+//                                     aria-label="Cancel Contract"
+//                                   >
+//                                     <FileText size={16} className="me-1" />
+//                                     Cancel Contract
+//                                   </Button>
+//                                 </>
+//                               )}
 //                             </div>
 //                           </div>
 //                         </Card.Body>
@@ -1017,24 +1042,22 @@
 //                                   </div>
 //                                   <div>
 //                                     <h3 className="rental-title">
-//                                       {" "}
 //                                       Refund Status{" "}
 //                                       {getStatusBadge(refund.status)}
 //                                     </h3>
-//                                     <div className="text-muted small">
+//                                     <div>
 //                                       <DollarSign size={16} /> Price Damage:{" "}
 //                                       {(refund.price || 0).toLocaleString()} VND
 //                                     </div>
-//                                     <div className="text-muted small">
+//                                     <div>
 //                                       <DollarSign size={16} /> Refund Amount:{" "}
 //                                       {(refund.amount || 0).toLocaleString()}
 //                                     </div>
-//                                     <div className="text-muted small">
+//                                     <div>
 //                                       <FileText size={16} /> Description:{" "}
 //                                       {refund.description || "N/A"}
 //                                     </div>
-
-//                                     <div className="text-muted small">
+//                                     <div>
 //                                       <Calendar size={16} /> Created Date:{" "}
 //                                       {refund.createDate}
 //                                     </div>
@@ -1150,6 +1173,34 @@
 //           </Form>
 //         </Modal>
 
+//         <Modal
+//           title="Cancel Contract"
+//           open={isCancelModalVisible}
+//           onOk={handleCancelConfirm}
+//           onCancel={() => {
+//             setIsCancelModalVisible(false);
+//             setCancelContractId(null);
+//             setCancelReason("");
+//           }}
+//           okText="Confirm Cancel"
+//           cancelText="Close"
+//           confirmLoading={loading}
+//         >
+//           <Form>
+//             <Form.Group className="mb-3">
+//               <Form.Label>
+//                 <strong>Reason for Cancellation</strong>
+//               </Form.Label>
+//               <TextArea
+//                 value={cancelReason}
+//                 onChange={(e) => setCancelReason(e.target.value)}
+//                 placeholder="Please provide the reason for canceling the contract"
+//                 rows={4}
+//               />
+//             </Form.Group>
+//           </Form>
+//         </Modal>
+
 //         <ViewMyRentalCostume
 //           visible={isDetailModalVisible}
 //           onCancel={() => setIsDetailModalVisible(false)}
@@ -1164,14 +1215,13 @@
 //           contractId={selectedContractId}
 //         />
 //       </Container>
-//       <MyCustomerCharacter />
 //     </div>
 //   );
 // };
 
 // export default MyRentalCostume;
 
-// them cancelcontract ====================================================================================================
+// bùa ================================================================
 import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Form, Card, Badge } from "react-bootstrap";
 import {
@@ -1376,127 +1426,124 @@ const MyRentalCostume = () => {
     }
   };
 
-  useEffect(() => {
-    const fetchRequests = async () => {
-      setLoading(true);
-      try {
-        const data = await MyRentalCostumeService.GetAllRequestByAccountId(
-          accountId
-        );
-        const requestsArray = Array.isArray(data) ? data : [];
-        const formattedRequests = requestsArray
-          .filter((request) => request?.serviceId === "S001")
-          .map((request) => ({
-            ...request,
-            startDate: formatDate(request.startDate),
-            endDate: formatDate(request.endDate),
-            price: request.price || 0,
-            deposit: request.deposit || 0,
-            charactersListResponse: request.charactersListResponse || [],
-          }));
-        setRequests(formattedRequests);
-      } catch (error) {
-        console.error("Failed to fetch requests:", error);
-        toast.error(
-          error.response?.data?.message || "Failed to load requests."
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (accountId) fetchRequests();
-  }, [accountId]);
-
-  useEffect(() => {
-    const fetchContracts = async () => {
-      setLoading(true);
-      try {
-        const data = await MyRentalCostumeService.getAllContractByAccountId(
-          accountId
-        );
-        const contractsArray = Array.isArray(data) ? data : [];
-        const formattedContracts = contractsArray.map((contract) => ({
-          ...contract,
-          startDate: formatDate(contract.startDate),
-          endDate: formatDate(contract.endDate),
-          price: contract.price || 0,
-          deposit: contract.deposit || 0,
-          amount: contract.amount || 0,
-          reason: contract.reason || null,
-        }));
-        setContracts(formattedContracts);
-      } catch (error) {
-        console.error("Failed to fetch contracts:", error);
-        toast.error(
-          error.response?.data?.message || "Failed to load contracts."
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (accountId) fetchContracts();
-  }, [accountId]);
-
-  useEffect(() => {
-    const fetchRefunds = async () => {
-      setLoading(true);
-      try {
-        const data = await RefundService.getAllContractRefundByAccountId(
-          accountId
-        );
-        const refundsArray = Array.isArray(data) ? data : [];
-        const formattedRefunds = refundsArray.map((refund) => ({
-          ...refund,
-          createDate: formatDate(refund.createDate),
-          updateDate: formatDate(refund.updateDate),
-          price: refund.price || 0,
-        }));
-        setRefunds(formattedRefunds);
-      } catch (error) {
-        console.error("Failed to fetch refunds:", error);
-        toast.error(error.response?.data?.message || "Failed to load refunds.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (accountId) fetchRefunds();
-  }, [accountId]);
-
-  useEffect(() => {
-    const contractRequestIds = contracts
-      .filter((contract) => contract)
-      .map((contract) => contract.requestId);
-    let filtered = requests
-      .filter((request) => !contractRequestIds.includes(request.requestId))
-      .filter(
-        (request) =>
-          (request?.name?.toLowerCase?.() || "").includes(
-            debouncedSearchTerm.toLowerCase()
-          ) || (request?.startDate || "").includes(debouncedSearchTerm)
+  const fetchRequests = async () => {
+    if (!accountId) {
+      console.warn("No accountId provided, skipping fetchRequests.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const data = await MyRentalCostumeService.GetAllRequestByAccountId(
+        accountId
       );
-    filtered = filtered.filter((request) => statusFilters[request.status]);
-    filtered = sortData(filtered, sortField, sortOrder);
-    setFilteredPendingRequests(filtered);
-    setCurrentPendingPage(1);
-  }, [
-    debouncedSearchTerm,
-    requests,
-    contracts,
-    sortField,
-    sortOrder,
-    statusFilters,
-  ]);
+      const requestsArray = Array.isArray(data) ? data : [];
+      const formattedRequests = requestsArray
+        .filter((request) => request?.serviceId === "S001")
+        .map((request) => ({
+          ...request,
+          startDate: formatDate(request.startDate),
+          endDate: formatDate(request.endDate),
+          price: request.price || 0,
+          deposit: request.deposit || 0,
+          charactersListResponse: request.charactersListResponse || [],
+        }));
+      setRequests(formattedRequests);
+    } catch (error) {
+      console.error("Failed to fetch requests:", error);
+      toast.error(error.response?.data?.message || "Failed to load requests.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  const fetchContracts = async () => {
+    if (!accountId) {
+      console.warn("No accountId provided, skipping fetchContracts.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const data = await MyRentalCostumeService.getAllContractByAccountId(
+        accountId
+      );
+      const contractsArray = Array.isArray(data) ? data : [];
+      const formattedContracts = contractsArray.map((contract) => ({
+        ...contract,
+        startDate: formatDate(contract.startDate),
+        endDate: formatDate(contract.endDate),
+        price: contract.price || 0,
+        deposit: contract.deposit || 0,
+        amount: contract.amount || 0,
+        reason: contract.reason || null,
+      }));
+      setContracts(formattedContracts);
+    } catch (error) {
+      console.error("Failed to fetch contracts:", error);
+      toast.error(error.response?.data?.message || "Failed to load contracts.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchRefunds = async () => {
+    if (!accountId) {
+      console.warn("No accountId provided, skipping fetchRefunds.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const data = await RefundService.getAllContractRefundByAccountId(
+        accountId
+      );
+      const refundsArray = Array.isArray(data) ? data : [];
+      const formattedRefunds = refundsArray.map((refund) => ({
+        ...refund,
+        createDate: formatDate(refund.createDate),
+        updateDate: formatDate(refund.updateDate),
+        price: refund.price || 0,
+      }));
+      setRefunds(formattedRefunds);
+    } catch (error) {
+      console.error("Failed to fetch refunds:", error);
+      toast.error(error.response?.data?.message || "Failed to load refunds.");
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    fetchRequests();
+  }, [accountId]);
+
+  useEffect(() => {
+    fetchContracts();
+  }, [accountId]);
+
+  useEffect(() => {
+    fetchRefunds();
+  }, [accountId]);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        console.log("🔄 Tab active lại, gọi APIs...");
+        fetchRequests();
+        fetchContracts();
+        fetchRefunds();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [accountId]);
   useEffect(() => {
     const filterDepositContracts = async () => {
       setLoading(true);
       try {
-        const data = await MyRentalCostumeService.getAllContractByAccountId(
-          accountId
-        );
-        const contractsArray = Array.isArray(data) ? data : [];
         const filtered = await Promise.all(
-          contractsArray.map(async (contract) => {
+          contracts.map(async (contract) => {
             try {
               const request = await getRequestByRequestId(contract.requestId);
               if (request.serviceId === "S001") {
@@ -1537,19 +1584,45 @@ const MyRentalCostume = () => {
         setFilteredDepositContracts(validContracts);
         setCurrentDepositPage(1);
       } catch (error) {
-        console.error("Failed to fetch deposit contracts:", error);
+        console.error("Failed to filter deposit contracts:", error);
         toast.error("Failed to load deposit contracts.");
       } finally {
         setLoading(false);
       }
     };
-    if (accountId) filterDepositContracts();
+    if (accountId && contracts.length > 0) filterDepositContracts();
   }, [
     debouncedSearchTerm,
-    accountId,
+    contracts,
     sortField,
     sortOrder,
     contractStatusFilters,
+    accountId,
+  ]);
+
+  useEffect(() => {
+    const contractRequestIds = contracts
+      .filter((contract) => contract)
+      .map((contract) => contract.requestId);
+    let filtered = requests
+      .filter((request) => !contractRequestIds.includes(request.requestId))
+      .filter(
+        (request) =>
+          (request?.name?.toLowerCase?.() || "").includes(
+            debouncedSearchTerm.toLowerCase()
+          ) || (request?.startDate || "").includes(debouncedSearchTerm)
+      );
+    filtered = filtered.filter((request) => statusFilters[request.status]);
+    filtered = sortData(filtered, sortField, sortOrder);
+    setFilteredPendingRequests(filtered);
+    setCurrentPendingPage(1);
+  }, [
+    debouncedSearchTerm,
+    requests,
+    contracts,
+    sortField,
+    sortOrder,
+    statusFilters,
   ]);
 
   useEffect(() => {

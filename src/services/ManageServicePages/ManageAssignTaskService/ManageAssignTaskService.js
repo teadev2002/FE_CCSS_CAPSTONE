@@ -128,5 +128,17 @@ const ManageAssignTaskService = {
       throw new Error(error.response?.data?.message || "Lỗi khi lấy profile");
     }
   },
+  getAllRequestCharacterByListDate: async (data) => {
+    try {
+      const response = await apiClient.post(
+        `/api/RequestCharacter/GetAllRequestCharacterByListDate`,
+        data
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching requests:", error);
+      throw error;
+    }
+  },
 };
 export default ManageAssignTaskService;

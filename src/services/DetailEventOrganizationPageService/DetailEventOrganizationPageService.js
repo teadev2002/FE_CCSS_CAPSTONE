@@ -93,6 +93,14 @@ const DetailEventOrganizationPageService = {
       );
     }
   },
+  getCharacterImageByCharacterId: async (characterId) => {
+    try {
+      const response = await apiClient.get(
+        `/api/CharacterImage?characterId=${characterId}`
+      );
+      return response.data;
+    } catch (error) {}
+  },
 };
 
 export default DetailEventOrganizationPageService;

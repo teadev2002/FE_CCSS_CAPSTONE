@@ -108,6 +108,18 @@ const HireCosplayerService = {
       );
     }
   },
+  getAllRequestCharacterByListDate: async (data) => {
+    try {
+      const response = await apiClient.post(
+        `/api/RequestCharacter/GetAllRequestCharacterByListDate`,
+        data
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching requests:", error);
+      throw error;
+    }
+  },
 };
 
 export default HireCosplayerService;

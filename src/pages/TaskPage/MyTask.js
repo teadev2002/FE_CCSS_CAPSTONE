@@ -362,9 +362,6 @@ const MyTask = () => {
       );
       setSelectedTask(updatedTaskData);
       setSelectedStatus(updatedTaskData.status);
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
     } catch (error) {
       console.error("Error updating task status:", error.message);
       toast.error(error.message || "Failed to update task status.", {
@@ -752,16 +749,16 @@ const MyTask = () => {
               </div>
             </Modal.Body>
             <Modal.Footer>
-              {/* <Button variant="secondary" onClick={handleCloseTaskDetail}>
+              <Button variant="secondary" onClick={handleCloseTaskDetail}>
                 Close
-              </Button> */}
-              <Button
+              </Button>
+              {/* <Button
                 variant="primary"
                 className="edit-button"
                 disabled={isLoading || selectedTask.status === "Completed"}
               >
                 Edit Task
-              </Button>
+              </Button> */}
             </Modal.Footer>
           </Modal>
         )}

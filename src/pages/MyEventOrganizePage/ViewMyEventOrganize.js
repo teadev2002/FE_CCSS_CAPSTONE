@@ -1197,13 +1197,6 @@ const ViewMyEventOrganize = ({ requestId }) => {
       key: "endDate",
     },
     { title: "Total Hours", dataIndex: "totalHour", key: "totalHour" },
-    {
-      title: "Status",
-      dataIndex: "status",
-      key: "status",
-      render: (status) =>
-        status === 0 ? "Pending" : status === 1 ? "Confirmed" : "Unknown",
-    },
   ];
 
   // Handle page change
@@ -1268,7 +1261,7 @@ const ViewMyEventOrganize = ({ requestId }) => {
                     formattedData.status === "Browsed"
                       ? "text-success"
                       : formattedData.status === "Pending"
-                      ? "text-dark"
+                      ? "text-primary"
                       : "text-danger"
                   }`}
                 >
@@ -1415,10 +1408,7 @@ const ViewMyEventOrganize = ({ requestId }) => {
                         ) : (
                           <ChevronDown size={20} />
                         )}
-                        <span>
-                          Character Name: {character.characterName} (Quantity:{" "}
-                          {character.quantity})
-                        </span>
+                        <span>Character Name: {character.characterName} </span>
                       </div>
                     }
                   >

@@ -79,6 +79,9 @@ const ViewRefund = ({ refund }) => {
       );
       toast.success("Contract status updated to Completed.");
       handleCloseModal(); // Close modal after success
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     } catch (error) {
       console.error("Error updating contract status:", error);
       toast.error("Failed to update contract status.");

@@ -128,7 +128,7 @@ const FeedbackHireCosplayer = ({
       onCancel(); // Đóng modal
       setTimeout(() => {
         window.location.reload();
-      }, 2500);
+      }, 700);
     } catch (error) {
       console.error(
         "Error submitting Feedback:",

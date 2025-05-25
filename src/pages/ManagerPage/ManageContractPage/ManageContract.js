@@ -71,28 +71,6 @@ const ManageContract = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const rowsPerPageOptions = [10, 15, 30];
 
-  const handleCompleteContract = async (contractId) => {
-    if (!contractId) {
-      console.log("Invalid contract ID.");
-      return;
-    }
-
-    try {
-      await ManageContractService.updateContractStatus(contractId, "Completed");
-      setContracts((prev) =>
-        prev.map((con) =>
-          con.contractId === contractId ? { ...con, status: "Completed" } : con
-        )
-      );
-      toast.success("Contract completed successfully!");
-    } catch (error) {
-      console.error("Error completing contract:", error);
-      toast.error(
-        error.response?.data?.message || "Failed to complete contract."
-      );
-    }
-  };
-
   useEffect(() => {
     let isMounted = true;
 
@@ -681,7 +659,6 @@ const ManageContract = () => {
                       <th className="text-center">Start Date</th>
                       <th className="text-center">End Date</th>
                       <th className="text-center">Actions</th>
-                      <th className="text-center">Complete Contract</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -727,25 +704,6 @@ const ManageContract = () => {
                               style={{ marginRight: "8px" }}
                               disabled={!con.contractId}
                             />
-                          </td>
-                          <td className="text-center">
-                            {con.contractId &&
-                            con.status === "FinalSettlement" ? (
-                              <Popconfirm
-                                title="Are you sure you want to complete this contract?"
-                                onConfirm={() =>
-                                  handleCompleteContract(con.contractId)
-                                }
-                                okText="Yes"
-                                cancelText="No"
-                              >
-                                <Button type="primary" size="small">
-                                  Complete
-                                </Button>
-                              </Popconfirm>
-                            ) : (
-                              "-"
-                            )}
                           </td>
                         </tr>
                       ))
