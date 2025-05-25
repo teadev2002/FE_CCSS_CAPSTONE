@@ -1024,7 +1024,9 @@ import Box from "@mui/material/Box";
 import LinearProgress from "@mui/material/LinearProgress";
 import { jwtDecode } from "jwt-decode";
 
+// Component chính của trang giỏ hàng
 const CartPage = () => {
+  // Khởi tạo các state để quản lý giỏ hàng và thông tin giao hàng
   const [cartItems, setCartItems] = useState([]);
   const [selectedItems, setSelectedItems] = useState({});
   const [loading, setLoading] = useState(true);
@@ -1058,10 +1060,12 @@ const CartPage = () => {
 
   const navigate = useNavigate();
 
+  // Hàm định dạng giá tiền sang định dạng Việt Nam
   const formatPrice = (price) => {
     return `${price.toLocaleString("vi-VN")} VND`;
   };
 
+  // Lấy thông tin tài khoản từ token
   const getAccountInfoFromToken = () => {
     const accessToken = localStorage.getItem("accessToken");
     if (accessToken) {
@@ -1079,6 +1083,7 @@ const CartPage = () => {
     return null;
   };
 
+  // Lấy dữ liệu giỏ hàng
   const fetchCart = async () => {
     const accountInfo = getAccountInfoFromToken();
     if (accountInfo) {
@@ -1122,6 +1127,7 @@ const CartPage = () => {
     }
   };
 
+  // Lấy danh sách tỉnh/thành phố
   const fetchProvinces = async () => {
     try {
       const provincesData = await ProductDeliveryService.getProvinces();
@@ -1131,6 +1137,7 @@ const CartPage = () => {
     }
   };
 
+  // Lấy danh sách quận/huyện dựa trên tỉnh/thành phố
   const fetchDistricts = async (provinceId) => {
     try {
       const districtsData = await ProductDeliveryService.getDistricts(provinceId);
@@ -1145,6 +1152,7 @@ const CartPage = () => {
     }
   };
 
+  // Lấy danh sách phường/xã dựa trên quận/huyện
   const fetchWards = async (districtId) => {
     try {
       const wardsData = await ProductDeliveryService.getWards(districtId);
@@ -1156,6 +1164,7 @@ const CartPage = () => {
     }
   };
 
+  // Hook để khởi tạo dữ liệu khi component mount
   useEffect(() => {
     fetchCart();
     fetchProvinces();
@@ -1165,6 +1174,7 @@ const CartPage = () => {
     };
   }, []);
 
+  // Tăng số lượng sản phẩm trong giỏ hàng
   const handleIncrease = async (cartProductId, currentQuantity) => {
     const item = cartItems.find((i) => i.cartProductId === cartProductId);
     if (parseInt(item.quantitySelected, 10) < parseInt(item.initialQuantity, 10)) {
@@ -1184,6 +1194,7 @@ const CartPage = () => {
     }
   };
 
+  // Giảm số lượng sản phẩm trong giỏ hàng
   const handleDecrease = async (cartProductId, currentQuantity) => {
     if (currentQuantity > 1) {
       try {
@@ -1200,6 +1211,7 @@ const CartPage = () => {
     }
   };
 
+  // Xóa sản phẩm khỏi giỏ hàng
   const handleRemove = async (cartProductId) => {
     try {
       await CartService.removeProductFromCart(cartId, [{ cartProductId }]);
@@ -1211,6 +1223,7 @@ const CartPage = () => {
     }
   };
 
+  // Chọn sản phẩm để thanh toán
   const handleSelectItem = (cartProductId) => {
     setSelectedItems((prev) => ({
       ...prev,
@@ -1218,12 +1231,14 @@ const CartPage = () => {
     }));
   };
 
+  // Tính tổng tiền của các sản phẩm được chọn
   const calculateTotal = () => {
     return cartItems
       .filter((item) => selectedItems[item.cartProductId])
       .reduce((total, item) => total + item.price * item.quantitySelected, 0);
   };
 
+  // Xử lý khi nhấn nút thanh toán
   const handleCheckout = () => {
     const selectedCount = Object.values(selectedItems).filter(Boolean).length;
     if (selectedCount === 0) {
@@ -1233,6 +1248,7 @@ const CartPage = () => {
     setShowDeliveryModal(true);
   };
 
+  // Xác thực số điện thoại
   const validatePhoneNumber = (value) => {
     if (!value) {
       return "Phone number is required.";
@@ -1243,6 +1259,7 @@ const CartPage = () => {
     return "";
   };
 
+  // Xử lý khi thay đổi số điện thoại
   const handlePhoneChange = (e) => {
     const value = e.target.value;
     if (/^\d*$/.test(value) && value.length <= 11) {
@@ -1256,6 +1273,7 @@ const CartPage = () => {
     }
   };
 
+  // Xác thực địa chỉ
   const validateAddress = (value) => {
     if (!value) {
       return "Address is required.";
@@ -1272,6 +1290,7 @@ const CartPage = () => {
     return "";
   };
 
+  // Xử lý khi thay đổi địa chỉ
   const handleAddressChange = (e) => {
     const value = e.target.value;
     setAddress(value);
@@ -1279,6 +1298,7 @@ const CartPage = () => {
     setAddressError(error);
   };
 
+  // Xác thực mô tả
   const validateDescription = (value) => {
     if (value && value.length > 200) {
       return "Description must not exceed 200 characters.";
@@ -1289,6 +1309,7 @@ const CartPage = () => {
     return "";
   };
 
+  // Xử lý khi thay đổi mô tả
   const handleDescriptionChange = (e) => {
     const value = e.target.value;
     setDescription(value);
@@ -1296,6 +1317,7 @@ const CartPage = () => {
     setDescriptionError(error);
   };
 
+  // Xác thực tỉnh/thành phố
   const validateProvince = (value) => {
     if (!value) {
       return "Please select a province/city.";
@@ -1307,6 +1329,7 @@ const CartPage = () => {
     return "";
   };
 
+  // Xác thực quận/huyện
   const validateDistrict = (value) => {
     if (!value) {
       return "Please select a district.";
@@ -1318,6 +1341,7 @@ const CartPage = () => {
     return "";
   };
 
+  // Xác thực phường/xã
   const validateWard = (value) => {
     if (!value) {
       return "Please select a ward.";
@@ -1329,6 +1353,7 @@ const CartPage = () => {
     return "";
   };
 
+  // Xử lý khi chọn tỉnh/thành phố
   const handleProvinceChange = (e) => {
     const value = e.target.value;
     setSelectedProvince(value);
@@ -1348,6 +1373,7 @@ const CartPage = () => {
     }
   };
 
+  // Xử lý khi chọn quận/huyện
   const handleDistrictChange = (e) => {
     const value = e.target.value;
     setSelectedDistrict(value);
@@ -1366,6 +1392,7 @@ const CartPage = () => {
     }
   };
 
+  // Xử lý khi chọn phường/xã
   const handleWardChange = (e) => {
     const value = e.target.value;
     setSelectedWard(value);
@@ -1376,6 +1403,7 @@ const CartPage = () => {
     setToWardCode(wardCode);
   };
 
+  // Xác nhận thông tin giao hàng
   const handleDeliveryConfirm = () => {
     const phoneErr = validatePhoneNumber(phone);
     const addressErr = validateAddress(address);
@@ -1414,6 +1442,7 @@ const CartPage = () => {
     }, 100);
   };
 
+  // Xác nhận mua hàng và chuyển sang bước xem lại đơn hàng
   const handleConfirmPurchase = async () => {
     if (!paymentMethod) {
       toast.error("Please select a payment method!");
@@ -1444,6 +1473,7 @@ const CartPage = () => {
     }
   };
 
+  // Tạo đơn hàng
   const createOrder = async () => {
     const selectedCart = cartItems.filter((item) => selectedItems[item.cartProductId]);
     try {
@@ -1467,6 +1497,7 @@ const CartPage = () => {
     }
   };
 
+  // Xác nhận cuối cùng và chuyển hướng đến cổng thanh toán
   const handleFinalConfirm = async () => {
     const selectedCart = cartItems.filter((item) => selectedItems[item.cartProductId]);
     const productTotal = calculateTotal();
@@ -1516,6 +1547,7 @@ const CartPage = () => {
     }
   };
 
+  // Quay lại bước chọn phương thức thanh toán
   const handleBackToPayment = () => {
     setShowSummaryModal(false);
     setShowPaymentModal(true);
@@ -1527,11 +1559,13 @@ const CartPage = () => {
     }, 100);
   };
 
+  // Quay lại bước nhập thông tin giao hàng
   const handleBackToDelivery = () => {
     setShowPaymentModal(false);
     setShowDeliveryModal(true);
   };
 
+  // Đóng tất cả modal và reset state
   const handleCloseModals = () => {
     setShowDeliveryModal(false);
     setShowPaymentModal(false);
@@ -1557,25 +1591,30 @@ const CartPage = () => {
     setTempOrderId(null);
   };
 
+  // Điều hướng đến trang đăng nhập
   const handleLoginRedirect = () => {
     navigate("/login");
   };
 
+  // Lấy tên tỉnh/thành phố
   const getProvinceName = (provinceId) => {
     const province = provinces.find((p) => String(p.provinceId) === String(provinceId));
     return province ? province.provinceName : "N/A";
   };
 
+  // Lấy tên quận/huyện
   const getDistrictName = (districtId) => {
     const district = districts.find((d) => String(d.districtId) === String(districtId));
     return district ? district.districtName : "N/A";
   };
 
+  // Lấy tên phường/xã
   const getWardName = (wardCode) => {
     const ward = wards.find((w) => String(w.wardCode) === String(wardCode));
     return ward ? ward.wardName : "N/A";
   };
 
+  // Hiển thị loading khi đang tải dữ liệu
   if (loading) {
     return (
       <div className="text-center py-5">
@@ -1586,6 +1625,7 @@ const CartPage = () => {
     );
   }
 
+  // Hiển thị lỗi nếu có
   if (error) {
     return (
       <div className="text-center py-5 text-danger">
@@ -1599,9 +1639,11 @@ const CartPage = () => {
     );
   }
 
+  // Giao diện chính của trang giỏ hàng
   return (
     <div className="cart-page min-vh-100">
       <div className="container py-5">
+        {/* Hiển thị thông báo khi giỏ hàng trống */}
         {cartItems.length === 0 ? (
           <div className="empty-cart text-center">
             <h3>Your cart is empty</h3>
@@ -1616,6 +1658,7 @@ const CartPage = () => {
           </div>
         ) : (
           <div className="cart-content">
+            {/* Danh sách sản phẩm trong giỏ hàng */}
             <div className="cart-items">
               {cartItems.map((item) => (
                 <div className="cart-item" key={item.cartProductId}>
@@ -1662,6 +1705,7 @@ const CartPage = () => {
               ))}
             </div>
 
+            {/* Tóm tắt đơn hàng */}
             <div className="cart-summary">
               <h4>Order Summary</h4>
               <div className="summary-details">
@@ -1675,7 +1719,7 @@ const CartPage = () => {
                 <p className="total">
                   <strong>Total:</strong> {formatPrice(calculateTotal() + deliveryFee)}
                 </p>
-                {/* Added delivery note */}
+                {/* Ghi chú giao hàng */}
                 <p
                   style={{
                     color: 'red',
@@ -1693,6 +1737,7 @@ const CartPage = () => {
           </div>
         )}
 
+        {/* Modal nhập thông tin giao hàng */}
         <Modal
           show={showDeliveryModal}
           onHide={handleCloseModals}
@@ -1704,6 +1749,7 @@ const CartPage = () => {
           </Modal.Header>
           <Modal.Body>
             <Form>
+              {/* Ô nhập số điện thoại */}
               <Form.Group className="mb-3">
                 <Form.Label>Phone Number</Form.Label>
                 <Form.Control
@@ -1717,19 +1763,8 @@ const CartPage = () => {
                   <Form.Text className="text-danger">{phoneError}</Form.Text>
                 )}
               </Form.Group>
-              <Form.Group className="mb-3">
-                <Form.Label>Address (Street, House Number)</Form.Label>
-                <Form.Control
-                  type="text"
-                  placeholder="Enter street and house number"
-                  value={address}
-                  onChange={handleAddressChange}
-                  isInvalid={!!addressError}
-                />
-                {addressError && (
-                  <Form.Text className="text-danger">{addressError}</Form.Text>
-                )}
-              </Form.Group>
+
+              {/* Ô nhập mô tả (tùy chọn) */}
               <Form.Group className="mb-3">
                 <Form.Label>Description (Optional)</Form.Label>
                 <Form.Control
@@ -1744,6 +1779,8 @@ const CartPage = () => {
                   <Form.Text className="text-danger">{descriptionError}</Form.Text>
                 )}
               </Form.Group>
+
+              {/* Ô chọn tỉnh/thành phố */}
               <Form.Group className="mb-3">
                 <Form.Label>Province/City</Form.Label>
                 <Form.Select
@@ -1762,6 +1799,8 @@ const CartPage = () => {
                   <Form.Text className="text-danger">{provinceError}</Form.Text>
                 )}
               </Form.Group>
+
+              {/* Ô chọn quận/huyện */}
               <Form.Group className="mb-3">
                 <Form.Label>District</Form.Label>
                 <Form.Select
@@ -1781,6 +1820,8 @@ const CartPage = () => {
                   <Form.Text className="text-danger">{districtError}</Form.Text>
                 )}
               </Form.Group>
+
+              {/* Ô chọn phường/xã */}
               <Form.Group className="mb-3">
                 <Form.Label>Ward</Form.Label>
                 <Form.Select
@@ -1800,6 +1841,23 @@ const CartPage = () => {
                   <Form.Text className="text-danger">{wardError}</Form.Text>
                 )}
               </Form.Group>
+
+              {/* Ô nhập địa chỉ (đã di chuyển xuống dưới cùng) */}
+              <Form.Group className="mb-3">
+                <Form.Label>Address (Street, House Number)</Form.Label>
+                <Form.Control
+                  type="text"
+                  placeholder="Enter street and house number"
+                  value={address}
+                  onChange={handleAddressChange}
+                  isInvalid={!!addressError}
+                />
+                {addressError && (
+                  <Form.Text className="text-danger">{addressError}</Form.Text>
+                )}
+              </Form.Group>
+
+              {/* Nút tiếp tục đến bước thanh toán */}
               <Button
                 className="checkout-btn mt-3"
                 onClick={handleDeliveryConfirm}
@@ -1810,6 +1868,7 @@ const CartPage = () => {
           </Modal.Body>
         </Modal>
 
+        {/* Modal chọn phương thức thanh toán */}
         <Modal
           show={showPaymentModal}
           onHide={handleCloseModals}
@@ -1853,6 +1912,7 @@ const CartPage = () => {
           </Modal.Body>
         </Modal>
 
+        {/* Modal xem lại đơn hàng */}
         <Modal
           show={showSummaryModal}
           onHide={handleCloseModals}
@@ -1913,7 +1973,7 @@ const CartPage = () => {
                 <p className="total">
                   <strong>Total:</strong> {formatPrice(calculateTotal() + deliveryFee)}
                 </p>
-                {/* Added delivery note */}
+                {/* Ghi chú giao hàng */}
                 <p
                   style={{
                     color: 'red',

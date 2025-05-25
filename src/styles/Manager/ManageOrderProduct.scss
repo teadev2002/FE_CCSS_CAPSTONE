@@ -1,11 +1,437 @@
-/* Container chính của trang quản lý đơn hàng */
+// /* Container chính của trang quản lý đơn hàng */
+// .manage-order-product {
+//   padding: 10px;
+//   background: url("https://i.pinimg.com/originals/d2/ad/3f/d2ad3f633977d1ec518916b5c4fe5acd.jpg") no-repeat center center fixed;
+//   background-size: cover;
+//   min-height: 100vh;
+
+//   /* Tiêu đề chính */
+//   .manage-order-product-title {
+//     font-size: 32px;
+//     font-weight: bold;
+//     margin-bottom: 15px;
+//     text-align: center;
+//     color: #ffffff;
+//     background: transparent;
+//   }
+
+//   /* Container nội dung */
+//   .content-container {
+//     display: flex;
+//     padding: 10px;
+//   }
+
+//   /* Card chứa bảng đơn hàng */
+//   .manage-order-product-card {
+//     width: 90%;
+//     margin: 10px auto;
+//     box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.2);
+//     background: #fff;
+//     border-radius: 15px;
+//     opacity: 0.9;
+
+//     .card-body {
+//       padding: 15px;
+//     }
+
+//     /* Phần tiêu đề bảng và tìm kiếm */
+//     .table-header {
+//       display: flex;
+//       align-items: center;
+//       justify-content: space-between;
+//       margin-bottom: 10px;
+
+//       h3 {
+//         font-size: 20px;
+//         font-weight: 600;
+//         margin: 0;
+//       }
+
+//       .search-wrapper {
+//         flex: 1;
+//         display: flex;
+//         justify-content: center;
+//       }
+
+//       .search-input {
+//         width: 40%;
+//         border-radius: 5px;
+//         border: 1px solid #ced4da;
+//         padding: 5px 10px;
+
+//         &:focus {
+//           border-color: #510545;
+//           box-shadow: 0 0 5px rgba(81, 5, 69, 0.3);
+//         }
+//       }
+
+//       .action-placeholder {
+//         width: 120px;
+//       }
+//     }
+
+//     /* Thông báo lỗi */
+//     .error-message {
+//       color: #ff4d4f;
+//       font-weight: bold;
+//       text-align: center;
+//       margin-bottom: 10px;
+//       font-size: 16px;
+//     }
+
+//     /* Style cho bảng */
+//     .table {
+//       margin-bottom: 0;
+
+//       th,
+//       td {
+//         vertical-align: middle;
+//         padding: 8px;
+//         text-align: center;
+//       }
+
+//       thead {
+//         background: linear-gradient(135deg, #510545, #22668a);
+//         font-weight: bold;
+//         color: #fff;
+
+//         .sortable {
+//           cursor: pointer;
+//           display: flex;
+//           justify-content: center;
+//           align-items: center;
+//           gap: 5px;
+
+//           &:hover {
+//             background-color: rgba(255, 255, 255, 0.1);
+//           }
+
+//           .default-sort-icon {
+//             opacity: 0.5;
+//           }
+//         }
+//       }
+
+//       tbody tr:hover {
+//         background-color: #f0f0f0;
+//       }
+
+//       .action-column {
+//         display: flex;
+//         justify-content: center;
+//         align-items: center;
+//       }
+
+//       .btn-primary {
+//         padding: 5px 10px;
+//         font-size: 14px;
+//         border-radius: 4px;
+//         display: flex;
+//         align-items: center;
+//         gap: 5px;
+//         background: linear-gradient(135deg, #510545, #22668a);
+//         border: none;
+
+//         &:hover {
+//           background: linear-gradient(135deg, #22668a, #510545);
+//         }
+//       }
+
+//       /* Style cho các trường được làm nổi bật (Ship Status, Total Price) */
+//       .highlight-field {
+//         font-size: 16px;
+//         padding: 6px 12px;
+//         border-radius: 4px;
+//       }
+//     }
+
+//     /* Phần điều khiển phân trang */
+//     .pagination-controls {
+//       margin-top: 10px;
+//       display: flex;
+//       justify-content: space-between;
+//       align-items: center;
+
+//       .pagination-info {
+//         display: flex;
+//         align-items: center;
+//         gap: 20px;
+
+//         span {
+//           font-size: 14px;
+//           color: #333;
+//         }
+
+//         .rows-per-page {
+//           display: flex;
+//           align-items: center;
+//           gap: 5px;
+
+//           span {
+//             font-size: 14px;
+//             color: #333;
+//           }
+
+//           .dropdown {
+//             .btn-secondary {
+//               padding: 4px 8px;
+//               font-size: 14px;
+//               border-radius: 4px;
+//               background: #e0e0e0;
+//               border: none;
+//               color: #333;
+
+//               &:hover {
+//                 background: #d0d0d0;
+//               }
+//             }
+
+//             .dropdown-menu {
+//               min-width: 60px;
+
+//               .dropdown-item {
+//                 font-size: 14px;
+//                 padding: 4px 8px;
+
+//                 &:hover {
+//                   background-color: #f0f0f0;
+//                 }
+//               }
+//             }
+//           }
+//         }
+//       }
+
+//       .pagination {
+//         margin: 0;
+
+//         .page-item {
+//           .page-link {
+//             padding: 4px 8px;
+//             font-size: 14px;
+//             border-radius: 4px;
+//             color: #510545;
+
+//             &:hover {
+//               background-color: #f0f0f0;
+//             }
+//           }
+
+//           &.active .page-link {
+//             background: linear-gradient(135deg, #510545, #22668a);
+//             border-color: #510545;
+//             color: #fff;
+//           }
+//         }
+//       }
+//     }
+//   }
+
+//   /* Style cho modal chi tiết đơn hàng */
+//   .order-detail-modal {
+//     .modal-content {
+//       border-radius: 8px;
+//       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+//     }
+
+//     .modal-header {
+//       background: linear-gradient(135deg, #510545, #22668a);
+//       border-bottom: none;
+//       padding: 10px 15px;
+//       color: #fff;
+
+//       .modal-title {
+//         font-size: 24px;
+//         font-weight: 600;
+//       }
+
+//       .btn-close {
+//         filter: brightness(0) invert(1);
+//       }
+//     }
+
+//     .modal-body {
+//       padding: 15px;
+
+//       .order-detail-content {
+//         .card {
+//           border-radius: 6px;
+//           margin-bottom: 20px;
+
+//           .card-body {
+//             padding: 15px;
+
+//             h5 {
+//               font-size: 18px;
+//               font-weight: 600;
+//               color: #510545;
+//               margin-bottom: 15px;
+//             }
+
+//             p {
+//               margin: 10px 0;
+//               font-size: 14px;
+//               color: #333;
+
+//               strong {
+//                 font-weight: 600;
+//                 color: #22668a;
+//               }
+//             }
+
+//             .order-summary {
+//               background: #f9f9f9;
+//               border-radius: 6px;
+//               padding: 10px;
+//               margin-top: 15px;
+//               border: 1px solid #e0e0e0;
+
+//               p {
+//                 margin: 10px 0;
+//                 font-size: 14px;
+//                 display: flex;
+//                 justify-content: space-between;
+
+//                 strong {
+//                   color: #510545;
+//                 }
+
+//                 &:last-child {
+//                   font-size: 15px;
+//                   font-weight: 700;
+//                   color: #22668a;
+//                 }
+//               }
+//             }
+
+//             .table {
+//               margin-bottom: 0;
+
+//               th,
+//               td {
+//                 font-size: 14px;
+//                 padding: 10px;
+//               }
+
+//               th {
+//                 background: linear-gradient(135deg, #510545, #22668a);
+//                 color: #fff;
+//               }
+
+//               .product-image {
+//                 width: 100px;
+//                 height: 100px;
+//                 object-fit: cover;
+//                 border-radius: 4px;
+//                 box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+//               }
+//             }
+//           }
+//         }
+//       }
+//     }
+
+//     .modal-footer {
+//       border-top: 1px solid #dee2e6;
+//       padding: 10px 15px;
+
+//       .btn-secondary {
+//         padding: 5px 12px;
+//         font-size: 14px;
+//         border-radius: 4px;
+//         background: #e0e0e0;
+//         border: none;
+//         color: #333;
+
+//         &:hover {
+//           background: #d0d0d0;
+//         }
+//       }
+//     }
+//   }
+
+//   /* Style cho modal xác nhận cập nhật trạng thái */
+//   .confirm-status-modal {
+//     .modal-content {
+//       border-radius: 8px;
+//       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+//     }
+
+//     .modal-header {
+//       background: linear-gradient(135deg, #510545, #22668a);
+//       border-bottom: none;
+//       padding: 10px 15px;
+//       color: #fff;
+
+//       .modal-title {
+//         font-size: 20px;
+//         font-weight: 600;
+//       }
+
+//       .btn-close {
+//         filter: brightness(0) invert(1);
+//       }
+//     }
+
+//     .modal-body {
+//       padding: 15px;
+
+//       p {
+//         font-size: 16px;
+//         color: #333;
+
+//         strong {
+//           color: #510545;
+//         }
+//       }
+//     }
+
+//     .modal-footer {
+//       border-top: 1px solid #dee2e6;
+//       padding: 10px 15px;
+
+//       .btn-secondary {
+//         padding: 5px 12px;
+//         font-size: 14px;
+//         border-radius: 4px;
+//         background: #e0e0e0;
+//         border: none;
+//         color: #333;
+
+//         &:hover {
+//           background: #d0d0d0;
+//         }
+//       }
+
+//       .btn-primary {
+//         padding: 5px 12px;
+//         font-size: 14px;
+//         border-radius: 4px;
+//         background: linear-gradient(135deg, #510545, #22668a);
+//         border: none;
+
+//         &:hover {
+//           background: linear-gradient(135deg, #22668a, #510545);
+//         }
+//       }
+//     }
+//   }
+// }
+
+//-------------------------------------------------------------------------------------------//
+
+//sửa đổi vào 24/05/2025
+
+@import "~bootstrap/scss/bootstrap";
+
+// Định dạng chung cho trang quản lý đơn hàng
 .manage-order-product {
   padding: 10px;
   background: url("https://i.pinimg.com/originals/d2/ad/3f/d2ad3f633977d1ec518916b5c4fe5acd.jpg") no-repeat center center fixed;
   background-size: cover;
   min-height: 100vh;
 
-  /* Tiêu đề chính */
+  // Tiêu đề chính
   .manage-order-product-title {
     font-size: 32px;
     font-weight: bold;
@@ -13,15 +439,16 @@
     text-align: center;
     color: #ffffff;
     background: transparent;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   }
 
-  /* Container nội dung */
+  // Container nội dung
   .content-container {
     display: flex;
     padding: 10px;
   }
 
-  /* Card chứa bảng đơn hàng */
+  // Card chứa bảng đơn hàng
   .manage-order-product-card {
     width: 90%;
     margin: 10px auto;
@@ -34,7 +461,7 @@
       padding: 15px;
     }
 
-    /* Phần tiêu đề bảng và tìm kiếm */
+    // Phần tiêu đề bảng và tìm kiếm
     .table-header {
       display: flex;
       align-items: center;
@@ -45,6 +472,7 @@
         font-size: 20px;
         font-weight: 600;
         margin: 0;
+        color: #510545;
       }
 
       .search-wrapper {
@@ -58,6 +486,7 @@
         border-radius: 5px;
         border: 1px solid #ced4da;
         padding: 5px 10px;
+        font-size: 14px;
 
         &:focus {
           border-color: #510545;
@@ -70,7 +499,7 @@
       }
     }
 
-    /* Thông báo lỗi */
+    // Thông báo lỗi
     .error-message {
       color: #ff4d4f;
       font-weight: bold;
@@ -79,7 +508,7 @@
       font-size: 16px;
     }
 
-    /* Style cho bảng */
+    // Style cho bảng
     .table {
       margin-bottom: 0;
 
@@ -88,6 +517,7 @@
         vertical-align: middle;
         padding: 8px;
         text-align: center;
+        font-size: 14px;
       }
 
       thead {
@@ -137,15 +567,45 @@
         }
       }
 
-      /* Style cho các trường được làm nổi bật (Ship Status, Total Price) */
+      // Style cho badge
       .highlight-field {
         font-size: 16px;
         padding: 6px 12px;
         border-radius: 4px;
+
+        &.bg-warning {
+          background-color: #ffc107 !important;
+          color: #000;
+        }
+
+        &.bg-info {
+          background-color: #17a2b8 !important;
+          color: #fff;
+        }
+
+        &.bg-primary {
+          background-color: #007bff !important;
+          color: #fff;
+        }
+
+        &.bg-success {
+          background-color: #28a745 !important;
+          color: #fff;
+        }
+
+        &.bg-danger {
+          background-color: #dc3545 !important;
+          color: #fff;
+        }
+
+        &.bg-warning-orange {
+          background-color: #fd7e14 !important;
+          color: #fff;
+        }
       }
     }
 
-    /* Phần điều khiển phân trang */
+    // Phần điều khiển phân trang
     .pagination-controls {
       margin-top: 10px;
       display: flex;
@@ -227,7 +687,7 @@
     }
   }
 
-  /* Style cho modal chi tiết đơn hàng */
+  // Style cho modal chi tiết đơn hàng
   .order-detail-modal {
     .modal-content {
       border-radius: 8px;
@@ -319,8 +779,8 @@
               }
 
               .product-image {
-                width: 100px;
-                height: 100px;
+                width: 20px;
+                height: 20px;
                 object-fit: cover;
                 border-radius: 4px;
                 box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -350,7 +810,7 @@
     }
   }
 
-  /* Style cho modal xác nhận cập nhật trạng thái */
+  // Style cho modal xác nhận cập nhật trạng thái
   .confirm-status-modal {
     .modal-content {
       border-radius: 8px;

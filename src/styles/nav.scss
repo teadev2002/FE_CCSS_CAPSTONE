@@ -1,3 +1,457 @@
+// .navbar {
+//   background: linear-gradient(135deg, #510545 0%, #22668a 100%);
+//   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+//   padding: 0.5rem 0;
+//   position: fixed;
+//   top: 0;
+//   left: 0;
+//   width: 100%;
+//   z-index: 1000;
+//   height: 4.5rem;
+
+//   .container {
+//     display: flex;
+//     align-items: center;
+//     justify-content: space-between;
+//     height: 100%;
+//     max-width: 1400px;
+//     padding: 0 1rem;
+//     margin: 0 auto;
+//   }
+
+//   .brand-container {
+//     display: flex;
+//     align-items: center;
+
+//     .brand-logo {
+//       height: 3.2rem;
+//       width: 6.4rem;
+//       transition: transform 0.3s ease, filter 0.3s ease;
+
+//       &:hover {
+//         transform: scale(1.2) rotate(5deg);
+//         filter: brightness(1.2);
+//       }
+
+//       max-width: 100%;
+//       max-height: 100%;
+//       object-fit: contain;
+//     }
+//   }
+
+//   .nav-menu {
+//     display: flex;
+//     align-items: center;
+//     gap: 1rem;
+
+//     .nav-link {
+//       display: flex;
+//       align-items: center;
+//       gap: 0.5rem;
+//       padding: 0.5rem 0.75rem;
+//       border-radius: 0.5rem;
+//       color: #e0e0e0;
+//       font-weight: 600;
+//       font-size: 0.85rem;
+//       text-decoration: none;
+//       position: relative;
+//       transition: all 0.3s ease, color 0.3s ease;
+
+//       svg {
+//         color: #e0e0e0;
+//         width: 20px;
+//         height: 20px;
+//       }
+
+//       &:hover {
+//         color: #ec4899;
+//         transform: translateY(-2px);
+//         background: rgba(255, 255, 255, 0.1);
+//         box-shadow: 0 2px 8px rgba(236, 72, 153, 0.2);
+
+//         svg {
+//           color: #ec4899;
+//         }
+//       }
+
+//       &::after {
+//         content: "";
+//         position: absolute;
+//         bottom: -5px;
+//         left: 50%;
+//         width: 0;
+//         height: 2px;
+//         background: linear-gradient(90deg, #ec4899, #9333ea);
+//         transform: translateX(-50%);
+//         transition: width 0.3s ease;
+//       }
+
+//       &:hover::after {
+//         width: 80%;
+//       }
+
+//       &.nav-link-active {
+//         color: #ec4899;
+//         background: rgba(255, 255, 255, 0.15);
+//         box-shadow: 0 2px 8px rgba(236, 72, 153, 0.3);
+
+//         &::after {
+//           width: 80%;
+//         }
+
+//         svg {
+//           color: #ec4899;
+//         }
+//       }
+//     }
+
+//     .dropdown-container {
+//       position: relative;
+//       cursor: pointer;
+
+//       &.notification-container {
+//         position: relative;
+
+//         .dropdown-toggle {
+//           position: relative;
+//         }
+
+//         .notification-badge {
+//           position: absolute;
+//           top: -5px;
+//           right: -5px;
+//           background: #ec4899; // Màu hồng cho badge
+//           color: white; // Chữ trắng
+//           font-size: 0.65rem;
+//           font-weight: 700;
+//           border-radius: 50%;
+//           width: 18px;
+//           height: 18px;
+//           display: flex;
+//           align-items: center;
+//           justify-content: center;
+//           box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+//           transition: transform 0.3s ease;
+//         }
+
+//         &:hover .notification-badge {
+//           transform: scale(1.1);
+//         }
+//       }
+
+//       .dropdown-toggle {
+//         display: flex;
+//         align-items: center;
+//         padding: 0.5rem 0.75rem;
+//         border-radius: 0.5rem;
+//         transition: all 0.3s ease;
+
+//         svg {
+//           color: #e0e0e0;
+//           transition: color 0.3s ease;
+//           width: 20px;
+//           height: 20px;
+//         }
+
+//         &:hover {
+//           background: rgba(255, 255, 255, 0.1);
+//           transform: translateY(-2px);
+//           box-shadow: 0 2px 8px rgba(236, 72, 153, 0.2);
+
+//           svg {
+//             color: #ec4899;
+//           }
+//         }
+//       }
+
+//       .dropdown-menu {
+//         position: absolute;
+//         top: 100%;
+//         z-index: 50;
+//         display: none;
+//         flex-direction: column;
+//         padding: 0.5rem 0;
+//         opacity: 0;
+//         transform: translateY(10px) scale(0.95);
+//         transition: opacity 0.3s ease, transform 0.3s ease;
+//         background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+//         border-radius: 10px;
+//         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), 0 0 15px rgba(236, 72, 153, 0.2);
+//         min-width: 160px;
+
+//         &.dropdown-menu-categories {
+//           left: 50%;
+//           transform: translateX(-50%) translateY(10px) scale(0.95);
+//           width: 200px;
+//         }
+
+//         &.dropdown-menu-user {
+//           right: 0;
+//         }
+
+//         &.festival-dropdown-menu {
+//           left: 50%;
+//           transform: translateX(-50%) translateY(10px) scale(0.95);
+//           width: 200px;
+//         }
+
+//         &.dropdown-menu-notifications {
+//           right: 0;
+//           width: 300px; // Tăng chiều rộng để chứa nội dung dài
+//           max-height: 400px; // Giới hạn chiều cao, cho phép cuộn
+//           overflow-y: auto; // Thêm thanh cuộn nếu vượt quá chiều cao
+//         }
+
+//         .dropdown-item {
+//           display: flex;
+//           align-items: center;
+//           justify-content: space-between;
+//           padding: 0.6rem 1rem;
+//           text-decoration: none;
+//           font-size: 0.85rem;
+//           font-weight: 500;
+//           letter-spacing: 0.03em;
+//           color: #e0e0e0;
+//           transition: all 0.3s ease, color 0.3s ease;
+//           position: relative;
+//           overflow: hidden;
+
+//           &.notification-item {
+//             flex-direction: column; // Xếp nội dung theo chiều dọc
+//             align-items: flex-start; // Căn trái nội dung
+//             padding: 0.8rem 1rem; // Tăng padding
+//             border-bottom: 1px solid rgba(255, 255, 255, 0.1); // Phân cách thông báo
+
+//             &:last-child {
+//               border-bottom: none; // Bỏ viền cho thông báo cuối
+//             }
+
+//             &.unread {
+//               background: rgba(236, 72, 153, 0.15); // Nền nổi bật cho thông báo mới
+//             }
+
+//             &.read {
+//               opacity: 0.6; // Làm mờ thông báo đã đọc
+//             }
+
+//             .notification-content {
+//               display: flex;
+//               align-items: flex-start;
+//               gap: 0.5rem; // Khoảng cách giữa nhãn "New" và nội dung
+//               width: 100%;
+//             }
+
+//             .notification-new-label {
+//               background: #ec4899; // Màu hồng cho nhãn "New"
+//               color: white;
+//               font-size: 0.75rem;
+//               font-weight: 600;
+//               padding: 0.2rem 0.5rem;
+//               border-radius: 3px;
+//             }
+
+//             .notification-message {
+//               font-size: 0.85rem;
+//               white-space: normal; // Cho phép xuống dòng
+//               word-wrap: break-word; // Ngắt từ nếu quá dài
+//               overflow-wrap: break-word; // Hỗ trợ ngắt từ
+//               line-height: 1.4; // Tăng khoảng cách dòng
+//               max-height: 4.2rem; // Giới hạn chiều cao (3 dòng)
+//               overflow: hidden; // Ẩn nội dung vượt quá
+//               text-overflow: ellipsis; // Thêm dấu ... nếu nội dung bị cắt
+//             }
+//           }
+
+//           &.cart-item {
+//             position: relative;
+//           }
+
+//           .cart-badge {
+//             background: #f85caa;
+//             color: white;
+//             font-size: 0.65rem;
+//             font-weight: 700;
+//             border-radius: 50%;
+//             width: 18px;
+//             height: 18px;
+//             display: flex;
+//             align-items: center;
+//             justify-content: center;
+//             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+//             transition: transform 0.3s ease;
+//           }
+
+//           &:hover .cart-badge {
+//             transform: scale(1.1);
+//           }
+
+//           &:before {
+//             content: "";
+//             position: absolute;
+//             top: 0;
+//             left: -100%;
+//             width: 100%;
+//             height: 100%;
+//             background: linear-gradient(90deg, transparent, rgba(236, 72, 153, 0.2), transparent);
+//             transition: left 0.4s ease;
+//           }
+
+//           &:hover:before {
+//             left: 100%;
+//           }
+
+//           &:hover {
+//             background: rgba(236, 72, 153, 0.1);
+//             color: #ec4899;
+//             transform: translateX(5px);
+//           }
+//         }
+//       }
+
+//       &:hover .dropdown-menu,
+//       .dropdown-menu:hover {
+//         display: flex;
+//         opacity: 1;
+//         transform: translateY(0) scale(1);
+
+//         &.dropdown-menu-categories {
+//           transform: translateX(-50%) translateY(0) scale(1);
+//         }
+
+//         &.festival-dropdown-menu {
+//           transform: translateX(-50%) translateY(0) scale(1);
+//         }
+
+//         &.dropdown-menu-user {
+//           transform: translateY(0) scale(1);
+//         }
+
+//         &.dropdown-menu-notifications {
+//           transform: translateY(0) scale(1);
+//         }
+//       }
+
+//       &::after {
+//         content: "";
+//         position: absolute;
+//         top: 100%;
+//         left: 0;
+//         width: 100%;
+//         height: 10px;
+//         background: transparent;
+//         pointer-events: none;
+//       }
+//     }
+//   }
+
+//   @media (max-width: 1024px) {
+//     .nav-menu {
+//       gap: 0.8rem;
+
+//       .nav-link {
+//         padding: 0.5rem 0.6rem;
+//         font-size: 0.8rem;
+//         gap: 0.3rem;
+
+//         svg {
+//           width: 18px;
+//           height: 18px;
+//         }
+
+//         @media (max-width: 900px) {
+//           span {
+//             display: none;
+//           }
+//         }
+//       }
+
+//       .notification-container {
+//         .notification-badge {
+//           width: 16px;
+//           height: 16px;
+//           font-size: 0.6rem;
+//         }
+//       }
+
+//       .dropdown-menu {
+//         &.dropdown-menu-notifications {
+//           width: 280px; // Giảm chiều rộng trên màn hình nhỏ
+//         }
+
+//         .dropdown-item {
+//           &.notification-item {
+//             padding: 0.7rem 0.9rem;
+
+//             .notification-new-label {
+//               font-size: 0.7rem;
+//               padding: 0.15rem 0.4rem;
+//             }
+
+//             .notification-message {
+//               font-size: 0.8rem;
+//               max-height: 3.6rem; // Giảm chiều cao tối đa
+//             }
+//           }
+
+//           .cart-badge {
+//             width: 16px;
+//             height: 16px;
+//             font-size: 0.6rem;
+//           }
+//         }
+//       }
+//     }
+
+//     .brand-container {
+//       .brand-logo {
+//         height: 2.8rem;
+//         width: 5.6rem;
+
+//         &:hover {
+//           transform: scale(1.15) rotate(5deg);
+//         }
+//       }
+//     }
+//   }
+
+//   @media (max-width: 768px) {
+//     .container {
+//       padding: 0 0.8rem;
+//       height: 4rem;
+//     }
+
+//     .brand-container {
+//       .brand-logo {
+//         height: 2.2rem;
+//         width: 4.4rem;
+
+//         &:hover {
+//           transform: scale(1.1) rotate(5deg);
+//         }
+//       }
+//     }
+
+//     .nav-menu {
+//       display: none;
+//     }
+//   }
+
+//   @media (max-width: 480px) {
+//     .brand-container {
+//       .brand-logo {
+//         height: 1.8rem;
+//         width: 3.6rem;
+
+//         &:hover {
+//           transform: scale(1.05) rotate(5deg);
+//         }
+//       }
+//     }
+//   }
+// }
+
+//---------------------------------------------------------------------------------------------------//
+
 .navbar {
   background: linear-gradient(135deg, #510545 0%, #22668a 100%);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
@@ -120,8 +574,8 @@
           position: absolute;
           top: -5px;
           right: -5px;
-          background: #ec4899; // Màu hồng cho badge
-          color: white; // Chữ trắng
+          background: #ec4899;
+          color: white;
           font-size: 0.65rem;
           font-weight: 700;
           border-radius: 50%;
@@ -145,12 +599,32 @@
         padding: 0.5rem 0.75rem;
         border-radius: 0.5rem;
         transition: all 0.3s ease;
+        position: relative; // Đảm bảo badge nằm đúng vị trí
 
         svg {
           color: #e0e0e0;
           transition: color 0.3s ease;
           width: 20px;
           height: 20px;
+        }
+
+        // Style cho badge tổng số lượng trên icon người dùng
+        .cart-quantity-badge {
+          position: absolute;
+          top: -5px;
+          right: -5px;
+          background: #f85caa;
+          color: white;
+          font-size: 0.65rem;
+          font-weight: 700;
+          border-radius: 50%;
+          width: 18px;
+          height: 18px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+          transition: transform 0.3s ease;
         }
 
         &:hover {
@@ -160,6 +634,10 @@
 
           svg {
             color: #ec4899;
+          }
+
+          .cart-quantity-badge {
+            transform: scale(1.1); // Hiệu ứng phóng to khi hover
           }
         }
       }
@@ -197,9 +675,9 @@
 
         &.dropdown-menu-notifications {
           right: 0;
-          width: 300px; // Tăng chiều rộng để chứa nội dung dài
-          max-height: 400px; // Giới hạn chiều cao, cho phép cuộn
-          overflow-y: auto; // Thêm thanh cuộn nếu vượt quá chiều cao
+          width: 300px;
+          max-height: 400px;
+          overflow-y: auto;
         }
 
         .dropdown-item {
@@ -217,32 +695,32 @@
           overflow: hidden;
 
           &.notification-item {
-            flex-direction: column; // Xếp nội dung theo chiều dọc
-            align-items: flex-start; // Căn trái nội dung
-            padding: 0.8rem 1rem; // Tăng padding
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1); // Phân cách thông báo
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 
             &:last-child {
-              border-bottom: none; // Bỏ viền cho thông báo cuối
+              border-bottom: none;
             }
 
             &.unread {
-              background: rgba(236, 72, 153, 0.15); // Nền nổi bật cho thông báo mới
+              background: rgba(236, 72, 153, 0.15);
             }
 
             &.read {
-              opacity: 0.6; // Làm mờ thông báo đã đọc
+              opacity: 0.6;
             }
 
             .notification-content {
               display: flex;
               align-items: flex-start;
-              gap: 0.5rem; // Khoảng cách giữa nhãn "New" và nội dung
+              gap: 0.5rem;
               width: 100%;
             }
 
             .notification-new-label {
-              background: #ec4899; // Màu hồng cho nhãn "New"
+              background: #ec4899;
               color: white;
               font-size: 0.75rem;
               font-weight: 600;
@@ -252,13 +730,13 @@
 
             .notification-message {
               font-size: 0.85rem;
-              white-space: normal; // Cho phép xuống dòng
-              word-wrap: break-word; // Ngắt từ nếu quá dài
-              overflow-wrap: break-word; // Hỗ trợ ngắt từ
-              line-height: 1.4; // Tăng khoảng cách dòng
-              max-height: 4.2rem; // Giới hạn chiều cao (3 dòng)
-              overflow: hidden; // Ẩn nội dung vượt quá
-              text-overflow: ellipsis; // Thêm dấu ... nếu nội dung bị cắt
+              white-space: normal;
+              word-wrap: break-word;
+              overflow-wrap: break-word;
+              line-height: 1.4;
+              max-height: 4.2rem;
+              overflow: hidden;
+              text-overflow: ellipsis;
             }
           }
 
@@ -373,9 +851,17 @@
         }
       }
 
+      .dropdown-container {
+        .cart-quantity-badge {
+          width: 16px;
+          height: 16px;
+          font-size: 0.6rem;
+        }
+      }
+
       .dropdown-menu {
         &.dropdown-menu-notifications {
-          width: 280px; // Giảm chiều rộng trên màn hình nhỏ
+          width: 280px;
         }
 
         .dropdown-item {
@@ -389,7 +875,7 @@
 
             .notification-message {
               font-size: 0.8rem;
-              max-height: 3.6rem; // Giảm chiều cao tối đa
+              max-height: 3.6rem;
             }
           }
 
