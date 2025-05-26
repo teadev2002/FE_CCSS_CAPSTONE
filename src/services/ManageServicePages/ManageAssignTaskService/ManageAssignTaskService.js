@@ -140,5 +140,16 @@ const ManageAssignTaskService = {
       throw error;
     }
   },
+  UpdateRequestStatusById: async (id, requestStatus) => {
+    try {
+      let url = `/api/Request/Status?requestId=${id}&requestStatus=1`;
+
+      const response = await apiClient.put(url);
+      return response.data;
+    } catch (error) {
+      console.error("Error updating request status:", error);
+      throw error;
+    }
+  },
 };
 export default ManageAssignTaskService;
