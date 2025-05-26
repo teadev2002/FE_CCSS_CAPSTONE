@@ -645,18 +645,18 @@ const ViewMyRentalCostume = ({
     >
       {requestData.status !== "Cancel" &&
         (!contractData || contractData.status == null) && (
-          <Popconfirm
-            title="Are you sure you want to cancel this request?"
-            onConfirm={() => setIsCancelModalVisible(true)}
-            okText="Yes"
-            cancelText="No"
-          >
-            <div style={{ display: "flex", justifyContent: "flex-end" }}>
+          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+            <Popconfirm
+              title="Are you sure you want to cancel this request?"
+              onConfirm={() => setIsCancelModalVisible(true)}
+              okText="Yes"
+              cancelText="No"
+            >
               <Button type="primary" danger aria-label="Cancel Request">
                 Cancel Request
               </Button>
-            </div>
-          </Popconfirm>
+            </Popconfirm>
+          </div>
         )}
 
       <div className="request-details">

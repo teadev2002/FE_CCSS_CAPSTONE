@@ -361,5 +361,17 @@ const MyHistoryService = {
       throw error;
     }
   },
+  chooseCosplayerInRequest: async (requestCharacterId, requestData) => {
+    try {
+      const response = await apiClient.put(
+        `/api/RequestCharacter?requestCharacterId=${requestCharacterId}`,
+        requestData
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error choosing cosplayer in request:", error);
+      throw error;
+    }
+  },
 };
 export default MyHistoryService;
