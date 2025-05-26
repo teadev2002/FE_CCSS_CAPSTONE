@@ -430,13 +430,6 @@ const ViewManageEventOrganize = ({ requestId }) => {
         dataIndex: "totalHour",
         key: "totalHour",
       },
-      {
-        title: "Status",
-        dataIndex: "status",
-        key: "status",
-        render: (status) =>
-          status === 0 ? "Pending" : status === 1 ? "Confirmed" : "Unknown",
-      },
     ],
     []
   );

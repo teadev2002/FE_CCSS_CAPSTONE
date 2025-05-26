@@ -608,13 +608,15 @@ const ManageContractEventOrganize = () => {
                                 >
                                   View
                                 </Button>
-                                <Button
-                                  type="primary"
-                                  size="small"
-                                  onClick={() => handleShowModal(null, req)}
-                                >
-                                  Create Contract
-                                </Button>
+                                {req.deposit > 0 && (
+                                  <Button
+                                    type="primary"
+                                    size="small"
+                                    onClick={() => handleShowModal(null, req)}
+                                  >
+                                    Create Contract
+                                  </Button>
+                                )}
                               </td>
                             </tr>
                           ))

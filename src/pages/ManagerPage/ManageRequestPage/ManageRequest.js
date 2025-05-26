@@ -1,5 +1,4 @@
-/// thong bao
-
+// them filter theo status request
 import React, { useState, useEffect } from "react";
 import { Table, Form, Card } from "react-bootstrap";
 import { Button, Modal, Dropdown, Pagination, Spin, Menu, Input } from "antd";
@@ -46,7 +45,19 @@ const ManageRequest = () => {
   const [selectedService, setSelectedService] = useState("All");
   const [notifications, setNotifications] = useState([]);
   const [persistedNotifications, setPersistedNotifications] = useState([]);
-
+  const [selectedStatus, setSelectedStatus] = useState("All");
+  const statusMenu = (
+    <Menu onClick={({ key }) => handleStatusFilterChange(key)}>
+      <Menu.Item key="All">All Statuses</Menu.Item>
+      <Menu.Item key="Pending">Pending</Menu.Item>
+      <Menu.Item key="Browsed">Browsed</Menu.Item>
+      <Menu.Item key="Cancel">Cancel</Menu.Item>
+    </Menu>
+  );
+  const handleStatusFilterChange = (value) => {
+    setSelectedStatus(value);
+    setCurrentPageRequest(1); // Reset to first page on filter change
+  };
   const getUserInfoFromToken = () => {
     const token = localStorage.getItem("accessToken");
     if (token) {
@@ -254,9 +265,20 @@ const ManageRequest = () => {
 
   const filterAndSortData = (data, search, sort) => {
     let filtered = [...data];
+
+    // Filter by service
     if (selectedService !== "All") {
       filtered = filtered.filter((item) => item.serviceId === selectedService);
     }
+
+    // Filter by status
+    if (selectedStatus !== "All") {
+      filtered = filtered.filter(
+        (item) => item.statusRequest === selectedStatus
+      );
+    }
+
+    // Filter by search
     if (search) {
       filtered = filtered.filter((item) =>
         Object.values(item).some((val) =>
@@ -266,6 +288,8 @@ const ManageRequest = () => {
         )
       );
     }
+
+    // Sort data
     return filtered.sort((a, b) => {
       let valueA = a[sort.field];
       let valueB = b[sort.field];
@@ -331,12 +355,6 @@ const ManageRequest = () => {
     setIsEditing(false);
     setCurrentItem(null);
     setFormData({ status: "", reason: "" });
-  };
-
-  const handleShowDeleteModal = (id) => {
-    setDeleteItemId(id);
-    setDeleteReason("");
-    setShowDeleteModal(true);
   };
 
   const handleCloseDeleteModal = () => {
@@ -513,7 +531,12 @@ const ManageRequest = () => {
                     ▼
                   </Button>
                 </Dropdown>
-
+                <Dropdown overlay={statusMenu}>
+                  <Button>
+                    {selectedStatus === "All" ? "All Statuses" : selectedStatus}{" "}
+                    ▼
+                  </Button>
+                </Dropdown>
                 <div className="bell-notification">
                   <div className="dropdown-toggle">
                     <Bell size={20} onClick={markNotificationsAsSeen} />
@@ -523,7 +546,6 @@ const ManageRequest = () => {
                       </span>
                     )}
                   </div>
-
                   <div className="dropdown-menu dropdown-menu-notifications">
                     {notifications.length > 0 ? (
                       notifications.map((notification) => (
@@ -660,14 +682,6 @@ const ManageRequest = () => {
                             View
                           </Button>
                         )}
-                        <Button
-                          type="primary"
-                          danger
-                          size="small"
-                          onClick={() => handleShowDeleteModal(req.id)}
-                        >
-                          Delete
-                        </Button>
                       </td>
                     </tr>
                   ))
