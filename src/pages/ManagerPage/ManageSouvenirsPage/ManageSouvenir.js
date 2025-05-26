@@ -733,11 +733,11 @@ import {
   Row,
   Col,
 } from "react-bootstrap";
-import SourvenirService from "../../../services/ManageServicePages/ManageSouvenirService/SouvenirService.js"; // Điều chỉnh đường dẫn import
+import SourvenirService from "../../../services/ManageServicePages/ManageSouvenirService/SouvenirService.js";
 import "../../../styles/Manager/ManageSouvenir.scss";
 import { Image, Popconfirm, message, Button } from "antd";
 import { toast } from "react-toastify";
-import { ArrowUp, ArrowDown, PlusCircle, XCircle } from "lucide-react"; // Thêm XCircle để hiển thị nút xóa
+import { ArrowUp, ArrowDown, PlusCircle, XCircle } from "lucide-react";
 import Box from "@mui/material/Box";
 import LinearProgress from "@mui/material/LinearProgress";
 
@@ -746,7 +746,6 @@ const PLACEHOLDER_IMAGE_URL =
   "https://www.elegantthemes.com/blog/wp-content/uploads/2020/08/000-http-error-codes.png";
 
 const ManageSouvenir = () => {
-  // Khởi tạo state để quản lý dữ liệu và giao diện
   const [products, setProducts] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -760,34 +759,28 @@ const ManageSouvenir = () => {
     price: "",
     isActive: true,
   });
-  const [selectedFiles, setSelectedFiles] = useState([]); // Danh sách các file hình ảnh đã chọn
+  const [selectedFiles, setSelectedFiles] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortSouvenir, setSortSouvenir] = useState({
     field: "productName",
     order: "asc",
   });
   const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(5); // Giảm để kiểm tra giao diện
+  const [rowsPerPage, setRowsPerPage] = useState(5);
   const rowsPerPageOptions = [5, 10, 20];
 
-  // Hàm lấy danh sách sản phẩm từ API
+  // Hàm lấy danh sách sản phẩm từ API, chỉ lấy ảnh đầu tiên cho bảng
   const fetchProducts = async () => {
     setIsLoading(true);
     setError(null);
     try {
       const data = await SourvenirService.getAllProducts();
-      const processedData = data.map((product) => {
-        let displayImageUrl = PLACEHOLDER_IMAGE_URL;
-        if (
-          product.productImages &&
-          Array.isArray(product.productImages) &&
-          product.productImages.length > 0 &&
-          product.productImages[0]?.productImageUrl
-        ) {
-          displayImageUrl = product.productImages[0].productImageUrl;
-        }
-        return { ...product, displayImageUrl };
-      });
+      const processedData = data.map((product) => ({
+        ...product,
+        displayImageUrl: product.productImages?.length > 0
+          ? product.productImages[0].urlImage
+          : PLACEHOLDER_IMAGE_URL, // Chỉ lấy ảnh đầu tiên
+      }));
       setProducts(processedData);
     } catch (error) {
       setError(
@@ -798,12 +791,10 @@ const ManageSouvenir = () => {
     }
   };
 
-  // Gọi hàm lấy sản phẩm khi component mount
   useEffect(() => {
     fetchProducts();
   }, []);
 
-  // Hàm lọc và sắp xếp dữ liệu sản phẩm
   const filterAndSortData = (data, search, sort) => {
     let filtered = [...data];
     if (search) {
@@ -822,25 +813,21 @@ const ManageSouvenir = () => {
     });
   };
 
-  // Dữ liệu đã lọc và sắp xếp
   const filteredProducts = filterAndSortData(products, searchTerm, sortSouvenir);
   const totalEntries = filteredProducts.length;
   const totalPages = Math.ceil(totalEntries / rowsPerPage);
   const paginatedProducts = paginateData(filteredProducts, currentPage);
 
-  // Hàm phân trang dữ liệu
   function paginateData(data, page) {
     const startIndex = (page - 1) * rowsPerPage;
     const endIndex = startIndex + rowsPerPage;
     return data.slice(startIndex, endIndex);
   }
 
-  // Tính toán thông tin phân trang
   const startEntry = (currentPage - 1) * rowsPerPage + 1;
   const endEntry = Math.min(currentPage * rowsPerPage, totalEntries);
   const showingText = `Showing ${startEntry} to ${endEntry} of ${totalEntries} entries`;
 
-  // Hàm mở modal tạo hoặc chỉnh sửa sản phẩm
   const handleShowModal = (product = null) => {
     if (product) {
       setIsEditing(true);
@@ -868,7 +855,6 @@ const ManageSouvenir = () => {
     setShowModal(true);
   };
 
-  // Hàm đóng modal
   const handleCloseModal = () => {
     setShowModal(false);
     setIsEditing(false);
@@ -876,30 +862,25 @@ const ManageSouvenir = () => {
     setSelectedFiles([]);
   };
 
-  // Hàm xử lý thay đổi input trong form
   const handleInputChange = (e) => {
     const { name, value, type } = e.target;
     const val = type === "number" ? (value === "" ? "" : Number(value)) : value;
     setFormData((prev) => ({ ...prev, [name]: val }));
   };
 
-  // Hàm xử lý chọn nhiều file hình ảnh
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
-    setSelectedFiles((prev) => [...prev, ...files]); // Thêm file mới vào danh sách
+    setSelectedFiles((prev) => [...prev, ...files]);
   };
 
-  // Hàm xóa một hình ảnh khỏi danh sách selectedFiles
   const handleRemoveImage = (indexToRemove) => {
     setSelectedFiles((prev) => prev.filter((_, index) => index !== indexToRemove));
   };
 
-  // Hàm xử lý thay đổi trạng thái active
   const handleSwitchChange = (e) => {
     setFormData((prev) => ({ ...prev, isActive: e.target.checked }));
   };
 
-  // Hàm gửi form tạo hoặc cập nhật sản phẩm
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -941,7 +922,6 @@ const ManageSouvenir = () => {
     }
   };
 
-  // Hàm xóa (vô hiệu hóa) sản phẩm
   const handleDelete = async (productId) => {
     setIsLoading(true);
     setError(null);
@@ -961,13 +941,11 @@ const ManageSouvenir = () => {
     }
   };
 
-  // Hàm xử lý tìm kiếm
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
     setCurrentPage(1);
   };
 
-  // Hàm xử lý sắp xếp
   const handleSort = (field) => {
     setSortSouvenir((prev) => ({
       field,
@@ -976,16 +954,13 @@ const ManageSouvenir = () => {
     setCurrentPage(1);
   };
 
-  // Hàm thay đổi trang
   const handlePageChange = (page) => setCurrentPage(page);
 
-  // Hàm thay đổi số hàng mỗi trang
   const handleRowsPerPageChange = (value) => {
     setRowsPerPage(value);
     setCurrentPage(1);
   };
 
-  // Hàm xử lý lỗi tải hình ảnh
   const handleImageError = (event) => {
     event.target.onerror = null;
     event.target.src = PLACEHOLDER_IMAGE_URL;
@@ -993,12 +968,10 @@ const ManageSouvenir = () => {
 
   return (
     <div className="manage-souvenirs">
-      {/* Tiêu đề trang */}
       <h2 className="manage-souvenirs-title">Manage Souvenirs</h2>
       <div className="table-container">
         <Card className="souvenir-table-card">
           <Card.Body>
-            {/* Phần tiêu đề và tìm kiếm */}
             <div className="table-header">
               <h3>Souvenirs</h3>
               <Form.Control
@@ -1015,28 +988,25 @@ const ManageSouvenir = () => {
                   padding: "20px 7px",
                   fontSize: "14px",
                   borderRadius: "4px",
-                  background: "linear-gradient(135deg, #510545, #22668a)",
+                  background: "linear-gradient(135deg, #660545, #22668a)",
                   border: "none",
                   color: "#fff",
                   display: "flex",
                   alignItems: "center",
                 }}
-                onMouseEnter={(e) => (e.target.style.background = "linear-gradient(135deg, #22668a, #510545)")}
-                onMouseLeave={(e) => (e.target.style.background = "linear-gradient(135deg, #510545, #22668a)")}
+                onMouseEnter={(e) => (e.target.style.background = "linear-gradient(135deg, #22668a, #660545)")}
+                onMouseLeave={(e) => (e.target.style.background = "linear-gradient(135deg, #660545, #22668a)")}
               >
                 <PlusCircle size={16} style={{ marginRight: "8px" }} />
                 Add New Souvenir
               </Button>
             </div>
-            {/* Hiển thị thanh tiến độ khi đang tải */}
             {isLoading && (
               <Box sx={{ width: "100%", marginY: 2 }}>
                 <LinearProgress />
               </Box>
             )}
-            {/* Hiển thị lỗi nếu có */}
             {error && <p className="error-message">{error}</p>}
-            {/* Bảng danh sách sản phẩm */}
             {!isLoading && !error && (
               <>
                 <Table striped bordered hover responsive>
@@ -1127,7 +1097,7 @@ const ManageSouvenir = () => {
                           )}
                         </span>
                       </th>
-                      <th className="text-center">Image</th>
+                      <th className="text-center">Images</th>
                       <th className="text-center">Actions</th>
                     </tr>
                   </thead>
@@ -1163,14 +1133,29 @@ const ManageSouvenir = () => {
                           </td>
                           <td className="text-center">{product.isActive ? "Yes" : "No"}</td>
                           <td className="text-center">
-                            <Image
-                              width={50}
-                              height={50}
-                              src={product.displayImageUrl}
-                              alt={product.productName}
-                              onError={handleImageError}
-                              style={{ objectFit: "cover" }}
-                            />
+                            <Image.PreviewGroup
+                              items={
+                                product.productImages?.length > 0
+                                  ? product.productImages.map((img) => img.urlImage)
+                                  : [PLACEHOLDER_IMAGE_URL]
+                              }
+                            >
+                              <Image
+                                width={50}
+                                height={50}
+                                src={product.displayImageUrl}
+                                alt={`${product.productName} Image`}
+                                onError={handleImageError}
+                                style={{
+                                  objectFit: "cover",
+                                  borderRadius: "4px",
+                                  border: "1px solid #dee2e6",
+                                  boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
+                                  cursor: "pointer",
+                                }}
+                                preview={true}
+                              />
+                            </Image.PreviewGroup>
                           </td>
                           <td className="text-center">
                             <Button
@@ -1181,16 +1166,16 @@ const ManageSouvenir = () => {
                                 padding: "17px 14px",
                                 fontSize: "14px",
                                 borderRadius: "4px",
-                                background: "linear-gradient(135deg, #510545, #22668a)",
+                                background: "linear-gradient(135deg, #660545, #22668a)",
                                 border: "none",
                                 color: "#fff",
                                 marginRight: "8px",
                               }}
                               onMouseEnter={(e) =>
-                                (e.target.style.background = "linear-gradient(135deg, #22668a, #510545)")
+                                (e.target.style.background = "linear-gradient(135deg, #22668a, #660545)")
                               }
                               onMouseLeave={(e) =>
-                                (e.target.style.background = "linear-gradient(135deg, #510545, #22668a)")
+                                (e.target.style.background = "linear-gradient(135deg, #660545, #22668a)")
                               }
                             >
                               Edit
@@ -1227,11 +1212,13 @@ const ManageSouvenir = () => {
                     )}
                   </tbody>
                 </Table>
-                {/* Điều khiển phân trang */}
-                <div className="pagination-controls">
+                <div
+                  className="pagination-controls"
+                  style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "20px" }}
+                >
                   <div className="pagination-info">
                     <span>{showingText}</span>
-                    <div className="rows-per-page">
+                    <div style={{ display: "inline-block", marginLeft: "10px" }}>
                       <span>Rows per page: </span>
                       <Dropdown
                         onSelect={(value) => handleRowsPerPageChange(Number(value))}
@@ -1284,40 +1271,13 @@ const ManageSouvenir = () => {
         </Card>
       </div>
 
-      {/* Modal để tạo hoặc chỉnh sửa sản phẩm */}
-      <Modal
-        show={showModal}
-        onHide={handleCloseModal}
-        centered
-        className="souvenir-modal"
-      >
+      <Modal show={showModal} onHide={handleCloseModal} centered className="souvenir-modal">
         <Modal.Header closeButton={!isLoading}>
-          <Modal.Title>
-            {isEditing ? "Edit Souvenir" : "Add New Souvenir"}
-          </Modal.Title>
+          <Modal.Title>{isEditing ? "Edit Souvenir" : "Add New Souvenir"}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {/* Hiển thị lỗi nếu có */}
           {error && !isLoading && <p className="error-message">{error}</p>}
           <Form onSubmit={handleSubmit}>
-            {/* Hiển thị ảnh hiện tại khi chỉnh sửa */}
-            {isEditing && currentProduct && (
-              <Form.Group className="mb-3">
-                <Form.Label>Product Image (View Only)</Form.Label>
-                <div>
-                  <Image
-                    width={200}
-                    height={200}
-                    src={currentProduct.displayImageUrl}
-                    alt={formData.productName || "Product"}
-                    onError={handleImageError}
-                    style={{ objectFit: "cover" }}
-                    preview={false}
-                  />
-                </div>
-              </Form.Group>
-            )}
-            {/* Form nhập tên sản phẩm */}
             <Form.Group className="mb-3">
               <Form.Label>Product Name</Form.Label>
               <Form.Control
@@ -1330,7 +1290,6 @@ const ManageSouvenir = () => {
                 placeholder="Enter product name"
               />
             </Form.Group>
-            {/* Form nhập mô tả */}
             <Form.Group className="mb-3">
               <Form.Label>Description</Form.Label>
               <Form.Control
@@ -1346,7 +1305,6 @@ const ManageSouvenir = () => {
             </Form.Group>
             <Row>
               <Col md={6}>
-                {/* Form nhập số lượng */}
                 <Form.Group className="mb-3">
                   <Form.Label>Quantity</Form.Label>
                   <Form.Control
@@ -1362,7 +1320,6 @@ const ManageSouvenir = () => {
                 </Form.Group>
               </Col>
               <Col md={6}>
-                {/* Form nhập giá */}
                 <Form.Group className="mb-3">
                   <Form.Label>Price (VND)</Form.Label>
                   <Form.Control
@@ -1384,10 +1341,9 @@ const ManageSouvenir = () => {
                 </Form.Group>
               </Col>
             </Row>
-            {/* Form tải lên hình ảnh khi tạo mới */}
             {!isEditing && (
               <Form.Group className="mb-3">
-                <Form.Label>Upload Images (First image will be the main thumbnail)</Form.Label>
+                <Form.Label>Upload Images</Form.Label>
                 <Form.Control
                   type="file"
                   multiple
@@ -1407,7 +1363,7 @@ const ManageSouvenir = () => {
                           style={{
                             position: "relative",
                             width: "120px",
-                            height: "120px", // Giảm chiều cao vì bỏ chú thích
+                            height: "120px",
                             border: "1px solid #dee2e6",
                             borderRadius: "5px",
                             overflow: "hidden",
@@ -1423,7 +1379,6 @@ const ManageSouvenir = () => {
                             style={{ objectFit: "cover", display: "block" }}
                             preview={false}
                           />
-                          {/* Nút X để xóa hình ảnh */}
                           <XCircle
                             size={24}
                             color="#dc3545"
@@ -1448,7 +1403,73 @@ const ManageSouvenir = () => {
                 )}
               </Form.Group>
             )}
-            {/* Form toggle trạng thái active */}
+            {isEditing && currentProduct && (
+              <Form.Group className="mb-3">
+                <Form.Label style={{ fontWeight: "500", color: "#333" }}>
+                  Product Images
+                </Form.Label>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(2, 1fr)",
+                    gap: "10px",
+                    padding: "10px",
+                    backgroundColor: "#f8f9fa",
+                    borderRadius: "5px",
+                  }}
+                >
+                  {currentProduct.productImages?.length > 0 ? (
+                    currentProduct.productImages.map((img, index) => (
+                      <div
+                        key={index}
+                        style={{
+                          position: "relative",
+                          width: "150px",
+                          height: "150px",
+                        }}
+                      >
+                        <Image
+                          width={150}
+                          height={150}
+                          src={img.urlImage}
+                          alt={`${formData.productName || "Product"} ${index + 1}`}
+                          onError={handleImageError}
+                          style={{
+                            objectFit: "cover",
+                            borderRadius: "5px",
+                            border: "2px solid #660545",
+                            boxShadow: "0 2px 5px rgba(0, 0, 0, 0.15)",
+                            transition: "transform 0.2s, border-color 0.2s",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.transform = "scale(1.05)";
+                            e.target.style.borderColor = "#22668a";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.transform = "scale(1)";
+                            e.target.style.borderColor = "#660545";
+                          }}
+                          preview={false}
+                        />
+                      </div>
+                    ))
+                  ) : (
+                    <Image
+                      width={150}
+                      height={150}
+                      src={PLACEHOLDER_IMAGE_URL}
+                      alt="No image"
+                      style={{
+                        objectFit: "cover",
+                        borderRadius: "5px",
+                        border: "2px solid #dee2e6",
+                      }}
+                      preview={false}
+                    />
+                  )}
+                </div>
+              </Form.Group>
+            )}
             <Form.Group className="mb-3">
               <Form.Check
                 type="switch"
@@ -1488,12 +1509,12 @@ const ManageSouvenir = () => {
               padding: "10px 20px",
               fontSize: "14px",
               borderRadius: "4px",
-              background: "linear-gradient(135deg, #510545, #22668a)",
+              background: "linear-gradient(135deg, #660545, #22668a)",
               border: "none",
               color: "#fff",
             }}
-            onMouseEnter={(e) => (e.target.style.background = "linear-gradient(135deg, #22668a, #510545)")}
-            onMouseLeave={(e) => (e.target.style.background = "linear-gradient(135deg, #510545, #22668a)")}
+            onMouseEnter={(e) => (e.target.style.background = "linear-gradient(135deg, #22668a, #660545)")}
+            onMouseLeave={(e) => (e.target.style.background = "linear-gradient(135deg, #660545, #22668a)")}
           >
             {isLoading ? "Saving..." : (isEditing ? "Update" : "Add") + " Souvenir"}
           </Button>
