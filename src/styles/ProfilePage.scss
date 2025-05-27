@@ -542,6 +542,7 @@ $badge-bg-leader: #ffca28; // Badge leader
       @media (max-width: 768px) {
         flex-direction: column;
         align-items: center;
+        gap: 1.5rem;
       }
     }
 
@@ -753,6 +754,7 @@ $badge-bg-leader: #ffca28; // Badge leader
 
         @media (max-width: 768px) {
           grid-template-columns: 1fr;
+          gap: 0.75rem;
         }
 
         .detail-item {
@@ -966,14 +968,13 @@ $badge-bg-leader: #ffca28; // Badge leader
           font-weight: 600;
           color: $primary-color;
           margin-bottom: 1rem;
-          flex-wrap: wrap; // [THAY ĐỔI] Thêm flex-wrap cho responsive
+          flex-wrap: wrap;
 
           .star-icon {
             color: #f4c542;
           }
 
           .total-votes {
-            // [THAY ĐỔI] Style cho tổng số vote
             color: $primary-color;
             font-weight: 600;
             font-size: 1.2rem;
@@ -1034,6 +1035,7 @@ $badge-bg-leader: #ffca28; // Badge leader
             justify-content: space-between;
             align-items: center;
             margin-bottom: 0.5rem;
+            flex-wrap: wrap;
 
             .character-name {
               font-weight: 600;
@@ -1062,12 +1064,6 @@ $badge-bg-leader: #ffca28; // Badge leader
             font-size: 0.95rem;
             line-height: 1.6;
             margin: 0.5rem 0;
-          }
-
-          .feedback-author {
-            font-size: 0.85rem;
-            color: $text-secondary;
-            font-style: italic;
           }
         }
       }
