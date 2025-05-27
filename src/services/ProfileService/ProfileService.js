@@ -17,11 +17,14 @@
 
 import { apiClient, formDataClient } from "../../api/apiClient.js";
 
+// Dịch vụ quản lý hồ sơ người dùng
 const ProfileService = {
   // Lấy thông tin hồ sơ theo accountId
   getProfileById: async (accountId) => {
     try {
-      const response = await apiClient.get(`/api/Account/${accountId}`);
+      const response = await apiClient.get(`/api/Account/${accountId}`, {
+        timeout: 10000,
+      });
       return response.data;
     } catch (error) {
       throw new Error(error.response?.data?.message || "Failed to get profile");
@@ -31,8 +34,10 @@ const ProfileService = {
   // Lấy danh sách tài khoản theo roleId
   getAccountsByRoleId: async (roleId) => {
     try {
-      const response = await apiClient.get(`/api/Account/roleId/${roleId}`);
-      return Array.isArray(response.data) ? response.data : [response.data]; // Đảm bảo trả về mảng
+      const response = await apiClient.get(`/api/Account/roleId/${roleId}`, {
+        timeout: 10000,
+      });
+      return Array.isArray(response.data) ? response.data : [response.data];
     } catch (error) {
       throw new Error(
         error.response?.data?.message || "Failed to get accounts by role"
@@ -49,19 +54,11 @@ const ProfileService = {
       formData.append("email", data.email || "");
       formData.append("password", data.password || "");
       formData.append("description", data.description || "");
-
-      // Convert birthday to yyyy-MM-dd format if it exists
-      if (data.birthday) {
-        const date = new Date(data.birthday);
-        const formattedDate = date.toISOString().split("T")[0]; // Converts to yyyy-MM-dd
-        formData.append("birthday", formattedDate);
-      } else {
-        formData.append("birthday", "");
-      }
-
+      formData.append("birthday", data.birthday || "");
       formData.append("phone", data.phone || "");
       formData.append("height", data.height || "");
       formData.append("weight", data.weight || "");
+      formData.append("userName", data.userName || "");
 
       if (data.avatar) {
         formData.append("avatar", data.avatar);
@@ -77,6 +74,7 @@ const ProfileService = {
         headers: {
           "Content-Type": "multipart/form-data",
         },
+        timeout: 15000,
       });
 
       return response.data;
@@ -90,8 +88,10 @@ const ProfileService = {
   // Lấy danh sách feedback theo cosplayerId
   getFeedbackByCosplayerId: async (cosplayerId) => {
     try {
-      const response = await apiClient.get(`/api/Feedback/cosplayerId/${cosplayerId}`);
-      return response.data;
+      const response = await apiClient.get(`/api/Feedback/cosplayerId/${cosplayerId}`, {
+        timeout: 10000,
+      });
+      return Array.isArray(response.data) ? response.data : [];
     } catch (error) {
       throw new Error(
         error.response?.data?.message || "Failed to get feedbacks"
