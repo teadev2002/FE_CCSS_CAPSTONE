@@ -671,8 +671,2065 @@
 
 // export default ViewMyRentCos;
 
-// // ẩn button cancel request khi có contract:
+// ẩn button cancel request khi có contract:
 
+// import React, { useState, useEffect, useRef } from "react";
+// import {
+//   Button,
+//   Modal,
+//   List,
+//   Spin,
+//   Steps,
+//   Popover,
+//   Switch,
+//   Popconfirm,
+// } from "antd";
+// import { Eye } from "lucide-react";
+// import MyHistoryService from "../../services/HistoryService/MyHistoryService";
+// import { toast } from "react-toastify";
+// import dayjs from "dayjs";
+// import { Form } from "react-bootstrap";
+// const TaskStatus = {
+//   Pending: "Pending",
+//   Assignment: "Assignment",
+//   Progressing: "Progressing",
+//   Completed: "Completed",
+//   Cancel: "Cancel",
+// };
+
+// const ViewMyRentCos = ({ requestId }) => {
+//   const [isViewModalVisible, setIsViewModalVisible] = useState(false);
+//   const [loading, setLoading] = useState(false);
+//   const [modalData, setModalData] = useState({
+//     name: "",
+//     description: "",
+//     location: "",
+//     deposit: "N/A",
+//     listRequestCharacters: [],
+//     price: 0,
+//     status: "Unknown",
+//     reason: null,
+//   });
+//   const [currentPage, setCurrentPage] = useState(1);
+//   const pageSize = 2;
+//   const isMounted = useRef(true);
+
+//   // State for contract and toggle
+//   const [hasContract, setHasContract] = useState(false);
+//   const [contractData, setContractData] = useState(null);
+//   // State to store tasks and toggle for each cosplayer
+//   const [cosplayerTasks, setCosplayerTasks] = useState({});
+//   const [cosplayerToggles, setCosplayerToggles] = useState({});
+//   const [isCancelModalVisible, setIsCancelModalVisible] = useState(false); // New state for cancel modal
+//   const [cancelReason, setCancelReason] = useState("");
+//   useEffect(() => {
+//     return () => {
+//       isMounted.current = false;
+//     };
+//   }, []);
+
+//   const calculateCharacterDuration = (requestDateResponses) => {
+//     let totalHours = 0;
+//     const uniqueDays = new Set();
+
+//     (requestDateResponses || []).forEach((dateResponse) => {
+//       const start = dayjs(dateResponse.startDate, "HH:mm DD/MM/YYYY");
+//       const end = dayjs(dateResponse.endDate, "HH:mm DD/MM/YYYY");
+
+//       if (start.isValid() && end.isValid() && start < end) {
+//         const durationHours = end.diff(start, "hour", true);
+//         totalHours += durationHours;
+
+//         let current = start.startOf("day");
+//         const endDay = end.startOf("day");
+//         while (current <= endDay) {
+//           uniqueDays.add(current.format("DD/MM/YYYY"));
+//           current = current.add(1, "day");
+//         }
+//       }
+//     });
+
+//     return { totalHours, totalDays: uniqueDays.size };
+//   };
+
+//   const calculateCosplayerPrice = (
+//     totalHours,
+//     totalDays,
+//     hourlyRate,
+//     characterPrice
+//   ) => {
+//     const hoursCost = totalHours * hourlyRate;
+//     const daysCost = characterPrice * totalDays;
+//     return (hoursCost + daysCost).toLocaleString();
+//   };
+
+//   const fetchTasksForCosplayer = async (cosplayerId, contractId) => {
+//     try {
+//       const tasksResponse =
+//         await MyHistoryService.getTaskByCosplayerIdInContract(cosplayerId);
+//       if (tasksResponse) {
+//         // Lọc tasks theo contractId
+//         const matchingTasks = tasksResponse.filter(
+//           (task) => task.contractId === contractId
+//         );
+//         // Sắp xếp tasks theo startDate
+//         return matchingTasks.sort((a, b) =>
+//           dayjs(a.startDate, "HH:mm DD/MM/YYYY").diff(
+//             dayjs(b.startDate, "HH:mm DD/MM/YYYY")
+//           )
+//         );
+//       }
+//       return [];
+//     } catch (error) {
+//       console.warn(
+//         `Failed to fetch tasks for cosplayer ${cosplayerId}:`,
+//         error
+//       );
+//       return [];
+//     }
+//   };
+
+//   const handleToggleStatusProgression = async (
+//     cosplayerId,
+//     contractId,
+//     checked
+//   ) => {
+//     setCosplayerToggles((prev) => ({
+//       ...prev,
+//       [cosplayerId]: checked,
+//     }));
+
+//     if (checked && !cosplayerTasks[cosplayerId]) {
+//       const tasks = await fetchTasksForCosplayer(cosplayerId, contractId);
+//       setCosplayerTasks((prev) => ({
+//         ...prev,
+//         [cosplayerId]: tasks,
+//       }));
+//     }
+//   };
+
+//   const handleViewRequest = async () => {
+//     setLoading(true);
+//     setIsViewModalVisible(true);
+//     try {
+//       const data = await MyHistoryService.getRequestByRequestId(requestId);
+//       if (!data) throw new Error("Request data not found");
+
+//       const formattedData = {
+//         name: data.name || "N/A",
+//         description: data.description || "N/A",
+//         location: data.location || "N/A",
+//         deposit: data.deposit || "N/A",
+//         listRequestCharacters: [],
+//         price: data.price || 0,
+//         status: data.status || "Unknown",
+//         reason: data.reason || null,
+//       };
+
+//       const charactersList = data.charactersListResponse || [];
+//       const sharedRequestDates = [];
+//       const dateSet = new Set();
+//       charactersList.forEach((char) => {
+//         const dates = char.requestDateResponses || [];
+//         dates.forEach((date) => {
+//           const dateKey = `${date.startDate}-${date.endDate}`;
+//           if (!dateSet.has(dateKey)) {
+//             dateSet.add(dateKey);
+//             sharedRequestDates.push({
+//               startDate: date.startDate || "",
+//               endDate: date.endDate || "",
+//               totalHour: date.totalHour || 0,
+//             });
+//           }
+//         });
+//       });
+
+//       if (charactersList.length > 0) {
+//         const listRequestCharacters = await Promise.all(
+//           charactersList.map(async (char) => {
+//             const { totalHours, totalDays } =
+//               calculateCharacterDuration(sharedRequestDates);
+
+//             let cosplayerName = "Not Assigned";
+//             let salaryIndex = 1;
+//             let characterPrice = 0;
+
+//             const characterData = await MyHistoryService.getCharacterById(
+//               char.characterId
+//             );
+//             characterPrice = characterData?.price || 0;
+
+//             if (char.cosplayerId) {
+//               try {
+//                 const cosplayerData =
+//                   await MyHistoryService.gotoHistoryByAccountId(
+//                     char.cosplayerId
+//                   );
+//                 cosplayerName = cosplayerData?.name || "Unknown";
+//                 salaryIndex = cosplayerData?.salaryIndex || 1;
+//               } catch (cosplayerError) {
+//                 console.warn(
+//                   `Failed to fetch cosplayer data for ID ${char.cosplayerId}:`,
+//                   cosplayerError
+//                 );
+//               }
+//             }
+
+//             return {
+//               cosplayerId: char.cosplayerId || null,
+//               characterId: char.characterId,
+//               cosplayerName,
+//               characterName: characterData?.characterName || "Unknown",
+//               characterImage: char.characterImages?.[0]?.urlImage || "",
+//               quantity: char.quantity || 1,
+//               salaryIndex,
+//               characterPrice,
+//               totalHours,
+//               totalDays,
+//               requestDates: sharedRequestDates,
+//               status: char.status || "Unknown",
+//             };
+//           })
+//         );
+
+//         formattedData.listRequestCharacters = listRequestCharacters;
+//       }
+
+//       // Check for contract using accountId and filter by requestId
+//       try {
+//         const accountId = data.accountId;
+//         if (!accountId) throw new Error("Account ID not found in request data");
+
+//         const contracts = await MyHistoryService.getAllContractByAccountId(
+//           accountId
+//         );
+//         console.log("All contracts for account:", contracts);
+
+//         const matchingContract = contracts.find(
+//           (contract) => contract.requestId === requestId
+//         );
+//         console.log("Matching contract:", matchingContract);
+
+//         if (matchingContract && matchingContract.contractId) {
+//           const contractResponse =
+//             await MyHistoryService.getContractByContractId(
+//               matchingContract.contractId
+//             );
+//           console.log("Contract response:", contractResponse);
+
+//           setHasContract(true);
+//           setContractData(contractResponse);
+//         } else {
+//           setHasContract(false);
+//           setContractData(null);
+//         }
+//       } catch (contractError) {
+//         console.warn("No contract found for this request:", contractError);
+//         setHasContract(false);
+//         setContractData(null);
+//       }
+
+//       if (isMounted.current) {
+//         setModalData(formattedData);
+//       }
+//     } catch (error) {
+//       console.error("Failed to fetch request details:", error);
+//       if (isMounted.current) {
+//         toast.error("Failed to load request details.");
+//       }
+//     } finally {
+//       if (isMounted.current) {
+//         setLoading(false);
+//       }
+//     }
+//   };
+
+//   const handleModalConfirm = () => {
+//     setIsViewModalVisible(false);
+//     setCosplayerToggles({}); // Reset toggles when closing modal
+//     setCosplayerTasks({}); // Reset tasks when closing modal
+//   };
+
+//   const handlePageChange = (page) => {
+//     setCurrentPage(page);
+//   };
+//   const handleCancelRequest = async () => {
+//     if (!cancelReason.trim()) {
+//       toast.error("Please provide a reason for cancellation.", {
+//         position: "top-right",
+//         autoClose: 3000,
+//       });
+//       return;
+//     }
+
+//     setLoading(true);
+//     try {
+//       await MyHistoryService.UpdateRequestStatusById(
+//         requestId,
+//         2,
+//         cancelReason
+//       );
+//       setModalData((prev) => ({
+//         ...prev,
+//         status: "Cancel",
+//         reason: cancelReason,
+//       }));
+//       setIsCancelModalVisible(false);
+//       setCancelReason("");
+//       toast.success("Request canceled successfully!", {
+//         position: "top-right",
+//         autoClose: 3000,
+//       });
+//     } catch (error) {
+//       console.error("Failed to cancel request:", error);
+//       toast.error("Failed to cancel request.", {
+//         position: "top-right",
+//         autoClose: 3000,
+//       });
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+//   // Status Progression Logic for a single cosplayer
+//   const getStatusProgression = (cosplayerId, contractId) => {
+//     const tasks = cosplayerTasks[cosplayerId] || [];
+//     const today = dayjs();
+
+//     // Lọc tasks theo contractId (đảm bảo chỉ lấy tasks của hợp đồng hiện tại)
+//     const contractTasks = tasks.filter(
+//       (task) => task.contractId === contractId
+//     );
+
+//     if (contractTasks.length === 0) {
+//       return {
+//         currentStatusIndex: -1,
+//         isCancelled: false,
+//         filteredStepsItems: [],
+//         dailyProgress: [],
+//       };
+//     }
+
+//     // Tạo danh sách các ngày làm việc
+//     const dailyProgress = contractTasks.map((task) => {
+//       const startDate = dayjs(task.startDate, "HH:mm DD/MM/YYYY");
+//       const endDate = dayjs(task.endDate, "HH:mm DD/MM/YYYY");
+//       const day = startDate.startOf("day");
+
+//       // Suy ra trạng thái dựa trên ngày và trạng thái task
+//       let status = task.status;
+//       if (task.status === "Cancel") {
+//         status = "Cancel";
+//       } else if (day.isBefore(today, "day")) {
+//         status = "Completed"; // Ngày đã qua được coi là hoàn thành
+//       } else if (day.isSame(today, "day")) {
+//         status = "Progressing"; // Ngày hiện tại đang thực hiện
+//       } else {
+//         status = "Pending"; // Ngày tương lai chưa bắt đầu
+//       }
+
+//       return {
+//         date: day.format("DD/MM/YYYY"),
+//         status,
+//         details: `  (${startDate.format("HH:mm")} - ${endDate.format(
+//           "HH:mm"
+//         )})`, // Chỉ lấy giờ
+//       };
+//     });
+
+//     // Tạo các bước cho Steps
+//     const stepsItems = dailyProgress.map((day, index) => ({
+//       title: `Day ${index + 1} (${day.date})`,
+//       description: day.details,
+//       status:
+//         day.status === "Completed"
+//           ? "Completed"
+//           : day.status === "Progressing"
+//           ? "Progressing"
+//           : day.status === "Asssigment"
+//           ? "Assignment"
+//           : "Wait",
+//     }));
+
+//     // Xác định bước hiện tại
+//     const currentStatusIndex = dailyProgress.findIndex(
+//       (day) => day.status === "Progressing"
+//     );
+//     const isCancelled = dailyProgress.some((day) => day.status === "Cancel");
+
+//     return {
+//       currentStatusIndex:
+//         currentStatusIndex >= 0 ? currentStatusIndex : dailyProgress.length - 1,
+//       isCancelled,
+//       filteredStepsItems: isCancelled
+//         ? stepsItems
+//         : stepsItems.filter((item) => item.status !== "error"),
+//       dailyProgress,
+//     };
+//   };
+//   return (
+//     <>
+//       <Button className=" btn-view" onClick={handleViewRequest}>
+//         <Eye size={16} /> View
+//       </Button>
+
+//       <Modal
+//         title="View Details"
+//         open={isViewModalVisible}
+//         onOk={handleModalConfirm}
+//         onCancel={() => setIsViewModalVisible(false)}
+//         okText="Close"
+//         footer={[
+//           <Button key="ok" type="primary" onClick={handleModalConfirm}>
+//             Close
+//           </Button>,
+//         ]}
+//         width={800}
+//       >
+//         {loading ? (
+//           <div style={{ textAlign: "center", padding: "20px" }}>
+//             <Spin />
+//           </div>
+//         ) : (
+//           <>
+//             <div className="d-flex justify-content-between align-items-center">
+//               <div>
+//                 <strong>Total Price:</strong>{" "}
+//                 <strong>{(modalData.price || 0).toLocaleString()} VND</strong>
+//               </div>
+//               <div className="mt-1">
+//                 {modalData.status !== "Cancel" &&
+//                   (!contractData || !contractData.status) && (
+//                     <div style={{ textAlign: "left" }}>
+//                       <Popconfirm
+//                         title="Are you sure you want to cancel this request?"
+//                         onConfirm={() => setIsCancelModalVisible(true)}
+//                         okText="Yes"
+//                         cancelText="No"
+//                       >
+//                         <Button type="primary" danger>
+//                           Cancel Request
+//                         </Button>
+//                       </Popconfirm>
+//                     </div>
+//                   )}
+//               </div>
+//             </div>
+
+//             <hr />
+//             <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
+//               <div className="mb-3" style={{ flex: "1 1 10%", padding: "5px" }}>
+//                 <p>
+//                   <strong>Name:</strong> {modalData.name}
+//                 </p>
+//               </div>
+//               <div className="mb-3" style={{ flex: "1 1 10%", padding: "5px" }}>
+//                 <p>
+//                   <strong>Deposit:</strong> {modalData.deposit}%
+//                 </p>
+//               </div>
+//               <div className="mb-3" style={{ flex: "1 1 10%", padding: "5px" }}>
+//                 <p>
+//                   <strong>Location:</strong> {modalData.location}
+//                 </p>
+//               </div>
+//               <div className="mb-3" style={{ flex: "1 1 10%", padding: "5px" }}>
+//                 <p>
+//                   <strong>Description:</strong> {modalData.description}
+//                 </p>
+//               </div>
+//             </div>
+
+//             <h4>List of Requested Characters:</h4>
+//             {modalData.listRequestCharacters.length > 0 ? (
+//               <List
+//                 dataSource={modalData.listRequestCharacters}
+//                 pagination={{
+//                   current: currentPage,
+//                   pageSize: pageSize,
+//                   total: modalData.listRequestCharacters.length,
+//                   onChange: handlePageChange,
+//                   showSizeChanger: false,
+//                 }}
+//                 renderItem={(item, index) => {
+//                   const showToggle =
+//                     hasContract &&
+//                     item.cosplayerId &&
+//                     item.cosplayerId !== "Not Assigned";
+//                   const {
+//                     currentStatusIndex,
+//                     isCancelled,
+//                     filteredStepsItems,
+//                     dailyProgress,
+//                   } = showToggle
+//                     ? getStatusProgression(
+//                         item.cosplayerId,
+//                         contractData.contractId
+//                       )
+//                     : {
+//                         currentStatusIndex: -1,
+//                         isCancelled: false,
+//                         filteredStepsItems: [],
+//                         dailyProgress: [],
+//                       };
+
+//                   const customDot = (dot, { status, index }) => {
+//                     // Define colors based on status
+//                     const statusColors = {
+//                       Pending: "#1890ff", // Blue
+//                       Assignment: "#faad14", // Yellow
+//                       Progressing: "#722ed1", // Purple
+//                       Completed: "#52c41a", // Green
+//                       Cancel: "#ff4d4f", // Red
+//                       Wait: "#d9d9d9", // Gray (default for undefined statuses)
+//                     };
+
+//                     const dotColor = statusColors[status] || "#d9d9d9"; // Fallback to gray if status is undefined
+
+//                     return (
+//                       <Popover
+//                         content={
+//                           <span>
+//                             Day {index + 1} status: {status} <br />
+//                             Details:{" "}
+//                             {dailyProgress[index]?.details ||
+//                               "No details available"}
+//                           </span>
+//                         }
+//                       >
+//                         <span
+//                           style={{
+//                             display: "inline-block",
+//                             width: "15px",
+//                             height: "15px",
+//                             borderRadius: "50%",
+//                             backgroundColor: dotColor,
+//                             margin: "0px -10px",
+//                           }}
+//                         />
+//                       </Popover>
+//                     );
+//                   };
+//                   return (
+//                     <List.Item key={index}>
+//                       <div
+//                         style={{
+//                           display: "flex",
+//                           alignItems: "center",
+//                           width: "100%",
+//                         }}
+//                       >
+//                         <div style={{ flex: 1 }}>
+//                           <div
+//                             style={{
+//                               display: index === 0 ? "block" : "none",
+//                             }}
+//                           >
+//                             <p>
+//                               <strong>
+//                                 Request Dates (for All Cosplayers):
+//                               </strong>
+//                             </p>
+//                             <ul>
+//                               {item.requestDates.length > 0 ? (
+//                                 item.requestDates.map((date, idx) => (
+//                                   <li key={idx}>
+//                                     {date.startDate} - {date.endDate} (Total
+//                                     Hours: {date.totalHour || 0})
+//                                   </li>
+//                                 ))
+//                               ) : (
+//                                 <li>No date-time data available</li>
+//                               )}
+//                             </ul>
+//                           </div>
+//                           <p>
+//                             <strong>{item.cosplayerName}</strong> as{" "}
+//                             <strong>{item.characterName}</strong>
+//                           </p>
+//                           <p className="d-flex">
+//                             <strong>Request Character Status:&nbsp; </strong>
+//                             <i
+//                               className={`fw-bold ${
+//                                 item.status === "Accept"
+//                                   ? "text-success  "
+//                                   : item.status === "Busy"
+//                                   ? "text-danger "
+//                                   : "text-danger "
+//                               }`}
+//                             >
+//                               {item.status}
+//                             </i>
+//                           </p>
+//                           <p>
+//                             Quantity: {item.quantity} | Hourly Rate:{" "}
+//                             {item.salaryIndex.toLocaleString()} VND/h |
+//                             Character Price:{" "}
+//                             {item.characterPrice.toLocaleString()} VND
+//                           </p>
+//                           <p>
+//                             <strong>Cost for this Cosplayer:</strong>{" "}
+//                             {calculateCosplayerPrice(
+//                               item.totalHours,
+//                               item.totalDays,
+//                               item.salaryIndex,
+//                               item.characterPrice
+//                             )}{" "}
+//                             VND
+//                           </p>
+
+//                           {showToggle && (
+//                             <div
+//                               style={{
+//                                 marginTop: "10px",
+//                                 marginBottom: "10px",
+//                               }}
+//                             >
+//                               <Switch
+//                                 checked={
+//                                   cosplayerToggles[item.cosplayerId] || false
+//                                 }
+//                                 onChange={(checked) =>
+//                                   handleToggleStatusProgression(
+//                                     item.cosplayerId,
+//                                     contractData.contractId,
+//                                     checked
+//                                   )
+//                                 }
+//                                 checkedChildren="Hide Status Progression"
+//                                 unCheckedChildren="View Status Progression"
+//                               />
+//                             </div>
+//                           )}
+
+//                           {showToggle && cosplayerToggles[item.cosplayerId] && (
+//                             <>
+//                               <h5>
+//                                 Task Status Progression for {item.cosplayerName}
+//                               </h5>
+//                               {cosplayerTasks[item.cosplayerId]?.length > 0 ? (
+//                                 <Steps
+//                                   current={currentStatusIndex}
+//                                   progressDot={customDot}
+//                                   items={filteredStepsItems}
+//                                   style={{
+//                                     marginBottom: "20px",
+//                                   }}
+//                                 />
+//                               ) : (
+//                                 <p>
+//                                   Payment deposit to see progression task daily.
+//                                 </p>
+//                               )}
+//                             </>
+//                           )}
+//                         </div>
+//                       </div>
+//                     </List.Item>
+//                   );
+//                 }}
+//               />
+//             ) : (
+//               <p>No characters requested.</p>
+//             )}
+//             {modalData.status === "Cancel" && modalData.reason && (
+//               <h5 className="reason-text" style={{ color: "red" }}>
+//                 <strong>Request Status: Cancel</strong>{" "}
+//                 <span>{modalData.reason && `(${modalData.reason})`}</span>
+//               </h5>
+//             )}
+//           </>
+//         )}
+//       </Modal>
+
+//       {/* Cancellation Reason Modal */}
+//       <Modal
+//         title="Cancel Request"
+//         open={isCancelModalVisible}
+//         onOk={handleCancelRequest}
+//         onCancel={() => setIsCancelModalVisible(false)}
+//         okText="Submit"
+//         cancelText="Close"
+//       >
+//         <Form>
+//           <Form.Group className="mb-3">
+//             <Form.Label>Reason for Cancellation</Form.Label>
+//             <Form.Control
+//               as="textarea"
+//               rows={3}
+//               value={cancelReason}
+//               onChange={(e) => setCancelReason(e.target.value)}
+//               placeholder="Enter reason for cancellation"
+//               required
+//             />
+//           </Form.Group>
+//         </Form>
+//       </Modal>
+//     </>
+//   );
+// };
+
+// export default ViewMyRentCos;
+
+// fix thanh progression
+// import React, { useState, useEffect, useRef } from "react";
+// import {
+//   Button,
+//   Modal,
+//   List,
+//   Spin,
+//   Steps,
+//   Popover,
+//   Switch,
+//   Popconfirm,
+// } from "antd";
+// import { Eye } from "lucide-react";
+// import MyHistoryService from "../../services/HistoryService/MyHistoryService";
+// import { toast } from "react-toastify";
+// import dayjs from "dayjs";
+// import { Form } from "react-bootstrap";
+
+// const TaskStatus = {
+//   Pending: "Pending",
+//   Assignment: "Assignment",
+//   Progressing: "Progressing",
+//   Completed: "Completed",
+//   Cancel: "Cancel",
+// };
+
+// const ViewMyRentCos = ({ requestId }) => {
+//   const [isViewModalVisible, setIsViewModalVisible] = useState(false);
+//   const [loading, setLoading] = useState(false);
+//   const [modalData, setModalData] = useState({
+//     name: "",
+//     description: "",
+//     location: "",
+//     deposit: "N/A",
+//     listRequestCharacters: [],
+//     price: 0,
+//     status: "Unknown",
+//     reason: null,
+//   });
+//   const [currentPage, setCurrentPage] = useState(1);
+//   const pageSize = 2;
+//   const isMounted = useRef(true);
+
+//   // State for contract and toggle
+//   const [hasContract, setHasContract] = useState(false);
+//   const [contractData, setContractData] = useState(null);
+//   // State to store tasks and toggle for each cosplayer
+//   const [cosplayerTasks, setCosplayerTasks] = useState({});
+//   const [cosplayerToggles, setCosplayerToggles] = useState({});
+//   const [isCancelModalVisible, setIsCancelModalVisible] = useState(false);
+//   const [cancelReason, setCancelReason] = useState("");
+
+//   useEffect(() => {
+//     return () => {
+//       isMounted.current = false;
+//     };
+//   }, []);
+
+//   const calculateCharacterDuration = (requestDateResponses) => {
+//     let totalHours = 0;
+//     const uniqueDays = new Set();
+
+//     (requestDateResponses || []).forEach((dateResponse) => {
+//       const start = dayjs(dateResponse.startDate, "HH:mm DD/MM/YYYY");
+//       const end = dayjs(dateResponse.endDate, "HH:mm DD/MM/YYYY");
+
+//       if (start.isValid() && end.isValid() && start < end) {
+//         const durationHours = end.diff(start, "hour", true);
+//         totalHours += durationHours;
+
+//         let current = start.startOf("day");
+//         const endDay = end.startOf("day");
+//         while (current <= endDay) {
+//           uniqueDays.add(current.format("DD/MM/YYYY"));
+//           current = current.add(1, "day");
+//         }
+//       }
+//     });
+
+//     return { totalHours, totalDays: uniqueDays.size };
+//   };
+
+//   const calculateCosplayerPrice = (
+//     totalHours,
+//     totalDays,
+//     hourlyRate,
+//     characterPrice
+//   ) => {
+//     const hoursCost = totalHours * hourlyRate;
+//     const daysCost = characterPrice * totalDays;
+//     return (hoursCost + daysCost).toLocaleString();
+//   };
+
+//   const fetchTasksForCosplayer = async (cosplayerId, contractId) => {
+//     try {
+//       const tasksResponse = await MyHistoryService.getTaskByContractId(
+//         contractId
+//       );
+//       if (tasksResponse) {
+//         // Filter tasks by cosplayerId (accountId in API response)
+//         const matchingTasks = tasksResponse.filter(
+//           (task) => task.accountId === cosplayerId
+//         );
+//         // Sort tasks by startDate
+//         return matchingTasks.sort((a, b) =>
+//           dayjs(a.startDate, "DD/MM/YYYY").diff(
+//             dayjs(b.startDate, "DD/MM/YYYY")
+//           )
+//         );
+//       }
+//       return [];
+//     } catch (error) {
+//       console.warn(
+//         `Failed to fetch tasks for cosplayer ${cosplayerId} in contract ${contractId}:`,
+//         error
+//       );
+//       return [];
+//     }
+//   };
+
+//   const handleToggleStatusProgression = async (
+//     cosplayerId,
+//     contractId,
+//     checked
+//   ) => {
+//     setCosplayerToggles((prev) => ({
+//       ...prev,
+//       [cosplayerId]: checked,
+//     }));
+
+//     if (checked && !cosplayerTasks[cosplayerId]) {
+//       const tasks = await fetchTasksForCosplayer(cosplayerId, contractId);
+//       setCosplayerTasks((prev) => ({
+//         ...prev,
+//         [cosplayerId]: tasks,
+//       }));
+//     }
+//   };
+
+//   const handleViewRequest = async () => {
+//     setLoading(true);
+//     setIsViewModalVisible(true);
+//     try {
+//       const data = await MyHistoryService.getRequestByRequestId(requestId);
+//       if (!data) throw new Error("Request data not found");
+
+//       const formattedData = {
+//         name: data.name || "N/A",
+//         description: data.description || "N/A",
+//         location: data.location || "N/A",
+//         deposit: data.deposit || "N/A",
+//         listRequestCharacters: [],
+//         price: data.price || 0,
+//         status: data.status || "Unknown",
+//         reason: data.reason || null,
+//       };
+
+//       const charactersList = data.charactersListResponse || [];
+//       const sharedRequestDates = [];
+//       const dateSet = new Set();
+//       charactersList.forEach((char) => {
+//         const dates = char.requestDateResponses || [];
+//         dates.forEach((date) => {
+//           const dateKey = `${date.startDate}-${date.endDate}`;
+//           if (!dateSet.has(dateKey)) {
+//             dateSet.add(dateKey);
+//             sharedRequestDates.push({
+//               startDate: date.startDate || "",
+//               endDate: date.endDate || "",
+//               totalHour: date.totalHour || 0,
+//             });
+//           }
+//         });
+//       });
+
+//       if (charactersList.length > 0) {
+//         const listRequestCharacters = await Promise.all(
+//           charactersList.map(async (char) => {
+//             const { totalHours, totalDays } =
+//               calculateCharacterDuration(sharedRequestDates);
+
+//             let cosplayerName = "Not Assigned";
+//             let salaryIndex = 1;
+//             let characterPrice = 0;
+
+//             const characterData = await MyHistoryService.getCharacterById(
+//               char.characterId
+//             );
+//             characterPrice = characterData?.price || 0;
+
+//             if (char.cosplayerId) {
+//               try {
+//                 const cosplayerData =
+//                   await MyHistoryService.gotoHistoryByAccountId(
+//                     char.cosplayerId
+//                   );
+//                 cosplayerName = cosplayerData?.name || "Unknown";
+//                 salaryIndex = cosplayerData?.salaryIndex || 1;
+//               } catch (cosplayerError) {
+//                 console.warn(
+//                   `Failed to fetch cosplayer data for ID ${char.cosplayerId}:`,
+//                   cosplayerError
+//                 );
+//               }
+//             }
+
+//             return {
+//               cosplayerId: char.cosplayerId || null,
+//               characterId: char.characterId,
+//               cosplayerName,
+//               characterName: characterData?.characterName || "Unknown",
+//               characterImage: char.characterImages?.[0]?.urlImage || "",
+//               quantity: char.quantity || 1,
+//               salaryIndex,
+//               characterPrice,
+//               totalHours,
+//               totalDays,
+//               requestDates: sharedRequestDates,
+//               status: char.status || "Unknown",
+//             };
+//           })
+//         );
+
+//         formattedData.listRequestCharacters = listRequestCharacters;
+//       }
+
+//       try {
+//         const accountId = data.accountId;
+//         if (!accountId) throw new Error("Account ID not found in request data");
+
+//         const contracts = await MyHistoryService.getAllContractByAccountId(
+//           accountId
+//         );
+//         const matchingContract = contracts.find(
+//           (contract) => contract.requestId === requestId
+//         );
+
+//         if (matchingContract && matchingContract.contractId) {
+//           const contractResponse =
+//             await MyHistoryService.getContractByContractId(
+//               matchingContract.contractId
+//             );
+//           setHasContract(true);
+//           setContractData(contractResponse);
+//         } else {
+//           setHasContract(false);
+//           setContractData(null);
+//         }
+//       } catch (contractError) {
+//         console.warn("No contract found for this request:", contractError);
+//         setHasContract(false);
+//         setContractData(null);
+//       }
+
+//       if (isMounted.current) {
+//         setModalData(formattedData);
+//       }
+//     } catch (error) {
+//       console.error("Failed to fetch request details:", error);
+//       if (isMounted.current) {
+//         toast.error("Failed to load request details.");
+//       }
+//     } finally {
+//       if (isMounted.current) {
+//         setLoading(false);
+//       }
+//     }
+//   };
+
+//   const handleModalConfirm = () => {
+//     setIsViewModalVisible(false);
+//     setCosplayerToggles({});
+//     setCosplayerTasks({});
+//   };
+
+//   const handlePageChange = (page) => {
+//     setCurrentPage(page);
+//   };
+
+//   const handleCancelRequest = async () => {
+//     if (!cancelReason.trim()) {
+//       toast.error("Please provide a reason for cancellation.", {
+//         position: "top-right",
+//         autoClose: 3000,
+//       });
+//       return;
+//     }
+
+//     setLoading(true);
+//     try {
+//       await MyHistoryService.UpdateRequestStatusById(
+//         requestId,
+//         2,
+//         cancelReason
+//       );
+//       setModalData((prev) => ({
+//         ...prev,
+//         status: "Cancel",
+//         reason: cancelReason,
+//       }));
+//       setIsCancelModalVisible(false);
+//       setCancelReason("");
+//       toast.success("Request canceled successfully!", {
+//         position: "top-right",
+//         autoClose: 3000,
+//       });
+//     } catch (error) {
+//       console.error("Failed to cancel request:", error);
+//       toast.error("Failed to cancel request.", {
+//         position: "top-right",
+//         autoClose: 3000,
+//       });
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   const getStatusProgression = (cosplayerId, contractId) => {
+//     const tasks = cosplayerTasks[cosplayerId] || [];
+
+//     if (tasks.length === 0) {
+//       return {
+//         currentStatusIndex: -1,
+//         isCancelled: false,
+//         filteredStepsItems: [],
+//         dailyProgress: [],
+//       };
+//     }
+
+//     // Create daily progress from tasks
+//     const dailyProgress = tasks.map((task, index) => {
+//       const startDate = dayjs(task.startDate, "DD/MM/YYYY");
+//       const endDate = dayjs(task.endDate, "DD/MM/YYYY");
+
+//       return {
+//         date: startDate.format("DD/MM/YYYY"),
+//         status: task.status, // Use status directly from API
+//         details: `${task.taskName} (${startDate.format("DD/MM/YYYY")})`,
+//       };
+//     });
+
+//     // Create steps for the Steps component
+//     const stepsItems = dailyProgress.map((day, index) => ({
+//       title: `Day ${index + 1} (${day.date})`,
+//       description: day.details,
+//       status: day.status, // Use API status
+//     }));
+
+//     // Find the current step (first non-completed task)
+//     const currentStatusIndex = dailyProgress.findIndex(
+//       (day) => day.status !== "Completed" && day.status !== "Cancel"
+//     );
+//     const isCancelled = dailyProgress.some((day) => day.status === "Cancel");
+
+//     return {
+//       currentStatusIndex:
+//         currentStatusIndex >= 0 ? currentStatusIndex : dailyProgress.length - 1,
+//       isCancelled,
+//       filteredStepsItems: isCancelled
+//         ? stepsItems
+//         : stepsItems.filter((item) => item.status !== "error"),
+//       dailyProgress,
+//     };
+//   };
+
+//   return (
+//     <>
+//       <Button className="btn-view" onClick={handleViewRequest}>
+//         <Eye size={16} /> View
+//       </Button>
+
+//       <Modal
+//         title="View Details"
+//         open={isViewModalVisible}
+//         onOk={handleModalConfirm}
+//         onCancel={() => setIsViewModalVisible(false)}
+//         okText="Close"
+//         footer={[
+//           <Button key="ok" type="primary" onClick={handleModalConfirm}>
+//             Close
+//           </Button>,
+//         ]}
+//         width={800}
+//       >
+//         {loading ? (
+//           <div style={{ textAlign: "center", padding: "20px" }}>
+//             <Spin />
+//           </div>
+//         ) : (
+//           <>
+//             <div className="d-flex justify-content-between align-items-center">
+//               <div>
+//                 <strong>Total Price:</strong>{" "}
+//                 <strong>{(modalData.price || 0).toLocaleString()} VND</strong>
+//               </div>
+//               <div className="mt-1">
+//                 {modalData.status !== "Cancel" &&
+//                   (!contractData || !contractData.status) && (
+//                     <div style={{ textAlign: "left" }}>
+//                       <Popconfirm
+//                         title="Are you sure you want to cancel this request?"
+//                         onConfirm={() => setIsCancelModalVisible(true)}
+//                         okText="Yes"
+//                         cancelText="No"
+//                       >
+//                         <Button type="primary" danger>
+//                           Cancel Request
+//                         </Button>
+//                       </Popconfirm>
+//                     </div>
+//                   )}
+//               </div>
+//             </div>
+
+//             <hr />
+//             <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
+//               <div className="mb-3" style={{ flex: "1 1 10%", padding: "5px" }}>
+//                 <p>
+//                   <strong>Name:</strong> {modalData.name}
+//                 </p>
+//               </div>
+//               <div className="mb-3" style={{ flex: "1 1 10%", padding: "5px" }}>
+//                 <p>
+//                   <strong>Deposit:</strong> {modalData.deposit}%
+//                 </p>
+//               </div>
+//               <div className="mb-3" style={{ flex: "1 1 10%", padding: "5px" }}>
+//                 <p>
+//                   <strong>Location:</strong> {modalData.location}
+//                 </p>
+//               </div>
+//               <div className="mb-3" style={{ flex: "1 1 10%", padding: "5px" }}>
+//                 <p>
+//                   <strong>Description:</strong> {modalData.description}
+//                 </p>
+//               </div>
+//             </div>
+
+//             <h4>List of Requested Characters:</h4>
+//             {modalData.listRequestCharacters.length > 0 ? (
+//               <List
+//                 dataSource={modalData.listRequestCharacters}
+//                 pagination={{
+//                   current: currentPage,
+//                   pageSize: pageSize,
+//                   total: modalData.listRequestCharacters.length,
+//                   onChange: handlePageChange,
+//                   showSizeChanger: false,
+//                 }}
+//                 renderItem={(item, index) => {
+//                   const showToggle =
+//                     hasContract &&
+//                     item.cosplayerId &&
+//                     item.cosplayerId !== "Not Assigned";
+//                   const {
+//                     currentStatusIndex,
+//                     isCancelled,
+//                     filteredStepsItems,
+//                     dailyProgress,
+//                   } = showToggle
+//                     ? getStatusProgression(
+//                         item.cosplayerId,
+//                         contractData.contractId
+//                       )
+//                     : {
+//                         currentStatusIndex: -1,
+//                         isCancelled: false,
+//                         filteredStepsItems: [],
+//                         dailyProgress: [],
+//                       };
+
+//                   const customDot = (dot, { status, index }) => {
+//                     const statusColors = {
+//                       Pending: "#1890ff", // Blue
+//                       Assignment: "#faad14", // Yellow
+//                       Progressing: "#722ed1", // Purple
+//                       Completed: "#52c41a", // Green
+//                       Cancel: "#ff4d4f", // Red
+//                       Wait: "#d9d9d9", // Gray
+//                     };
+
+//                     const dotColor = statusColors[status] || "#d9d9d9";
+
+//                     return (
+//                       <Popover
+//                         content={
+//                           <span>
+//                             Day {index + 1} status: {status} <br />
+//                             Details:{" "}
+//                             {dailyProgress[index]?.details ||
+//                               "No details available"}
+//                           </span>
+//                         }
+//                       >
+//                         <span
+//                           style={{
+//                             display: "inline-block",
+//                             width: "15px",
+//                             height: "15px",
+//                             borderRadius: "50%",
+//                             backgroundColor: dotColor,
+//                             margin: "0px -10px",
+//                           }}
+//                         />
+//                       </Popover>
+//                     );
+//                   };
+
+//                   return (
+//                     <List.Item key={index}>
+//                       <div
+//                         style={{
+//                           display: "flex",
+//                           alignItems: "center",
+//                           width: "100%",
+//                         }}
+//                       >
+//                         <div style={{ flex: 1 }}>
+//                           <div
+//                             style={{
+//                               display: index === 0 ? "block" : "none",
+//                             }}
+//                           >
+//                             <p>
+//                               <strong>
+//                                 Request Dates (for All Cosplayers):
+//                               </strong>
+//                             </p>
+//                             <ul>
+//                               {item.requestDates.length > 0 ? (
+//                                 item.requestDates.map((date, idx) => (
+//                                   <li key={idx}>
+//                                     {date.startDate} - {date.endDate} (Total
+//                                     Hours: {date.totalHour || 0})
+//                                   </li>
+//                                 ))
+//                               ) : (
+//                                 <li>No date-time data available</li>
+//                               )}
+//                             </ul>
+//                           </div>
+//                           <p>
+//                             <strong>{item.cosplayerName}</strong> as{" "}
+//                             <strong>{item.characterName}</strong>
+//                           </p>
+//                           <p className="d-flex">
+//                             <strong>Request Character Status: </strong>
+//                             <i
+//                               className={`fw-bold ${
+//                                 item.status === "Accept"
+//                                   ? "text-success"
+//                                   : item.status === "Busy"
+//                                   ? "text-danger"
+//                                   : "text-danger"
+//                               }`}
+//                             >
+//                               {item.status}
+//                             </i>
+//                           </p>
+//                           <p>
+//                             Quantity: {item.quantity} | Hourly Rate:{" "}
+//                             {item.salaryIndex.toLocaleString()} VND/h |
+//                             Character Price:{" "}
+//                             {item.characterPrice.toLocaleString()} VND
+//                           </p>
+//                           <p>
+//                             <strong>Cost for this Cosplayer:</strong>{" "}
+//                             {calculateCosplayerPrice(
+//                               item.totalHours,
+//                               item.totalDays,
+//                               item.salaryIndex,
+//                               item.characterPrice
+//                             )}{" "}
+//                             VND
+//                           </p>
+
+//                           {showToggle && (
+//                             <div
+//                               style={{
+//                                 marginTop: "10px",
+//                                 marginBottom: "10px",
+//                               }}
+//                             >
+//                               <Switch
+//                                 checked={
+//                                   cosplayerToggles[item.cosplayerId] || false
+//                                 }
+//                                 onChange={(checked) =>
+//                                   handleToggleStatusProgression(
+//                                     item.cosplayerId,
+//                                     contractData.contractId,
+//                                     checked
+//                                   )
+//                                 }
+//                                 checkedChildren="Hide Status Progression"
+//                                 unCheckedChildren="View Status Progression"
+//                               />
+//                             </div>
+//                           )}
+
+//                           {showToggle && cosplayerToggles[item.cosplayerId] && (
+//                             <>
+//                               <h5>
+//                                 Task Status Progression for {item.cosplayerName}
+//                               </h5>
+//                               {cosplayerTasks[item.cosplayerId]?.length > 0 ? (
+//                                 <Steps
+//                                   current={currentStatusIndex}
+//                                   progressDot={customDot}
+//                                   items={filteredStepsItems}
+//                                   style={{ marginBottom: "20px" }}
+//                                 />
+//                               ) : (
+//                                 <p>
+//                                   Payment deposit to see progression task daily.
+//                                 </p>
+//                               )}
+//                             </>
+//                           )}
+//                         </div>
+//                       </div>
+//                     </List.Item>
+//                   );
+//                 }}
+//               />
+//             ) : (
+//               <p>No characters requested.</p>
+//             )}
+//             {modalData.status === "Cancel" && modalData.reason && (
+//               <h5 className="reason-text" style={{ color: "red" }}>
+//                 <strong>Request Status: Cancel</strong>{" "}
+//                 <span>{modalData.reason && `(${modalData.reason})`}</span>
+//               </h5>
+//             )}
+//           </>
+//         )}
+//       </Modal>
+
+//       <Modal
+//         title="Cancel Request"
+//         open={isCancelModalVisible}
+//         onOk={handleCancelRequest}
+//         onCancel={() => setIsCancelModalVisible(false)}
+//         okText="Submit"
+//         cancelText="Close"
+//       >
+//         <Form>
+//           <Form.Group className="mb-3">
+//             <Form.Label>Reason for Cancellation</Form.Label>
+//             <Form.Control
+//               as="textarea"
+//               rows={3}
+//               value={cancelReason}
+//               onChange={(e) => setCancelReason(e.target.value)}
+//               placeholder="Enter reason for cancellation"
+//               required
+//             />
+//           </Form.Group>
+//         </Form>
+//       </Modal>
+//     </>
+//   );
+// };
+
+// export default ViewMyRentCos;
+
+// sửa ngày giờ thanh progression:
+// import React, { useState, useEffect, useRef } from "react";
+// import {
+//   Button,
+//   Modal,
+//   List,
+//   Spin,
+//   Steps,
+//   Popover,
+//   Switch,
+//   Popconfirm,
+// } from "antd";
+// import { Eye } from "lucide-react";
+// import MyHistoryService from "../../services/HistoryService/MyHistoryService";
+// import { toast } from "react-toastify";
+// import dayjs from "dayjs";
+// import { Form } from "react-bootstrap";
+
+// const TaskStatus = {
+//   Pending: "Pending",
+//   Assignment: "Assignment",
+//   Progressing: "Progressing",
+//   Completed: "Completed",
+//   Cancel: "Cancel",
+// };
+
+// const ViewMyRentCos = ({ requestId }) => {
+//   const [isViewModalVisible, setIsViewModalVisible] = useState(false);
+//   const [loading, setLoading] = useState(false);
+//   const [modalData, setModalData] = useState({
+//     name: "",
+//     description: "",
+//     location: "",
+//     deposit: "N/A",
+//     listRequestCharacters: [],
+//     price: 0,
+//     status: "Unknown",
+//     reason: null,
+//   });
+//   const [currentPage, setCurrentPage] = useState(1);
+//   const pageSize = 2;
+//   const isMounted = useRef(true);
+
+//   // State for contract and toggle
+//   const [hasContract, setHasContract] = useState(false);
+//   const [contractData, setContractData] = useState(null);
+//   // State to store tasks and toggle for each cosplayer
+//   const [cosplayerTasks, setCosplayerTasks] = useState({});
+//   const [cosplayerToggles, setCosplayerToggles] = useState({});
+//   const [isCancelModalVisible, setIsCancelModalVisible] = useState(false);
+//   const [cancelReason, setCancelReason] = useState("");
+
+//   useEffect(() => {
+//     return () => {
+//       isMounted.current = false;
+//     };
+//   }, []);
+
+//   const calculateCharacterDuration = (requestDateResponses) => {
+//     let totalHours = 0;
+//     const uniqueDays = new Set();
+
+//     (requestDateResponses || []).forEach((dateResponse) => {
+//       const start = dayjs(dateResponse.startDate, "HH:mm DD/MM/YYYY");
+//       const end = dayjs(dateResponse.endDate, "HH:mm DD/MM/YYYY");
+
+//       if (start.isValid() && end.isValid() && start < end) {
+//         const durationHours = end.diff(start, "hour", true);
+//         totalHours += durationHours;
+
+//         let current = start.startOf("day");
+//         const endDay = end.startOf("day");
+//         while (current <= endDay) {
+//           uniqueDays.add(current.format("DD/MM/YYYY"));
+//           current = current.add(1, "day");
+//         }
+//       }
+//     });
+
+//     return { totalHours, totalDays: uniqueDays.size };
+//   };
+
+//   const calculateCosplayerPrice = (
+//     totalHours,
+//     totalDays,
+//     hourlyRate,
+//     characterPrice
+//   ) => {
+//     const hoursCost = totalHours * hourlyRate;
+//     const daysCost = characterPrice * totalDays;
+//     return (hoursCost + daysCost).toLocaleString();
+//   };
+
+//   const fetchTasksForCosplayer = async (cosplayerId, contractId) => {
+//     try {
+//       // Fetch tasks from the old API for date-time information
+//       const tasksWithDates =
+//         await MyHistoryService.getTaskByCosplayerIdInContract(cosplayerId);
+//       // Fetch tasks from the new API for status information
+//       const tasksWithStatus = await MyHistoryService.getTaskByContractId(
+//         contractId
+//       );
+
+//       if (tasksWithDates && tasksWithStatus) {
+//         // Filter tasks by contractId (for old API) and cosplayerId (for new API)
+//         const matchingTasksWithDates = tasksWithDates.filter(
+//           (task) => task.contractId === contractId
+//         );
+//         const matchingTasksWithStatus = tasksWithStatus.filter(
+//           (task) => task.accountId === cosplayerId
+//         );
+
+//         // Combine data: match tasks by startDate and taskName
+//         const combinedTasks = matchingTasksWithDates.map((taskWithDate) => {
+//           const matchingStatusTask = matchingTasksWithStatus.find(
+//             (taskWithStatus) =>
+//               dayjs(taskWithStatus.startDate, "DD/MM/YYYY").isSame(
+//                 dayjs(taskWithDate.startDate, "HH:mm DD/MM/YYYY"),
+//                 "day"
+//               ) && taskWithStatus.taskName === taskWithDate.taskName
+//           );
+
+//           return {
+//             ...taskWithDate,
+//             status: matchingStatusTask
+//               ? matchingStatusTask.status
+//               : taskWithDate.status || "Unknown",
+//           };
+//         });
+
+//         // Sort tasks by startDate
+//         return combinedTasks.sort((a, b) =>
+//           dayjs(a.startDate, "HH:mm DD/MM/YYYY").diff(
+//             dayjs(b.startDate, "HH:mm DD/MM/YYYY")
+//           )
+//         );
+//       }
+//       return [];
+//     } catch (error) {
+//       console.warn(
+//         `Failed to fetch tasks for cosplayer ${cosplayerId} in contract ${contractId}:`,
+//         error
+//       );
+//       return [];
+//     }
+//   };
+
+//   const handleToggleStatusProgression = async (
+//     cosplayerId,
+//     contractId,
+//     checked
+//   ) => {
+//     setCosplayerToggles((prev) => ({
+//       ...prev,
+//       [cosplayerId]: checked,
+//     }));
+
+//     if (checked && !cosplayerTasks[cosplayerId]) {
+//       const tasks = await fetchTasksForCosplayer(cosplayerId, contractId);
+//       setCosplayerTasks((prev) => ({
+//         ...prev,
+//         [cosplayerId]: tasks,
+//       }));
+//     }
+//   };
+
+//   const handleViewRequest = async () => {
+//     setLoading(true);
+//     setIsViewModalVisible(true);
+//     try {
+//       const data = await MyHistoryService.getRequestByRequestId(requestId);
+//       if (!data) throw new Error("Request data not found");
+
+//       const formattedData = {
+//         name: data.name || "N/A",
+//         description: data.description || "N/A",
+//         location: data.location || "N/A",
+//         deposit: data.deposit || "N/A",
+//         listRequestCharacters: [],
+//         price: data.price || 0,
+//         status: data.status || "Unknown",
+//         reason: data.reason || null,
+//       };
+
+//       const charactersList = data.charactersListResponse || [];
+//       const sharedRequestDates = [];
+//       const dateSet = new Set();
+//       charactersList.forEach((char) => {
+//         const dates = char.requestDateResponses || [];
+//         dates.forEach((date) => {
+//           const dateKey = `${date.startDate}-${date.endDate}`;
+//           if (!dateSet.has(dateKey)) {
+//             dateSet.add(dateKey);
+//             sharedRequestDates.push({
+//               startDate: date.startDate || "",
+//               endDate: date.endDate || "",
+//               totalHour: date.totalHour || 0,
+//             });
+//           }
+//         });
+//       });
+
+//       if (charactersList.length > 0) {
+//         const listRequestCharacters = await Promise.all(
+//           charactersList.map(async (char) => {
+//             const { totalHours, totalDays } =
+//               calculateCharacterDuration(sharedRequestDates);
+
+//             let cosplayerName = "Not Assigned";
+//             let salaryIndex = 1;
+//             let characterPrice = 0;
+
+//             const characterData = await MyHistoryService.getCharacterById(
+//               char.characterId
+//             );
+//             characterPrice = characterData?.price || 0;
+
+//             if (char.cosplayerId) {
+//               try {
+//                 const cosplayerData =
+//                   await MyHistoryService.gotoHistoryByAccountId(
+//                     char.cosplayerId
+//                   );
+//                 cosplayerName = cosplayerData?.name || "Unknown";
+//                 salaryIndex = cosplayerData?.salaryIndex || 1;
+//               } catch (cosplayerError) {
+//                 console.warn(
+//                   `Failed to fetch cosplayer data for ID ${char.cosplayerId}:`,
+//                   cosplayerError
+//                 );
+//               }
+//             }
+
+//             return {
+//               cosplayerId: char.cosplayerId || null,
+//               characterId: char.characterId,
+//               cosplayerName,
+//               characterName: characterData?.characterName || "Unknown",
+//               characterImage: char.characterImages?.[0]?.urlImage || "",
+//               quantity: char.quantity || 1,
+//               salaryIndex,
+//               characterPrice,
+//               totalHours,
+//               totalDays,
+//               requestDates: sharedRequestDates,
+//               status: char.status || "Unknown",
+//             };
+//           })
+//         );
+
+//         formattedData.listRequestCharacters = listRequestCharacters;
+//       }
+
+//       try {
+//         const accountId = data.accountId;
+//         if (!accountId) throw new Error("Account ID not found in request data");
+
+//         const contracts = await MyHistoryService.getAllContractByAccountId(
+//           accountId
+//         );
+//         const matchingContract = contracts.find(
+//           (contract) => contract.requestId === requestId
+//         );
+
+//         if (matchingContract && matchingContract.contractId) {
+//           const contractResponse =
+//             await MyHistoryService.getContractByContractId(
+//               matchingContract.contractId
+//             );
+//           setHasContract(true);
+//           setContractData(contractResponse);
+//         } else {
+//           setHasContract(false);
+//           setContractData(null);
+//         }
+//       } catch (contractError) {
+//         console.warn("No contract found for this request:", contractError);
+//         setHasContract(false);
+//         setContractData(null);
+//       }
+
+//       if (isMounted.current) {
+//         setModalData(formattedData);
+//       }
+//     } catch (error) {
+//       console.error("Failed to fetch request details:", error);
+//       if (isMounted.current) {
+//         toast.error("Failed to load request details.");
+//       }
+//     } finally {
+//       if (isMounted.current) {
+//         setLoading(false);
+//       }
+//     }
+//   };
+
+//   const handleModalConfirm = () => {
+//     setIsViewModalVisible(false);
+//     setCosplayerToggles({});
+//     setCosplayerTasks({});
+//   };
+
+//   const handlePageChange = (page) => {
+//     setCurrentPage(page);
+//   };
+
+//   const handleCancelRequest = async () => {
+//     if (!cancelReason.trim()) {
+//       toast.error("Please provide a reason for cancellation.", {
+//         position: "top-right",
+//         autoClose: 3000,
+//       });
+//       return;
+//     }
+
+//     setLoading(true);
+//     try {
+//       await MyHistoryService.UpdateRequestStatusById(
+//         requestId,
+//         2,
+//         cancelReason
+//       );
+//       setModalData((prev) => ({
+//         ...prev,
+//         status: "Cancel",
+//         reason: cancelReason,
+//       }));
+//       setIsCancelModalVisible(false);
+//       setCancelReason("");
+//       toast.success("Request canceled successfully!", {
+//         position: "top-right",
+//         autoClose: 3000,
+//       });
+//     } catch (error) {
+//       console.error("Failed to cancel request:", error);
+//       toast.error("Failed to cancel request.", {
+//         position: "top-right",
+//         autoClose: 3000,
+//       });
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   const getStatusProgression = (cosplayerId, contractId) => {
+//     const tasks = cosplayerTasks[cosplayerId] || [];
+
+//     if (tasks.length === 0) {
+//       return {
+//         currentStatusIndex: -1,
+//         isCancelled: false,
+//         filteredStepsItems: [],
+//         dailyProgress: [],
+//       };
+//     }
+
+//     // Create daily progress using date-time from old API and status from new API
+//     const dailyProgress = tasks.map((task) => {
+//       const startDate = dayjs(task.startDate, "HH:mm DD/MM/YYYY");
+//       const endDate = dayjs(task.endDate, "HH:mm DD/MM/YYYY");
+
+//       return {
+//         date: startDate.format("DD/MM/YYYY"),
+//         status: task.status, // Status from new API
+//         details: `(${startDate.format("HH:mm")} - ${endDate.format("HH:mm")})`, // Time from old API
+//       };
+//     });
+
+//     // Create steps for the Steps component
+//     const stepsItems = dailyProgress.map((day, index) => ({
+//       title: `Day ${index + 1} (${day.date})`,
+//       description: day.details,
+//       status: day.status, // Use API status for dot color
+//     }));
+
+//     // Find the current step (first non-completed task)
+//     const currentStatusIndex = dailyProgress.findIndex(
+//       (day) => day.status !== "Completed" && day.status !== "Cancel"
+//     );
+//     const isCancelled = dailyProgress.some((day) => day.status === "Cancel");
+
+//     return {
+//       currentStatusIndex:
+//         currentStatusIndex >= 0 ? currentStatusIndex : dailyProgress.length - 1,
+//       isCancelled,
+//       filteredStepsItems: isCancelled
+//         ? stepsItems
+//         : stepsItems.filter((item) => item.status !== "error"),
+//       dailyProgress,
+//     };
+//   };
+
+//   return (
+//     <>
+//       <Button className="btn-view" onClick={handleViewRequest}>
+//         <Eye size={16} /> View
+//       </Button>
+
+//       <Modal
+//         title="View Details"
+//         open={isViewModalVisible}
+//         onOk={handleModalConfirm}
+//         onCancel={() => setIsViewModalVisible(false)}
+//         okText="Close"
+//         footer={[
+//           <Button key="ok" type="primary" onClick={handleModalConfirm}>
+//             Close
+//           </Button>,
+//         ]}
+//         width={800}
+//       >
+//         {loading ? (
+//           <div style={{ textAlign: "center", padding: "20px" }}>
+//             <Spin />
+//           </div>
+//         ) : (
+//           <>
+//             <div className="d-flex justify-content-between align-items-center">
+//               <div>
+//                 <strong>Total Price:</strong>{" "}
+//                 <strong>{(modalData.price || 0).toLocaleString()} VND</strong>
+//               </div>
+//               <div className="mt-1">
+//                 {modalData.status !== "Cancel" &&
+//                   (!contractData || !contractData.status) && (
+//                     <div style={{ textAlign: "left" }}>
+//                       <Popconfirm
+//                         title="Are you sure you want to cancel this request?"
+//                         onConfirm={() => setIsCancelModalVisible(true)}
+//                         okText="Yes"
+//                         cancelText="No"
+//                       >
+//                         <Button type="primary" danger>
+//                           Cancel Request
+//                         </Button>
+//                       </Popconfirm>
+//                     </div>
+//                   )}
+//               </div>
+//             </div>
+
+//             <hr />
+//             <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
+//               <div className="mb-3" style={{ flex: "1 1 10%", padding: "5px" }}>
+//                 <p>
+//                   <strong>Name:</strong> {modalData.name}
+//                 </p>
+//               </div>
+//               <div className="mb-3" style={{ flex: "1 1 10%", padding: "5px" }}>
+//                 <p>
+//                   <strong>Deposit:</strong> {modalData.deposit}%
+//                 </p>
+//               </div>
+//               <div className="mb-3" style={{ flex: "1 1 10%", padding: "5px" }}>
+//                 <p>
+//                   <strong>Location:</strong> {modalData.location}
+//                 </p>
+//               </div>
+//               <div className="mb-3" style={{ flex: "1 1 10%", padding: "5px" }}>
+//                 <p>
+//                   <strong>Description:</strong> {modalData.description}
+//                 </p>
+//               </div>
+//             </div>
+
+//             <h4>List of Requested Characters:</h4>
+//             {modalData.listRequestCharacters.length > 0 ? (
+//               <List
+//                 dataSource={modalData.listRequestCharacters}
+//                 pagination={{
+//                   current: currentPage,
+//                   pageSize: pageSize,
+//                   total: modalData.listRequestCharacters.length,
+//                   onChange: handlePageChange,
+//                   showSizeChanger: false,
+//                 }}
+//                 renderItem={(item, index) => {
+//                   const showToggle =
+//                     hasContract &&
+//                     item.cosplayerId &&
+//                     item.cosplayerId !== "Not Assigned";
+//                   const {
+//                     currentStatusIndex,
+//                     isCancelled,
+//                     filteredStepsItems,
+//                     dailyProgress,
+//                   } = showToggle
+//                     ? getStatusProgression(
+//                         item.cosplayerId,
+//                         contractData.contractId
+//                       )
+//                     : {
+//                         currentStatusIndex: -1,
+//                         isCancelled: false,
+//                         filteredStepsItems: [],
+//                         dailyProgress: [],
+//                       };
+
+//                   const customDot = (dot, { status, index }) => {
+//                     const statusColors = {
+//                       Pending: "#1890ff", // Blue
+//                       Assignment: "#1890ff", // Blue
+//                       Progressing: "#faad14", // Yellow
+//                       Completed: "#52c41a", // Green
+//                       Cancel: "#ff4d4f", // Red
+//                       Wait: "#d9d9d9", // Gray
+//                     };
+
+//                     const dotColor = statusColors[status] || "#d9d9d9";
+
+//                     return (
+//                       <Popover
+//                         content={
+//                           <span>
+//                             Day {index + 1} status: {status} <br />
+//                             Details:{" "}
+//                             {dailyProgress[index]?.details ||
+//                               "No details available"}
+//                           </span>
+//                         }
+//                       >
+//                         <span
+//                           style={{
+//                             display: "inline-block",
+//                             width: "15px",
+//                             height: "15px",
+//                             borderRadius: "50%",
+//                             backgroundColor: dotColor,
+//                             margin: "0px -10px",
+//                           }}
+//                         />
+//                       </Popover>
+//                     );
+//                   };
+
+//                   return (
+//                     <List.Item key={index}>
+//                       <div
+//                         style={{
+//                           display: "flex",
+//                           alignItems: "center",
+//                           width: "100%",
+//                         }}
+//                       >
+//                         <div style={{ flex: 1 }}>
+//                           <div
+//                             style={{
+//                               display: index === 0 ? "block" : "none",
+//                             }}
+//                           >
+//                             <p>
+//                               <strong>
+//                                 Request Dates (for All Cosplayers):
+//                               </strong>
+//                             </p>
+//                             <ul>
+//                               {item.requestDates.length > 0 ? (
+//                                 item.requestDates.map((date, idx) => (
+//                                   <li key={idx}>
+//                                     {date.startDate} - {date.endDate} (Total
+//                                     Hours: {date.totalHour || 0})
+//                                   </li>
+//                                 ))
+//                               ) : (
+//                                 <li>No date-time data available</li>
+//                               )}
+//                             </ul>
+//                           </div>
+//                           <p>
+//                             <strong>{item.cosplayerName}</strong> as{" "}
+//                             <strong>{item.characterName}</strong>
+//                           </p>
+//                           <p className="d-flex">
+//                             <strong>Request Character Status: &nbsp;</strong>
+//                             <i
+//                               className={`fw-bold ${
+//                                 item.status === "Accept"
+//                                   ? "text-success"
+//                                   : item.status === "Busy"
+//                                   ? "text-danger"
+//                                   : "text-danger"
+//                               }`}
+//                             >
+//                               {item.status}
+//                             </i>
+//                           </p>
+//                           <p>
+//                             Quantity: {item.quantity} | Hourly Rate:{" "}
+//                             {item.salaryIndex.toLocaleString()} VND/h |
+//                             Character Price: andati:{" "}
+//                             {item.characterPrice.toLocaleString()} VND
+//                           </p>
+//                           <p>
+//                             <strong>Cost for this Cosplayer:</strong>{" "}
+//                             {calculateCosplayerPrice(
+//                               item.totalHours,
+//                               item.totalDays,
+//                               item.salaryIndex,
+//                               item.characterPrice
+//                             )}{" "}
+//                             VND
+//                           </p>
+
+//                           {showToggle && (
+//                             <div
+//                               style={{
+//                                 marginTop: "10px",
+//                                 marginBottom: "10px",
+//                               }}
+//                             >
+//                               <Switch
+//                                 checked={
+//                                   cosplayerToggles[item.cosplayerId] || false
+//                                 }
+//                                 onChange={(checked) =>
+//                                   handleToggleStatusProgression(
+//                                     item.cosplayerId,
+//                                     contractData.contractId,
+//                                     checked
+//                                   )
+//                                 }
+//                                 checkedChildren="Hide Status Progression"
+//                                 unCheckedChildren="View Status Progression"
+//                               />
+//                             </div>
+//                           )}
+
+//                           {showToggle && cosplayerToggles[item.cosplayerId] && (
+//                             <>
+//                               <h5>
+//                                 Task Status Progression for {item.cosplayerName}
+//                               </h5>
+//                               {cosplayerTasks[item.cosplayerId]?.length > 0 ? (
+//                                 <Steps
+//                                   current={currentStatusIndex}
+//                                   progressDot={customDot}
+//                                   items={filteredStepsItems}
+//                                   style={{ marginBottom: "20px" }}
+//                                 />
+//                               ) : (
+//                                 <p>
+//                                   Payment deposit to see progression task daily.
+//                                 </p>
+//                               )}
+//                             </>
+//                           )}
+//                         </div>
+//                       </div>
+//                     </List.Item>
+//                   );
+//                 }}
+//               />
+//             ) : (
+//               <p>No characters requested.</p>
+//             )}
+//             {modalData.status === "Cancel" && modalData.reason && (
+//               <h5 className="reason-text" style={{ color: "red" }}>
+//                 <strong>Request Status: Cancel</strong>{" "}
+//                 <span>{modalData.reason && `(${modalData.reason})`}</span>
+//               </h5>
+//             )}
+//           </>
+//         )}
+//       </Modal>
+
+//       <Modal
+//         title="Cancel Request"
+//         open={isCancelModalVisible}
+//         onOk={handleCancelRequest}
+//         onCancel={() => setIsCancelModalVisible(false)}
+//         okText="Submit"
+//         cancelText="Close"
+//       >
+//         <Form>
+//           <Form.Group className="mb-3">
+//             <Form.Label>Reason for Cancellation</Form.Label>
+//             <Form.Control
+//               as="textarea"
+//               rows={3}
+//               value={cancelReason}
+//               onChange={(e) => setCancelReason(e.target.value)}
+//               placeholder="Enter reason for cancellation"
+//               required
+//             />
+//           </Form.Group>
+//         </Form>
+//       </Modal>
+//     </>
+//   );
+// };
+
+// export default ViewMyRentCos;
+
+// thêm line màu:
 import React, { useState, useEffect, useRef } from "react";
 import {
   Button,
@@ -689,6 +2746,15 @@ import MyHistoryService from "../../services/HistoryService/MyHistoryService";
 import { toast } from "react-toastify";
 import dayjs from "dayjs";
 import { Form } from "react-bootstrap";
+import "../../styles/ViewMyRentCos.scss"; // Import custom CSS for dynamic line colors
+// Add custom CSS for dynamic line colors
+const styles = `
+  .ant-steps-item-process .ant-steps-item-tail::after,
+  .ant-steps-item-wait .ant-steps-item-tail::after {
+    transition: background-color 0.3s;
+  }
+`;
+
 const TaskStatus = {
   Pending: "Pending",
   Assignment: "Assignment",
@@ -720,8 +2786,24 @@ const ViewMyRentCos = ({ requestId }) => {
   // State to store tasks and toggle for each cosplayer
   const [cosplayerTasks, setCosplayerTasks] = useState({});
   const [cosplayerToggles, setCosplayerToggles] = useState({});
-  const [isCancelModalVisible, setIsCancelModalVisible] = useState(false); // New state for cancel modal
+  const [isCancelModalVisible, setIsCancelModalVisible] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
+
+  // Current date for comparison
+  const currentDate = dayjs();
+
+  // Inject custom styles into the document
+  useEffect(() => {
+    const styleSheet = document.createElement("style");
+    styleSheet.type = "text/css";
+    styleSheet.innerText = styles;
+    document.head.appendChild(styleSheet);
+
+    return () => {
+      document.head.removeChild(styleSheet);
+    };
+  }, []);
+
   useEffect(() => {
     return () => {
       isMounted.current = false;
@@ -765,15 +2847,43 @@ const ViewMyRentCos = ({ requestId }) => {
 
   const fetchTasksForCosplayer = async (cosplayerId, contractId) => {
     try {
-      const tasksResponse =
+      // Fetch tasks from the old API for date-time information
+      const tasksWithDates =
         await MyHistoryService.getTaskByCosplayerIdInContract(cosplayerId);
-      if (tasksResponse) {
-        // Lọc tasks theo contractId
-        const matchingTasks = tasksResponse.filter(
+      // Fetch tasks from the new API for status information
+      const tasksWithStatus = await MyHistoryService.getTaskByContractId(
+        contractId
+      );
+
+      if (tasksWithDates && tasksWithStatus) {
+        // Filter tasks by contractId (for old API) and cosplayerId (for new API)
+        const matchingTasksWithDates = tasksWithDates.filter(
           (task) => task.contractId === contractId
         );
-        // Sắp xếp tasks theo startDate
-        return matchingTasks.sort((a, b) =>
+        const matchingTasksWithStatus = tasksWithStatus.filter(
+          (task) => task.accountId === cosplayerId
+        );
+
+        // Combine data: match tasks by startDate and taskName
+        const combinedTasks = matchingTasksWithDates.map((taskWithDate) => {
+          const matchingStatusTask = matchingTasksWithStatus.find(
+            (taskWithStatus) =>
+              dayjs(taskWithStatus.startDate, "DD/MM/YYYY").isSame(
+                dayjs(taskWithDate.startDate, "HH:mm DD/MM/YYYY"),
+                "day"
+              ) && taskWithStatus.taskName === taskWithDate.taskName
+          );
+
+          return {
+            ...taskWithDate,
+            status: matchingStatusTask
+              ? matchingStatusTask.status
+              : taskWithDate.status || "Unknown",
+          };
+        });
+
+        // Sort tasks by startDate
+        return combinedTasks.sort((a, b) =>
           dayjs(a.startDate, "HH:mm DD/MM/YYYY").diff(
             dayjs(b.startDate, "HH:mm DD/MM/YYYY")
           )
@@ -782,7 +2892,7 @@ const ViewMyRentCos = ({ requestId }) => {
       return [];
     } catch (error) {
       console.warn(
-        `Failed to fetch tasks for cosplayer ${cosplayerId}:`,
+        `Failed to fetch tasks for cosplayer ${cosplayerId} in contract ${contractId}:`,
         error
       );
       return [];
@@ -895,7 +3005,6 @@ const ViewMyRentCos = ({ requestId }) => {
         formattedData.listRequestCharacters = listRequestCharacters;
       }
 
-      // Check for contract using accountId and filter by requestId
       try {
         const accountId = data.accountId;
         if (!accountId) throw new Error("Account ID not found in request data");
@@ -903,20 +3012,15 @@ const ViewMyRentCos = ({ requestId }) => {
         const contracts = await MyHistoryService.getAllContractByAccountId(
           accountId
         );
-        console.log("All contracts for account:", contracts);
-
         const matchingContract = contracts.find(
           (contract) => contract.requestId === requestId
         );
-        console.log("Matching contract:", matchingContract);
 
         if (matchingContract && matchingContract.contractId) {
           const contractResponse =
             await MyHistoryService.getContractByContractId(
               matchingContract.contractId
             );
-          console.log("Contract response:", contractResponse);
-
           setHasContract(true);
           setContractData(contractResponse);
         } else {
@@ -946,13 +3050,14 @@ const ViewMyRentCos = ({ requestId }) => {
 
   const handleModalConfirm = () => {
     setIsViewModalVisible(false);
-    setCosplayerToggles({}); // Reset toggles when closing modal
-    setCosplayerTasks({}); // Reset tasks when closing modal
+    setCosplayerToggles({});
+    setCosplayerTasks({});
   };
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
+
   const handleCancelRequest = async () => {
     if (!cancelReason.trim()) {
       toast.error("Please provide a reason for cancellation.", {
@@ -990,17 +3095,11 @@ const ViewMyRentCos = ({ requestId }) => {
       setLoading(false);
     }
   };
-  // Status Progression Logic for a single cosplayer
+
   const getStatusProgression = (cosplayerId, contractId) => {
     const tasks = cosplayerTasks[cosplayerId] || [];
-    const today = dayjs();
 
-    // Lọc tasks theo contractId (đảm bảo chỉ lấy tasks của hợp đồng hiện tại)
-    const contractTasks = tasks.filter(
-      (task) => task.contractId === contractId
-    );
-
-    if (contractTasks.length === 0) {
+    if (tasks.length === 0) {
       return {
         currentStatusIndex: -1,
         isCancelled: false,
@@ -1009,50 +3108,37 @@ const ViewMyRentCos = ({ requestId }) => {
       };
     }
 
-    // Tạo danh sách các ngày làm việc
-    const dailyProgress = contractTasks.map((task) => {
+    // Create daily progress using date-time from old API and status from new API
+    const dailyProgress = tasks.map((task) => {
       const startDate = dayjs(task.startDate, "HH:mm DD/MM/YYYY");
       const endDate = dayjs(task.endDate, "HH:mm DD/MM/YYYY");
-      const day = startDate.startOf("day");
-
-      // Suy ra trạng thái dựa trên ngày và trạng thái task
-      let status = task.status;
-      if (task.status === "Cancel") {
-        status = "Cancel";
-      } else if (day.isBefore(today, "day")) {
-        status = "Completed"; // Ngày đã qua được coi là hoàn thành
-      } else if (day.isSame(today, "day")) {
-        status = "Progressing"; // Ngày hiện tại đang thực hiện
-      } else {
-        status = "Pending"; // Ngày tương lai chưa bắt đầu
-      }
 
       return {
-        date: day.format("DD/MM/YYYY"),
-        status,
-        details: `  (${startDate.format("HH:mm")} - ${endDate.format(
-          "HH:mm"
-        )})`, // Chỉ lấy giờ
+        date: startDate.format("DD/MM/YYYY"),
+        startDate: startDate, // Keep the full date for comparison
+        status: task.status, // Status from new API
+        details: `(${startDate.format("HH:mm")} - ${endDate.format("HH:mm")})`, // Time from old API
       };
     });
 
-    // Tạo các bước cho Steps
-    const stepsItems = dailyProgress.map((day, index) => ({
-      title: `Day ${index + 1} (${day.date})`,
-      description: day.details,
-      status:
-        day.status === "Completed"
-          ? "finish"
-          : day.status === "Progressing"
-          ? "process"
-          : day.status === "Cancel"
-          ? "error"
-          : "Wait",
-    }));
+    // Create steps for the Steps component
+    const stepsItems = dailyProgress.map((day, index) => {
+      // Determine if this step's date is on or before the current date
+      const isPastOrCurrent =
+        day.startDate.isBefore(currentDate, "day") ||
+        day.startDate.isSame(currentDate, "day");
 
-    // Xác định bước hiện tại
+      return {
+        title: `Day ${index + 1} (${day.date})`,
+        description: day.details,
+        status: day.status, // Use API status for dot color
+        className: isPastOrCurrent ? "step-past" : "step-future", // Add class for styling
+      };
+    });
+
+    // Find the current step (first non-completed task)
     const currentStatusIndex = dailyProgress.findIndex(
-      (day) => day.status === "Progressing"
+      (day) => day.status !== "Completed" && day.status !== "Cancel"
     );
     const isCancelled = dailyProgress.some((day) => day.status === "Cancel");
 
@@ -1066,9 +3152,10 @@ const ViewMyRentCos = ({ requestId }) => {
       dailyProgress,
     };
   };
+
   return (
     <>
-      <Button className=" btn-view" onClick={handleViewRequest}>
+      <Button className="btn-view" onClick={handleViewRequest}>
         <Eye size={16} /> View
       </Button>
 
@@ -1172,20 +3259,42 @@ const ViewMyRentCos = ({ requestId }) => {
                         dailyProgress: [],
                       };
 
-                  const customDot = (dot, { status, index }) => (
-                    <Popover
-                      content={
-                        <span>
-                          Day {index + 1} status: {status} <br />
-                          Details:{" "}
-                          {dailyProgress[index]?.details ||
-                            "No details available"}
-                        </span>
-                      }
-                    >
-                      {dot}
-                    </Popover>
-                  );
+                  const customDot = (dot, { status, index }) => {
+                    const statusColors = {
+                      Pending: "#1890ff", // Blue
+                      Assignment: "#1890ff", // Blue
+                      Progressing: "#faad14", // Yellow
+                      Completed: "#52c41a", // Green
+                      Cancel: "#ff4d4f", // Red
+                      Wait: "#d9d9d9", // Gray
+                    };
+
+                    const dotColor = statusColors[status] || "#d9d9d9";
+
+                    return (
+                      <Popover
+                        content={
+                          <span>
+                            Day {index + 1} status: {status} <br />
+                            Details:{" "}
+                            {dailyProgress[index]?.details ||
+                              "No details available"}
+                          </span>
+                        }
+                      >
+                        <span
+                          style={{
+                            display: "inline-block",
+                            width: "15px",
+                            height: "15px",
+                            borderRadius: "50%",
+                            backgroundColor: dotColor,
+                            margin: "0px -10px",
+                          }}
+                        />
+                      </Popover>
+                    );
+                  };
 
                   return (
                     <List.Item key={index}>
@@ -1225,14 +3334,14 @@ const ViewMyRentCos = ({ requestId }) => {
                             <strong>{item.characterName}</strong>
                           </p>
                           <p className="d-flex">
-                            <strong>Request Character Status:&nbsp; </strong>
+                            <strong>Request Character Status: &nbsp; </strong>
                             <i
                               className={`fw-bold ${
                                 item.status === "Accept"
-                                  ? "text-success  "
+                                  ? "text-success"
                                   : item.status === "Busy"
-                                  ? "text-danger "
-                                  : "text-danger "
+                                  ? "text-danger"
+                                  : "text-danger"
                               }`}
                             >
                               {item.status}
@@ -1290,6 +3399,7 @@ const ViewMyRentCos = ({ requestId }) => {
                                   progressDot={customDot}
                                   items={filteredStepsItems}
                                   style={{ marginBottom: "20px" }}
+                                  className="custom-steps"
                                 />
                               ) : (
                                 <p>
@@ -1317,7 +3427,6 @@ const ViewMyRentCos = ({ requestId }) => {
         )}
       </Modal>
 
-      {/* Cancellation Reason Modal */}
       <Modal
         title="Cancel Request"
         open={isCancelModalVisible}

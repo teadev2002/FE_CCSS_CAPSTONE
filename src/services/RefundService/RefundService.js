@@ -127,7 +127,7 @@ const RefundService = {
   getContractRefundImagebyContractId: async (contractId) => {
     try {
       const response = await apiClient.get(
-        `/api/ContractImage?contractId=${contractId}&status=Refund`
+        `/api/ContractImage?contractId=${contractId}&status=Check`
       );
       return response.data;
     } catch (error) {

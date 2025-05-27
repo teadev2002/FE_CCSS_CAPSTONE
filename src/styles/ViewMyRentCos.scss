@@ -1,0 +1,19 @@
+/* Style for the steps container */
+.custom-steps .ant-steps-item-tail::after {
+  height: 2px !important; /* Ensure the line is visible */
+}
+
+/* Style for steps on or before the current date (blue line) */
+.custom-steps .step-past .ant-steps-item-tail::after {
+  background-color: #1890ff !important; /* Blue */
+}
+
+/* Style for steps after the current date (gray line) */
+.custom-steps .step-future .ant-steps-item-tail::after {
+  background-color: #d9d9d9 !important; /* Gray */
+}
+
+/* Ensure the line color transitions smoothly */
+.custom-steps .ant-steps-item-tail::after {
+  transition: background-color 0.3s;
+}
