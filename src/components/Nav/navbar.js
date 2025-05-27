@@ -1612,7 +1612,7 @@ export function Navbar() {
     } catch (error) {
       console.error("Failed to fetch notifications:", error);
       setNotifications(persistedNotifications);
-      toast.error("Failed to load notifications");
+      console.log("Failed to load notifications");
     }
   };
 
@@ -1855,8 +1855,9 @@ export function Navbar() {
                   notifications.map((notification) => (
                     <div
                       key={notification.id}
-                      className={`dropdown-item notification-item ${notification.isRead ? "read" : "unread"
-                        }`}
+                      className={`dropdown-item notification-item ${
+                        notification.isRead ? "read" : "unread"
+                      }`}
                     >
                       <div className="notification-content">
                         {!notification.isRead && (

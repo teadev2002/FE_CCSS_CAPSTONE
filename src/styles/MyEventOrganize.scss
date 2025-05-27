@@ -4,7 +4,10 @@
   padding: 30px;
   min-height: 100vh;
   background-color: #f8f9fa;
-
+.ant-collapse-content-box,
+.ant-table-container {
+  transition: none !important; /* Disable animations */
+}
   .title-my-event {
     span {
       font-size: 2.5rem;

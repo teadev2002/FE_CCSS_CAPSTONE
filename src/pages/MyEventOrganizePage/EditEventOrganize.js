@@ -3577,7 +3577,9 @@ const EditEventOrganize = ({
                     <Form.Label>
                       <strong>Deposit</strong>
                     </Form.Label>
-                    <p>{modalData.deposit ? `${modalData.deposit}%` : "N/A"}</p>
+                    <p>
+                      {modalData.deposit ? `${modalData.deposit}%` : "Not Yet"}
+                    </p>
                   </Form.Group>
                   <Form.Group className="mb-3">
                     <Form.Label>
