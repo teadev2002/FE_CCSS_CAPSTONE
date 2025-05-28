@@ -1,10 +1,10 @@
 import axios from "axios";
 
-//const BASE_URL = "https://localhost:7071";
+const BASE_URL = "https://localhost:7071";
 //const BASE_URL = "http://192.168.1.7:5295";
 
-const BASE_URL =
-  "https://ccsswebsite-dwezcuaxdkbyhwcc.southeastasia-01.azurewebsites.net";
+// const BASE_URL =
+//   "https://ccsswebsite-dwezcuaxdkbyhwcc.southeastasia-01.azurewebsites.net";
 const apiClient = axios.create({
   baseURL: BASE_URL,
   headers: {
