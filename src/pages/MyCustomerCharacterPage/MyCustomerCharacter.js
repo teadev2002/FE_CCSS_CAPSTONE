@@ -1795,20 +1795,20 @@ const MyCustomerCharacter = () => {
                                     <h3 className="rental-title">
                                       {req.name} {getStatusBadge(req.status)}
                                     </h3>
-                                    <div className="text-muted small">
+                                    <div>
                                       <User size={16} /> Create by:{" "}
                                       {getAccountNameById(req.createBy)}
                                     </div>
-                                    <div className="text-muted small">
+                                    <div>
                                       <Calendar size={16} /> Create Date:{" "}
                                       {req.createDate}
                                     </div>
-                                    <div className="text-muted small">
+                                    <div>
                                       <FileText size={16} /> Description:{" "}
                                       {req.description}
                                     </div>
                                     {req.reason && (
-                                      <div className="text-muted small">
+                                      <div>
                                         <FileText size={16} />{" "}
                                         <strong style={{ color: "red" }}>
                                           Reason: {req.reason}
@@ -1867,19 +1867,19 @@ const MyCustomerCharacter = () => {
                                       {req.name} &nbsp;{" "}
                                       {getStatusBadge(req.status)}
                                     </h3>
-                                    <div className="text-muted small">
+                                    <div>
                                       <User size={16} /> Create by:{" "}
                                       {getAccountNameById(req.createBy)}
                                     </div>
-                                    <div className="text-muted small">
+                                    <div>
                                       <Calendar size={16} /> Create Date:{" "}
                                       {req.createDate}
                                     </div>
-                                    <div className="text-muted small">
+                                    <div>
                                       <FileText size={16} /> Description:{" "}
                                       {req.description}
                                     </div>
-                                    <div className="text-muted small">
+                                    <div>
                                       <FileText size={16} />{" "}
                                       <strong style={{ color: "red" }}>
                                         Reason: {req.reason}
