@@ -1414,10 +1414,9 @@ const ManageContract = () => {
                             />
                             <Button
                               type="primary"
-                              size="small"
                               onClick={() => handleShowModal(null, req)}
                             >
-                              Create Contract
+                              + Contract
                             </Button>
                           </td>
                         </tr>

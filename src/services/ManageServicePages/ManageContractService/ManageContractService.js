@@ -163,6 +163,17 @@ const ManageContractService = {
       throw error;
     }
   },
+  getAllContractImageByContractId: async (contractId) => {
+    try {
+      const response = await apiClient.get(
+        `/api/ContractImage/GetContractImageByContractId?contractId=${contractId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  },
 };
 
 export default ManageContractService;

@@ -602,7 +602,6 @@ const ManageContractEventOrganize = () => {
                               <td>{req.reason}</td>
                               <td>
                                 <Button
-                                  size="small"
                                   onClick={() => handleViewDetail(req.id)}
                                   style={{ marginRight: "8px" }}
                                 >
@@ -611,10 +610,9 @@ const ManageContractEventOrganize = () => {
                                 {req.deposit > 0 && (
                                   <Button
                                     type="primary"
-                                    size="small"
                                     onClick={() => handleShowModal(null, req)}
                                   >
-                                    Create Contract
+                                    + Contract
                                   </Button>
                                 )}
                               </td>
@@ -727,7 +725,6 @@ const ManageContractEventOrganize = () => {
                               <td className="text-center">
                                 <Button
                                   type="default"
-                                  size="small"
                                   onClick={() =>
                                     handleViewDetail(con.requestId)
                                   }

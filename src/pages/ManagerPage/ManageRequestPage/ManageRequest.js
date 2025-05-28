@@ -1535,21 +1535,17 @@ const ManageRequest = () => {
                         {req.statusRequest === "Pending" ? (
                           <Button
                             type="primary"
-                            size="small"
                             onClick={() => handleShowModal(req)}
                           >
                             Edit
                           </Button>
                         ) : (
-                          <Button size="small" disabled>
-                            Edit
-                          </Button>
+                          <Button disabled>Edit</Button>
                         )}
                         {req.serviceId === "S002" ? (
                           <ViewManageRentCosplayer requestId={req.id} />
                         ) : (
                           <Button
-                            size="small"
                             onClick={() =>
                               handleShowViewModal(req.id, req.serviceId)
                             }

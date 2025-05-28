@@ -176,7 +176,6 @@ const EditRefundButton = ({ refund }) => {
     <>
       <Button
         type="default"
-        size="small"
         onClick={handleOpenModal}
         className="action-btn edit-btn"
         loading={loading}

@@ -69,14 +69,12 @@ const ViewRefundButton = ({ refund }) => {
     <>
       <Button
         type="default"
-        size="small"
         onClick={handleOpenModal}
         className="action-btn view-btn"
         loading={loading}
         disabled={loading || !refund?.contractRefundId}
         aria-label="View refund details"
       >
-        <Eye size={16} />
         View
       </Button>
 

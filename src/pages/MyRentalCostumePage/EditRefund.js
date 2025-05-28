@@ -131,6 +131,13 @@ const EditRefund = ({ refund }) => {
           <Form>
             <div className="two-column-layout">
               {/* Left Column: Bank-related fields */}
+
+              <i>
+                <span>
+                  ⚠️If you enter incorrect information, the system will not be
+                  responsible.
+                </span>
+              </i>
               <div className="column-left">
                 <div
                   style={{ display: "flex", justifyContent: "space-between" }}

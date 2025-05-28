@@ -960,7 +960,7 @@ const ViewManageRentCosplayer = ({ requestId }) => {
 
   return (
     <>
-      <Button size="small" className="btn-view" onClick={handleViewRequest}>
+      <Button className="btn-view" onClick={handleViewRequest}>
         View
       </Button>
       <Modal

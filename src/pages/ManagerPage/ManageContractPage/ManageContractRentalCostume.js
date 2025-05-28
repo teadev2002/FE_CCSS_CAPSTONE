@@ -580,7 +580,6 @@ const ManageContractRentalCostume = () => {
                           <td>{req.reason}</td>
                           <td>
                             <Button
-                              size="small"
                               onClick={() => handleViewDetail(req.id)}
                               style={{ marginRight: "8px" }}
                             >
@@ -588,10 +587,9 @@ const ManageContractRentalCostume = () => {
                             </Button>
                             <Button
                               type="primary"
-                              size="small"
                               onClick={() => handleShowModal(null, req)}
                             >
-                              Create Contract
+                              + Contract
                             </Button>
                           </td>
                         </tr>
@@ -736,7 +734,6 @@ const ManageContractRentalCostume = () => {
                           <td className="text-center">
                             <Button
                               type="default"
-                              size="small"
                               onClick={() => handleViewDetail(con.requestId)}
                               style={{ marginRight: "8px" }}
                               disabled={!con.requestId}
@@ -745,7 +742,6 @@ const ManageContractRentalCostume = () => {
                             </Button>
                             <Button
                               type="default"
-                              size="small"
                               onClick={() =>
                                 handleShowDeliveryModal(con.contractId)
                               }
@@ -763,7 +759,6 @@ const ManageContractRentalCostume = () => {
                             {con.status === "Refund" ? (
                               <Button
                                 type="primary"
-                                size="small"
                                 onClick={() =>
                                   handleShowRefundModal(con.contractId)
                                 }
