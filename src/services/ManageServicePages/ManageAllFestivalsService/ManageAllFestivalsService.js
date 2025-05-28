@@ -1,6 +1,7 @@
 import { apiClient } from "../../../api/apiClient.js";
 
 const ManageAllFestivalsService = {
+  // Lấy tất cả sự kiện với từ khóa tìm kiếm
   getAllEvents: async (searchTerm = "") => {
     try {
       console.log(`Fetching all events with searchTerm=${searchTerm}...`);
@@ -19,6 +20,7 @@ const ManageAllFestivalsService = {
     }
   },
 
+  // Lấy thông tin sự kiện theo ID
   getEventById: async (eventId) => {
     try {
       console.log(`Fetching event with eventId=${eventId}`);
@@ -35,6 +37,7 @@ const ManageAllFestivalsService = {
     }
   },
 
+  // Lấy thông tin cosplayer theo ID nhân vật sự kiện
   getCosplayerByEventCharacterId: async (eventCharacterId) => {
     try {
       console.log(`Fetching cosplayer with eventCharacterId=${eventCharacterId}`);
@@ -56,6 +59,7 @@ const ManageAllFestivalsService = {
     }
   },
 
+  // Thêm sự kiện mới
   addEvent: async (eventJson, imageFiles) => {
     try {
       console.log("Adding new event with eventJson:", eventJson);
@@ -93,6 +97,7 @@ const ManageAllFestivalsService = {
     }
   },
 
+  // Cập nhật sự kiện
   updateEvent: async (eventId, eventJson, imageFiles) => {
     try {
       console.log(`Updating event with eventId=${eventId}, eventJson:`, eventJson);
@@ -134,6 +139,7 @@ const ManageAllFestivalsService = {
     }
   },
 
+  // Lấy tất cả nhân vật theo khoảng thời gian
   getAllCharacters: async (startDate, endDate) => {
     try {
       console.log(`Fetching characters with startDate=${startDate}, endDate=${endDate}...`);
@@ -155,6 +161,7 @@ const ManageAllFestivalsService = {
     }
   },
 
+  // Lấy danh sách cosplayer rảnh theo nhân vật và khoảng thời gian
   getAvailableCosplayers: async (characterId, startDate, endDate) => {
     try {
       console.log(`Fetching available cosplayers for characterId=${characterId}`);
@@ -177,6 +184,32 @@ const ManageAllFestivalsService = {
     }
   },
 
+  // Kiểm tra trạng thái booking của cosplayer trong khoảng thời gian
+  checkCosplayerBooking: async (dates) => {
+    try {
+      console.log("Checking cosplayer bookings with dates:", JSON.stringify(dates, null, 2));
+      const response = await apiClient.post(
+        "/api/RequestCharacter/GetAllRequestCharacterByListDate",
+        dates,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      console.log("CheckCosplayerBooking response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Error checking cosplayer bookings:", error.response?.data || error);
+      const errorMessage =
+        error.response?.data?.notification ||
+        error.response?.data?.message ||
+        "Failed to check cosplayer bookings";
+      throw new Error(errorMessage);
+    }
+  },
+
+  // Lấy tất cả hoạt động
   getAllActivities: async () => {
     try {
       console.log("Fetching all activities...");
@@ -193,6 +226,7 @@ const ManageAllFestivalsService = {
     }
   },
 
+  // Lấy danh sách tỉnh/thành phố
   getProvinces: async () => {
     try {
       console.log("Fetching provinces...");
@@ -205,6 +239,7 @@ const ManageAllFestivalsService = {
     }
   },
 
+  // Lấy danh sách quận/huyện
   getDistricts: async (provinceId) => {
     try {
       console.log(`Fetching districts for provinceId=${provinceId}...`);
@@ -217,6 +252,7 @@ const ManageAllFestivalsService = {
     }
   },
 
+  // Lấy danh sách phường/xã
   getWards: async (districtId) => {
     try {
       console.log(`Fetching wards for districtId=${districtId}...`);
