@@ -216,6 +216,7 @@ import ManageContractRentalCostume from "./pages/ManagerPage/ManageContractPage/
 import ManageContractEventOrganize from "./pages/ManagerPage/ManageContractPage/ManageContractEventOrganize.js"; // Thêm import
 import ManageRefund from "./pages/ManagerPage/ManageRefundPage/ManageRefund.js"; // Thêm import
 import MyCustomerCharacter from "./pages/MyCustomerCharacterPage/MyCustomerCharacter.js"; // Thêm import
+import ManageLocation from "./pages/ManagerPage/ManageLocationPage/ManageLocation.js";
 
 const AppLayout = ({ children }) => {
   const location = useLocation();
@@ -315,6 +316,7 @@ function App() {
           />
           <Route path="/manage/ticket" element={<ManageTicket />} />
           <Route path="/manage/ticket-check" element={<TicketCheck />} />
+          <Route path="/manage/manage-location" element={<ManageLocation />} />
           <Route path="/manage/feedback" element={<ManageFeedback />} />
           <Route path="/manage/request" element={<ManageRequest />} />
           <Route path="/manage/souvenir" element={<ManageSouvenir />} />

@@ -265,6 +265,7 @@
 
       .search-input {
         width: 40%;
+        /* Keep original width */
         border-radius: 5px;
         border: 1px solid #ced4da;
         padding: 5px 10px;
@@ -273,6 +274,15 @@
           border-color: #510545;
           box-shadow: 0 0 5px rgba(81, 5, 69, 0.3);
         }
+      }
+
+      .button-placeholder {
+        width: 160px;
+        /* Match the approximate width of the original button */
+        height: 38px;
+        /* Match the button's height (padding + font size) */
+        display: flex;
+        align-items: center;
       }
 
       .add-feedback-btn.ant-btn-primary {
