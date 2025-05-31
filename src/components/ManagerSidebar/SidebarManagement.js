@@ -532,6 +532,7 @@ import {
   ListTodo,
   ShoppingBag,
   ChevronDown,
+  MapPin,
 } from "lucide-react";
 import { jwtDecode } from "jwt-decode";
 import { toast } from "react-toastify";
@@ -666,6 +667,12 @@ const SidebarManagement = () => {
           path: "/manage/ticket-check",
           label: "Ticket Check",
           icon: <CheckCircle size={18} />,
+          allowedRoles: ["Manager"],
+        },
+        {
+          path: "/manage/manage-location",
+          label: "Manage Locations",
+          icon: <MapPin size={18} />,
           allowedRoles: ["Manager"],
         },
       ],

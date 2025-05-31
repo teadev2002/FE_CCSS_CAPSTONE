@@ -575,26 +575,28 @@ const ManageFeedback = () => {
                 onChange={handleSearch}
                 className="search-input"
               />
-              {/* Thêm nút Add New Feedback để đồng bộ giao diện với ManageSouvenir */}
-              <Button
-                type="primary"
-                // Không thêm onClick vì không có logic xử lý, chỉ để đồng bộ giao diện
-                style={{
-                  padding: "20px 7px",
-                  fontSize: "14px",
-                  borderRadius: "4px",
-                  background: "linear-gradient(135deg, #510545, #22668a)",
-                  border: "none",
-                  color: "#fff",
-                  display: "flex",
-                  alignItems: "center",
-                }}
-                onMouseEnter={(e) => (e.target.style.background = "linear-gradient(135deg, #22668a, #510545)")}
-                onMouseLeave={(e) => (e.target.style.background = "linear-gradient(135deg, #510545, #22668a)")}
-              >
-                <PlusCircle size={16} style={{ marginRight: "8px" }} />
-                Add New Feedback
-              </Button>
+              {/* Placeholder div to reserve space for the button */}
+              <div className="button-placeholder">
+                {/* Commented out button */}
+                {/* <Button
+      type="primary"
+      style={{
+        padding: "20px 7px",
+        fontSize: "14px",
+        borderRadius: "4px",
+        background: "linear-gradient(135deg, #510545, #22668a)",
+        border: "none",
+        color: "#fff",
+        display: "flex",
+        alignItems: "center",
+      }}
+      onMouseEnter={(e) => (e.target.style.background = "linear-gradient(135deg, #22668a, #510545)")}
+      onMouseLeave={(e) => (e.target.style.background = "linear-gradient(135deg, #510545, #22668a)")}
+    >
+      <PlusCircle size={16} style={{ marginRight: "8px" }} />
+      Add New Feedback
+    </Button> */}
+              </div>
             </div>
             {/* Hiển thị thanh loading khi đang tải dữ liệu */}
             {isLoading && (

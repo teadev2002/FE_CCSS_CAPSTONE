@@ -745,6 +745,46 @@ import LinearProgress from "@mui/material/LinearProgress";
 const PLACEHOLDER_IMAGE_URL =
   "https://www.elegantthemes.com/blog/wp-content/uploads/2020/08/000-http-error-codes.png";
 
+const validateForm = (data, isEditing, existingProducts, selectedFiles, currentProductId) => {
+  const { productName, description, quantity, price } = data;
+
+  // Kiểm tra productName không trống
+  if (!productName || productName.trim() === "") {
+    return { isValid: false, errorMessage: "Product name cannot be empty!" };
+  }
+
+  // Kiểm tra productName trùng lặp (bỏ qua sản phẩm đang chỉnh sửa)
+  const isDuplicate = existingProducts.some(
+    (product) =>
+      product.productName.toLowerCase() === productName.trim().toLowerCase() &&
+      product.productId !== currentProductId
+  );
+  if (isDuplicate) {
+    return { isValid: false, errorMessage: "This product name already exists!" };
+  }
+
+  // Kiểm tra description không trống
+  if (!description || description.trim() === "") {
+    return { isValid: false, errorMessage: "Description cannot be empty!" };
+  }
+
+  // Kiểm tra quantity là số hợp lệ và > 0
+  if (isNaN(quantity) || quantity <= 0) {
+    return { isValid: false, errorMessage: "Quantity must be greater than 0!" };
+  }
+
+  // Kiểm tra price là số hợp lệ và > 0
+  if (isNaN(price) || price <= 0) {
+    return { isValid: false, errorMessage: "Price must be greater than 0!" };
+  }
+
+  // Kiểm tra ảnh khi tạo mới
+  if (!isEditing && selectedFiles.length === 0) {
+    return { isValid: false, errorMessage: "At least one image is required!" };
+  }
+
+  return { isValid: true, errorMessage: "" };
+};
 const ManageSouvenir = () => {
   const [products, setProducts] = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -835,8 +875,8 @@ const ManageSouvenir = () => {
       setFormData({
         productName: product.productName ?? "",
         description: product.description ?? "",
-        quantity: product.quantity ?? "",
-        price: product.price ?? "",
+        quantity: product.quantity ?? 0,
+        price: product.price ?? 0,
         isActive: product.isActive ?? true,
       });
       setSelectedFiles([]);
@@ -846,8 +886,8 @@ const ManageSouvenir = () => {
       setFormData({
         productName: "",
         description: "",
-        quantity: "",
-        price: "",
+        quantity: 0, // Mặc định 0
+        price: 0, // Mặc định 0
         isActive: true,
       });
       setSelectedFiles([]);
@@ -881,8 +921,20 @@ const ManageSouvenir = () => {
     setFormData((prev) => ({ ...prev, isActive: e.target.checked }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
+    // Kiểm tra validate
+    const { isValid, errorMessage } = validateForm(
+      formData,
+      isEditing,
+      products,
+      selectedFiles,
+      currentProduct?.productId
+    );
+    if (!isValid) {
+      toast.error(errorMessage);
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
@@ -896,6 +948,7 @@ const ManageSouvenir = () => {
           isActive: formData.isActive,
         };
         await SourvenirService.updateProduct(currentProduct.productId, payload);
+        toast.success("Product updated successfully!");
       } else {
         const productData = {
           ProductName: formData.productName,
@@ -905,10 +958,10 @@ const ManageSouvenir = () => {
           IsActive: formData.isActive,
         };
         await SourvenirService.createProduct(productData, selectedFiles);
+        toast.success("Product created successfully!");
       }
       handleCloseModal();
       await fetchProducts();
-      toast.success("Product saved successfully!");
     } catch (error) {
       setError(
         error.response?.data?.title ||
@@ -1501,23 +1554,33 @@ const ManageSouvenir = () => {
           >
             Cancel
           </Button>
-          <Button
-            type="primary"
-            onClick={handleSubmit}
-            disabled={isLoading}
-            style={{
-              padding: "10px 20px",
-              fontSize: "14px",
-              borderRadius: "4px",
-              background: "linear-gradient(135deg, #660545, #22668a)",
-              border: "none",
-              color: "#fff",
-            }}
-            onMouseEnter={(e) => (e.target.style.background = "linear-gradient(135deg, #22668a, #660545)")}
-            onMouseLeave={(e) => (e.target.style.background = "linear-gradient(135deg, #660545, #22668a)")}
+          <Popconfirm
+            title={isEditing ? "Update souvenir" : "Create new souvenir"}
+            description={`Are you sure to ${isEditing ? "update" : "create"} this souvenir?`}
+            onConfirm={handleSubmit}
+            onCancel={() => message.info("Cancelled")}
+            okText="Yes"
+            cancelText="No"
+            placement="top"
+            overlayStyle={{ zIndex: 2000 }}
           >
-            {isLoading ? "Saving..." : (isEditing ? "Update" : "Add") + " Souvenir"}
-          </Button>
+            <Button
+              type="primary"
+              disabled={isLoading}
+              style={{
+                padding: "10px 20px",
+                fontSize: "14px",
+                borderRadius: "4px",
+                background: "linear-gradient(135deg, #660545, #22668a)",
+                border: "none",
+                color: "#fff",
+              }}
+              onMouseEnter={(e) => (e.target.style.background = "linear-gradient(135deg, #22668a, #660545)")}
+              onMouseLeave={(e) => (e.target.style.background = "linear-gradient(135deg, #660545, #22668a)")}
+            >
+              {isLoading ? "Saving..." : (isEditing ? "Update" : "Add") + " Souvenir"}
+            </Button>
+          </Popconfirm>
         </Modal.Footer>
       </Modal>
     </div>
