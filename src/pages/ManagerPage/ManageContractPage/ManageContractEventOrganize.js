@@ -1,6 +1,12 @@
 // fix ko thấy request browsed
 import React, { useState, useEffect, useMemo } from "react";
-import { Table, Form, Card, Modal as BootstrapModal } from "react-bootstrap";
+import {
+  Table,
+  Form,
+  Card,
+  Modal as BootstrapModal,
+  Badge,
+} from "react-bootstrap";
 import {
   Button,
   Popconfirm,
@@ -85,7 +91,22 @@ const ManageContractEventOrganize = () => {
     }
     return dayjs(date, ["HH:mm DD/MM/YYYY", "DD/MM/YYYY"]).format("DD/MM/YYYY");
   };
-
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "Deposited":
+        return "warning"; // #ffc107
+      case "Feedbacked":
+        return "info"; // #17a2b8
+      case "Completed":
+        return "success"; // #28a745
+      case "Cancel":
+        return "danger"; // #dc3545
+      case "Created":
+        return "warning-orange"; // #fd7e14
+      default:
+        return "success";
+    }
+  };
   const fetchData = async () => {
     let isMounted = true;
     try {
@@ -116,7 +137,7 @@ const ManageContractEventOrganize = () => {
               contractName: con.contractName ?? "N/A",
               price: con.price ?? 0,
               status: con.status ?? "N/A",
-              createDate: formatDate(con.createDate) ?? "N/A",
+              createDate: con.createDate ?? "N/A",
               startDate: formatDate(con.startDate) ?? "N/A",
               endDate: formatDate(con.endDate) ?? "N/A",
               requestId: con.requestId ?? "",
@@ -515,7 +536,14 @@ const ManageContractEventOrganize = () => {
                 ) : (
                   <>
                     <Table striped bordered hover responsive>
-                      <thead>
+                      <thead
+                        style={{
+                          background:
+                            " linear-gradient(135deg, #510545, #22668a",
+                          fontWeight: "bold",
+                          color: "white",
+                        }}
+                      >
                         <tr>
                           <th onClick={() => handleSortRequest("name")}>
                             Name{" "}
@@ -594,9 +622,23 @@ const ManageContractEventOrganize = () => {
                               <td>{req.description}</td>
                               <td>{req.location}</td>
                               <td>
-                                {req.price ? req.price.toLocaleString() : "N/A"}
+                                <Badge
+                                  bg={getStatusColor(req.price)}
+                                  className="highlight-field"
+                                >
+                                  {req.price
+                                    ? req.price.toLocaleString()
+                                    : "N/A"}
+                                </Badge>
                               </td>
-                              <td>{req.statusRequest}</td>
+                              <td>
+                                <Badge
+                                  bg={getStatusColor(req.statusRequest)}
+                                  className="highlight-field"
+                                >
+                                  {req.statusRequest || "N/A"}
+                                </Badge>
+                              </td>
                               <td>{req.startDate}</td>
                               <td>{req.endDate}</td>
                               <td>{req.reason}</td>
@@ -663,11 +705,17 @@ const ManageContractEventOrganize = () => {
                 ) : (
                   <>
                     <Table striped bordered hover responsive>
-                      <thead>
+                      <thead
+                        style={{
+                          background:
+                            " linear-gradient(135deg, #510545, #22668a",
+                          fontWeight: "bold",
+                          color: "white",
+                        }}
+                      >
                         <tr>
                           <th className="text-center">
                             <span
-                              className="sortable"
                               onClick={() => handleSortContract("contractName")}
                             >
                               Contract Name
@@ -682,10 +730,7 @@ const ManageContractEventOrganize = () => {
                           <th className="text-center">Contract Owner</th>
                           <th className="text-center">Price</th>
                           <th className="text-center">
-                            <span
-                              className="sortable"
-                              onClick={() => handleSortContract("status")}
-                            >
+                            <span onClick={() => handleSortContract("status")}>
                               Status
                               {sortContract.field === "status" &&
                                 (sortContract.order === "asc" ? (
@@ -716,9 +761,23 @@ const ManageContractEventOrganize = () => {
                               </td>
                               <td className="text-center">{con.createBy}</td>
                               <td className="text-center">
-                                {con.price ? con.price.toLocaleString() : "N/A"}
+                                <Badge
+                                  bg={getStatusColor(con.price)}
+                                  className="highlight-field"
+                                >
+                                  {con.price
+                                    ? con.price.toLocaleString()
+                                    : "N/A"}
+                                </Badge>
                               </td>
-                              <td className="text-center">{con.status}</td>
+                              <td className="text-center">
+                                <Badge
+                                  bg={getStatusColor(con.status)}
+                                  className="highlight-field"
+                                >
+                                  {con.status || "N/A"}
+                                </Badge>
+                              </td>
                               <td className="text-center">{con.createDate}</td>
                               <td className="text-center">{con.startDate}</td>
                               <td className="text-center">{con.endDate}</td>

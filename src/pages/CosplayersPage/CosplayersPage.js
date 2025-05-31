@@ -5013,13 +5013,13 @@ const CosplayersPage = () => {
           bodyStyle={{
             background: "#fff",
             borderRadius: "0 0 15px 15px",
-            padding: "2rem",
+            padding: "1rem",
             boxShadow: "0 10px 30px rgba(34, 102, 138, 0.2)",
           }}
           headerStyle={{
             background: "linear-gradient(135deg, #510545, #22668a)",
             borderRadius: "15px 15px 0 0",
-            padding: "1.5rem",
+            padding: "1rem",
           }}
         >
           <div
@@ -5096,7 +5096,7 @@ const CosplayersPage = () => {
                 onBlur={(e) => (e.target.style.borderColor = "#22668a")}
               />
             </div>
-            <div
+            {/* <div
               style={{
                 display: "flex",
                 flexDirection: "column",
@@ -5145,7 +5145,7 @@ const CosplayersPage = () => {
               >
                 {modalData.endDate}
               </span>
-            </div>
+            </div> */}
             <div
               style={{
                 display: "flex",

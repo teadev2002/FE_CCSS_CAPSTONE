@@ -455,7 +455,14 @@
 // chuyển tab goi api
 
 import React, { useState, useEffect } from "react";
-import { Table, Card, Pagination, Dropdown, Form } from "react-bootstrap";
+import {
+  Table,
+  Card,
+  Pagination,
+  Dropdown,
+  Form,
+  Badge,
+} from "react-bootstrap";
 import { ArrowUp, ArrowDown } from "lucide-react";
 import Box from "@mui/material/Box";
 import LinearProgress from "@mui/material/LinearProgress";
@@ -486,7 +493,16 @@ const ManageRefund = () => {
   const [showViewModal, setShowViewModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedRefund, setSelectedRefund] = useState(null);
-
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "Pending":
+        return "primary"; // #007bff
+      case "Paid":
+        return "success"; // #28a745
+      default:
+        return "success";
+    }
+  };
   // Fetch refunds using RefundService
   const fetchRefunds = async () => {
     const currentTime = Date.now();
@@ -741,16 +757,19 @@ const ManageRefund = () => {
             {!isLoading && !error && (
               <>
                 <Table striped bordered hover responsive>
-                  <thead>
+                  <thead
+                    style={{
+                      background: " linear-gradient(135deg, #510545, #22668a",
+                      fontWeight: "bold",
+                      color: "white",
+                    }}
+                  >
                     <tr>
                       <th className="text-center">Bank Number</th>
                       <th className="text-center">Bank Name</th>
                       <th className="text-center">Account Holder</th>
                       <th className="text-center">
-                        <span
-                          className="sortable"
-                          onClick={() => handleSort("createDate")}
-                        >
+                        <span onClick={() => handleSort("createDate")}>
                           Created Date
                           {sortRefund.field === "createDate" ? (
                             sortRefund.order === "asc" ? (
@@ -764,10 +783,7 @@ const ManageRefund = () => {
                         </span>
                       </th>
                       <th className="text-center">
-                        <span
-                          className="sortable"
-                          onClick={() => handleSort("updateDate")}
-                        >
+                        <span onClick={() => handleSort("updateDate")}>
                           Updated Date
                           {sortRefund.field === "updateDate" ? (
                             sortRefund.order === "asc" ? (
@@ -781,10 +797,7 @@ const ManageRefund = () => {
                         </span>
                       </th>
                       <th className="text-center">
-                        <span
-                          className="sortable"
-                          onClick={() => handleSort("price")}
-                        >
+                        <span onClick={() => handleSort("price")}>
                           Price
                           {sortRefund.field === "price" ? (
                             sortRefund.order === "asc" ? (
@@ -800,10 +813,7 @@ const ManageRefund = () => {
                       <th className="text-center">Description</th>
                       <th className="text-center">Type</th>
                       <th className="text-center">
-                        <span
-                          className="sortable"
-                          onClick={() => handleSort("status")}
-                        >
+                        <span onClick={() => handleSort("status")}>
                           Status
                           {sortRefund.field === "status" ? (
                             sortRefund.order === "asc" ? (
@@ -842,11 +852,20 @@ const ManageRefund = () => {
                           <td className="text-center">{refund.createDate}</td>
                           <td className="text-center">{refund.updateDate}</td>
                           <td className="text-center">
-                            {refund.price.toLocaleString()}
+                            <Badge bg="success" className="highlight-field">
+                              {refund.price.toLocaleString()}
+                            </Badge>
                           </td>
                           <td className="text-center">{refund.description}</td>
                           <td className="text-center">{refund.type}</td>
-                          <td className="text-center">{refund.status}</td>
+                          <td className="text-center">
+                            <Badge
+                              bg={getStatusColor(refund.status)}
+                              className="highlight-field"
+                            >
+                              {refund.status}
+                            </Badge>
+                          </td>
                           <td className="text-center">
                             <div className="action-buttons">
                               <ViewRefundButton

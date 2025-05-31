@@ -904,7 +904,13 @@
 
 // chuyển tab goi api:
 import React, { useState, useEffect, useMemo } from "react";
-import { Table, Modal as BootstrapModal, Form, Card } from "react-bootstrap";
+import {
+  Table,
+  Modal as BootstrapModal,
+  Form,
+  Card,
+  Badge,
+} from "react-bootstrap";
 import { Button, Popconfirm, Input, Pagination, Dropdown, Menu } from "antd";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -937,7 +943,22 @@ function CustomTabPanel(props) {
     </div>
   );
 }
-
+const getStatusColor = (status) => {
+  switch (status) {
+    case "Deposited":
+      return "warning"; // #ffc107
+    case "Refund":
+      return "info"; // #17a2b8
+    case "Completed":
+      return "success"; // #28a745
+    case "Cancel":
+      return "danger"; // #dc3545
+    case "Created":
+      return "warning-orange"; // #fd7e14
+    default:
+      return "success";
+  }
+};
 function a11yProps(index) {
   return {
     id: `simple-tab-${index}`,
@@ -1438,7 +1459,13 @@ const ManageContractRentalCostume = () => {
                   />
                 </div>
                 <Table striped bordered hover responsive>
-                  <thead>
+                  <thead
+                    style={{
+                      background: " linear-gradient(135deg, #510545, #22668a",
+                      fontWeight: "bold",
+                      color: "white",
+                    }}
+                  >
                     <tr>
                       <th onClick={() => handleSortRequest("name")}>
                         Name{" "}
@@ -1515,9 +1542,21 @@ const ManageContractRentalCostume = () => {
                           <td>{req.description}</td>
                           <td>{req.location}</td>
                           <td>
-                            {req.price ? req.price.toLocaleString() : "N/A"}
+                            <Badge
+                              bg={getStatusColor(req.price)}
+                              className="highlight-field"
+                            >
+                              {req.price ? req.price.toLocaleString() : "N/A"}
+                            </Badge>
                           </td>
-                          <td>{req.statusRequest}</td>
+                          <td>
+                            <Badge
+                              bg={getStatusColor(req.statusRequest)}
+                              className="highlight-field"
+                            >
+                              {req.statusRequest || "N/A"}
+                            </Badge>
+                          </td>
                           <td>{req.startDate}</td>
                           <td>{req.endDate}</td>
                           <td>{req.reason}</td>
@@ -1608,11 +1647,16 @@ const ManageContractRentalCostume = () => {
                   </div>
                 </div>
                 <Table striped bordered hover responsive>
-                  <thead>
+                  <thead
+                    style={{
+                      background: " linear-gradient(135deg, #510545, #22668a",
+                      fontWeight: "bold",
+                      color: "white",
+                    }}
+                  >
                     <tr>
                       <th className="text-center">
                         <span
-                          className="sortable"
                           onClick={() => handleSortContract("contractName")}
                         >
                           Contract Name{" "}
@@ -1627,10 +1671,7 @@ const ManageContractRentalCostume = () => {
                       <th className="text-center">Contract Owner</th>
                       <th className="text-center">Total Hire Price</th>
                       <th className="text-center">
-                        <span
-                          className="sortable"
-                          onClick={() => handleSortContract("status")}
-                        >
+                        <span onClick={() => handleSortContract("status")}>
                           Status{" "}
                           {sortContract.field === "status" &&
                             (sortContract.order === "asc" ? (
@@ -1664,9 +1705,21 @@ const ManageContractRentalCostume = () => {
                             {con.createBy || "N/A"}
                           </td>
                           <td className="text-center">
-                            {con.price ? con.price.toLocaleString() : "N/A"}
+                            <Badge
+                              bg={getStatusColor(con.price)}
+                              className="highlight-field"
+                            >
+                              {con.price ? con.price.toLocaleString() : "N/A"}
+                            </Badge>
                           </td>
-                          <td className="text-center">{con.status || "N/A"}</td>
+                          <td className="text-center">
+                            <Badge
+                              bg={getStatusColor(con.status)}
+                              className="highlight-field"
+                            >
+                              {con.status || "N/A"}
+                            </Badge>
+                          </td>
                           <td className="text-center">{con.createDate}</td>
                           <td className="text-center">
                             {formatDate(con.startDate)}

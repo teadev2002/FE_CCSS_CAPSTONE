@@ -865,7 +865,7 @@
 // export default ManageRequest;
 /// gọi api khi tab lại
 import React, { useState, useEffect } from "react";
-import { Table, Form, Card } from "react-bootstrap";
+import { Table, Form, Card, Badge } from "react-bootstrap";
 import { Button, Modal, Dropdown, Pagination, Spin, Menu, Input } from "antd";
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
@@ -919,6 +919,18 @@ const ManageRequest = () => {
       <Menu.Item key="Cancel">Cancel</Menu.Item>
     </Menu>
   );
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "Pending":
+        return "primary"; // #007bff
+      case "Browsed":
+        return "success"; // #28a745
+      case "Cancel":
+        return "danger"; // #dc3545
+      default:
+        return "secondary";
+    }
+  };
   const handleStatusFilterChange = (value) => {
     setSelectedStatus(value);
     setCurrentPageRequest(1); // Reset to first page on filter change
@@ -1450,7 +1462,13 @@ const ManageRequest = () => {
               </div>
             </div>
             <Table striped bordered hover responsive>
-              <thead>
+              <thead
+                style={{
+                  background: " linear-gradient(135deg, #510545, #22668a",
+                  fontWeight: "bold",
+                  color: "white",
+                }}
+              >
                 <tr>
                   <th onClick={() => handleSort("name")}>
                     Name{" "}
@@ -1526,8 +1544,19 @@ const ManageRequest = () => {
                       <td>{req.name}</td>
                       <td>{req.description}</td>
                       <td>{req.location}</td>
-                      <td>{req.price.toLocaleString()}</td>
-                      <td>{req.statusRequest}</td>
+                      <td>
+                        <Badge bg="success" className="highlight-field">
+                          {req.price.toLocaleString()}
+                        </Badge>
+                      </td>
+                      <td>
+                        <Badge
+                          bg={getStatusColor(req.statusRequest)}
+                          className="highlight-field"
+                        >
+                          {req.statusRequest}
+                        </Badge>
+                      </td>
                       <td>{req.startDate || "N/A"}</td>
                       <td>{req.endDate || "N/A"}</td>
                       <td>{req.reason || " "}</td>
