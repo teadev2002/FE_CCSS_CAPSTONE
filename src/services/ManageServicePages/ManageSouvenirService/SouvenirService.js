@@ -196,6 +196,24 @@ const SourvenirService = {
       throw error;
     }
   },
+
+  updateProductImage: async (productImageId, file) => {
+    if (!productImageId || !file) {
+      throw new Error("Product image ID and file are required");
+    }
+    try {
+      const formData = new FormData();
+      formData.append("formFile", file);
+
+      const response = await formDataClient.put(`/api/ProductImage`, formData, {
+        params: { id: productImageId },
+      });
+      return response.data;
+    } catch (error) {
+      console.error(`Error updating product image with ID ${productImageId}:`, error);
+      throw error;
+    }
+  },
 };
 
 export default SourvenirService;

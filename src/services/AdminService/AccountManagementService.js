@@ -58,6 +58,22 @@ const AccountManagementService = {
       throw new Error(errorMessage);
     }
   },
+
+  createAccount: async (payload) => {
+    try {
+      console.log(`Creating account with payload:`, payload);
+      const response = await apiClient.post("/api/Account/CreateAccountByAdmin", payload);
+      console.log(`CreateAccount response:`, response.data);
+      return response.data;
+    } catch (error) {
+      console.error(`Error creating account:`, error.response?.data || error);
+      const errorMessage =
+        error.response?.data?.notification ||
+        error.response?.data?.message ||
+        "Failed to create account";
+      throw new Error(errorMessage);
+    }
+  },
 };
 
 export default AccountManagementService;
