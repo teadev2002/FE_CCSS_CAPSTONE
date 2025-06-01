@@ -315,6 +315,370 @@
 
 //sửa ngày 26/05/2025
 
+// .manage-souvenirs {
+//   padding: 10px;
+//   background: url('https://i.pinimg.com/originals/d2/ad/3f/d2ad3f633977d1ec518916b5c4fe5acd.jpg') no-repeat center center fixed;
+//   background-size: cover;
+//   min-height: 100vh;
+
+//   .manage-souvenirs-title {
+//     font-size: 32px;
+//     font-weight: bold;
+//     margin-bottom: 15px;
+//     text-align: center;
+//     color: #ffffff;
+//     background: transparent;
+//   }
+
+//   .table-container {
+//     display: flex;
+//     padding: 10px;
+//   }
+
+//   .souvenir-table-card {
+//     width: 90%;
+//     margin: 10px auto;
+//     box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.2);
+//     background: #fff;
+//     border-radius: 15px;
+//     opacity: 0.9;
+
+//     .card-body {
+//       padding: 15px;
+//     }
+
+//     .table-header {
+//       display: flex;
+//       align-items: center;
+//       justify-content: space-between;
+//       margin-bottom: 10px;
+
+//       h3 {
+//         font-size: 20px;
+//         font-weight: 600;
+//         margin: 0;
+//       }
+
+//       .search-input {
+//         width: 40%;
+//         border-radius: 5px;
+//         border: 1px solid #ced4da;
+//         padding: 5px 10px;
+
+//         &:focus {
+//           border-color: #510545;
+//           box-shadow: 0 0 5px rgba(81, 5, 69, 0.3);
+//         }
+//       }
+
+//       .add-souvenir-btn.ant-btn-primary {
+//         padding: 5px 10px;
+//         font-size: 14px;
+//         border-radius: 4px;
+//         background: linear-gradient(135deg, #510545, #22668a);
+//         border: none;
+//         color: #fff;
+
+//         &:hover {
+//           background: linear-gradient(135deg, #22668a, #510545);
+//         }
+//       }
+//     }
+
+//     .error-message {
+//       color: #ff4d4f;
+//       font-weight: bold;
+//       text-align: center;
+//       margin-bottom: 10px;
+//       font-size: 16px;
+//     }
+
+//     .table {
+//       margin-bottom: 0;
+
+//       th,
+//       td {
+//         vertical-align: middle;
+//         padding: 8px;
+//         text-align: center;
+//       }
+
+//       thead {
+//         background: linear-gradient(135deg, #510545, #22668a);
+//         font-weight: bold;
+//         color: #fff;
+
+//         .sortable {
+//           cursor: pointer;
+//           display: flex;
+//           justify-content: center;
+//           align-items: center;
+//           gap: 5px;
+
+//           &:hover {
+//             background-color: rgba(255, 255, 255, 0.1);
+//           }
+
+//           .default-sort-icon {
+//             opacity: 0.5;
+//           }
+//         }
+//       }
+
+//       tbody tr:hover {
+//         background-color: #f0f0f0;
+//       }
+
+//       .edit-btn.ant-btn-primary {
+//         padding: 5px 10px;
+//         font-size: 14px;
+//         border-radius: 4px;
+//         background: #2a7da2;
+//         border: none;
+//         color: #fff;
+
+//         &:hover {
+//           background: #1f5e7a;
+//         }
+//       }
+
+//       .delete-btn.ant-btn-primary.ant-btn-danger {
+//         padding: 5px 10px;
+//         font-size: 14px;
+//         border-radius: 4px;
+//         background: #a71d5d;
+//         border: none;
+//         color: #fff;
+
+//         &:hover {
+//           background: #82174a;
+//         }
+//       }
+//     }
+
+//     .pagination-controls {
+//       margin-top: 10px;
+//       display: flex;
+//       justify-content: space-between;
+//       align-items: center;
+
+//       .pagination-info {
+//         display: flex;
+//         align-items: center;
+//         gap: 20px;
+
+//         span {
+//           font-size: 14px;
+//           color: #333;
+//         }
+
+//         .rows-per-page {
+//           display: flex;
+//           align-items: center;
+//           gap: 5px;
+
+//           span {
+//             font-size: 14px;
+//             color: #333;
+//           }
+
+//           .dropdown {
+//             .btn-secondary {
+//               padding: 4px 8px;
+//               font-size: 14px;
+//               border-radius: 4px;
+//               background: #e0e0e0;
+//               border: none;
+//               color: #333;
+
+//               &:hover {
+//                 background: #d0d0d0;
+//               }
+//             }
+
+//             .dropdown-menu {
+//               min-width: 60px;
+
+//               .dropdown-item {
+//                 font-size: 14px;
+//                 padding: 4px 8px;
+
+//                 &:hover {
+//                   background-color: #f0f0f0;
+//                 }
+//               }
+//             }
+//           }
+//         }
+//       }
+
+//       .pagination {
+//         margin: 0;
+
+//         .page-item {
+//           .page-link {
+//             padding: 4px 8px;
+//             font-size: 14px;
+//             border-radius: 4px;
+//             color: #510545;
+
+//             &:hover {
+//               background-color: #f0f0f0;
+//             }
+//           }
+
+//           &.active .page-link {
+//             background: linear-gradient(135deg, #510545, #22668a);
+//             border-color: #510545;
+//             color: #fff;
+//           }
+//         }
+//       }
+//     }
+//   }
+
+//   .souvenir-modal {
+//     .modal-content {
+//       border-radius: 8px;
+//       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+//     }
+
+//     .modal-header {
+//       background: linear-gradient(135deg, #510545, #22668a);
+//       border-bottom: none;
+//       padding: 10px 15px;
+//       color: #fff;
+
+//       .modal-title {
+//         font-size: 20px;
+//         font-weight: 600;
+//       }
+
+//       .btn-close {
+//         filter: brightness(0) invert(1);
+//       }
+//     }
+
+//     .modal-body {
+//       padding: 15px;
+
+//       .form-group {
+//         margin-bottom: 12px;
+
+//         label {
+//           font-weight: 500;
+//           color: #333;
+//           margin-bottom: 4px;
+//           display: block;
+//         }
+
+//         .form-control {
+//           border-radius: 5px;
+//           border: 1px solid #ced4da;
+//           padding: 6px 10px;
+//           font-size: 14px;
+
+//           &:focus {
+//             border-color: #510545;
+//             box-shadow: 0 0 5px rgba(81, 5, 69, 0.3);
+//           }
+
+//           &[disabled] {
+//             background-color: #f5f5f5;
+//           }
+//         }
+
+//         textarea.form-control {
+//           resize: vertical;
+//           min-height: 80px;
+//         }
+
+//         // Style cho danh sách hình ảnh đã chọn
+//         .image-list {
+//           display: flex;
+//           flex-wrap: wrap;
+//           gap: 10px;
+//           margin-top: 10px;
+
+//           .image-item {
+//             position: relative;
+//             border: 1px solid #dee2e6;
+//             border-radius: 5px;
+//             overflow: hidden;
+
+//             img {
+//               width: 100px;
+//               height: 100px;
+//               object-fit: cover;
+//             }
+
+//             // Style cho nút X (XCircle)
+//             .remove-image {
+//               position: absolute;
+//               top: -8px;
+//               right: -8px;
+//               cursor: pointer;
+//               background: #fff;
+//               border-radius: 50%;
+//               padding: 2px;
+//               transition: transform 0.2s;
+
+//               &:hover {
+//                 transform: scale(1.2);
+//               }
+//             }
+
+//             // Style cho chú thích "Main Thumbnail"
+//             .main-thumbnail-label {
+//               display: block;
+//               text-align: center;
+//               font-size: 12px;
+//               color: #28a745; // Màu xanh để nổi bật
+//               margin-top: 4px;
+//               font-weight: 500;
+//             }
+//           }
+//         }
+//       }
+//     }
+
+//     .modal-footer {
+//       border-top: 1px solid #dee2e6;
+//       padding: 10px 15px;
+
+//       .cancel-btn.ant-btn-default {
+//         padding: 5px 12px;
+//         font-size: 14px;
+//         border-radius: 4px;
+//         background: #e0e0e0;
+//         border: none;
+//         color: #333;
+
+//         &:hover {
+//           background: #d0d0d0;
+//         }
+//       }
+
+//       .save-btn.ant-btn-primary {
+//         padding: 5px 12px;
+//         font-size: 14px;
+//         border-radius: 4px;
+//         background: linear-gradient(135deg, #510545, #22668a);
+//         border: none;
+//         color: #fff;
+
+//         &:hover {
+//           background: linear-gradient(135deg, #22668a, #510545);
+//         }
+//       }
+//     }
+//   }
+// }
+
+//--------------------------------------------------------------------------------------//
+
+//sửa ngày 01/06/2025
+
 .manage-souvenirs {
   padding: 10px;
   background: url('https://i.pinimg.com/originals/d2/ad/3f/d2ad3f633977d1ec518916b5c4fe5acd.jpg') no-repeat center center fixed;
@@ -593,7 +957,6 @@
           min-height: 80px;
         }
 
-        // Style cho danh sách hình ảnh đã chọn
         .image-list {
           display: flex;
           flex-wrap: wrap;
@@ -612,7 +975,6 @@
               object-fit: cover;
             }
 
-            // Style cho nút X (XCircle)
             .remove-image {
               position: absolute;
               top: -8px;
@@ -628,15 +990,29 @@
               }
             }
 
-            // Style cho chú thích "Main Thumbnail"
             .main-thumbnail-label {
               display: block;
               text-align: center;
               font-size: 12px;
-              color: #28a745; // Màu xanh để nổi bật
+              color: #28a745;
               margin-top: 4px;
               font-weight: 500;
             }
+          }
+        }
+
+        // Style for edit image file input
+        .edit-image-input {
+          margin-top: 5px;
+          width: 150px;
+          padding: 3px;
+          font-size: 14px;
+          border-radius: 5px;
+          border: 1px solid #ced4da;
+
+          &:focus {
+            border-color: #510545;
+            box-shadow: 0 0 5px rgba(81, 5, 69, 0.3);
           }
         }
       }
