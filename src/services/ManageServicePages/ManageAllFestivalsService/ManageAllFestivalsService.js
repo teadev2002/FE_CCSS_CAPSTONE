@@ -1,6 +1,8 @@
 import { apiClient } from "../../../api/apiClient.js";
+import dayjs from "dayjs";
 
 const ManageAllFestivalsService = {
+
   // Lấy tất cả sự kiện với từ khóa tìm kiếm
   getAllEvents: async (searchTerm = "") => {
     try {
@@ -110,13 +112,8 @@ const ManageAllFestivalsService = {
       imageFiles.forEach((file, index) => {
         if (file) {
           formData.append("ImageUrl", file);
-          console.log(`FormData entry - ImageUrl[${index}]:`, file);
         }
       });
-
-      for (let pair of formData.entries()) {
-        console.log(`FormData entry - ${pair[0]}:`, pair[1]);
-      }
 
       const response = await apiClient.put(
         `/api/Event/UpdateEvent/${eventId}?eventJson=${encodeURIComponent(eventJson)}`,
@@ -167,13 +164,16 @@ const ManageAllFestivalsService = {
       console.log(`Fetching available cosplayers for characterId=${characterId}`);
       const payload = {
         characterId,
-        dates: [{ startDate, endDate }],
+        dates: [{
+          startDate: dayjs(startDate).format('HH:mm DD/MM/YYYY'),
+          endDate: dayjs(endDate).format('HH:mm DD/MM/YYYY'),
+        }],
         accountId: null,
       };
       console.log("GetAvailableCosplayers payload:", JSON.stringify(payload, null, 2));
       const response = await apiClient.post("/api/Account/GetAccountByCharacterAndDateForCreateEvent", payload);
       console.log("GetAvailableCosplayers response:", response.data);
-      return response.data;
+      return Array.isArray(response.data) ? response.data : [response.data];
     } catch (error) {
       console.error("Error fetching cosplayers:", error.response?.data || error);
       const errorMessage =
@@ -188,9 +188,13 @@ const ManageAllFestivalsService = {
   checkCosplayerBooking: async (dates) => {
     try {
       console.log("Checking cosplayer bookings with dates:", JSON.stringify(dates, null, 2));
+      const formattedDates = dates.map((date) => ({
+        startDate: dayjs(date.startDate).format('HH:mm DD/MM/YYYY'),
+        endDate: dayjs(date.endDate).format('HH:mm DD/MM/YYYY'),
+      }));
       const response = await apiClient.post(
         "/api/RequestCharacter/GetAllRequestCharacterByListDate",
-        dates,
+        formattedDates,
         {
           headers: {
             "Content-Type": "application/json",
@@ -226,42 +230,19 @@ const ManageAllFestivalsService = {
     }
   },
 
-  // Lấy danh sách tỉnh/thành phố
-  getProvinces: async () => {
+  getLocations: async () => {
     try {
-      console.log("Fetching provinces...");
-      const response = await apiClient.get("/api/Delivery/provinces");
-      console.log("GetProvinces response:", response.data);
-      return response.data.data;
+      console.log("Fetching locations...");
+      const response = await apiClient.get("/api/Location");
+      console.log("GetLocations response:", response.data);
+      return response.data;
     } catch (error) {
-      console.error("Error fetching provinces:", error.response?.data || error);
-      throw new Error("Failed to fetch provinces");
-    }
-  },
-
-  // Lấy danh sách quận/huyện
-  getDistricts: async (provinceId) => {
-    try {
-      console.log(`Fetching districts for provinceId=${provinceId}...`);
-      const response = await apiClient.post(`/api/Delivery/districts/${provinceId}`);
-      console.log("GetDistricts response:", response.data);
-      return response.data.data;
-    } catch (error) {
-      console.error("Error fetching districts:", error.response?.data || error);
-      throw new Error("Failed to fetch districts");
-    }
-  },
-
-  // Lấy danh sách phường/xã
-  getWards: async (districtId) => {
-    try {
-      console.log(`Fetching wards for districtId=${districtId}...`);
-      const response = await apiClient.post(`/api/Delivery/wards/${districtId}`);
-      console.log("GetWards response:", response.data);
-      return response.data.data;
-    } catch (error) {
-      console.error("Error fetching wards:", error.response?.data || error);
-      throw new Error("Failed to fetch wards");
+      console.error("Error fetching locations:", error.response?.data || error);
+      const errorMessage =
+        error.response?.data?.notification ||
+        error.response?.data?.message ||
+        "Failed to fetch locations";
+      throw new Error(errorMessage);
     }
   },
 };
