@@ -495,7 +495,8 @@ import "../../../styles/Admin/OrderRevenuePerformancePage.scss";
 
 Chart.register(CategoryScale, LinearScale, PointElement, LineElement);
 
-const OrderRevenuePerformancePage = () => {
+const OrderRevenuePerformancePage = () => { // Mặc định: mới nhất (descending)
+  const [sortOrder, setSortOrder] = useState("desc");
   const [filterType, setFilterType] = useState(3); // Mặc định: This Year
   const [revenueSource, setRevenueSource] = useState(3); // Mặc định: Total
   const [revenueData, setRevenueData] = useState({
@@ -566,6 +567,28 @@ const OrderRevenuePerformancePage = () => {
     }
   };
 
+  const handleSortByDate = () => {
+    const newSortOrder = sortOrder === "desc" ? "asc" : "desc";
+    setSortOrder(newSortOrder);
+
+    const sortedPayments = [...payments].sort((a, b) => {
+      // Hàm chuyển đổi định dạng dd/mm/yyyy thành Date
+      const parseDate = (dateStr) => {
+        if (!dateStr || !/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
+          return new Date(0); // Trả về ngày rất cũ nếu định dạng không hợp lệ
+        }
+        const [day, month, year] = dateStr.split("/").map(Number);
+        return new Date(year, month - 1, day); // month - 1 vì tháng trong Date bắt đầu từ 0
+      };
+
+      const dateA = parseDate(a.creatAt);
+      const dateB = parseDate(b.creatAt);
+
+      return newSortOrder === "desc" ? dateB - dateA : dateA - dateB;
+    });
+
+    setPayments(sortedPayments);
+  };
   // Fetch revenue data
   useEffect(() => {
     const fetchRevenueData = async () => {
@@ -925,7 +948,9 @@ const OrderRevenuePerformancePage = () => {
                         <th className="text-center">Purpose</th>
                         <th className="text-center">Amount</th>
                         <th className="text-center">Transaction ID</th>
-                        <th className="text-center">Created At</th>
+                        <th className="text-center" onClick={handleSortByDate} style={{ cursor: "pointer" }}>
+                          Created At {sortOrder === "desc" ? "↓" : "↑"}
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
