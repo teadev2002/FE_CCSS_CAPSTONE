@@ -642,11 +642,26 @@ const OrderRevenuePerformancePage = () => { // Mặc định: mới nhất (desc
       setError(null);
       try {
         const data = await RevenueService.getPayments();
-        setPayments(data || []);
+        // Sắp xếp payments theo creatAt giảm dần (mới nhất lên đầu)
+        const sortedPayments = (data || []).sort((a, b) => {
+          const parseDate = (dateStr) => {
+            if (!dateStr || !/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
+              return new Date(0); // Trả về ngày rất cũ nếu định dạng không hợp lệ
+            }
+            const [day, month, year] = dateStr.split("/").map(Number);
+            return new Date(year, month - 1, day);
+          };
+
+          const dateA = parseDate(a.creatAt);
+          const dateB = parseDate(b.creatAt);
+
+          return dateB - dateA; // Sắp xếp giảm dần
+        });
+        setPayments(sortedPayments);
       } catch (error) {
         setError(error.message);
         setPayments([]);
-        toast.error(error.message);
+        toast.error(error.message, { autoClose: 8000 }); // Cập nhật autoClose theo yêu cầu trước
       } finally {
         setIsLoading(false);
       }
