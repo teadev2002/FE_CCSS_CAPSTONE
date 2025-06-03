@@ -87,7 +87,7 @@ const ViewRefundButton = ({ refund }) => {
         style={{ zIndex: 1050 }}
       >
         <Modal.Header closeButton>
-          <Modal.Title style={{ textAlign: "center", padding: "16px" }}>
+          <Modal.Title style={{ textAlign: "center" }}>
             View Refund Details
           </Modal.Title>
         </Modal.Header>
@@ -100,26 +100,27 @@ const ViewRefundButton = ({ refund }) => {
             <div className="refund-details">
               <p>
                 <strong>Bank Number:</strong>{" "}
-                {selectedRefund.numberBank || "N/A"}
+                {selectedRefund.numberBank || "Customer infor"}
               </p>
               <p>
-                <strong>Bank Name:</strong> {selectedRefund.bankName || "N/A"}
+                <strong>Bank Name:</strong>{" "}
+                {selectedRefund.bankName || "Customer infor"}
               </p>
               <p>
                 <strong>Account Holder:</strong>{" "}
-                {selectedRefund.accountBankName || "N/A"}
+                {selectedRefund.accountBankName || "Customer infor"}
               </p>
               <p>
                 <strong>Price Damage:</strong>{" "}
                 {selectedRefund.price
                   ? selectedRefund.price.toLocaleString()
-                  : "N/A"}
+                  : 0}
               </p>
               <p>
                 <strong>Amount:</strong>{" "}
                 {selectedRefund.amount
                   ? selectedRefund.amount.toLocaleString()
-                  : "N/A"}
+                  : 0}
               </p>
               <p>
                 <strong>Description:</strong>{" "}
@@ -173,7 +174,7 @@ const ViewRefundButton = ({ refund }) => {
                     onError={() => toast.error("Failed to load image.")}
                   />
                 ) : (
-                  <i>No image available</i>
+                  <i>Banking image</i>
                 )}
                 <p>
                   <strong>Updated Date:</strong>{" "}

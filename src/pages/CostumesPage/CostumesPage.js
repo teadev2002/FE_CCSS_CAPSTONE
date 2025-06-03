@@ -2337,51 +2337,64 @@ const CostumesPage = () => {
                   aria-label="Request description"
                 />
               </div>
-              <div className="request-item" style={{ marginBottom: "16px" }}>
-                <strong>Start Date: </strong>
-                <Form.Control
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => {
-                    const newStartDate = e.target.value;
-                    setStartDate(newStartDate);
-                    if (newStartDate && returnDate) {
-                      const startDateObj = new Date(newStartDate);
-                      const maxReturnDate = new Date(startDateObj);
-                      maxReturnDate.setDate(startDateObj.getDate() + 5);
-                      const returnDateObj = new Date(returnDate);
-                      if (returnDateObj > maxReturnDate) {
-                        setReturnDate(
-                          maxReturnDate.toISOString().split("T")[0]
-                        );
+              <div style={{ display: "flex", justifyContent: "center" }}>
+                <div
+                  className="request-item"
+                  style={{ marginBottom: "16px", width: "100%" }}
+                >
+                  <strong>Start Date: </strong>
+                  <Form.Control
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => {
+                      const newStartDate = e.target.value;
+                      setStartDate(newStartDate);
+                      if (newStartDate && returnDate) {
+                        const startDateObj = new Date(newStartDate);
+                        const maxReturnDate = new Date(startDateObj);
+                        maxReturnDate.setDate(startDateObj.getDate() + 5);
+                        const returnDateObj = new Date(returnDate);
+                        if (returnDateObj > maxReturnDate) {
+                          setReturnDate(
+                            maxReturnDate.toISOString().split("T")[0]
+                          );
+                        }
                       }
-                    }
+                    }}
+                    min={minStartDate}
+                    aria-label="Start date"
+                  />
+                </div>
+                <div
+                  className="request-item"
+                  style={{
+                    marginBottom: "16px",
+                    width: "100%",
+                    marginLeft: "16px",
                   }}
-                  min={minStartDate}
-                  aria-label="Start date"
-                />
-              </div>
-              <div className="request-item" style={{ marginBottom: "16px" }}>
-                <strong>Return Date: </strong>
-                <Form.Control
-                  type="date"
-                  // value={returnDate}
-                  onChange={(e) => setReturnDate(e.target.value)}
-                  min={startDate || minStartDate}
-                  max={
-                    startDate
-                      ? new Date(
-                          new Date(startDate).setDate(
-                            new Date(startDate).getDate() + 13
+                >
+                  <strong>Return Date: </strong>
+                  <Form.Control
+                    type="date"
+                    // value={returnDate}
+                    onChange={(e) => setReturnDate(e.target.value)}
+                    min={startDate || minStartDate}
+                    max={
+                      startDate
+                        ? new Date(
+                            new Date(startDate).setDate(
+                              new Date(startDate).getDate() + 13
+                            )
                           )
-                        )
-                          .toISOString()
-                          .split("T")[0]
-                      : undefined
-                  }
-                  aria-label="Return date"
-                />
+                            .toISOString()
+                            .split("T")[0]
+                        : undefined
+                    }
+                    aria-label="Return date"
+                  />
+                </div>
               </div>
+
               <strong>Location:</strong>
               <div
                 className="request-item"
@@ -2572,6 +2585,11 @@ const CostumesPage = () => {
                     ? parseInt(requestData.deposit).toLocaleString()
                     : "0"}{" "}
                   VND
+                  <br />{" "}
+                  <i>
+                    The total for each character = (Character price * total days
+                    + Character price * 5) * quantity
+                  </i>
                 </p>
               </div>
               <Button

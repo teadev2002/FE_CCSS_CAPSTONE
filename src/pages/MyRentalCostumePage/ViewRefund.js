@@ -123,17 +123,23 @@ const ViewRefund = ({ refund }) => {
             </div>
           ) : selectedRefund ? (
             <div className="refund-details">
-              <p>
-                <strong>Bank Number:</strong>{" "}
-                {selectedRefund.numberBank || "..."}
-              </p>
-              <p>
-                <strong>Bank Name:</strong> {selectedRefund.bankName || "..."}
-              </p>
-              <p>
-                <strong>Account Holder:</strong>{" "}
-                {selectedRefund.accountBankName || "..."}
-              </p>
+              {selectedRefund.amount > 0 && (
+                <>
+                  <p>
+                    <strong>Bank Number:</strong>{" "}
+                    {selectedRefund.numberBank || "..."}
+                  </p>
+                  <p>
+                    <strong>Bank Name:</strong>{" "}
+                    {selectedRefund.bankName || "..."}
+                  </p>
+                  <p>
+                    <strong>Account Holder:</strong>{" "}
+                    {selectedRefund.accountBankName || "..."}
+                  </p>
+                </>
+              )}
+
               <p>
                 <strong>Price Damage:</strong>{" "}
                 {selectedRefund.price
@@ -144,7 +150,7 @@ const ViewRefund = ({ refund }) => {
                 <strong>Amount:</strong>{" "}
                 {selectedRefund.amount
                   ? selectedRefund.amount.toLocaleString()
-                  : "N/A"}
+                  : 0}
               </p>
               <p>
                 <strong>Description:</strong>{" "}
@@ -183,27 +189,29 @@ const ViewRefund = ({ refund }) => {
                   {selectedRefund.createDate || "N/A"}
                 </p>
                 {refundImage2 && refundImage2.urlImage ? (
-                  <Image
-                    src={refundImage2.urlImage}
-                    alt="Refund"
-                    width="20%"
-                    style={{
-                      objectFit: "contain",
-                    }}
-                    preview={{
-                      maskClassName: "custom-preview-mask",
-                      zIndex: 1060,
-                    }}
-                    fallback="https://via.placeholder.com/150?text=No+Image"
-                    onError={() => toast.error("Failed to load image.")}
-                  />
+                  <>
+                    <Image
+                      src={refundImage2.urlImage}
+                      alt="Refund"
+                      width="20%"
+                      style={{
+                        objectFit: "contain",
+                      }}
+                      preview={{
+                        maskClassName: "custom-preview-mask",
+                        zIndex: 1060,
+                      }}
+                      fallback="https://via.placeholder.com/150?text=No+Image"
+                      onError={() => toast.error("Failed to load image.")}
+                    />
+                    <p>
+                      <strong>Updated Date:</strong>{" "}
+                      {selectedRefund.updateDate || "Not Yet"}
+                    </p>
+                  </>
                 ) : (
-                  <i>Waiting to Banking Image...</i>
+                  " "
                 )}
-                <p>
-                  <strong>Updated Date:</strong>{" "}
-                  {selectedRefund.updateDate || "Not Yet"}
-                </p>
               </div>
             </div>
           ) : (
@@ -214,7 +222,7 @@ const ViewRefund = ({ refund }) => {
           <Button type="default" onClick={handleCloseModal}>
             Close
           </Button>
-          {refundImage2 && refundImage2.urlImage && (
+          {selectedRefund?.amount >= 0 && (
             <Button
               type="primary"
               onClick={handleComplete}

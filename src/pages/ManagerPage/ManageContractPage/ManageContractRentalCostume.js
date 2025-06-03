@@ -1464,6 +1464,7 @@ const ManageContractRentalCostume = () => {
                       background: " linear-gradient(135deg, #510545, #22668a",
                       fontWeight: "bold",
                       color: "white",
+                      textAlign: "center",
                     }}
                   >
                     <tr>
@@ -1534,7 +1535,7 @@ const ManageContractRentalCostume = () => {
                       <th>Actions</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody style={{ textAlign: "center" }}>
                     {paginatedRequests.length > 0 ? (
                       paginatedRequests.map((req) => (
                         <tr key={req.id}>
@@ -1652,6 +1653,7 @@ const ManageContractRentalCostume = () => {
                       background: " linear-gradient(135deg, #510545, #22668a",
                       fontWeight: "bold",
                       color: "white",
+                      textAlign: "center",
                     }}
                   >
                     <tr>

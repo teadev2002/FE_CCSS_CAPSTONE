@@ -214,6 +214,7 @@ const EditRefundButton = ({ refund }) => {
                       value={formData.numberBank}
                       onChange={handleInputChange}
                       placeholder="Enter bank number"
+                      readOnly
                     />
                   </Form.Group>
                   <Form.Group className="mb-3" style={{ flex: 1 }}>
@@ -224,6 +225,7 @@ const EditRefundButton = ({ refund }) => {
                       value={formData.bankName}
                       onChange={handleInputChange}
                       placeholder="Enter bank name"
+                      readOnly
                     />
                   </Form.Group>
                 </div>
@@ -235,6 +237,7 @@ const EditRefundButton = ({ refund }) => {
                     value={formData.accountBankName}
                     onChange={handleInputChange}
                     placeholder="Enter account holder name"
+                    readOnly
                   />
                 </Form.Group>
               </div>

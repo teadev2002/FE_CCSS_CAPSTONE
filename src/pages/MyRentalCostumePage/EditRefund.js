@@ -113,7 +113,7 @@ const EditRefund = ({ refund }) => {
         onClick={handleOpenModal}
         className="action-btn edit-btn"
         loading={loading}
-        disabled={loading || !refund?.contractRefundId}
+        disabled={loading || !refund?.contractRefundId || refund?.amount === 0}
       >
         Update Refund
       </Button>

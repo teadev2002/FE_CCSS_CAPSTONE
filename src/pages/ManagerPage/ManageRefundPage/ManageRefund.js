@@ -548,12 +548,12 @@ const ManageRefund = () => {
         contractRefundId: refund.contractRefundId || "N/A",
         contractId: refund.contractId || "N/A",
         createDate: refund.createDate || "N/A",
-        updateDate: refund.updateDate || "N/A",
+        updateDate: refund.updateDate || "Not Update",
         price: refund.price || 0,
-        description: refund.description || "N/A",
-        numberBank: refund.numberBank || "N/A",
-        bankName: refund.bankName || "N/A",
-        accountBankName: refund.accountBankName || "N/A",
+        description: refund.description || "No description",
+        numberBank: refund.numberBank || "Customer infor",
+        bankName: refund.bankName || "Customer infor",
+        accountBankName: refund.accountBankName || "Customer infor",
       }));
       console.log("Normalized Refunds:", normalizedRefunds);
 
@@ -582,10 +582,10 @@ const ManageRefund = () => {
   const normalizeType = (type) => {
     if (!type) return "SystemRefund";
     const typeLower = type.toLowerCase();
-    if (typeLower === "system_refund" || typeLower === "systemrefund")
+    if (typeLower === "system_refund" || typeLower === "system refund")
       return "SystemRefund";
-    if (typeLower === "deposit_retained" || typeLower === "depositretained")
-      return "DepositRetained";
+    if (typeLower === "deposit_retained" || typeLower === "deposit retained")
+      return "Deposit Retained";
     return type;
   };
 
@@ -798,7 +798,7 @@ const ManageRefund = () => {
                       </th>
                       <th className="text-center">
                         <span onClick={() => handleSort("price")}>
-                          Price
+                          Price Damage
                           {sortRefund.field === "price" ? (
                             sortRefund.order === "asc" ? (
                               <ArrowUp size={16} />
@@ -811,7 +811,7 @@ const ManageRefund = () => {
                         </span>
                       </th>
                       <th className="text-center">Description</th>
-                      <th className="text-center">Type</th>
+
                       <th className="text-center">
                         <span onClick={() => handleSort("status")}>
                           Status
@@ -857,7 +857,7 @@ const ManageRefund = () => {
                             </Badge>
                           </td>
                           <td className="text-center">{refund.description}</td>
-                          <td className="text-center">{refund.type}</td>
+
                           <td className="text-center">
                             <Badge
                               bg={getStatusColor(refund.status)}

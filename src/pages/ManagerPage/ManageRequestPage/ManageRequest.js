@@ -1467,6 +1467,7 @@ const ManageRequest = () => {
                   background: " linear-gradient(135deg, #510545, #22668a",
                   fontWeight: "bold",
                   color: "white",
+                  textAlign: "center",
                 }}
               >
                 <tr>
@@ -1525,7 +1526,7 @@ const ManageRequest = () => {
                         <ArrowDown size={16} />
                       ))}
                   </th>
-                  <th onClick={() => handleSort("reason")}>
+                  {/* <th onClick={() => handleSort("reason")}>
                     Reason{" "}
                     {sortRequest.field === "reason" &&
                       (sortRequest.order === "asc" ? (
@@ -1533,11 +1534,11 @@ const ManageRequest = () => {
                       ) : (
                         <ArrowDown size={16} />
                       ))}
-                  </th>
+                  </th> */}
                   <th>Actions</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody style={{ textAlign: "center" }}>
                 {paginatedRequests.length > 0 ? (
                   paginatedRequests.map((req) => (
                     <tr key={req.id}>
@@ -1559,12 +1560,13 @@ const ManageRequest = () => {
                       </td>
                       <td>{req.startDate || "N/A"}</td>
                       <td>{req.endDate || "N/A"}</td>
-                      <td>{req.reason || " "}</td>
+                      {/* <td>{req.reason || " "}</td> */}
                       <td>
                         {req.statusRequest === "Pending" ? (
                           <Button
                             type="primary"
                             onClick={() => handleShowModal(req)}
+                            style={{ marginRight: "10px" }}
                           >
                             Edit
                           </Button>
