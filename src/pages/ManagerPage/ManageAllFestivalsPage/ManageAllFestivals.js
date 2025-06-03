@@ -3549,8 +3549,13 @@ import "../../../styles/Manager/ManageAllFestivals.scss";
 import ManageAllFestivalsService from "../../../services/ManageServicePages/ManageAllFestivalsService/ManageAllFestivalsService";
 import { DatePicker } from "antd";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 import { jwtDecode } from "jwt-decode";
 import ProfileService from "../../../services/ProfileService/ProfileService";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 // Khai báo các hằng số
 const { RangePicker: DateRangePicker } = DatePicker;
@@ -3581,20 +3586,9 @@ const ManageAllFestivals = () => {
   const [cosplayers, setCosplayers] = useState([]);
   // State để lưu ID nhân vật được chọn
   const [selectedCharacterId, setSelectedCharacterId] = useState(null);
-  // State để lưu danh sách tỉnh/thành phố
-  const [provinces, setProvinces] = useState([]);
-  // State để lưu danh sách quận/huyện
-  const [districts, setDistricts] = useState([]);
-  // State để lưu danh sách phường/xã
-  const [wards, setWards] = useState([]);
-  // State để lưu tỉnh/thành phố được chọn
-  const [selectedProvince, setSelectedProvince] = useState(null);
-  // State để lưu quận/huyện được chọn
-  const [selectedDistrict, setSelectedDistrict] = useState(null);
-  // State để lưu phường/xã được chọn
-  const [selectedWard, setSelectedWard] = useState(null);
-  // State để lưu địa chỉ đường phố
-  const [streetAddress, setStreetAddress] = useState("");
+  // địa chỉ
+  const [locations, setLocations] = useState([]);
+  const [selectedLocationId, setSelectedLocationId] = useState(null);
   // State để lưu dữ liệu form
   const [formData, setFormData] = useState({
     eventName: "",
@@ -3643,106 +3637,18 @@ const ManageAllFestivals = () => {
     fetchActivities();
   }, []);
 
-  // Lấy danh sách tỉnh/thành phố khi component được mount
+  // Thêm useEffect để gọi API GET /api/Location
   useEffect(() => {
-    const fetchProvinces = async () => {
+    const fetchLocations = async () => {
       try {
-        const provinceData = await ManageAllFestivalsService.getProvinces();
-        setProvinces(provinceData);
+        const locationData = await ManageAllFestivalsService.getLocations();
+        setLocations(Array.isArray(locationData) ? locationData : []);
       } catch (error) {
-        toast.error(error.message || "Failed to load provinces");
+        toast.error(error.message || "Failed to load locations");
       }
     };
-    fetchProvinces();
+    fetchLocations();
   }, []);
-
-  // Lấy danh sách quận/huyện khi tỉnh/thành phố thay đổi
-  useEffect(() => {
-    if (selectedProvince) {
-      const fetchDistricts = async () => {
-        try {
-          const districtData = await ManageAllFestivalsService.getDistricts(selectedProvince);
-          setDistricts(districtData);
-          setSelectedDistrict(null);
-          setWards([]);
-          setSelectedWard(null);
-        } catch (error) {
-          toast.error(error.message || "Failed to load districts");
-        }
-      };
-      fetchDistricts();
-    } else {
-      setDistricts([]);
-      setSelectedDistrict(null);
-      setWards([]);
-      setSelectedWard(null);
-    }
-  }, [selectedProvince]);
-
-  // Lấy danh sách phường/xã khi quận/huyện thay đổi
-  useEffect(() => {
-    if (selectedDistrict) {
-      const fetchWards = async () => {
-        try {
-          const wardData = await ManageAllFestivalsService.getWards(selectedDistrict);
-          setWards(wardData);
-          setSelectedWard(null);
-        } catch (error) {
-          toast.error(error.message || "Failed to load wards");
-        }
-      };
-      fetchWards();
-    } else {
-      setWards([]);
-      setSelectedWard(null);
-    }
-  }, [selectedDistrict]);
-
-  // Cập nhật trường location khi các lựa chọn vị trí thay đổi
-  useEffect(() => {
-    let location = "";
-    if (streetAddress && selectedWard && selectedDistrict && selectedProvince) {
-      const wardName = wards.find((w) => w.wardCode === selectedWard)?.wardName || "";
-      const districtName = districts.find((d) => d.districtId === selectedDistrict)?.districtName || "";
-      const provinceName = provinces.find((p) => p.provinceId === selectedProvince)?.provinceName || "";
-      location = `${streetAddress}, ${wardName}, ${districtName}, ${provinceName}`;
-    }
-    setFormData((prev) => ({ ...prev, location }));
-  }, [streetAddress, selectedWard, selectedDistrict, selectedProvince, wards, districts, provinces]);
-
-  // Tải dữ liệu vị trí ban đầu cho chế độ chỉnh sửa
-  useEffect(() => {
-    if (isEditMode && selectedFestival?.location) {
-      const locationParts = selectedFestival.location.split(", ").map((part) => part.trim());
-      if (locationParts.length === 4) {
-        const [street, ward, district, province] = locationParts;
-        setStreetAddress(street);
-        const provinceMatch = provinces.find((p) => p.provinceName === province);
-        if (provinceMatch) {
-          setSelectedProvince(provinceMatch.provinceId);
-          const fetchDistrictsAndWards = async () => {
-            try {
-              const districtData = await ManageAllFestivalsService.getDistricts(provinceMatch.provinceId);
-              setDistricts(districtData);
-              const districtMatch = districtData.find((d) => d.districtName === district);
-              if (districtMatch) {
-                setSelectedDistrict(districtMatch.districtId);
-                const wardData = await ManageAllFestivalsService.getWards(districtMatch.districtId);
-                setWards(wardData);
-                const wardMatch = wardData.find((w) => w.wardName === ward);
-                if (wardMatch) {
-                  setSelectedWard(wardMatch.wardCode);
-                }
-              }
-            } catch (error) {
-              toast.error(error.message || "Failed to load location data");
-            }
-          };
-          fetchDistrictsAndWards();
-        }
-      }
-    }
-  }, [isEditMode, selectedFestival, provinces]);
 
   // Lấy danh sách nhân vật khi mở modal tạo/sửa hoặc chi tiết
   useEffect(() => {
@@ -3776,8 +3682,8 @@ const ManageAllFestivals = () => {
       }
 
       const [startDate, endDate] = formData.dateRange;
-      const startDateTime = startDate.format(apiDateTimeFormat);
-      const endDateTime = endDate.format(apiDateTimeFormat);
+      const startDateTime = startDate.toISOString();
+      const endDateTime = endDate.toISOString();
 
       const fetchCosplayers = async () => {
         try {
@@ -3842,6 +3748,15 @@ const ManageAllFestivals = () => {
     });
   };
 
+  const formatDateForAvailableCosplayers = (date) => {
+    const pad = (num) => String(num).padStart(2, '0');
+    return `${pad(date.getHours())}:${pad(date.getMinutes())} ${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()}`;
+  };
+
+  const formatDateForEvent = (date) => {
+    return new Date(date).toISOString();
+  };
+
   // Lọc và phân trang dữ liệu
   const filteredFestivals = filterAndSortData(festivals, searchTerm, sortFestival);
   const totalEntries = filteredFestivals.length;
@@ -3864,15 +3779,15 @@ const ManageAllFestivals = () => {
   const showCreateModal = () => {
     setIsEditMode(false);
     setSelectedFestival(null);
-    setSelectedProvince(null);
-    setSelectedDistrict(null);
-    setSelectedWard(null);
-    setStreetAddress("");
+    setSelectedLocationId(null);
+    setSelectedCharacterId(null);
+    setCosplayers([]);
+    setCharacters([]);
     setFormData({
       eventName: "",
       description: "",
       dateRange: null,
-      location: "",
+      locationId: null,
       tickets: [{ ticketId: null, quantity: 0, price: 0, description: "", ticketType: 0 }],
       selectedCosplayers: [],
       eventActivities: [],
@@ -3882,9 +3797,18 @@ const ManageAllFestivals = () => {
       imagesDeleted: [],
       initialImageIds: [],
     });
-    setSelectedCharacterId(null);
-    setCosplayers([]);
     setIsCreateModalVisible(true);
+  };
+
+  const handleRemoveCosplayer = (cosplayerId) => {
+    setFormData((prev) => ({
+      ...prev,
+      selectedCosplayers: prev.selectedCosplayers.filter(
+        (sc) => sc.cosplayerId !== cosplayerId
+      ),
+    }));
+    setIsCosplayerEdited(true);
+    toast.success("Cosplayer removed successfully", { autoClose: 5000 });
   };
 
   // Hiển thị modal chỉnh sửa
@@ -3923,47 +3847,14 @@ const ManageAllFestivals = () => {
       }));
       const initialImageIds = existingImages.map((img) => img.imageId);
 
-      // Parse location
-      let street = "";
-      let provinceId = null;
-      let districtId = null;
-      let wardCode = null;
-
-      if (eventData.location) {
-        const locationParts = eventData.location.split(", ").map((part) => part.trim());
-        if (locationParts.length >= 4) {
-          [street] = locationParts;
-          const wardName = locationParts[1];
-          const districtName = locationParts[2];
-          const provinceName = locationParts[3];
-
-          const provinceMatch = provinces.find((p) => p.provinceName === provinceName);
-          if (provinceMatch) {
-            provinceId = provinceMatch.provinceId;
-            const districtData = await ManageAllFestivalsService.getDistricts(provinceId);
-            setDistricts(districtData);
-            const districtMatch = districtData.find((d) => d.districtName === districtName);
-            if (districtMatch) {
-              districtId = districtMatch.districtId;
-              const wardData = await ManageAllFestivalsService.getWards(districtId);
-              setWards(wardData);
-              const wardMatch = wardData.find((w) => w.wardName === wardName);
-              if (wardMatch) {
-                wardCode = wardMatch.wardCode;
-              }
-            }
-          }
-        }
-      }
-
-      // Load characters for the event's date range
+      // Tải characters
       let charData = [];
       try {
         const startDate = dayjs(eventData.startDate).format("DD/MM/YYYY");
         const endDate = dayjs(eventData.endDate).format("DD/MM/YYYY");
         charData = await ManageAllFestivalsService.getAllCharacters(startDate, endDate);
       } catch (error) {
-        toast.error(error.message || "Failed to load characters for event");
+        toast.error(error.message || "Failed to load characters for event", { autoClose: 4000 });
       }
       setCharacters(Array.isArray(charData) ? charData : []);
 
@@ -3971,12 +3862,12 @@ const ManageAllFestivals = () => {
         eventName: eventData.eventName,
         description: eventData.description,
         dateRange: [
-          dayjs(eventData.startDate, "YYYY-MM-DD HH:mm:ss"),
-          dayjs(eventData.endDate, "YYYY-MM-DD HH:mm:ss"),
+          dayjs(eventData.startDate).tz("Asia/Ho_Chi_Minh"),
+          dayjs(eventData.endDate).tz("Asia/Ho_Chi_Minh"),
         ],
-        location: eventData.location,
+        locationId: eventData.locationId,
         tickets: tickets.length > 0 ? tickets : [{ ticketId: null, quantity: 0, price: 0, description: "", ticketType: 0 }],
-        selectedCosplayers: [], // Xóa danh sách cosplayer
+        selectedCosplayers: [], // Empty to force re-selection
         eventActivities,
         imageFiles: [],
         imagePreviews: [],
@@ -3985,18 +3876,15 @@ const ManageAllFestivals = () => {
         initialImageIds,
       });
 
-      setStreetAddress(street);
-      setSelectedProvince(provinceId);
-      setSelectedDistrict(districtId);
-      setSelectedWard(wardCode);
+      setSelectedLocationId(eventData.locationId);
       setSelectedCharacterId(null);
       setCosplayers([]);
-      setIsCosplayerEdited(true); // Đánh dấu cosplayer đã được chỉnh sửa
+      setIsCosplayerEdited(false); // Initialize as false to keep existing cosplayers unless modified
       setIsEditMode(true);
       setSelectedFestival(record);
       setIsCreateModalVisible(true);
     } catch (error) {
-      toast.error(error.message || "Failed to load event data for editing");
+      toast.error(error.message || "Failed to load event data for editing", { autoClose: 4000 });
     }
   };
 
@@ -4089,10 +3977,6 @@ const ManageAllFestivals = () => {
     });
     setSelectedCharacterId(null);
     setCosplayers([]);
-    setSelectedProvince(null);
-    setSelectedDistrict(null);
-    setSelectedWard(null);
-    setStreetAddress("");
     setIsCosplayerEdited(false);
   };
 
@@ -4253,7 +4137,6 @@ const ManageAllFestivals = () => {
   // Hàm xử lý thêm cosplayer
   const handleAddCosplayer = async (cosplayer) => {
     const character = characters.find((c) => c.characterId === selectedCharacterId);
-    // Kiểm tra nếu đã chỉnh sửa cosplayer
     setIsCosplayerEdited(true);
 
     const currentCount = formData.selectedCosplayers.filter(
@@ -4262,19 +4145,18 @@ const ManageAllFestivals = () => {
 
     if (currentCount >= character.quantity) {
       toast.error(
-        `Cannot add more cosplayers for ${character.characterName}. Maximum quantity is ${character.quantity}.`
+        `Cannot add more cosplayers for ${character.characterName}. Maximum quantity is ${character.quantity}.`,
+        { autoClose: 4000 }
       );
       return;
     }
 
     if (formData.dateRange) {
       const [startDate, endDate] = formData.dateRange;
-      const dates = [
-        {
-          startDate: startDate.format(apiDateTimeFormat),
-          endDate: endDate.format(apiDateTimeFormat),
-        },
-      ];
+      const dates = [{
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+      }];
 
       try {
         const bookingData = await ManageAllFestivalsService.checkCosplayerBooking(dates);
@@ -4284,7 +4166,8 @@ const ManageAllFestivals = () => {
 
         if (isBooked) {
           toast.error(
-            `Cosplayer ${cosplayer.name} is already booked for another event during this time.`
+            `Cosplayer ${cosplayer.name} is already booked for another event during this time.`,
+            { autoClose: 4000 }
           );
           return;
         }
@@ -4297,14 +4180,13 @@ const ManageAllFestivals = () => {
               characterId: selectedCharacterId,
               cosplayerId: cosplayer.accountId,
               cosplayerName: cosplayer.name,
-              description: cosplayer.description || "Cosplayer",
+              description: `Cosplay as ${character.characterName}`,
             },
           ],
         }));
-        toast.success(`Added cosplayer ${cosplayer.name}`);
+        toast.success(`Added cosplayer ${cosplayer.name}`, { autoClose: 4000 });
       } catch (error) {
-        toast.error(error.message || "Failed to check cosplayer availability");
-        return;
+        toast.error(error.message || "Failed to check cosplayer availability", { autoClose: 4000 });
       }
     }
   };
@@ -4337,10 +4219,7 @@ const ManageAllFestivals = () => {
     const errors = [];
     if (!formData.eventName.trim()) errors.push("Event name is required");
     if (!formData.description.trim()) errors.push("Description is required");
-    if (!streetAddress.trim()) errors.push("Street address is required");
-    if (!selectedProvince) errors.push("Province selection is required");
-    if (!selectedDistrict) errors.push("District selection is required");
-    if (!selectedWard) errors.push("Ward selection is required");
+    if (!isEditMode && !formData.locationId) errors.push("Location selection is required");
     if (!formData.dateRange) errors.push("Date and time range is required");
     if (formData.tickets.length === 0) errors.push("At least one ticket is required");
     if (formData.selectedCosplayers.length === 0)
@@ -4349,7 +4228,25 @@ const ManageAllFestivals = () => {
       errors.push("At least one activity is required");
     if (formData.existingImages.length === 0 && formData.imageFiles.length === 0)
       errors.push("At least one image is required");
+
+    const ticketError = validateTickets();
+    if (ticketError) errors.push(ticketError);
+
     return errors;
+  };
+
+  const validateTickets = () => {
+    if (!selectedLocationId) return null;
+    const selectedLocation = locations.find((loc) => loc.locationId === selectedLocationId);
+    if (!selectedLocation) return null;
+
+    const totalTickets = formData.tickets.reduce((sum, t) => sum + t.quantity, 0);
+    const { capacityMin, capacityMax } = selectedLocation;
+
+    if (totalTickets < capacityMin || totalTickets > capacityMax) {
+      return `Total tickets (${totalTickets}) must be between ${capacityMin} and ${capacityMax}.`;
+    }
+    return null;
   };
 
   // Xử lý submit form
@@ -4357,7 +4254,7 @@ const ManageAllFestivals = () => {
     e.preventDefault();
     const errors = validateForm();
     if (errors.length > 0) {
-      toast.error(errors.join(", "));
+      toast.error(errors.join(", "), { autoClose: 4000 });
       return;
     }
 
@@ -4380,24 +4277,21 @@ const ManageAllFestivals = () => {
             createBy = profileData.name || "Unknown";
           }
         } catch (error) {
-          toast.error("Invalid access token");
+          toast.error("Invalid access token", { autoClose: 4000 });
         }
       } else {
-        toast.warn("No access token available");
+        toast.warn("No access token available", { autoClose: 4000 });
       }
 
       // Kiểm tra booking cosplayer
       if (formData.selectedCosplayers.length > 0) {
-        const dates = [
-          {
-            startDate: startDate.format(apiDateTimeFormat),
-            endDate: endDate.format(apiDateTimeFormat),
-          },
-        ];
+        const dates = [{
+          startDate: startDate.toISOString(),
+          endDate: endDate.toISOString(),
+        }];
 
         const bookingData = await ManageAllFestivalsService.checkCosplayerBooking(dates);
-        const bookedCosplayers = formData
-          .selectedCosplayers
+        const bookedCosplayers = formData.selectedCosplayers
           .filter(
             (sc) =>
               Array.isArray(bookingData) &&
@@ -4411,20 +4305,29 @@ const ManageAllFestivals = () => {
 
         if (bookedCosplayers.length > 0) {
           toast.error(
-            `The following cosplayers are booked: ${bookedCosplayers.join(", ")}. Please select different cosplayers or adjust the festival dates.`
+            `The following cosplayers are booked: ${bookedCosplayers.join(", ")}. Please select different cosplayers or adjust the festival dates.`,
+            { autoClose: 4000 }
           );
           return;
         }
       }
 
-      const imagesDeleted = formData.initialImageIds
-        .filter((id) => !formData.existingImages.some((img) => img.imageId === id))
-        .map((imageId) => ({ imageId }));
+      const imagesDeleted = formData.imagesDeleted.map((img) => ({
+        imageId: img.imageId,
+      }));
+
+      const cosplayerData = isEditMode && !isCosplayerEdited
+        ? null // Keep existing cosplayers if no changes
+        : formData.selectedCosplayers.map((sc) => ({
+          characterId: sc.characterId,
+          cosplayerId: sc.cosplayerId,
+          description: sc.description,
+        }));
 
       const eventData = {
         eventName: formData.eventName,
         description: formData.description,
-        location: formData.location,
+        location: formData.locationId,
         createBy: createBy,
         ticket: formData.tickets.map((t) => {
           const ticketData = {
@@ -4439,11 +4342,8 @@ const ManageAllFestivals = () => {
           return ticketData;
         }),
         imagesDeleted,
-        eventCharacterRequests: formData.selectedCosplayers.map((sc) => ({
-          characterId: sc.characterId,
-          cosplayerId: sc.cosplayerId,
-          description: sc.description,
-        })),
+        eventCharacterRequest: cosplayerData, // Without 's'
+        eventCharacterRequests: cosplayerData, // With 's'
         eventActivityRequests: formData.eventActivities,
       };
 
@@ -4452,7 +4352,7 @@ const ManageAllFestivals = () => {
         eventData.endDate = endDate.toISOString();
       }
 
-      const eventJson = JSON.stringify(eventData, null, 0);
+      const eventJson = JSON.stringify(eventData);
 
       if (isEditMode) {
         await ManageAllFestivalsService.updateEvent(
@@ -4460,19 +4360,28 @@ const ManageAllFestivals = () => {
           eventJson,
           formData.imageFiles
         );
-        toast.success("Festival updated successfully!");
+        toast.success("Festival updated successfully!", { autoClose: 4000 });
       } else {
-        await ManageAllFestivalsService.addEvent(eventJson, formData.imageFiles);
-        toast.success("Festival created successfully!");
+        const response = await ManageAllFestivalsService.addEvent(eventJson, formData.imageFiles);
+        if (response === "Add Success") {
+          toast.success("Festival created successfully!", { autoClose: 4000 });
+        } else {
+          throw new Error("Unexpected response from server");
+        }
       }
 
       const updatedFestivals = await ManageAllFestivalsService.getAllEvents(searchTerm);
       setFestivals(updatedFestivals);
       handleCancel();
     } catch (error) {
-      toast.error(error.message || `Failed to ${isEditMode ? "update" : "create"} festival`);
+      const errorMessage =
+        error.message.includes("There was another event at this location")
+          ? "This location is booked for another event during the selected time period. Please choose a different location or time."
+          : error.message || `Failed to ${isEditMode ? "update" : "create"} festival`;
+      toast.error(errorMessage, { autoClose: 4000 });
     }
   };
+
   // Xử lý tìm kiếm
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
@@ -4758,6 +4667,14 @@ const ManageAllFestivals = () => {
         </Modal.Header>
         <Modal.Body>
           <Form onSubmit={handleSubmit}>
+            {isEditMode && (
+              <Alert
+                message="Note: You must select cosplayers from scratch for this event."
+                type="warning"
+                showIcon
+                style={{ marginBottom: "10px" }}
+              />
+            )}
             <Form.Group className="mb-3">
               <Form.Label>Event Name</Form.Label>
               <Form.Control
@@ -4765,7 +4682,7 @@ const ManageAllFestivals = () => {
                 name="eventName"
                 value={formData.eventName}
                 onChange={handleInputChange}
-                placeholder="New Year Festival"
+                placeholder="Enter event name (e.g., New Year Festival)"
                 required
               />
             </Form.Group>
@@ -4777,7 +4694,7 @@ const ManageAllFestivals = () => {
                 name="description"
                 value={formData.description}
                 onChange={handleInputChange}
-                placeholder="Event description"
+                placeholder="Enter event description"
                 required
               />
             </Form.Group>
@@ -4815,84 +4732,38 @@ const ManageAllFestivals = () => {
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>Location</Form.Label>
-              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                <Input
-                  placeholder="Enter street address (e.g., 793/60 Trần Xuân Soạn)"
-                  value={streetAddress}
-                  onChange={(e) => setStreetAddress(e.target.value)}
-                  required
+              <Select
+                placeholder="Select location"
+                value={selectedLocationId}
+                onChange={(value) => {
+                  setSelectedLocationId(value);
+                  setFormData((prev) => ({ ...prev, locationId: value }));
+                }}
+                style={{ width: "100%" }}
+                required
+                showSearch
+                optionFilterProp="children"
+                filterOption={(input, option) =>
+                  option.children.toLowerCase().includes(input.toLowerCase())
+                }
+                dropdownStyle={{ zIndex: 10000 }}
+                getPopupContainer={(trigger) => trigger.parentNode}
+                disabled={isEditMode}
+              >
+                {locations.map((location) => (
+                  <Option key={location.locationId} value={location.locationId}>
+                    {`${location.address} (Min: ${location.capacityMin}, Max: ${location.capacityMax})`}
+                  </Option>
+                ))}
+              </Select>
+              {isEditMode && (
+                <Alert
+                  message="Note: The location cannot be modified to ensure consistency for ticket holders."
+                  type="info"
+                  showIcon
+                  style={{ marginTop: "10px" }}
                 />
-                <Select
-                  placeholder="Select province"
-                  value={selectedProvince}
-                  onChange={setSelectedProvince}
-                  style={{ width: "100%" }}
-                  required
-                  showSearch
-                  optionFilterProp="children"
-                  filterOption={(input, option) =>
-                    option.children.toLowerCase().includes(input.toLowerCase())
-                  }
-                  dropdownStyle={{ zIndex: 10000 }}
-                  getPopupContainer={(trigger) => trigger.parentNode}
-                >
-                  {provinces.map((province) => (
-                    <Option key={province.provinceId} value={province.provinceId}>
-                      {province.provinceName}
-                    </Option>
-                  ))}
-                </Select>
-                <Select
-                  placeholder="Select district"
-                  value={selectedDistrict}
-                  onChange={setSelectedDistrict}
-                  style={{ width: "100%" }}
-                  disabled={!selectedProvince}
-                  required
-                  showSearch
-                  optionFilterProp="children"
-                  filterOption={(input, option) =>
-                    option.children.toLowerCase().includes(input.toLowerCase())
-                  }
-                  dropdownStyle={{ zIndex: 10000 }}
-                  getPopupContainer={(trigger) => trigger.parentNode}
-                >
-                  {districts.map((district) => (
-                    <Option key={district.districtId} value={district.districtId}>
-                      {district.districtName}
-                    </Option>
-                  ))}
-                </Select>
-                <Select
-                  placeholder="Select ward"
-                  value={selectedWard}
-                  onChange={setSelectedWard}
-                  style={{ width: "100%" }}
-                  disabled={!selectedDistrict}
-                  required
-                  showSearch
-                  optionFilterProp="children"
-                  filterOption={(input, option) =>
-                    option.children.toLowerCase().includes(input.toLowerCase())
-                  }
-                  dropdownStyle={{ zIndex: 10000 }}
-                  getPopupContainer={(trigger) => trigger.parentNode}
-                >
-                  {wards.map((ward) => (
-                    <Option key={ward.wardCode} value={ward.wardCode}>
-                      {ward.wardName}
-                    </Option>
-                  ))}
-                </Select>
-                <Form.Control
-                  type="text"
-                  name="location"
-                  value={formData.location}
-                  readOnly
-                  placeholder="Full address will appear here"
-                  required
-                />
-              </div>
+              )}
             </Form.Group>
 
             {formData.dateRange && (
@@ -5047,7 +4918,18 @@ const ManageAllFestivals = () => {
                   renderItem={(item) => {
                     const character = characters.find((c) => c.characterId === item.characterId);
                     return (
-                      <List.Item>
+                      <List.Item
+                        actions={[
+                          <Button
+                            type="primary"
+                            danger
+                            size="small"
+                            onClick={() => handleRemoveCosplayer(item.cosplayerId)}
+                          >
+                            Remove
+                          </Button>,
+                        ]}
+                      >
                         <List.Item.Meta
                           title={`Character: ${character?.characterName || item.characterId}`}
                           description={`Cosplayer: ${item.cosplayerName}`}
@@ -5060,9 +4942,7 @@ const ManageAllFestivals = () => {
             )}
 
             <Form.Group className="mb-3">
-              {/* Tiêu đề của phần vé */}
               <Form.Label>Tickets</Form.Label>
-              {/* Hiển thị thông báo khi ở chế độ chỉnh sửa để giải thích lý do phần vé bị vô hiệu hóa */}
               {isEditMode && (
                 <Alert
                   message="Note: Tickets cannot be modified to ensure consistency for ticket holders."
@@ -5073,7 +4953,6 @@ const ManageAllFestivals = () => {
               )}
               {formData.tickets.map((ticket, index) => (
                 <div key={index} className="mb-2 border p-3 rounded">
-                  {/* Trường số lượng vé */}
                   <Form.Group className="mb-2">
                     <Form.Label>Quantity</Form.Label>
                     <Form.Control
@@ -5083,13 +4962,11 @@ const ManageAllFestivals = () => {
                       onChange={(e) =>
                         handleArrayChange("tickets", index, "quantity", Number(e.target.value))
                       }
-                      placeholder="Quantity"
+                      placeholder="Enter quantity"
                       required
-                      // Vô hiệu hóa trường số lượng trong chế độ chỉnh sửa để ngăn chỉnh sửa vé
                       disabled={isEditMode}
                     />
                   </Form.Group>
-                  {/* Trường giá vé */}
                   <Form.Group className="mb-2">
                     <Form.Label>Price</Form.Label>
                     <Form.Control
@@ -5099,13 +4976,11 @@ const ManageAllFestivals = () => {
                       onChange={(e) =>
                         handleArrayChange("tickets", index, "price", Number(e.target.value))
                       }
-                      placeholder="Price"
+                      placeholder="Enter price"
                       required
-                      // Vô hiệu hóa trường giá trong chế độ chỉnh sửa để ngăn chỉnh sửa vé
                       disabled={isEditMode}
                     />
                   </Form.Group>
-                  {/* Trường mô tả vé */}
                   <Form.Group className="mb-2">
                     <Form.Label>Description</Form.Label>
                     <Form.Control
@@ -5114,13 +4989,11 @@ const ManageAllFestivals = () => {
                       onChange={(e) =>
                         handleArrayChange("tickets", index, "description", e.target.value)
                       }
-                      placeholder="Description"
+                      placeholder="Enter ticket description"
                       required
-                      // Vô hiệu hóa trường mô tả trong chế độ chỉnh sửa để ngăn chỉnh sửa vé
                       disabled={isEditMode}
                     />
                   </Form.Group>
-                  {/* Trường loại vé */}
                   <Form.Group className="mb-2">
                     <Form.Label>Ticket Type</Form.Label>
                     <Form.Select
@@ -5129,7 +5002,6 @@ const ManageAllFestivals = () => {
                         handleArrayChange("tickets", index, "ticketType", Number(e.target.value))
                       }
                       required
-                      // Vô hiệu hóa trường loại vé trong chế độ chỉnh sửa để ngăn chỉnh sửa vé
                       disabled={isEditMode}
                     >
                       {getAvailableTicketTypes(index).map((type) => (
@@ -5141,7 +5013,14 @@ const ManageAllFestivals = () => {
                   </Form.Group>
                 </div>
               ))}
-              {/* Nút thêm vé mới */}
+              {validateTickets() && (
+                <Alert
+                  message={validateTickets()}
+                  type="error"
+                  showIcon
+                  style={{ marginTop: "10px" }}
+                />
+              )}
               <Button
                 variant="outline-primary"
                 onClick={() =>
@@ -5153,7 +5032,6 @@ const ManageAllFestivals = () => {
                     ticketType: formData.tickets[0]?.ticketType === 0 ? 1 : 0,
                   })
                 }
-                // Vô hiệu hóa nút thêm vé trong chế độ chỉnh sửa để ngăn thêm vé mới
                 disabled={isEditMode || isAddTicketDisabled()}
                 style={{
                   background:
@@ -5381,13 +5259,13 @@ const ManageAllFestivals = () => {
               <h3 style={{ marginTop: 16, fontSize: "22px", fontWeight: 600, color: "#510545" }}>
                 Event Images
               </h3>
-              {/* Sử dụng grid để hiển thị 2-3 hình trên một hàng, bỏ preview của Ant Design */}
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
-                  gap: "0px",
+                  gridTemplateColumns: "repeat(3, 200px)", // 3 cột cố định, mỗi cột 200px
+                  gap: "16px", // Khoảng cách đều 16px
                   marginTop: "16px",
+                  justifyContent: "flex-start", // Căn trái để giữ vị trí cố định
                 }}
               >
                 {eventDetails.eventImageResponses.map((img) => (
@@ -5396,8 +5274,8 @@ const ManageAllFestivals = () => {
                     src={img.imageUrl}
                     alt={`event-image-${img.imageId}`}
                     style={{
-                      width: "300px",
-                      height: "300px",
+                      width: "200px",
+                      height: "200px",
                       objectFit: "cover",
                       borderRadius: "8px",
                       border: "1px solid #e0e0e0",
@@ -5410,7 +5288,7 @@ const ManageAllFestivals = () => {
               <Descriptions
                 title={
                   <span style={{ fontSize: "22px", fontWeight: 600, color: "#510545" }}>
-                    Event Information
+                    Festival Information
                   </span>
                 }
                 bordered
@@ -5427,10 +5305,10 @@ const ManageAllFestivals = () => {
                   {eventDetails.location}
                 </Descriptions.Item>
                 <Descriptions.Item label="Start Date">
-                  {dayjs(eventDetails.startDate).format(dateTimeFormat)}
+                  {dayjs(eventDetails.startDate).tz("Asia/Ho_Chi_Minh").format("HH:mm DD/MM/YYYY")}
                 </Descriptions.Item>
                 <Descriptions.Item label="End Date">
-                  {dayjs(eventDetails.endDate).format(dateTimeFormat)}
+                  {dayjs(eventDetails.endDate).tz("Asia/Ho_Chi_Minh").format("HH:mm DD/MM/YYYY")}
                 </Descriptions.Item>
                 <Descriptions.Item label="Create Date">
                   {formatDateVN(eventDetails.createDate)}

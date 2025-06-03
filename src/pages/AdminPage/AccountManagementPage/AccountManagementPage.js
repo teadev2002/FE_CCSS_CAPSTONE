@@ -1093,9 +1093,13 @@ const AccountManagementPage = () => {
     phone: "",
     height: "",
     weight: "",
+    salaryIndex: "",
   });
   const [createErrors, setCreateErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+
+  // Trạng thái cho modal xác nhận tạo tài khoản
+  const [showCreateConfirmModal, setShowCreateConfirmModal] = useState(false);
 
   // Ánh xạ mã vai trò (roleId) với tên vai trò
   const roleMapping = {
@@ -1322,6 +1326,7 @@ const AccountManagementPage = () => {
       phone: "",
       height: "",
       weight: "",
+      salaryIndex: "",
     });
     setCreateErrors({});
     setShowCreateModal(true);
@@ -1434,6 +1439,15 @@ const AccountManagementPage = () => {
       }
     }
 
+    // Salary Index (Cosplayer only)
+    if (createFormData.roleId === "R004") {
+      if (!createFormData.salaryIndex) {
+        newErrors.salaryIndex = "Salary rate is required.";
+      } else if (isNaN(createFormData.salaryIndex) || createFormData.salaryIndex <= 0) {
+        newErrors.salaryIndex = "Salary rate must be a positive number.";
+      }
+    }
+
     return newErrors;
   };
 
@@ -1444,34 +1458,44 @@ const AccountManagementPage = () => {
     setCreateErrors(newErrors);
 
     if (Object.keys(newErrors).length === 0) {
-      setIsLoading(true);
-      try {
-        const payload = {
-          roleId: createFormData.roleId,
-          name: createFormData.name,
-          email: createFormData.email,
-          userName: createFormData.userName,
-          password: createFormData.password,
-          birthday: formatDateToDDMMYYYY(createFormData.birthday),
-          phone: createFormData.phone,
-          height: createFormData.roleId === "R004" ? Number(createFormData.height) : 0,
-          weight: createFormData.roleId === "R004" ? Number(createFormData.weight) : 0,
-        };
-        await AccountManagementService.createAccount(payload);
-        toast.success("Account created successfully!");
-        // Refresh account list
-        const data = await AccountManagementService.getAccountsByRole(createFormData.roleId);
-        setAccounts((prev) => ({
-          ...prev,
-          [roleMapping[createFormData.roleId]]: Array.isArray(data) ? data : [data],
-        }));
-        handleCloseCreateModal();
-      } catch (error) {
-        toast.error(error.message || "Failed to create account.");
-      } finally {
-        setIsLoading(false);
-      }
+      // Mở modal xác nhận thay vì gọi API
+      setShowCreateConfirmModal(true);
     }
+  };
+
+  const confirmCreateAccount = async () => {
+    setIsLoading(true);
+    try {
+      const payload = {
+        roleId: createFormData.roleId,
+        name: createFormData.name,
+        email: createFormData.email,
+        userName: createFormData.userName,
+        password: createFormData.password,
+        birthday: formatDateToDDMMYYYY(createFormData.birthday),
+        phone: createFormData.phone,
+        height: createFormData.roleId === "R004" ? Number(createFormData.height) : 0,
+        weight: createFormData.roleId === "R004" ? Number(createFormData.weight) : 0,
+        salaryIndex: createFormData.roleId === "R004" ? Number(createFormData.salaryIndex) : 0,
+      };
+      await AccountManagementService.createAccount(payload);
+      toast.success("Account created successfully!");
+      const data = await AccountManagementService.getAccountsByRole(createFormData.roleId);
+      setAccounts((prev) => ({
+        ...prev,
+        [roleMapping[createFormData.roleId]]: Array.isArray(data) ? data : [data],
+      }));
+      handleCloseCreateModal();
+    } catch (error) {
+      toast.error(error.message || "Failed to create account.");
+    } finally {
+      setIsLoading(false);
+      setShowCreateConfirmModal(false); // Đóng modal xác nhận
+    }
+  };
+
+  const cancelCreateConfirm = () => {
+    setShowCreateConfirmModal(false);
   };
 
   // Định dạng ngày từ YYYY-MM-DD sang DD/MM/YYYY
@@ -1542,12 +1566,27 @@ const AccountManagementPage = () => {
             <div className="d-flex align-items-center gap-2">
               {role !== "customers" && (
                 <Button
-                  variant="primary"
                   size="sm"
-                  className="create-account-btn"
                   onClick={() => handleShowCreateModal(role)}
+                  style={{
+                    background: "linear-gradient(135deg, #3498db, #2ecc71)",
+                    border: "none",
+                    borderRadius: "8px",
+                    padding: "6px 12px",
+                    fontSize: "0.9rem",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "5px",
+                    transition: "background 0.3s ease, transform 0.2s ease",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.target.style.background = "linear-gradient(135deg, #2ecc71, #3498db)")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.target.style.background = "linear-gradient(135deg, #3498db, #2ecc71)")
+                  }
                 >
-                  <PlusCircle size={16} className="me-1" />
+                  <PlusCircle size={14} />
                   Create Account
                 </Button>
               )}
@@ -2005,7 +2044,7 @@ const AccountManagementPage = () => {
                         Hourly Rate:
                       </span>
                       <span style={{ color: "#34495e", flex: 1, fontSize: "0.95rem" }}>
-                        {formatHourlyRate(selectedAccount.salaryIndex)}
+                        {selectedAccount.salaryIndex.toLocaleString("vi-VN")} VND/h
                       </span>
                     </div>
                   </Col>
@@ -2358,6 +2397,22 @@ const AccountManagementPage = () => {
                     {createErrors.weight}
                   </Form.Control.Feedback>
                 </Form.Group>
+                <Form.Group className="mb-3" controlId="formSalaryIndex">
+                  <Form.Label>Hourly Rate (VND)</Form.Label>
+                  <Form.Control
+                    type="number"
+                    name="salaryIndex"
+                    value={createFormData.salaryIndex}
+                    onChange={handleCreateInputChange}
+                    isInvalid={!!createErrors.salaryIndex}
+                    disabled={isLoading}
+                    min="0"
+                    step="1"
+                  />
+                  <Form.Control.Feedback type="invalid">
+                    {createErrors.salaryIndex}
+                  </Form.Control.Feedback>
+                </Form.Group>
               </>
             )}
 
@@ -2393,6 +2448,76 @@ const AccountManagementPage = () => {
             </Modal.Footer>
           </Form>
         </Modal.Body>
+        {/* Modal xác nhận tạo tài khoản */}
+        <Modal
+          show={showCreateConfirmModal}
+          onHide={cancelCreateConfirm}
+          centered
+          size="sm"
+          style={{ zIndex: 1050 }}
+        >
+          <Modal.Header
+            closeButton
+            style={{
+              background: "linear-gradient(135deg, #3498db, #2ecc71)",
+              color: "white",
+              borderBottom: "none",
+              padding: "1rem",
+            }}
+          >
+            <Modal.Title style={{ fontSize: 18, fontWeight: 600, margin: "0 auto" }}>
+              Confirm Action
+            </Modal.Title>
+          </Modal.Header>
+          <Modal.Body
+            style={{
+              padding: "1.5rem",
+              textAlign: "center",
+              fontSize: "1rem",
+              color: "#2c3e50",
+            }}
+          >
+            <p style={{ margin: 0 }}>Are you sure you want to create this account?</p>
+          </Modal.Body>
+          <Modal.Footer
+            style={{
+              padding: "1rem",
+              borderTop: "none",
+              display: "flex",
+              justifyContent: "center",
+              gap: "1rem",
+            }}
+          >
+            <Button
+              variant="secondary"
+              onClick={cancelCreateConfirm}
+              disabled={isLoading}
+              style={{
+                background: "#6c757d",
+                border: "none",
+                borderRadius: "8px",
+                padding: "0.5rem 1.5rem",
+                fontSize: "0.9rem",
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              onClick={confirmCreateAccount}
+              disabled={isLoading}
+              style={{
+                background: "linear-gradient(135deg, #3498db, #2ecc71)",
+                border: "none",
+                borderRadius: "8px",
+                padding: "0.5rem 1.5rem",
+                fontSize: "0.9rem",
+              }}
+            >
+              {isLoading ? "Creating..." : "Confirm"}
+            </Button>
+          </Modal.Footer>
+        </Modal>
       </Modal>
     </div>
   );

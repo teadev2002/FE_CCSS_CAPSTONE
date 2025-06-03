@@ -296,12 +296,13 @@
 @import "~bootstrap/scss/bootstrap";
 
 // Định dạng chung cho trang lịch sử mua hàng
+@import "~bootstrap/scss/bootstrap";
+
 .purchase-history {
   padding: 30px;
   min-height: 100vh;
   background: linear-gradient(135deg, #f8f9fa, #e9ecef);
 
-  // Tiêu đề trang
   .title-purchase-history {
     span {
       font-size: 2.5rem;
@@ -322,7 +323,6 @@
     }
   }
 
-  // Dropdown sắp xếp
   .sort-container {
     display: flex;
     justify-content: flex-end;
@@ -363,7 +363,6 @@
     }
   }
 
-  // Card hiển thị thông tin vé, đơn hàng, giao dịch
   .purchase-card {
     border-radius: 15px;
     background: #fff;
@@ -376,7 +375,6 @@
       border-color: #510545;
     }
 
-    // Container hình ảnh sản phẩm
     .image-container {
       width: 120px;
       height: 120px;
@@ -416,7 +414,6 @@
       min-width: 0;
     }
 
-    // Vòng tròn biểu tượng
     .icon-circle {
       width: 50px;
       height: 50px;
@@ -439,7 +436,6 @@
       margin-bottom: 10px;
     }
 
-    // Chi tiết vé, giao dịch, sản phẩm, tóm tắt
     .ticket-details,
     .transaction-details,
     .order-products,
@@ -454,7 +450,6 @@
         margin-bottom: 10px;
       }
 
-      // Định dạng badge trạng thái
       .badge {
         font-size: 12px;
         padding: 4px 8px;
@@ -496,6 +491,30 @@
           opacity: 0.9;
         }
       }
+
+      .reason-highlight {
+        display: flex;
+        justify-content: space-between;
+        background: #ffe6e6;
+        padding: 8px 12px;
+        border-radius: 4px;
+        border-left: 4px solid #dc3545;
+        font-size: 1rem;
+        color: #dc3545;
+        font-weight: 500;
+        margin-bottom: 10px;
+        transition: all 0.3s ease;
+
+        strong {
+          color: #dc3545;
+          font-weight: 700;
+        }
+
+        &:hover {
+          background: #ffcccc;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+      }
     }
 
     .event-title {
@@ -507,7 +526,6 @@
       padding-bottom: 5px;
     }
 
-    // Mục sản phẩm
     .product-item {
       background: #ffffff;
       border-radius: 8px;
@@ -522,7 +540,6 @@
       }
     }
 
-    // Tóm tắt đơn hàng
     .order-summary {
       padding-top: 10px;
       border-top: 1px dashed #510545;
@@ -557,7 +574,6 @@
     }
   }
 
-  // Phân trang
   .pagination-container {
     display: flex;
     justify-content: center;
@@ -616,7 +632,6 @@
     }
   }
 
-  // Tabs
   .ant-tabs-card {
     .ant-tabs-nav {
       margin-bottom: 30px;

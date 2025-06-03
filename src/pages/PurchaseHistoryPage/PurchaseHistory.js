@@ -1303,7 +1303,7 @@
 
 //--------------------------------------------------------------------------------------//
 
-//sửa vào 26/05/2025
+//sửa vào 02/06/2025
 
 import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Card, Badge, Dropdown } from "react-bootstrap";
@@ -1316,11 +1316,9 @@ import Box from "@mui/material/Box";
 import LinearProgress from "@mui/material/LinearProgress";
 import { CheckCircle, Clock, Package, Truck } from "lucide-react";
 
-// Khai báo TabPane từ Tabs của antd để hiển thị các tab
 const { TabPane } = Tabs;
 
 const PurchaseHistory = () => {
-  // Khởi tạo các state để quản lý dữ liệu vé, đơn hàng, giao dịch và phân trang
   const [festivalTickets, setFestivalTickets] = useState([]);
   const [purchasedOrders, setPurchasedOrders] = useState([]);
   const [transactions, setTransactions] = useState([]);
@@ -1335,10 +1333,9 @@ const PurchaseHistory = () => {
   const [ticketSortOrder, setTicketSortOrder] = useState("newest");
   const [orderSortOrder, setOrderSortOrder] = useState("newest");
   const [transactionSortOrder, setTransactionSortOrder] = useState("newest");
-  const [transactionPurposeFilter, setTransactionPurposeFilter] = useState("All"); // State mới để lọc purpose
+  const [transactionPurposeFilter, setTransactionPurposeFilter] = useState("All");
   const [deliveryFees, setDeliveryFees] = useState({});
 
-  // Hàm lấy accountId từ token JWT lưu trong localStorage
   const getAccountInfoFromToken = () => {
     const accessToken = localStorage.getItem("accessToken");
     if (accessToken) {
@@ -1353,10 +1350,8 @@ const PurchaseHistory = () => {
     return null;
   };
 
-  // Hàm định dạng ngày thành định dạng DD/MM/YYYY
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
-
     const regex = /^(\d{2})[-/](\d{2})[-/](\d{4})$/;
     const match = dateString.match(regex);
     if (match) {
@@ -1366,7 +1361,6 @@ const PurchaseHistory = () => {
       }
       return "Invalid Date";
     }
-
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return "Invalid Date";
     const day = String(date.getDate()).padStart(2, "0");
@@ -1375,7 +1369,6 @@ const PurchaseHistory = () => {
     return `${day}/${month}/${year}`;
   };
 
-  // Hàm chuyển đổi chuỗi ngày DD/MM/YYYY thành đối tượng Date để so sánh
   const parseDate = (dateString) => {
     if (!dateString) return new Date(0);
     const regex = /^(\d{2})[-/](\d{2})[-/](\d{4})$/;
@@ -1387,17 +1380,14 @@ const PurchaseHistory = () => {
     return new Date(dateString);
   };
 
-  // Hàm định dạng giá tiền sang định dạng VND (ví dụ: 1,000,000 VND)
   const formatPrice = (price) => {
     return `${price?.toLocaleString("vi-VN") || 0} VND`;
   };
 
-  // Hàm tính tổng phụ (subtotal) từ danh sách sản phẩm trong đơn hàng
   const calculateSubtotal = (orderProducts) => {
     return orderProducts.reduce((sum, product) => sum + product.price * product.quantity, 0);
   };
 
-  // Hàm ẩn Transaction ID, chỉ hiển thị 3 chữ số cuối
   const maskTransactionId = (id) => {
     if (!id) return "N/A";
     const strId = String(id);
@@ -1405,7 +1395,6 @@ const PurchaseHistory = () => {
     return "xxxxxxxx" + strId.slice(-3);
   };
 
-  // Hàm lấy tên trạng thái giao hàng dựa trên mã trạng thái
   const getShipStatus = (status) => {
     switch (status) {
       case 0: return "Waiting for Confirmation";
@@ -1418,38 +1407,35 @@ const PurchaseHistory = () => {
     }
   };
 
-  // Hàm tính phần trăm tiến độ cho thanh tiến độ giao hàng
   const getProgressPercentage = (status) => {
     switch (status) {
-      case 0: return 0; // Waiting for Confirmation
-      case 1: return 25; // Waiting to Pick
-      case 2: return 41; // In Transit
-      case 3: return 58; // Received
-      case 4: return 75; // Cancel
-      case 5: return 100; // Refund
-      default: return 0; // Unknown
+      case 0: return 0;
+      case 1: return 25;
+      case 2: return 41;
+      case 3: return 58;
+      case 4: return 75;
+      case 5: return 100;
+      default: return 0;
     }
   };
 
-  // Hàm lấy màu cho thanh tiến độ dựa trên trạng thái
   const getProgressColor = (status) => {
     switch (status) {
-      case 4: return "#dc3545"; // Cancel: Màu đỏ
-      case 5: return "#fd7e14"; // Refund: Màu cam
-      default: return "linear-gradient(135deg, #510545, #22668a)"; // Các trạng thái khác: Gradient
+      case 4: return "#dc3545";
+      case 5: return "#fd7e14";
+      default: return "linear-gradient(135deg, #510545, #22668a)";
     }
   };
 
-  // Hàm lấy biểu tượng cho từng trạng thái giao hàng
   const getStatusIcon = (status, isActive) => {
     const style = {
       color: isActive
         ? status === 4
-          ? "#dc3545" // Cancel: Đỏ
+          ? "#dc3545"
           : status === 5
-            ? "#fd7e14" // Refund: Cam
-            : "#510545" // Các trạng thái khác: Màu mặc định
-        : "#999", // Không hoạt động: Xám
+            ? "#fd7e14"
+            : "#510545"
+        : "#999",
       marginRight: "8px",
     };
     switch (status) {
@@ -1470,35 +1456,32 @@ const PurchaseHistory = () => {
     }
   };
 
-  // Hàm lấy màu cho badge trạng thái
   const getStatusColor = (status) => {
     switch (status) {
       case "Waiting for Confirmation":
-        return "warning"; // #ffc107
+        return "warning";
       case "Waiting to Pick":
-        return "info"; // #17a2b8
+        return "info";
       case "In Transit":
-        return "primary"; // #007bff
+        return "primary";
       case "Received":
-        return "success"; // #28a745
+        return "success";
       case "Cancel":
-        return "danger"; // #dc3545
+        return "danger";
       case "Refund":
-        return "warning-orange"; // #fd7e14
+        return "warning-orange";
       default:
         return "secondary";
     }
   };
 
-  // Hàm kiểm tra trạng thái có đang hoạt động (sáng) hay không
   const isStatusActive = (status, currentStatus) => {
-    if (currentStatus === 3) return status <= 3; // Received: Chỉ 0-3 sáng
-    if (currentStatus === 4) return status <= 4; // Cancel: 0-4 sáng
-    if (currentStatus === 5) return true; // Refund: Tất cả sáng
-    return status <= currentStatus; // 0-2: Chỉ sáng đến trạng thái hiện tại
+    if (currentStatus === 3) return status <= 3;
+    if (currentStatus === 4) return status <= 4;
+    if (currentStatus === 5) return true;
+    return status <= currentStatus;
   };
 
-  // Hàm lấy tên hiển thị cho mục đích giao dịch
   const getPurposeDisplay = (purpose) => {
     switch (purpose) {
       case "BuyTicket":
@@ -1516,10 +1499,9 @@ const PurchaseHistory = () => {
     }
   };
 
-  // Lấy dữ liệu lịch sử mua hàng và phí giao hàng khi component mount hoặc khi thay đổi thứ tự sắp xếp
   useEffect(() => {
     const fetchPurchaseHistory = async () => {
-      setLoading(true); // Bật trạng thái loading
+      setLoading(true);
       const id = getAccountInfoFromToken();
       if (!id) {
         console.error("No account ID found. Please log in.");
@@ -1529,19 +1511,15 @@ const PurchaseHistory = () => {
       setAccountId(id);
 
       try {
-        // Lấy dữ liệu vé
         const ticketsData = await PurchaseHistoryService.getAllTicketsByAccountId(id);
-        // Lấy dữ liệu đơn hàng
         const ordersData = await PurchaseHistoryService.getAllOrdersByAccountId(id);
-        // Lấy dữ liệu giao dịch cho tất cả các mục đích
-        const purposes = [0, 1, 2, 3, 4]; // BuyTicket, ContractDeposit, contractSettlement, Order, Refund
+        const purposes = [0, 1, 2, 3, 4];
         let allTransactions = [];
         for (const purpose of purposes) {
           const transactionsData = await PurchaseHistoryService.getAllPaymentsByAccountIdAndPurpose(id, purpose);
           allTransactions = [...allTransactions, ...transactionsData];
         }
 
-        // Tính phí giao hàng cho từng đơn hàng
         const fees = {};
         for (const order of ordersData) {
           try {
@@ -1554,7 +1532,6 @@ const PurchaseHistory = () => {
         }
         setDeliveryFees(fees);
 
-        // Sắp xếp dữ liệu vé theo ngày bắt đầu sự kiện
         setFestivalTickets(
           [...ticketsData].sort((a, b) => {
             const dateA = parseDate(a.ticket.event.startDate);
@@ -1562,7 +1539,6 @@ const PurchaseHistory = () => {
             return ticketSortOrder === "newest" ? dateB - dateA : dateA - dateB;
           })
         );
-        // Sắp xếp dữ liệu đơn hàng theo ngày đặt hàng
         setPurchasedOrders(
           [...ordersData].sort((a, b) => {
             const dateA = parseDate(a.orderDate);
@@ -1570,10 +1546,9 @@ const PurchaseHistory = () => {
             return orderSortOrder === "newest" ? dateB - dateA : dateA - dateB;
           })
         );
-        // Lọc và sắp xếp dữ liệu giao dịch theo purpose và ngày giao dịch
         setTransactions(
           [...allTransactions]
-            .filter((transaction) => 
+            .filter((transaction) =>
               transactionPurposeFilter === "All" || transaction.purpose === transactionPurposeFilter
             )
             .sort((a, b) => {
@@ -1585,64 +1560,54 @@ const PurchaseHistory = () => {
       } catch (error) {
         console.error("Failed to fetch purchase history:", error);
       } finally {
-        setLoading(false); // Tắt trạng thái loading
+        setLoading(false);
       }
     };
     fetchPurchaseHistory();
   }, [ticketSortOrder, orderSortOrder, transactionSortOrder, transactionPurposeFilter]);
 
-  // Hàm phân trang dữ liệu
   const paginate = (data, page, perPage) => {
     const start = (page - 1) * perPage;
     return data.slice(start, start + perPage);
   };
 
-  // Hàm lấy tên loại vé
   const getTicketTypeName = (type) => {
     return type === 0 ? "Normal" : "Premium";
   };
 
-  // Lấy dữ liệu phân trang cho vé, đơn hàng và giao dịch
   const currentTickets = paginate(festivalTickets, currentTicketsPage, ticketPageSize);
   const currentOrders = paginate(purchasedOrders, currentOrdersPage, orderPageSize);
   const currentTransactions = paginate(transactions, currentTransactionsPage, transactionPageSize);
 
-  // Xử lý thay đổi trang cho vé
   const handleTicketPageChange = (page, pageSize) => {
     setCurrentTicketsPage(page);
     setTicketPageSize(pageSize);
   };
 
-  // Xử lý thay đổi trang cho đơn hàng
   const handleOrderPageChange = (page, pageSize) => {
     setCurrentOrdersPage(page);
     setOrderPageSize(pageSize);
   };
 
-  // Xử lý thay đổi trang cho giao dịch
   const handleTransactionPageChange = (page, pageSize) => {
     setCurrentTransactionsPage(page);
     setTransactionPageSize(pageSize);
   };
 
-  // Hàm xử lý thay đổi bộ lọc purpose
   const handlePurposeFilterChange = (purpose) => {
     setTransactionPurposeFilter(purpose);
-    setCurrentTransactionsPage(1); // Reset về trang đầu khi thay đổi bộ lọc
+    setCurrentTransactionsPage(1);
   };
 
   return (
     <div className="purchase-history bg-light min-vh-100">
       <Container className="py-5">
-        {/* Tiêu đề trang */}
         <h1 className="text-center mb-5 fw-bold title-purchase-history">
           <span>Purchase History</span>
         </h1>
 
         <Tabs defaultActiveKey="2" type="card">
-          {/* Tab hiển thị lịch sử mua vé */}
           <TabPane tab="Festival Tickets" key="1">
-            {/* Dropdown để sắp xếp vé */}
             <div className="sort-container mb-3">
               <Dropdown>
                 <Dropdown.Toggle className="sort-dropdown" id="ticket-sort-dropdown">
@@ -1668,14 +1633,12 @@ const PurchaseHistory = () => {
                       <Card className="purchase-card shadow">
                         <Card.Body>
                           <div className="d-flex flex-column gap-4">
-                            {/* Hiển thị mã vé */}
                             <div className="d-flex gap-3 align-items-center">
                               <div className="icon-circle">
                                 <Ticket size={24} />
                               </div>
                               <h3 className="purchase-title mb-0">Ticket Code: {ticket.ticketCode}</h3>
                             </div>
-                            {/* Chi tiết vé */}
                             <div className="ticket-details">
                               <div className="text-muted small">
                                 <strong>Type:</strong> {getTicketTypeName(ticket.ticket.ticketType)}
@@ -1690,7 +1653,6 @@ const PurchaseHistory = () => {
                                 <strong>Quantity:</strong> {ticket.quantity}
                               </div>
                             </div>
-                            {/* Chi tiết sự kiện */}
                             <div className="event-details">
                               <h5 className="event-title">Event Details</h5>
                               <div className="text-muted small">
@@ -1717,7 +1679,6 @@ const PurchaseHistory = () => {
                     </Col>
                   ))}
                 </Row>
-                {/* Phân trang cho vé */}
                 <div className="pagination-container mt-5">
                   <Pagination
                     current={currentTicketsPage}
@@ -1733,9 +1694,7 @@ const PurchaseHistory = () => {
             )}
           </TabPane>
 
-          {/* Tab hiển thị lịch sử mua sản phẩm */}
           <TabPane tab="Purchased Products" key="2">
-            {/* Dropdown để sắp xếp đơn hàng */}
             <div className="sort-container mb-3">
               <Dropdown>
                 <Dropdown.Toggle className="sort-dropdown" id="order-sort-dropdown">
@@ -1766,14 +1725,12 @@ const PurchaseHistory = () => {
                         <Card className="purchase-card shadow">
                           <Card.Body>
                             <div className="d-flex flex-column gap-4">
-                              {/* Hiển thị mã đơn hàng */}
                               <div className="d-flex gap-3 align-items-center">
                                 <div className="icon-circle">
                                   <ShoppingBag size={24} />
                                 </div>
                                 <h3 className="purchase-title mb-0">Order ID: {"xxxxxxx" + order.orderId.slice(-7)}</h3>
                               </div>
-                              {/* Danh sách sản phẩm trong đơn hàng */}
                               <div className="order-products">
                                 <h5 className="event-title">Order Items</h5>
                                 {order.orderProducts.map((product) => (
@@ -1816,7 +1773,6 @@ const PurchaseHistory = () => {
                                   </div>
                                 ))}
                               </div>
-                              {/* Tóm tắt đơn hàng */}
                               <div className="order-summary">
                                 <h5 className="event-title">Order Summary</h5>
                                 <div className="text-muted small">
@@ -1837,6 +1793,11 @@ const PurchaseHistory = () => {
                                     {getShipStatus(order.shipStatus)}
                                   </Badge>
                                 </div>
+                                {(order.shipStatus === 4 || order.shipStatus === 5) && (
+                                  <div className="text-muted small reason-highlight">
+                                    <strong>Reason:</strong> {order.cancelReason || "No reason provided"}
+                                  </div>
+                                )}
                                 <div className="text-muted small">
                                   <strong>Subtotal:</strong> {formatPrice(subtotal)}
                                 </div>
@@ -1847,7 +1808,6 @@ const PurchaseHistory = () => {
                                   <strong>Total:</strong> {formatPrice(total)}
                                 </div>
                               </div>
-                              {/* Thông báo giao hàng */}
                               <p
                                 style={{
                                   color: "red",
@@ -1857,13 +1817,11 @@ const PurchaseHistory = () => {
                               >
                                 * The item will be delivered within 3-5 days from the order date, please check your phone regularly
                               </p>
-                              {/* Phần hiển thị tiến độ giao hàng */}
                               <div style={{ margin: "20px 0", padding: "15px", background: "#f5f5f5", borderRadius: "8px" }}>
                                 <h5 style={{ fontSize: "18px", fontWeight: 600, color: "#510545", marginBottom: "15px" }}>
                                   Delivery Progress
                                 </h5>
                                 <Box sx={{ width: "100%", marginTop: 2 }}>
-                                  {/* Thanh tiến độ duy nhất */}
                                   <LinearProgress
                                     variant="determinate"
                                     value={getProgressPercentage(order.shipStatus)}
@@ -1876,7 +1834,6 @@ const PurchaseHistory = () => {
                                       },
                                     }}
                                   />
-                                  {/* Hiển thị các bước trạng thái */}
                                   <div
                                     style={{
                                       display: "flex",
@@ -1928,7 +1885,6 @@ const PurchaseHistory = () => {
                     );
                   })}
                 </Row>
-                {/* Phân trang cho đơn hàng */}
                 <div className="pagination-container mt-5">
                   <Pagination
                     current={currentOrdersPage}
@@ -1944,11 +1900,8 @@ const PurchaseHistory = () => {
             )}
           </TabPane>
 
-          {/* Tab hiển thị lịch sử giao dịch */}
           <TabPane tab="Transaction History" key="3">
-            {/* Container chứa hai dropdown: sắp xếp theo ngày và lọc theo purpose */}
             <div className="sort-container mb-3 d-flex gap-3">
-              {/* Dropdown để sắp xếp giao dịch theo ngày */}
               <Dropdown>
                 <Dropdown.Toggle className="sort-dropdown" id="transaction-sort-dropdown">
                   Sort: {transactionSortOrder === "newest" ? "Newest to Oldest" : "Oldest to Newest"}
@@ -1958,7 +1911,6 @@ const PurchaseHistory = () => {
                   <Dropdown.Item onClick={() => setTransactionSortOrder("oldest")}>Oldest to Newest</Dropdown.Item>
                 </Dropdown.Menu>
               </Dropdown>
-              {/* Dropdown để lọc giao dịch theo purpose */}
               <Dropdown>
                 <Dropdown.Toggle className="sort-dropdown" id="transaction-purpose-dropdown">
                   Filter Purpose: {transactionPurposeFilter === "All" ? "All" : getPurposeDisplay(transactionPurposeFilter)}
@@ -1987,7 +1939,6 @@ const PurchaseHistory = () => {
                       <Card className="purchase-card shadow">
                         <Card.Body>
                           <div className="d-flex flex-column gap-4">
-                            {/* Hiển thị mã giao dịch */}
                             <div className="d-flex gap-3 align-items-center">
                               <div className="icon-circle">
                                 <CreditCard size={24} />
@@ -1996,7 +1947,6 @@ const PurchaseHistory = () => {
                                 Transaction ID: {maskTransactionId(transaction.transactionId)}
                               </h3>
                             </div>
-                            {/* Chi tiết giao dịch */}
                             <div className="transaction-details">
                               <div className="text-muted small">
                                 <strong>Payment Method:</strong> {transaction.type}
@@ -2027,7 +1977,6 @@ const PurchaseHistory = () => {
                     </Col>
                   ))}
                 </Row>
-                {/* Phân trang cho giao dịch */}
                 <div className="pagination-container mt-5">
                   <Pagination
                     current={currentTransactionsPage}
