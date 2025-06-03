@@ -3854,7 +3854,7 @@ const ManageAllFestivals = () => {
         const endDate = dayjs(eventData.endDate).format("DD/MM/YYYY");
         charData = await ManageAllFestivalsService.getAllCharacters(startDate, endDate);
       } catch (error) {
-        toast.error(error.message || "Failed to load characters for event", { autoClose: 10000 });
+        toast.error(error.message || "Failed to load characters for event", { autoClose: 4000 });
       }
       setCharacters(Array.isArray(charData) ? charData : []);
 
@@ -3867,7 +3867,7 @@ const ManageAllFestivals = () => {
         ],
         locationId: eventData.locationId,
         tickets: tickets.length > 0 ? tickets : [{ ticketId: null, quantity: 0, price: 0, description: "", ticketType: 0 }],
-        selectedCosplayers: [], // Đặt về rỗng để chọn lại từ đầu
+        selectedCosplayers: [], // Empty to force re-selection
         eventActivities,
         imageFiles: [],
         imagePreviews: [],
@@ -3879,12 +3879,12 @@ const ManageAllFestivals = () => {
       setSelectedLocationId(eventData.locationId);
       setSelectedCharacterId(null);
       setCosplayers([]);
-      setIsCosplayerEdited(true);
+      setIsCosplayerEdited(false); // Initialize as false to keep existing cosplayers unless modified
       setIsEditMode(true);
       setSelectedFestival(record);
       setIsCreateModalVisible(true);
     } catch (error) {
-      toast.error(error.message || "Failed to load event data for editing", { autoClose: 10000 });
+      toast.error(error.message || "Failed to load event data for editing", { autoClose: 4000 });
     }
   };
 
@@ -4146,7 +4146,7 @@ const ManageAllFestivals = () => {
     if (currentCount >= character.quantity) {
       toast.error(
         `Cannot add more cosplayers for ${character.characterName}. Maximum quantity is ${character.quantity}.`,
-        { autoClose: 10000 }
+        { autoClose: 4000 }
       );
       return;
     }
@@ -4167,7 +4167,7 @@ const ManageAllFestivals = () => {
         if (isBooked) {
           toast.error(
             `Cosplayer ${cosplayer.name} is already booked for another event during this time.`,
-            { autoClose: 10000 }
+            { autoClose: 4000 }
           );
           return;
         }
@@ -4184,9 +4184,9 @@ const ManageAllFestivals = () => {
             },
           ],
         }));
-        toast.success(`Added cosplayer ${cosplayer.name}`, { autoClose: 10000 });
+        toast.success(`Added cosplayer ${cosplayer.name}`, { autoClose: 4000 });
       } catch (error) {
-        toast.error(error.message || "Failed to check cosplayer availability", { autoClose: 10000 });
+        toast.error(error.message || "Failed to check cosplayer availability", { autoClose: 4000 });
       }
     }
   };
@@ -4254,7 +4254,7 @@ const ManageAllFestivals = () => {
     e.preventDefault();
     const errors = validateForm();
     if (errors.length > 0) {
-      toast.error(errors.join(", "), { autoClose: 10000 });
+      toast.error(errors.join(", "), { autoClose: 4000 });
       return;
     }
 
@@ -4277,10 +4277,10 @@ const ManageAllFestivals = () => {
             createBy = profileData.name || "Unknown";
           }
         } catch (error) {
-          toast.error("Invalid access token", { autoClose: 10000 });
+          toast.error("Invalid access token", { autoClose: 4000 });
         }
       } else {
-        toast.warn("No access token available", { autoClose: 10000 });
+        toast.warn("No access token available", { autoClose: 4000 });
       }
 
       // Kiểm tra booking cosplayer
@@ -4306,7 +4306,7 @@ const ManageAllFestivals = () => {
         if (bookedCosplayers.length > 0) {
           toast.error(
             `The following cosplayers are booked: ${bookedCosplayers.join(", ")}. Please select different cosplayers or adjust the festival dates.`,
-            { autoClose: 10000 }
+            { autoClose: 4000 }
           );
           return;
         }
@@ -4315,6 +4315,14 @@ const ManageAllFestivals = () => {
       const imagesDeleted = formData.imagesDeleted.map((img) => ({
         imageId: img.imageId,
       }));
+
+      const cosplayerData = isEditMode && !isCosplayerEdited
+        ? null // Keep existing cosplayers if no changes
+        : formData.selectedCosplayers.map((sc) => ({
+          characterId: sc.characterId,
+          cosplayerId: sc.cosplayerId,
+          description: sc.description,
+        }));
 
       const eventData = {
         eventName: formData.eventName,
@@ -4334,11 +4342,8 @@ const ManageAllFestivals = () => {
           return ticketData;
         }),
         imagesDeleted,
-        eventCharacterRequest: formData.selectedCosplayers.map((sc) => ({
-          characterId: sc.characterId,
-          cosplayerId: sc.cosplayerId,
-          description: sc.description,
-        })),
+        eventCharacterRequest: cosplayerData, // Without 's'
+        eventCharacterRequests: cosplayerData, // With 's'
         eventActivityRequests: formData.eventActivities,
       };
 
@@ -4355,11 +4360,11 @@ const ManageAllFestivals = () => {
           eventJson,
           formData.imageFiles
         );
-        toast.success("Festival updated successfully!", { autoClose: 10000 });
+        toast.success("Festival updated successfully!", { autoClose: 4000 });
       } else {
         const response = await ManageAllFestivalsService.addEvent(eventJson, formData.imageFiles);
         if (response === "Add Success") {
-          toast.success("Festival created successfully!", { autoClose: 10000 });
+          toast.success("Festival created successfully!", { autoClose: 4000 });
         } else {
           throw new Error("Unexpected response from server");
         }
@@ -4373,7 +4378,7 @@ const ManageAllFestivals = () => {
         error.message.includes("There was another event at this location")
           ? "This location is booked for another event during the selected time period. Please choose a different location or time."
           : error.message || `Failed to ${isEditMode ? "update" : "create"} festival`;
-      toast.error(errorMessage, { autoClose: 10000 });
+      toast.error(errorMessage, { autoClose: 4000 });
     }
   };
 
