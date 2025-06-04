@@ -3855,7 +3855,7 @@ const ManageAllFestivals = () => {
         const endDate = dayjs(eventData.endDate).format("DD/MM/YYYY");
         charData = await ManageAllFestivalsService.getAllCharacters(startDate, endDate);
       } catch (error) {
-        toast.error(error.message || "Failed to load characters for event", { autoClose: 7000 });
+        toast.error(error.message || "Failed to load characters for festival", { autoClose: 7000 });
       }
       setCharacters(Array.isArray(charData) ? charData : []);
 
@@ -3885,7 +3885,7 @@ const ManageAllFestivals = () => {
       setSelectedFestival(record);
       setIsCreateModalVisible(true);
     } catch (error) {
-      toast.error(error.message || "Failed to load event data for editing", { autoClose: 7000 });
+      toast.error(error.message || "Failed to load festival data for editing", { autoClose: 7000 });
     }
   };
 
@@ -3901,7 +3901,7 @@ const ManageAllFestivals = () => {
         const endDate = dayjs(eventData.endDate).format("DD/MM/YYYY");
         charData = await ManageAllFestivalsService.getAllCharacters(startDate, endDate);
       } catch (error) {
-        toast.error(error.message || "Failed to load characters for event", { autoClose: 7000 });
+        toast.error(error.message || "Failed to load characters for festival", { autoClose: 7000 });
       }
       const eventCharacters = Array.isArray(charData) ? charData : [];
 
@@ -3954,7 +3954,7 @@ const ManageAllFestivals = () => {
       setEventDetails({ ...eventData, cosplayers, eventActivityResponse: updatedActivities, ticket: tickets });
       setIsDetailsModalVisible(true);
     } catch (error) {
-      toast.error(error.message || "Failed to load event details", { autoClose: 7000 });
+      toast.error(error.message || "Failed to load festival details", { autoClose: 7000 });
     }
   };
 
@@ -3988,7 +3988,6 @@ const ManageAllFestivals = () => {
   };
 
   // Xử lý thay đổi khoảng thời gian
-  // Xử lý thay đổi khoảng thời gian
   const handleDateRangeChange = (dates) => {
     if (!dates) {
       setFormData((prev) => ({ ...prev, dateRange: null }));
@@ -3998,101 +3997,87 @@ const ManageAllFestivals = () => {
       return;
     }
 
-    const [start, end] = dates;
-    const today = dayjs().startOf("day");
-    const tomorrow = today.add(1, "day");
-    const minStartDate = today.add(15, "day"); // Half month from today
-    const maxStartDate = today.add(1, "month"); // One month from today
-
-    // Validate start date: at least half a month, at most one month from today
-    if (start.isBefore(minStartDate)) {
-      toast.error("Start date must be at least half a month from today!", { autoClose: 7000 });
-      setFormData((prev) => ({ ...prev, dateRange: null }));
-      setSelectedCharacterId(null);
-      setCosplayers([]);
-      setCharacters([]);
-      return;
-    }
-
-    if (start.isAfter(maxStartDate)) {
-      toast.error("Start date must be within one month from today!", { autoClose: 7000 });
-      setFormData((prev) => ({ ...prev, dateRange: null }));
-      setSelectedCharacterId(null);
-      setCosplayers([]);
-      setCharacters([]);
-      return;
-    }
-
-    // Validate start date: must be tomorrow or later
-    if (start.isBefore(tomorrow)) {
-      toast.error("Start date must be tomorrow or later!", { autoClose: 7000 });
-      setFormData((prev) => ({ ...prev, dateRange: null }));
-      setSelectedCharacterId(null);
-      setCosplayers([]);
-      setCharacters([]);
-      return;
-    }
-
-    // Validate end date: must be on or after start date
-    if (end.isBefore(start)) {
-      toast.error("End date must be on or after start date!", { autoClose: 7000 });
-      setFormData((prev) => ({ ...prev, dateRange: null }));
-      return;
-    }
-
-    // Validate: max 5 days apart
-    const daysDiff = end.diff(start, "day", true);
-    if (daysDiff > 5) {
-      toast.error("End date must be within 5 days of start date!", { autoClose: 7000 });
-      setFormData((prev) => ({ ...prev, dateRange: null }));
-      return;
-    }
-
-    // If same day, validate time difference (at least 5 hours, no overlap)
-    if (start.isSame(end, "day")) {
-      const hoursDiff = end.diff(start, "hour", true);
-      if (hoursDiff < 5) {
-        toast.error("On the same day, end time must be at least 5 hours after start time!", { autoClose: 7000 });
-        setFormData((prev) => ({ ...prev, dateRange: null }));
-        return;
-      }
-    }
-
     setFormData((prev) => ({ ...prev, dateRange: dates }));
     setSelectedCharacterId(null);
     setCosplayers([]);
   };
 
   // Vô hiệu hóa ngày trước ngày mai
-  const disabledDate = (current) => {
+  // Vô hiệu hóa ngày không hợp lệ
+  const disabledDate = (current, { from }) => {
     const today = dayjs().startOf("day");
-    const tomorrow = today.add(1, "day");
-    return current && current < tomorrow;
+    const minStartDate = today.add(15, "day"); // Tối thiểu 15 ngày từ hôm nay
+    const maxStartDate = today.add(1, "month"); // Tối đa 1 tháng từ hôm nay
+
+    // Vô hiệu hóa ngày trước minStartDate và sau maxStartDate
+    if (current && (current < minStartDate || current > maxStartDate)) {
+      return true;
+    }
+
+    // Nếu startDate đã chọn, vô hiệu hóa ngày cách quá 5 ngày
+    if (from) {
+      const maxEndDate = from.add(5, "day").endOf("day");
+      const minEndDate = from.startOf("day");
+      return current && (current > maxEndDate || current < minEndDate);
+    }
+
+    return false;
   };
 
   // Vô hiệu hóa giờ ngoài khoảng 8h-22h
-  const disabledTime = () => {
+  // Vô hiệu hóa giờ không hợp lệ
+  const disabledTime = (_, type, { from }) => {
     const startHour = 8;
     const endHour = 22;
 
-    return {
-      disabledHours: () => {
-        const hours = [];
-        for (let i = 0; i < 24; i++) {
-          if (i < startHour || i > endHour) {
-            hours.push(i);
+    // Giờ khả dụng: 8h-22h
+    const disabledHours = () => {
+      const hours = [];
+      for (let i = 0; i < 24; i++) {
+        if (i < startHour || i > endHour) {
+          hours.push(i);
+        }
+      }
+      return hours;
+    };
+
+    // Phút khả dụng: chỉ cho phép 00 phút
+    const disabledMinutes = (selectedHour) => {
+      if (selectedHour === startHour || selectedHour === endHour) {
+        return Array.from({ length: 60 }, (_, i) => i).filter(
+          (minute) => minute !== 0
+        );
+      }
+      return [];
+    };
+
+    // Nếu chọn endDate và trùng ngày với startDate, đảm bảo cách tối thiểu 5 tiếng
+    if (type === "end" && from && from.isSame(_, "day")) {
+      const minEndHour = from.hour() + 5; // Tối thiểu 5 tiếng sau startHour
+      return {
+        disabledHours: () => {
+          const hours = [];
+          for (let i = 0; i < 24; i++) {
+            if (i < minEndHour || i < startHour || i > endHour) {
+              hours.push(i);
+            }
           }
-        }
-        return hours;
-      },
-      disabledMinutes: (selectedHour) => {
-        if (selectedHour === startHour || selectedHour === endHour) {
-          return Array.from({ length: 60 }, (_, i) => i).filter(
-            (minute) => minute !== 0
-          );
-        }
-        return [];
-      },
+          return hours;
+        },
+        disabledMinutes: (selectedHour) => {
+          if (selectedHour === minEndHour) {
+            return Array.from({ length: 60 }, (_, i) => i).filter(
+              (minute) => minute < from.minute()
+            );
+          }
+          return disabledMinutes(selectedHour);
+        },
+      };
+    }
+
+    return {
+      disabledHours,
+      disabledMinutes,
     };
   };
 
@@ -4105,7 +4090,7 @@ const ManageAllFestivals = () => {
         return;
       }
       if (field === "price" && numericValue > 5000000) {
-        toast.error("Ticket price cannot exceed 5,000,000 VND!", { autoClose: 7000 });
+        toast.error("Ticket price cannot exceed 5.000.000 VND!", { autoClose: 7000 });
         return;
       }
       // Convert to string without leading zeros
@@ -4192,7 +4177,6 @@ const ManageAllFestivals = () => {
   };
 
   // Thêm cosplayer với kiểm tra trạng thái booking
-  // Hàm xử lý thêm cosplayer
   const handleAddCosplayer = async (cosplayer) => {
     const character = characters.find((c) => c.characterId === selectedCharacterId);
     setIsCosplayerEdited(true);
@@ -4224,7 +4208,7 @@ const ManageAllFestivals = () => {
 
         if (isBooked) {
           toast.error(
-            `Cosplayer ${cosplayer.name} is already booked for another event during this time.`,
+            `Cosplayer ${cosplayer.name} is already booked for another festival during this time.`,
             { autoClose: 7000 }
           );
           return;
@@ -4786,6 +4770,7 @@ const ManageAllFestivals = () => {
                 }}
                 popupStyle={{ zIndex: 9999 }}
                 disabled={isEditMode}
+                getPopupContainer={(trigger) => trigger.parentNode}
               />
               {isEditMode && (
                 <Alert
