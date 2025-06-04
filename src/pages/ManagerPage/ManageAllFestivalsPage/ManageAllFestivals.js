@@ -3630,7 +3630,7 @@ const ManageAllFestivals = () => {
         const actData = await ManageAllFestivalsService.getAllActivities();
         setActivities(Array.isArray(actData) ? actData : []);
       } catch (error) {
-        toast.error(error.message || "Failed to load activities");
+        toast.error(error.message || "Failed to load activities", { autoClose: 7000 });
         setActivities([]);
       }
     };
@@ -3644,7 +3644,7 @@ const ManageAllFestivals = () => {
         const locationData = await ManageAllFestivalsService.getLocations();
         setLocations(Array.isArray(locationData) ? locationData : []);
       } catch (error) {
-        toast.error(error.message || "Failed to load locations");
+        toast.error(error.message || "Failed to load locations", { autoClose: 7000 });
       }
     };
     fetchLocations();
@@ -3664,7 +3664,7 @@ const ManageAllFestivals = () => {
           );
           setCharacters(Array.isArray(charData) ? charData : []);
         } catch (error) {
-          toast.error(error.message || "Failed to load characters");
+          toast.error(error.message || "Failed to load characters", { autoClose: 7000 });
           setCharacters([]);
         }
       };
@@ -3676,7 +3676,7 @@ const ManageAllFestivals = () => {
   useEffect(() => {
     if (selectedCharacterId && formData.dateRange) {
       if (typeof selectedCharacterId !== "string" || !selectedCharacterId) {
-        toast.error("Invalid character ID");
+        toast.error("Invalid character ID", { autoClose: 7000 });
         setCosplayers([]);
         return;
       }
@@ -3697,11 +3697,11 @@ const ManageAllFestivals = () => {
             (cosplayer) => !selectedCosplayerIds.includes(cosplayer.accountId)
           );
           if (filteredCosplayers.length === 0) {
-            toast.warn("No cosplayers available for this character and time range.");
+            toast.warn("No cosplayers available for this character and time range.", { autoClose: 7000 });
           }
           setCosplayers(filteredCosplayers);
         } catch (error) {
-          toast.error(error.message || "Failed to load cosplayers");
+          toast.error(error.message || "Failed to load cosplayers", { autoClose: 7000 });
           setCosplayers([]);
         }
       };
@@ -3808,9 +3808,10 @@ const ManageAllFestivals = () => {
       ),
     }));
     setIsCosplayerEdited(true);
-    toast.success("Cosplayer removed successfully", { autoClose: 5000 });
+    toast.success("Cosplayer removed successfully", { autoClose: 2000 });
   };
 
+  // Hiển thị modal chỉnh sửa
   // Hiển thị modal chỉnh sửa
   const showEditModal = async (record) => {
     try {
@@ -3821,8 +3822,8 @@ const ManageAllFestivals = () => {
         if (!acc[type]) {
           acc[type] = {
             ticketId: t.ticketId,
-            quantity: t.quantity,
-            price: t.price,
+            quantity: t.quantity.toString(), // Convert to string
+            price: t.price.toString(), // Convert to string
             description: t.description,
             ticketType: type,
           };
@@ -3854,7 +3855,7 @@ const ManageAllFestivals = () => {
         const endDate = dayjs(eventData.endDate).format("DD/MM/YYYY");
         charData = await ManageAllFestivalsService.getAllCharacters(startDate, endDate);
       } catch (error) {
-        toast.error(error.message || "Failed to load characters for event", { autoClose: 4000 });
+        toast.error(error.message || "Failed to load characters for event", { autoClose: 7000 });
       }
       setCharacters(Array.isArray(charData) ? charData : []);
 
@@ -3866,7 +3867,7 @@ const ManageAllFestivals = () => {
           dayjs(eventData.endDate).tz("Asia/Ho_Chi_Minh"),
         ],
         locationId: eventData.locationId,
-        tickets: tickets.length > 0 ? tickets : [{ ticketId: null, quantity: 0, price: 0, description: "", ticketType: 0 }],
+        tickets: tickets.length > 0 ? tickets : [{ ticketId: null, quantity: "0", price: "0", description: "", ticketType: 0 }],
         selectedCosplayers: [], // Empty to force re-selection
         eventActivities,
         imageFiles: [],
@@ -3884,7 +3885,7 @@ const ManageAllFestivals = () => {
       setSelectedFestival(record);
       setIsCreateModalVisible(true);
     } catch (error) {
-      toast.error(error.message || "Failed to load event data for editing", { autoClose: 4000 });
+      toast.error(error.message || "Failed to load event data for editing", { autoClose: 7000 });
     }
   };
 
@@ -3900,7 +3901,7 @@ const ManageAllFestivals = () => {
         const endDate = dayjs(eventData.endDate).format("DD/MM/YYYY");
         charData = await ManageAllFestivalsService.getAllCharacters(startDate, endDate);
       } catch (error) {
-        toast.error(error.message || "Failed to load characters for event");
+        toast.error(error.message || "Failed to load characters for event", { autoClose: 7000 });
       }
       const eventCharacters = Array.isArray(charData) ? charData : [];
 
@@ -3936,8 +3937,8 @@ const ManageAllFestivals = () => {
         if (!acc[type]) {
           acc[type] = {
             ticketId: t.ticketId,
-            quantity: t.quantity,
-            price: t.price,
+            quantity: t.quantity.toString(), // Convert to string
+            price: t.price.toString(), // Convert to string
             description: t.description,
             ticketType: type,
           };
@@ -3953,7 +3954,7 @@ const ManageAllFestivals = () => {
       setEventDetails({ ...eventData, cosplayers, eventActivityResponse: updatedActivities, ticket: tickets });
       setIsDetailsModalVisible(true);
     } catch (error) {
-      toast.error(error.message || "Failed to load event details");
+      toast.error(error.message || "Failed to load event details", { autoClose: 7000 });
     }
   };
 
@@ -3987,6 +3988,7 @@ const ManageAllFestivals = () => {
   };
 
   // Xử lý thay đổi khoảng thời gian
+  // Xử lý thay đổi khoảng thời gian
   const handleDateRangeChange = (dates) => {
     if (!dates) {
       setFormData((prev) => ({ ...prev, dateRange: null }));
@@ -3999,9 +4001,12 @@ const ManageAllFestivals = () => {
     const [start, end] = dates;
     const today = dayjs().startOf("day");
     const tomorrow = today.add(1, "day");
+    const minStartDate = today.add(15, "day"); // Half month from today
+    const maxStartDate = today.add(1, "month"); // One month from today
 
-    if (start.isBefore(tomorrow)) {
-      toast.error("Start date must be tomorrow or later!");
+    // Validate start date: at least half a month, at most one month from today
+    if (start.isBefore(minStartDate)) {
+      toast.error("Start date must be at least half a month from today!", { autoClose: 7000 });
       setFormData((prev) => ({ ...prev, dateRange: null }));
       setSelectedCharacterId(null);
       setCosplayers([]);
@@ -4009,10 +4014,48 @@ const ManageAllFestivals = () => {
       return;
     }
 
+    if (start.isAfter(maxStartDate)) {
+      toast.error("Start date must be within one month from today!", { autoClose: 7000 });
+      setFormData((prev) => ({ ...prev, dateRange: null }));
+      setSelectedCharacterId(null);
+      setCosplayers([]);
+      setCharacters([]);
+      return;
+    }
+
+    // Validate start date: must be tomorrow or later
+    if (start.isBefore(tomorrow)) {
+      toast.error("Start date must be tomorrow or later!", { autoClose: 7000 });
+      setFormData((prev) => ({ ...prev, dateRange: null }));
+      setSelectedCharacterId(null);
+      setCosplayers([]);
+      setCharacters([]);
+      return;
+    }
+
+    // Validate end date: must be on or after start date
     if (end.isBefore(start)) {
-      toast.error("End date must be on or after start date!");
+      toast.error("End date must be on or after start date!", { autoClose: 7000 });
       setFormData((prev) => ({ ...prev, dateRange: null }));
       return;
+    }
+
+    // Validate: max 5 days apart
+    const daysDiff = end.diff(start, "day", true);
+    if (daysDiff > 5) {
+      toast.error("End date must be within 5 days of start date!", { autoClose: 7000 });
+      setFormData((prev) => ({ ...prev, dateRange: null }));
+      return;
+    }
+
+    // If same day, validate time difference (at least 5 hours, no overlap)
+    if (start.isSame(end, "day")) {
+      const hoursDiff = end.diff(start, "hour", true);
+      if (hoursDiff < 5) {
+        toast.error("On the same day, end time must be at least 5 hours after start time!", { autoClose: 7000 });
+        setFormData((prev) => ({ ...prev, dateRange: null }));
+        return;
+      }
     }
 
     setFormData((prev) => ({ ...prev, dateRange: dates }));
@@ -4055,15 +4098,30 @@ const ManageAllFestivals = () => {
 
   // Xử lý thay đổi mảng (vé, cosplayer, hoạt động)
   const handleArrayChange = (arrayName, index, field, value) => {
-    if ((field === "quantity" || field === "price") && Number(value) < 0) {
-      toast.error(`${field.charAt(0).toUpperCase() + field.slice(1)} cannot be negative!`);
-      return;
+    if ((field === "quantity" || field === "price")) {
+      const numericValue = Number(value);
+      if (numericValue < 0) {
+        toast.error(`${field.charAt(0).toUpperCase() + field.slice(1)} cannot be negative!`, { autoClose: 7000 });
+        return;
+      }
+      if (field === "price" && numericValue > 5000000) {
+        toast.error("Ticket price cannot exceed 5,000,000 VND!", { autoClose: 7000 });
+        return;
+      }
+      // Convert to string without leading zeros
+      const cleanedValue = numericValue.toString();
+      setFormData((prev) => {
+        const updatedArray = [...prev[arrayName]];
+        updatedArray[index] = { ...updatedArray[index], [field]: cleanedValue };
+        return { ...prev, [arrayName]: updatedArray };
+      });
+    } else {
+      setFormData((prev) => {
+        const updatedArray = [...prev[arrayName]];
+        updatedArray[index] = { ...updatedArray[index], [field]: value };
+        return { ...prev, [arrayName]: updatedArray };
+      });
     }
-    setFormData((prev) => {
-      const updatedArray = [...prev[arrayName]];
-      updatedArray[index] = { ...updatedArray[index], [field]: value };
-      return { ...prev, [arrayName]: updatedArray };
-    });
   };
 
   // Xử lý thay đổi file ảnh
@@ -4146,7 +4204,7 @@ const ManageAllFestivals = () => {
     if (currentCount >= character.quantity) {
       toast.error(
         `Cannot add more cosplayers for ${character.characterName}. Maximum quantity is ${character.quantity}.`,
-        { autoClose: 4000 }
+        { autoClose: 7000 }
       );
       return;
     }
@@ -4167,7 +4225,7 @@ const ManageAllFestivals = () => {
         if (isBooked) {
           toast.error(
             `Cosplayer ${cosplayer.name} is already booked for another event during this time.`,
-            { autoClose: 4000 }
+            { autoClose: 7000 }
           );
           return;
         }
@@ -4184,9 +4242,9 @@ const ManageAllFestivals = () => {
             },
           ],
         }));
-        toast.success(`Added cosplayer ${cosplayer.name}`, { autoClose: 4000 });
+        toast.success(`Added cosplayer ${cosplayer.name}`, { autoClose: 2000 });
       } catch (error) {
-        toast.error(error.message || "Failed to check cosplayer availability", { autoClose: 4000 });
+        toast.error(error.message || "Failed to check cosplayer availability", { autoClose: 7000 });
       }
     }
   };
@@ -4198,7 +4256,7 @@ const ManageAllFestivals = () => {
       selectedCosplayers: [],
     }));
     setIsCosplayerEdited(true);
-    toast.success("All cosplayers have been cleared. Please select new cosplayers.");
+    toast.success("All cosplayers have been cleared. Please select new cosplayers.", { autoClose: 2000 });
   };
 
   // Xử lý thay đổi hoạt động
@@ -4214,6 +4272,7 @@ const ManageAllFestivals = () => {
     }));
   };
 
+  // Xác thực form
   // Xác thực form
   const validateForm = () => {
     const errors = [];
@@ -4232,6 +4291,13 @@ const ManageAllFestivals = () => {
     const ticketError = validateTickets();
     if (ticketError) errors.push(ticketError);
 
+    // Validate ticket prices
+    formData.tickets.forEach((ticket, index) => {
+      if (Number(ticket.price) > 5000000) {
+        errors.push(`Ticket ${index + 1} price exceeds 5,000,000 VND`);
+      }
+    });
+
     return errors;
   };
 
@@ -4240,7 +4306,7 @@ const ManageAllFestivals = () => {
     const selectedLocation = locations.find((loc) => loc.locationId === selectedLocationId);
     if (!selectedLocation) return null;
 
-    const totalTickets = formData.tickets.reduce((sum, t) => sum + t.quantity, 0);
+    const totalTickets = formData.tickets.reduce((sum, t) => sum + Number(t.quantity), 0);
     const { capacityMin, capacityMax } = selectedLocation;
 
     if (totalTickets < capacityMin || totalTickets > capacityMax) {
@@ -4254,7 +4320,7 @@ const ManageAllFestivals = () => {
     e.preventDefault();
     const errors = validateForm();
     if (errors.length > 0) {
-      toast.error(errors.join(", "), { autoClose: 4000 });
+      toast.error(errors.join(", "), { autoClose: 7000 });
       return;
     }
 
@@ -4277,10 +4343,10 @@ const ManageAllFestivals = () => {
             createBy = profileData.name || "Unknown";
           }
         } catch (error) {
-          toast.error("Invalid access token", { autoClose: 4000 });
+          toast.error("Invalid access token", { autoClose: 7000 });
         }
       } else {
-        toast.warn("No access token available", { autoClose: 4000 });
+        toast.warn("No access token available", { autoClose: 7000 });
       }
 
       // Kiểm tra booking cosplayer
@@ -4306,7 +4372,7 @@ const ManageAllFestivals = () => {
         if (bookedCosplayers.length > 0) {
           toast.error(
             `The following cosplayers are booked: ${bookedCosplayers.join(", ")}. Please select different cosplayers or adjust the festival dates.`,
-            { autoClose: 4000 }
+            { autoClose: 7000 }
           );
           return;
         }
@@ -4331,8 +4397,8 @@ const ManageAllFestivals = () => {
         createBy: createBy,
         ticket: formData.tickets.map((t) => {
           const ticketData = {
-            quantity: t.quantity,
-            price: t.price,
+            quantity: Number(t.quantity), // Convert back to number for API
+            price: Number(t.price), // Convert back to number for API
             description: t.description,
             ticketType: t.ticketType,
           };
@@ -4360,11 +4426,11 @@ const ManageAllFestivals = () => {
           eventJson,
           formData.imageFiles
         );
-        toast.success("Festival updated successfully!", { autoClose: 4000 });
+        toast.success("Festival updated successfully!", { autoClose: 2000 });
       } else {
         const response = await ManageAllFestivalsService.addEvent(eventJson, formData.imageFiles);
         if (response === "Add Success") {
-          toast.success("Festival created successfully!", { autoClose: 4000 });
+          toast.success("Festival created successfully!", { autoClose: 2000 });
         } else {
           throw new Error("Unexpected response from server");
         }
@@ -4378,7 +4444,7 @@ const ManageAllFestivals = () => {
         error.message.includes("There was another event at this location")
           ? "This location is booked for another event during the selected time period. Please choose a different location or time."
           : error.message || `Failed to ${isEditMode ? "update" : "create"} festival`;
-      toast.error(errorMessage, { autoClose: 4000 });
+      toast.error(errorMessage, { autoClose: 7000 });
     }
   };
 
@@ -4958,9 +5024,9 @@ const ManageAllFestivals = () => {
                     <Form.Control
                       type="number"
                       min="0"
-                      value={ticket.quantity}
+                      value={ticket.quantity.toString()} // Ensure string to avoid leading zeros
                       onChange={(e) =>
-                        handleArrayChange("tickets", index, "quantity", Number(e.target.value))
+                        handleArrayChange("tickets", index, "quantity", e.target.value)
                       }
                       placeholder="Enter quantity"
                       required
@@ -4972,9 +5038,9 @@ const ManageAllFestivals = () => {
                     <Form.Control
                       type="number"
                       min="0"
-                      value={ticket.price}
+                      value={ticket.price.toString()} // Ensure string to avoid leading zeros
                       onChange={(e) =>
-                        handleArrayChange("tickets", index, "price", Number(e.target.value))
+                        handleArrayChange("tickets", index, "price", e.target.value)
                       }
                       placeholder="Enter price"
                       required
@@ -5026,8 +5092,8 @@ const ManageAllFestivals = () => {
                 onClick={() =>
                   addArrayItem("tickets", {
                     ticketId: null,
-                    quantity: 0,
-                    price: 0,
+                    quantity: "0", // Initialize as string
+                    price: "0", // Initialize as string
                     description: "",
                     ticketType: formData.tickets[0]?.ticketType === 0 ? 1 : 0,
                   })
@@ -5223,22 +5289,49 @@ const ManageAllFestivals = () => {
           >
             Cancel
           </Button>
-          <Button
-            type="primary"
-            onClick={handleSubmit}
-            style={{
-              background: "linear-gradient(135deg, #510545, #22668a)",
-              border: "none",
-            }}
-            onMouseEnter={(e) =>
-              (e.target.style.background = "linear-gradient(135deg, #22668a, #510545)")
-            }
-            onMouseLeave={(e) =>
-              (e.target.style.background = "linear-gradient(135deg, #510545, #22668a)")
-            }
-          >
-            {isEditMode ? "Update" : "Create"}
-          </Button>
+          {isEditMode ? (
+            <Button
+              type="primary"
+              onClick={handleSubmit}
+              style={{
+                background: "linear-gradient(135deg, #510545, #22668a)",
+                border: "none",
+              }}
+              onMouseEnter={(e) =>
+                (e.target.style.background = "linear-gradient(135deg, #22668a, #510545)")
+              }
+              onMouseLeave={(e) =>
+                (e.target.style.background = "linear-gradient(135deg, #510545, #22668a)")
+              }
+            >
+              Update
+            </Button>
+          ) : (
+            <Popconfirm
+              title="When created, you cannot edit startDate, endDate, location, tickets, and must re-select cosplayers from scratch. Do you agree to proceed?"
+              onConfirm={handleSubmit}
+              okText="Yes"
+              cancelText="No"
+              getPopupContainer={(trigger) => trigger.parentNode}
+              overlayStyle={{ zIndex: 10000 }}
+            >
+              <Button
+                type="primary"
+                style={{
+                  background: "linear-gradient(135deg, #510545, #22668a)",
+                  border: "none",
+                }}
+                onMouseEnter={(e) =>
+                  (e.target.style.background = "linear-gradient(135deg, #22668a, #510545)")
+                }
+                onMouseLeave={(e) =>
+                  (e.target.style.background = "linear-gradient(135deg, #510545, #22668a)")
+                }
+              >
+                Create
+              </Button>
+            </Popconfirm>
+          )}
         </Modal.Footer>
       </Modal>
 
