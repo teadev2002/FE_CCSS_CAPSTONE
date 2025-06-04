@@ -158,6 +158,23 @@ const ManageAllFestivalsService = {
     }
   },
 
+  // Lấy thông tin nhân vật theo ID
+  getCharacterById: async (characterId) => {
+    try {
+      console.log(`Fetching character with characterId=${characterId}`);
+      const response = await apiClient.get(`/api/Character/${characterId}`);
+      console.log("GetCharacterById response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching character ${characterId}:`, error.response?.data || error);
+      const errorMessage =
+        error.response?.data?.notification ||
+        error.response?.data?.message ||
+        "Failed to fetch character details";
+      throw new Error(errorMessage);
+    }
+  },
+
   // Lấy danh sách cosplayer rảnh theo nhân vật và khoảng thời gian
   getAvailableCosplayers: async (characterId, startDate, endDate) => {
     try {
