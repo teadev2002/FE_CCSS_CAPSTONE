@@ -1,4 +1,4 @@
-// them so nha + tem duong ===========================================
+// thêm hình cho character:
 // import React, { useState, useEffect } from "react";
 // import { Search, ChevronRight, ChevronDown, ChevronUp } from "lucide-react";
 // import {
@@ -100,17 +100,38 @@
 //   }, []);
 
 //   // Fetch characters when Step 3 is active
+//   // Fetch characters when Step 3 is active
 //   useEffect(() => {
 //     if (step === 3) {
 //       const fetchCharacters = async () => {
 //         try {
 //           setLoadingCharacters(true);
-//           const data =
+//           const characterData =
 //             await DetailEventOrganizationPageService.getAllCharacters();
-//           setCharacters(data);
+
+//           // Fetch images for each character and filter quantity >= 1
+//           const charactersWithImages = await Promise.all(
+//             characterData
+//               .filter((character) => character.quantity >= 1) // Lọc nhân vật có quantity >= 1
+//               .map(async (character) => {
+//                 const images =
+//                   await DetailEventOrganizationPageService.getCharacterImageByCharacterId(
+//                     character.characterId
+//                   );
+//                 return {
+//                   ...character,
+//                   images: images || [], // Ensure images is an array
+//                 };
+//               })
+//           );
+
+//           setCharacters(charactersWithImages);
 //         } catch (error) {
-//           toast.error("Failed to fetch characters. Please try again.");
+//           toast.error(
+//             "Failed to fetch characters or images. Please try again."
+//           );
 //           console.error(error);
+//           setCharacters([]); // Set empty array on error
 //         } finally {
 //           setLoadingCharacters(false);
 //         }
@@ -354,6 +375,7 @@
 //   };
 
 //   // Validate event data before API call
+//   // Validate event data before API call
 //   const validateEventData = (data) => {
 //     const errors = [];
 //     if (!data.accountId || data.accountId === "unknown")
@@ -376,6 +398,27 @@
 //       errors.push("Valid price range is required (e.g., 1000000-10000000)");
 //     if (data.listRequestCharactersCreateEvent.length === 0)
 //       errors.push("At least one character is required");
+
+//     // Validate character quantities against inventory
+//     const characterCounts = {};
+//     data.listRequestCharactersCreateEvent.forEach((char) => {
+//       characterCounts[char.characterId] =
+//         (characterCounts[char.characterId] || 0) + char.quantity;
+//     });
+
+//     Object.entries(characterCounts).forEach(
+//       ([characterId, requestedQuantity]) => {
+//         const character = characters.find((c) => c.characterId === characterId);
+//         if (!character) {
+//           errors.push(`Character with ID ${characterId} not found`);
+//         } else if (requestedQuantity > character.quantity) {
+//           errors.push(
+//             `Requested quantity for ${character.characterName} (${requestedQuantity}) exceeds inventory (${character.quantity})`
+//           );
+//         }
+//       }
+//     );
+
 //     data.listRequestCharactersCreateEvent.forEach((char, index) => {
 //       if (!char.characterId)
 //         errors.push(`Character ${index + 1}: ID is required`);
@@ -388,18 +431,19 @@
 //       char.listRequestDates.forEach((slot, slotIndex) => {
 //         if (!slot.startDate)
 //           errors.push(
-//             `Character ${index + 1}, Slot ${
+//             `Character ${index + 1}, Time slot ${
 //               slotIndex + 1
 //             }: Start time is required`
 //           );
 //         if (!slot.endDate)
 //           errors.push(
-//             `Character ${index + 1}, Slot ${
+//             `Character ${index + 1}, Time slot ${
 //               slotIndex + 1
 //             }: End time is required`
 //           );
 //       });
 //     });
+
 //     return errors;
 //   };
 
@@ -449,10 +493,30 @@
 //     return eventData;
 //   };
 
-//   // Handle API submission with price recalculation
 //   const handleSubmitEvent = async (eventData) => {
 //     setIsSubmitting(true);
 //     try {
+//       // Validate character quantities one last time
+//       const characterCounts = {};
+//       eventData.listRequestCharactersCreateEvent.forEach((char) => {
+//         characterCounts[char.characterId] =
+//           (characterCounts[char.characterId] || 0) + char.quantity;
+//       });
+
+//       for (const [characterId, requestedQuantity] of Object.entries(
+//         characterCounts
+//       )) {
+//         const character = characters.find((c) => c.characterId === characterId);
+//         if (!character) {
+//           throw new Error(`Character with ID ${characterId} not found`);
+//         }
+//         if (requestedQuantity > character.quantity) {
+//           throw new Error(
+//             `Requested quantity for ${character.characterName} (${requestedQuantity}) exceeds inventory (${character.quantity})`
+//           );
+//         }
+//       }
+
 //       const updatedEventData = {
 //         ...eventData,
 //         price: eventData.price,
@@ -466,13 +530,14 @@
 //       console.log("API Response:", response);
 //       setIsApiSuccess(true);
 //     } catch (error) {
-//       toast.error("Failed to create event. Please try again.");
+//       toast.error(`Failed to create event: ${error.message}`);
 //       console.error("API Error:", error);
 //     } finally {
 //       setIsSubmitting(false);
 //     }
 //   };
 
+//   // Handle next step with date validation
 //   // Handle next step with date validation
 //   const handleNextStep = () => {
 //     if (step === 1 && !selectedPackage) {
@@ -489,7 +554,7 @@
 //         !description)
 //     ) {
 //       toast.warn(
-//         "Please enter house number, select a district and street, and fill in all other required fields!"
+//         "Please enter the house number, select a district and street, and fill in all other required fields!"
 //       );
 //       return;
 //     }
@@ -509,11 +574,34 @@
 //         return;
 //       }
 //     }
-//     if (step === 3 && selectedCharacters.length === 0) {
-//       toast.warn("Please select at least one character!");
-//       return;
-//     }
 //     if (step === 3) {
+//       if (selectedCharacters.length === 0) {
+//         toast.warn("Please select at least one character!");
+//         return;
+//       }
+
+//       // Validate character quantities
+//       const invalidCharacters = selectedCharacters.filter((sc) => {
+//         const character = characters.find(
+//           (c) => c.characterId === sc.characterId
+//         );
+//         return character && (sc.quantity || 1) > character.quantity;
+//       });
+
+//       if (invalidCharacters.length > 0) {
+//         invalidCharacters.forEach((sc) => {
+//           const character = characters.find(
+//             (c) => c.characterId === sc.characterId
+//           );
+//           toast.warn(
+//             `Requested quantity for ${character.characterName} (${
+//               sc.quantity || 1
+//             }) exceeds inventory (${character.quantity})!`
+//           );
+//         });
+//         return;
+//       }
+
 //       const hasCharacterTimeSlots = selectedCharacters.every(() => {
 //         const slots = timeSlots;
 //         return getDateList().every(
@@ -528,7 +616,7 @@
 //     if (step === 4) {
 //       const token = localStorage.getItem("accessToken");
 //       if (!token) {
-//         toast.error("You must login to use this feature");
+//         toast.error("You must log in to use this feature");
 //         navigate("/login");
 //         return;
 //       }
@@ -550,6 +638,7 @@
 //     saveEventToLocalStorage();
 //     setStep(step + 1);
 //   };
+
 //   const handleInputChange = () => {
 //     saveEventToLocalStorage();
 //   };
@@ -587,7 +676,6 @@
 //     (currentCharacterPage - 1) * pageSize,
 //     currentCharacterPage * pageSize
 //   );
-
 //   const toggleCharacterSelection = (character) => {
 //     setSelectedCharacters((prev) => {
 //       const exists = prev.some(
@@ -612,6 +700,7 @@
 //             characterName: character.characterName,
 //             note: characterNotes[character.characterId] || "",
 //             quantity: characterQuantities[character.characterId] || 1,
+//             images: character.images || [], // Include images for consistency
 //           },
 //         ];
 //       }
@@ -626,7 +715,22 @@
 //   };
 
 //   const handleCharacterQuantity = (characterId, quantity) => {
-//     const qty = Math.max(1, parseInt(quantity) || 1);
+//     const character = characters.find((c) => c.characterId === characterId);
+//     if (!character) {
+//       toast.error("Not found character!");
+//       return;
+//     }
+
+//     const qty = Math.max(
+//       1,
+//       Math.min(parseInt(quantity) || 1, character.quantity)
+//     );
+//     if (parseInt(quantity) > character.quantity) {
+//       toast.warn(
+//         `Max quantity for ${character.characterName} is ${character.quantity}!`
+//       );
+//     }
+
 //     setCharacterQuantities((prev) => ({ ...prev, [characterId]: qty }));
 //     setSelectedCharacters((prev) =>
 //       prev.map((sc) =>
@@ -767,7 +871,6 @@
 //             )}
 //           </div>
 //         )}
-
 //         {/* Step 2: Event Details */}
 //         {step === 2 && (
 //           <div className="step-section fade-in">
@@ -952,8 +1055,8 @@
 //             </Form>
 //           </div>
 //         )}
-
 //         {/* Step 3: Select Characters */}
+
 //         {step === 3 && (
 //           <div className="step-section fade-in">
 //             <h2 className="text-center mb-4">Select Characters</h2>
@@ -961,7 +1064,29 @@
 //               Choose characters for your event and specify quantities.
 //             </p>
 //             {loadingCharacters ? (
-//               <p className="text-center">Loading characters...</p>
+//               <Row>
+//                 {[...Array(pageSize)].map((_, index) => (
+//                   <Col md={4} className="mb-4" key={index}>
+//                     <Card className="package-card">
+//                       <Card.Img
+//                         variant="top"
+//                         src="https://via.placeholder.com/300x200?text=Loading..."
+//                         className="card-img-top"
+//                       />
+//                       <Card.Body className="package-card-body">
+//                         <Card.Title>Loading...</Card.Title>
+//                         <Card.Text>Loading character details...</Card.Text>
+//                         <p>
+//                           <strong>Price: </strong>Loading...
+//                         </p>
+//                         <p>
+//                           <strong>Quantity Available: </strong>Loading...
+//                         </p>
+//                       </Card.Body>
+//                     </Card>
+//                   </Col>
+//                 ))}
+//               </Row>
 //             ) : (
 //               <>
 //                 <div className="search-container mb-4">
@@ -982,6 +1107,12 @@
 //                       const isSelected = selectedCharacters.some(
 //                         (sc) => sc.characterId === character.characterId
 //                       );
+//                       // Select avatar image, first image, or placeholder
+//                       const characterImage =
+//                         character.images?.find((img) => img.isAvatar)
+//                           ?.urlImage ||
+//                         character.images?.[0]?.urlImage ||
+//                         placeholderImages[0];
 //                       return (
 //                         <Col
 //                           md={4}
@@ -996,10 +1127,11 @@
 //                           >
 //                             <Card.Img
 //                               variant="top"
-//                               src={
-//                                 character.images.find((img) => img.isAvatar)
-//                                   ?.urlImage || placeholderImages[0]
-//                               }
+//                               src={characterImage}
+//                               className="card-img-top"
+//                               onError={(e) => {
+//                                 e.target.src = placeholderImages[0]; // Fallback on error
+//                               }}
 //                             />
 //                             <Card.Body className="package-card-body">
 //                               <Card.Title>{character.characterName}</Card.Title>
@@ -1008,13 +1140,18 @@
 //                                 <strong>Price: </strong>
 //                                 {(
 //                                   characterPrices[character.characterId] ||
-//                                   character.price
+//                                   character.price ||
+//                                   0
 //                                 ).toLocaleString()}{" "}
 //                                 VND
 //                               </p>
 //                               <p>
 //                                 <strong>Quantity Available: </strong>
-//                                 {character.quantity.toLocaleString()}
+//                                 {character.quantity.toLocaleString()}{" "}
+//                                 {character.quantity <= 3 &&
+//                                 character.quantity > 0
+//                                   ? `(Only ${character.quantity} left!)`
+//                                   : ""}
 //                               </p>
 //                               {isSelected && (
 //                                 <>
@@ -1037,6 +1174,7 @@
 //                                   <Form.Control
 //                                     type="number"
 //                                     min="1"
+//                                     max={character.quantity}
 //                                     placeholder="Quantity"
 //                                     value={
 //                                       characterQuantities[
@@ -1076,7 +1214,6 @@
 //             )}
 //           </div>
 //         )}
-
 //         {/* Step 4: Review */}
 //         {step === 4 && (
 //           <div className="step-section fade-in">
@@ -1372,7 +1509,6 @@
 //             </Card>
 //           </div>
 //         )}
-
 //         <div className="d-flex justify-content-between mt-5">
 //           {step > 1 && (
 //             <Button variant="outline-secondary" onClick={handlePrevStep}>
@@ -1543,7 +1679,7 @@
 
 // export default DetailEventOrganizationPage;
 
-// thêm hình cho character:
+/// pop up view:
 import React, { useState, useEffect } from "react";
 import { Search, ChevronRight, ChevronDown, ChevronUp } from "lucide-react";
 import {
@@ -1570,6 +1706,7 @@ import DetailEventOrganizationPageService from "../../services/DetailEventOrgani
 import { jwtDecode } from "jwt-decode";
 import { Range } from "react-range";
 import LocationPicker from "../../components/LocationPicker/LocationPicker.js";
+import PackageDetailModal from "./PackageDetailPage.js"; // Import the modal
 
 // Extend dayjs with isSameOrBefore
 dayjs.extend(isSameOrBefore);
@@ -1608,6 +1745,8 @@ const DetailEventOrganizationPage = () => {
   const navigate = useNavigate();
   const [priceRange, setPriceRange] = useState([15000, 50000]);
   const [eventData, setEventData] = useState(null);
+  const [showPackageModal, setShowPackageModal] = useState(false); // New state for modal
+  const [selectedPackageId, setSelectedPackageId] = useState(null);
   const placeholderImages = [
     "https://cdn.prod.website-files.com/6769617aecf082b10bb149ff/67763d8a2775bee07438e7a5_Events.png",
     "https://jjrmarketing.com/wp-content/uploads/2019/12/International-Event.jpg",
@@ -2395,6 +2534,17 @@ const DetailEventOrganizationPage = () => {
                               <strong>Price: </strong>
                               {pkg.price.toLocaleString()} VND
                             </p>
+                            <Button
+                              variant="outline-primary"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedPackageId(pkg.packageId);
+                                setShowPackageModal(true);
+                              }}
+                            >
+                              View
+                            </Button>
                           </Card.Body>
                         </Card>
                       </Col>
@@ -3096,7 +3246,11 @@ const DetailEventOrganizationPage = () => {
           </div>
         </div>
       </Container>
-
+      <PackageDetailModal
+        packageId={selectedPackageId}
+        show={showPackageModal}
+        onHide={() => setShowPackageModal(false)}
+      />
       {/* Modals */}
       <Modal
         show={showTermsModal}

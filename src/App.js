@@ -177,7 +177,6 @@ import SouvenirsPage from "./pages/SouvenirsPage/SouvenirsPage.js";
 import LoginPage from "./pages/Auth/LoginPage";
 import SignupPage from "./pages/Auth/SignupPage";
 import CosplayerPage from "./pages/CosplayersPage/CosplayersPage.js";
-import EventOrganizePage from "./pages/EventOrganizationPage/EventOrganizationPage.js";
 import DetailEventOrganizePage from "./pages/EventOrganizationPage/DetailEventOrganizationPage.js";
 import ProfilePage from "./pages/ProfilePage/ProfilePage.js";
 import AdminOverviewPage from "./pages/AdminPage/AdminOverviewPage/AdminOverviewPage.js";

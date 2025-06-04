@@ -1,7 +1,7 @@
 import axios from "axios";
 
 //const BASE_URL = "https://localhost:7071";
-//const BASE_URL = "http://192.168.1.5:5295";
+//const BASE_URL = "http://192.168.1.9:5295";
 
 const BASE_URL =
   "https://ccsscaptone-gub0f5gzd3gvd3gb.eastasia-01.azurewebsites.net";

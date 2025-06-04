@@ -488,14 +488,6 @@ const MyTask = () => {
                                       {formatDate(task.createDate) || "N/A"}
                                     </div>
                                   </div>
-                                  <h5>
-                                    <Badge
-                                      bg={task.isActive ? "success" : "danger"}
-                                      className="mt-2 mt-md-0"
-                                    >
-                                      {task.isActive ? "Yes" : "No"}
-                                    </Badge>
-                                  </h5>
                                 </div>
                               </div>
                             </div>

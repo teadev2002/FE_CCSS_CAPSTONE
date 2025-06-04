@@ -1,0 +1,287 @@
+
+ // new style
+.package-detail-page {
+  background-color: #f8f9fa; /* Neutral background from FestivalsPage */
+
+  .hero-section {
+    position: relative;
+    min-height: 50vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: linear-gradient(135deg, #510545, #22668a, #1a1a2e); /* Primary gradient */
+    animation: gradientShift 10s ease infinite; /* Animated gradient */
+    padding: 4rem 0;
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .hero-content {
+      max-width: 800px;
+      padding: 2rem;
+    }
+
+    h1.display-4 {
+      font-size: 4.5rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      background: linear-gradient(90deg, #f85caa, #d9b6f8); /* Gradient text */
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      transition: transform 0.3s ease, opacity 0.3s ease;
+
+      &:hover {
+        transform: scale(1.03); /* Subtle zoom */
+        opacity: 0.95;
+      }
+    }
+  }
+
+  .package-section {
+    h2 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #510545; /* Brand purple */
+      margin-bottom: 1.5rem;
+      transition: transform 0.3s ease;
+
+      &:hover {
+        transform: translateY(-3px); /* Subtle lift */
+      }
+    }
+
+    .lead {
+      font-size: 1.2rem;
+      color: #4a4a4a; /* Dark gray for body text */
+      margin-bottom: 2rem;
+      transition: opacity 0.3s ease;
+
+      &:hover {
+        opacity: 0.9;
+      }
+    }
+
+    .price-display {
+      h3 {
+        font-size: 2.5rem;
+        font-weight: 600;
+        color: #22668a; /* Teal for highlight */
+        margin-bottom: 2rem;
+        transition: transform 0.3s ease;
+
+        &:hover {
+          transform: scale(1.03);
+        }
+      }
+    }
+
+    .btn-booking {
+      background: linear-gradient(135deg, #510545, #22668a); /* Primary gradient */
+      color: white;
+      border: none;
+      border-radius: 0.75rem;
+      padding: 0.75rem 2rem;
+      font-weight: 600;
+      font-size: 1.2rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 8px rgba(81, 5, 69, 0.2);
+
+      &:hover {
+        background: linear-gradient(135deg, #22668a, #510545); /* Reversed gradient */
+        transform: translateY(-3px); /* Lift */
+        box-shadow: 0 6px 15px rgba(81, 5, 69, 0.3);
+      }
+
+      &:active {
+        transform: translateY(0);
+      }
+    }
+
+    .text-muted {
+      font-size: 0.95rem;
+      color: #6b7280; /* Medium gray */
+      line-height: 1.6;
+      margin-top: 2rem;
+    }
+  }
+
+  .event-gallery,
+  .character-showcase,
+  .cosplayer-showcase {
+    padding: 3rem 0;
+
+    h2 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #510545; /* Purple for consistency */
+      text-align: center;
+      margin-bottom: 2rem;
+      transition: transform 0.3s ease;
+
+      &:hover {
+        transform: translateY(-3px);
+      }
+    }
+  }
+
+  .event-carousel {
+    max-width: 600px;
+    margin: 0 auto;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+    .carousel-slide {
+      height: 350px;
+      display: flex !important;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .event-img {
+      width: 100%;
+      height: 100%; /* Changed to fill slide height */
+      object-fit: cover;
+      transition: transform 0.5s ease;
+
+      &:hover {
+        transform: scale(1.08); /* Zoom on hover */
+      }
+    }
+  }
+
+  .character-carousel,
+  .cosplayer-carousel {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem;
+
+    .carousel-slide {
+      display: flex !important;
+      justify-content: center;
+      align-items: stretch;
+      min-height: 250px; /* Increased to accommodate fixed card height */
+      padding: 0 10px;
+        margin: 10px;
+    }
+  }
+
+   
+
+  .text-intro-gallery,
+  .text-intro-character,
+  .text-intro-cosplayer {
+    margin-top: 2rem;
+    text-align: center;
+
+    .intro-text {
+      font-size: 1rem;
+      color: #4a4a4a; /* Dark gray */
+      line-height: 1.6;
+      max-width: 600px;
+      margin: 0 auto;
+      transition: opacity 0.3s ease;
+
+      &:hover {
+        opacity: 0.9;
+      }
+    }
+  }
+
+  .ant-carousel .slick-dots li button {
+    background: #6b7280; /* Gray */
+    opacity: 0.4;
+    transition: background 0.3s ease;
+
+    &:hover {
+      background: #510545; /* Purple on hover */
+    }
+  }
+
+  .ant-carousel .slick-dots li.slick-active button {
+    background: #510545; /* Purple */
+    opacity: 1;
+  }
+}
+
+@media (max-width: 992px) {
+  .character-carousel,
+  .cosplayer-carousel {
+    max-width: 800px;
+
+    .carousel-slide {
+      min-height: 430px; /* Adjust for smaller cards */
+    }
+  }
+
+  .character-img {
+    height: 180px; /* Consistent image height */
+  }
+
+  .character-card {
+    max-width: 300px;
+    min-height: 380px; /* Slightly smaller for tablet */
+  }
+
+  .hero-section h1.display-4 {
+    font-size: 3.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .character-carousel,
+  .cosplayer-carousel,
+  .event-carousel {
+    max-width: 100%;
+    padding: 0.5rem;
+  }
+
+  .carousel-slide {
+    min-height: 400px; /* Adjust for mobile */
+    padding: 0 5px;
+  }
+
+  .character-img {
+    height: 180px; /* Consistent image height */
+  }
+
+  .event-img {
+    height: 250px;
+  }
+
+  .hero-section {
+    min-height: 40vh;
+    padding: 2rem 0;
+
+    h1.display-4 {
+      font-size: 2.5rem;
+    }
+  }
+
+  .package-section {
+    padding: 2rem 0;
+
+    h2 {
+      font-size: 2rem;
+    }
+
+    .btn-booking {
+      padding: 0.5rem 1.5rem;
+      font-size: 1rem;
+    }
+  }
+
+  .character-card {
+    max-width: 100%;
+    min-height: 380px; /* Consistent for mobile */
+  }
+}

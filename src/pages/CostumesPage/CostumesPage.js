@@ -2086,7 +2086,7 @@ const CostumesPage = () => {
                       className="show-more-button"
                       onClick={() => handleGalleryShow(costume)}
                     >
-                      Show More Images
+                      Show More
                     </button>
                   </div>
                 </div>
