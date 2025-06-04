@@ -3589,6 +3589,10 @@ const ManageAllFestivals = () => {
   // địa chỉ
   const [locations, setLocations] = useState([]);
   const [selectedLocationId, setSelectedLocationId] = useState(null);
+  // State cho modal chi tiết nhân vật
+  const [isCharacterModalVisible, setIsCharacterModalVisible] = useState(false);
+  const [characterDetails, setCharacterDetails] = useState(null);
+  const [isCharacterLoading, setIsCharacterLoading] = useState(false);
   // State để lưu dữ liệu form
   const [formData, setFormData] = useState({
     eventName: "",
@@ -3800,6 +3804,24 @@ const ManageAllFestivals = () => {
     setIsCreateModalVisible(true);
   };
 
+  // Xử lý xem chi tiết nhân vật
+  const handleViewCharacterDetails = async () => {
+    if (!selectedCharacterId) {
+      toast.error("Please select a character first", { autoClose: 7000 });
+      return;
+    }
+    setIsCharacterLoading(true);
+    try {
+      const data = await ManageAllFestivalsService.getCharacterById(selectedCharacterId);
+      setCharacterDetails(data);
+      setIsCharacterModalVisible(true);
+    } catch (error) {
+      toast.error(error.message || "Failed to load character details", { autoClose: 7000 });
+    } finally {
+      setIsCharacterLoading(false);
+    }
+  };
+
   const handleRemoveCosplayer = (cosplayerId) => {
     setFormData((prev) => ({
       ...prev,
@@ -3811,7 +3833,6 @@ const ManageAllFestivals = () => {
     toast.success("Cosplayer removed successfully", { autoClose: 2000 });
   };
 
-  // Hiển thị modal chỉnh sửa
   // Hiển thị modal chỉnh sửa
   const showEditModal = async (record) => {
     try {
@@ -4820,25 +4841,45 @@ const ManageAllFestivals = () => {
             {formData.dateRange && (
               <Form.Group className="mb-3">
                 <Form.Label>Select Character</Form.Label>
-                <Select
-                  style={{ width: "100%", zIndex: 9999 }}
-                  placeholder="Select a character"
-                  onChange={setSelectedCharacterId}
-                  value={selectedCharacterId}
-                  dropdownStyle={{ zIndex: 9999 }}
-                  showSearch
-                  optionFilterProp="children"
-                  filterOption={(input, option) =>
-                    option.children.toLowerCase().includes(input.toLowerCase())
-                  }
-                  getPopupContainer={(trigger) => trigger.parentNode}
-                >
-                  {characters.map((char) => (
-                    <Option key={char.characterId} value={char.characterId}>
-                      {char.characterName} (Quantity: {char.quantity})
-                    </Option>
-                  ))}
-                </Select>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <Select
+                    style={{ width: "100%", zIndex: 9999 }}
+                    placeholder="Select a character"
+                    onChange={setSelectedCharacterId}
+                    value={selectedCharacterId}
+                    dropdownStyle={{ zIndex: 9999 }}
+                    showSearch
+                    optionFilterProp="children"
+                    filterOption={(input, option) =>
+                      option.children.toLowerCase().includes(input.toLowerCase())
+                    }
+                    getPopupContainer={(trigger) => trigger.parentNode}
+                  >
+                    {characters.map((char) => (
+                      <Option key={char.characterId} value={char.characterId}>
+                        {char.characterName} (Quantity: {char.quantity})
+                      </Option>
+                    ))}
+                  </Select>
+                  <Button
+                    type="primary"
+                    onClick={handleViewCharacterDetails}
+                    loading={isCharacterLoading}
+                    disabled={!selectedCharacterId}
+                    style={{
+                      background: "linear-gradient(135deg, #510545, #22668a)",
+                      border: "none",
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.target.style.background = "linear-gradient(135deg, #22668a, #510545)")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.target.style.background = "linear-gradient(135deg, #510545, #22668a)")
+                    }
+                  >
+                    View Details
+                  </Button>
+                </div>
                 {selectedCharacterId && (
                   <div className="character-info mt-3">
                     {characters
@@ -5319,7 +5360,96 @@ const ManageAllFestivals = () => {
           )}
         </Modal.Footer>
       </Modal>
-
+      <Modal
+        show={isCharacterModalVisible}
+        onHide={() => setIsCharacterModalVisible(false)}
+        centered
+        className="character-details-modal"
+        size="md"
+      >
+        <Modal.Header
+          closeButton
+          style={{
+            background: "linear-gradient(135deg, #510545, #22668a)",
+            color: "#fff",
+            borderRadius: "8px 8px 0 0",
+          }}
+        >
+          <Modal.Title>Character Details</Modal.Title>
+        </Modal.Header>
+        <Modal.Body style={{ padding: "20px", background: "#f9f9f9" }}>
+          {characterDetails ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+              <div style={{ textAlign: "center" }}>
+                <img
+                  src={
+                    characterDetails.images?.find((img) => img.isAvatar)?.urlImage ||
+                    characterDetails.images?.[0]?.urlImage ||
+                    "https://via.placeholder.com/150?text=No+Image"
+                  }
+                  alt={characterDetails.characterName}
+                  style={{
+                    width: "150px",
+                    height: "150px",
+                    objectFit: "cover",
+                    borderRadius: "8px",
+                    border: "2px solid #e0e0e0",
+                    marginBottom: "10px",
+                  }}
+                />
+                <h3 style={{ fontSize: "20px", color: "#510545" }}>
+                  {characterDetails.characterName}
+                </h3>
+              </div>
+              <Descriptions bordered column={1} size="small">
+                <Descriptions.Item label="Description">
+                  {characterDetails.description}
+                </Descriptions.Item>
+                <Descriptions.Item label="Price">
+                  {characterDetails.price.toLocaleString()} VND
+                </Descriptions.Item>
+                <Descriptions.Item label="Status">
+                  {characterDetails.isActive ? "Active" : "Inactive"}
+                </Descriptions.Item>
+                <Descriptions.Item label="Quantity">
+                  {characterDetails.quantity}
+                </Descriptions.Item>
+                <Descriptions.Item label="Height Range">
+                  {characterDetails.minHeight} - {characterDetails.maxHeight} cm
+                </Descriptions.Item>
+                <Descriptions.Item label="Weight Range">
+                  {characterDetails.minWeight} - {characterDetails.maxWeight} kg
+                </Descriptions.Item>
+                <Descriptions.Item label="Created Date">
+                  {dayjs(characterDetails.createDate).format("HH:mm DD/MM/YYYY")}
+                </Descriptions.Item>
+                <Descriptions.Item label="Updated Date">
+                  {characterDetails.updateDate
+                    ? dayjs(characterDetails.updateDate).format("HH:mm DD/MM/YYYY")
+                    : "N/A"}
+                </Descriptions.Item>
+              </Descriptions>
+            </div>
+          ) : (
+            <p>No character details available.</p>
+          )}
+        </Modal.Body>
+        <Modal.Footer style={{ background: "#f9f9f9", borderRadius: "0 0 8px 8px" }}>
+          <Button
+            type="default"
+            onClick={() => setIsCharacterModalVisible(false)}
+            style={{
+              background: "#e0e0e0",
+              border: "none",
+              color: "#333",
+            }}
+            onMouseEnter={(e) => (e.target.style.background = "#d0d0d0")}
+            onMouseLeave={(e) => (e.target.style.background = "#e0e0e0")}
+          >
+            Close
+          </Button>
+        </Modal.Footer>
+      </Modal>
       <Modal
         show={isDetailsModalVisible}
         onHide={handleCancel}
