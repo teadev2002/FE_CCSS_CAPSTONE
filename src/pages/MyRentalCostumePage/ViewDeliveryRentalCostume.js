@@ -816,7 +816,7 @@ const ViewDeliveryRentalCostume = ({ visible, onCancel, contractId }) => {
             onClick={handleShowUpdateModal}
             disabled={!isUpdateAllowed}
           >
-            Update Refund
+            Return Costume
           </Button>,
           <Button key="close" onClick={onCancel}>
             Close
