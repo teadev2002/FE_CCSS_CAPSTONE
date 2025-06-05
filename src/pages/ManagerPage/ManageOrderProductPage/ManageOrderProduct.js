@@ -2581,6 +2581,17 @@ const ManageOrderProduct = () => {
     return `${price.toLocaleString("vi-VN")} VND`;
   };
 
+  // Format date to DD/MM/YYYY with leading zeros
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "Invalid Date";
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
   // Calculate subtotal from product list
   const calculateSubtotal = (productDetails) => {
     return productDetails.reduce((sum, product) => sum + product.price * product.quantity, 0);
@@ -3078,9 +3089,7 @@ const ManageOrderProduct = () => {
                             {order.shipStatus}
                           </Badge>
                         </td>
-                        <td className="text-center">
-                          {new Date(order.orderDate).toLocaleDateString("vi-VN")}
-                        </td>
+                        <td className="text-center">{formatDate(order.orderDate)}</td>
                         <td className="text-center action-column">
                           <div
                             style={{
@@ -3258,7 +3267,7 @@ const ManageOrderProduct = () => {
                   <p style={{ margin: "10px 0", fontSize: "17px" }}><strong>Description:</strong> {selectedOrder.description}</p>
                   <p style={{ margin: "10px 0", fontSize: "17px" }}>
                     <strong>Order Date:</strong>{" "}
-                    {new Date(selectedOrder.orderDate).toLocaleDateString("vi-VN")}
+                    {formatDate(selectedOrder.orderDate)}
                   </p>
                   <div className="order-summary">
                     <p style={{ margin: "10px 0", fontSize: "17px" }}>
@@ -3442,10 +3451,10 @@ const ManageOrderProduct = () => {
             <Form.Control
               as="textarea"
               rows="4"
-            value={cancelReason}
-            onChange={handleCancelReasonChange}
-            placeholder="Enter cancellation reason..."
-            required
+              value={cancelReason}
+              onChange={handleCancelReasonChange}
+              placeholder="Enter cancellation reason..."
+              required
             />
           </Form.Group>
         </Modal.Body>
