@@ -495,10 +495,11 @@ import "../../../styles/Admin/OrderRevenuePerformancePage.scss";
 
 Chart.register(CategoryScale, LinearScale, PointElement, LineElement);
 
-const OrderRevenuePerformancePage = () => { // Mặc định: mới nhất (descending)
+const OrderRevenuePerformancePage = () => {
   const [sortOrder, setSortOrder] = useState("desc");
-  const [filterType, setFilterType] = useState(3); // Mặc định: This Year
-  const [revenueSource, setRevenueSource] = useState(3); // Mặc định: Total
+  const [filterType, setFilterType] = useState(3); // Default: This Year
+  const [revenueSource, setRevenueSource] = useState(3); // Default: Total
+  const [purposeFilter, setPurposeFilter] = useState("all"); // New state for purpose filter
   const [revenueData, setRevenueData] = useState({
     totalRevenue: 0,
     paymentResponse: [],
@@ -508,6 +509,7 @@ const OrderRevenuePerformancePage = () => { // Mặc định: mới nhất (desc
     monthlyRevenue: [],
   });
   const [payments, setPayments] = useState([]);
+  const [filteredPayments, setFilteredPayments] = useState([]); // New state for filtered payments
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -517,19 +519,21 @@ const OrderRevenuePerformancePage = () => { // Mặc định: mới nhất (desc
     return `${price.toLocaleString("vi-VN")} VND`;
   };
 
-  // Format date to DD/MM/YYYY
+  // Format date to HH:mm DD/MM/YYYY
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
-    const regex = /^(\d{2})[-/](\d{2})[-/](\d{4})$/;
-    if (regex.test(dateString)) {
-      return dateString; // Đã đúng định dạng DD/MM/YYYY
+    const timeDateRegex = /^(\d{2}):(\d{2})\s(\d{2})\/(\d{2})\/(\d{4})$/;
+    if (timeDateRegex.test(dateString)) {
+      return dateString;
     }
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return "Invalid Date";
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
     const day = String(date.getDate()).padStart(2, "0");
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
+    return `${hours}:${minutes} ${day}/${month}/${year}`;
   };
 
   // Get status text
@@ -547,7 +551,6 @@ const OrderRevenuePerformancePage = () => { // Mặc định: mới nhất (desc
   };
 
   // Format purpose text
-  // Format purpose text
   const formatPurposeText = (purpose) => {
     if (!purpose) return "N/A";
     const purposeLower = purpose.toLowerCase();
@@ -559,7 +562,7 @@ const OrderRevenuePerformancePage = () => { // Mặc định: mới nhất (desc
       case "contractsettlement":
         return "Contract Settlement";
       case "order":
-        return "Order";
+        return "Order Product";
       case "refund":
         return "Refund";
       default:
@@ -570,18 +573,20 @@ const OrderRevenuePerformancePage = () => { // Mặc định: mới nhất (desc
     }
   };
 
+  // Handle sort by date
   const handleSortByDate = () => {
     const newSortOrder = sortOrder === "desc" ? "asc" : "desc";
     setSortOrder(newSortOrder);
 
-    const sortedPayments = [...payments].sort((a, b) => {
-      // Hàm chuyển đổi định dạng dd/mm/yyyy thành Date
+    const sortedPayments = [...filteredPayments].sort((a, b) => {
       const parseDate = (dateStr) => {
-        if (!dateStr || !/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
-          return new Date(0); // Trả về ngày rất cũ nếu định dạng không hợp lệ
+        if (!dateStr || !/^\d{2}:\d{2}\s\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
+          return new Date(0);
         }
-        const [day, month, year] = dateStr.split("/").map(Number);
-        return new Date(year, month - 1, day); // month - 1 vì tháng trong Date bắt đầu từ 0
+        const [time, date] = dateStr.split(" ");
+        const [hours, minutes] = time.split(":").map(Number);
+        const [day, month, year] = date.split("/").map(Number);
+        return new Date(year, month - 1, day, hours, minutes);
       };
 
       const dateA = parseDate(a.creatAt);
@@ -590,8 +595,9 @@ const OrderRevenuePerformancePage = () => { // Mặc định: mới nhất (desc
       return newSortOrder === "desc" ? dateB - dateA : dateA - dateB;
     });
 
-    setPayments(sortedPayments);
+    setFilteredPayments(sortedPayments);
   };
+
   // Fetch revenue data
   useEffect(() => {
     const fetchRevenueData = async () => {
@@ -645,32 +651,47 @@ const OrderRevenuePerformancePage = () => { // Mặc định: mới nhất (desc
       setError(null);
       try {
         const data = await RevenueService.getPayments();
-        // Sắp xếp payments theo creatAt giảm dần (mới nhất lên đầu)
         const sortedPayments = (data || []).sort((a, b) => {
           const parseDate = (dateStr) => {
-            if (!dateStr || !/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
-              return new Date(0); // Trả về ngày rất cũ nếu định dạng không hợp lệ
+            if (!dateStr || !/^\d{2}:\d{2}\s\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
+              return new Date(0);
             }
-            const [day, month, year] = dateStr.split("/").map(Number);
-            return new Date(year, month - 1, day);
+            const [time, date] = dateStr.split(" ");
+            const [hours, minutes] = time.split(":").map(Number);
+            const [day, month, year] = date.split("/").map(Number);
+            return new Date(year, month - 1, day, hours, minutes);
           };
 
           const dateA = parseDate(a.creatAt);
           const dateB = parseDate(b.creatAt);
 
-          return dateB - dateA; // Sắp xếp giảm dần
+          return dateB - dateA; // Sort descending (newest first)
         });
         setPayments(sortedPayments);
+        setFilteredPayments(sortedPayments); // Initialize filteredPayments
       } catch (error) {
         setError(error.message);
         setPayments([]);
-        toast.error(error.message, { autoClose: 8000 }); // Cập nhật autoClose theo yêu cầu trước
+        setFilteredPayments([]);
+        toast.error(error.message, { autoClose: 8000 });
       } finally {
         setIsLoading(false);
       }
     };
     fetchPayments();
   }, []);
+
+  // Filter payments by purpose
+  useEffect(() => {
+    if (purposeFilter === "all") {
+      setFilteredPayments(payments);
+    } else {
+      const filtered = payments.filter(
+        (payment) => payment.purpose?.toLowerCase() === purposeFilter.toLowerCase()
+      );
+      setFilteredPayments(filtered);
+    }
+  }, [payments, purposeFilter]);
 
   // Calculate revenue by service
   const calculateRevenueByService = () => {
@@ -687,14 +708,13 @@ const OrderRevenuePerformancePage = () => { // Mặc định: mới nhất (desc
         souvenirSales += payment.amount;
       } else if (
         purpose === "service" ||
-        purpose === "pay contract deposit" ||
+        purpose === "contractdeposit" ||
         purpose === "contractsettlement"
       ) {
         contractServicesTotal += payment.amount;
       }
     });
 
-    // Lọc theo revenueSource
     const result = [];
     if (revenueSource === 0) {
       result.push({ service: "Souvenir Sales", revenue: souvenirSales });
@@ -816,10 +836,19 @@ const OrderRevenuePerformancePage = () => { // Mặc định: mới nhất (desc
   ];
 
   const revenueSourceOptions = [
-    { value: 0, label: "Souvenir Sales" }, // Sửa từ Order
-    { value: 1, label: "Festival Ticket Sales" }, // Sửa từ Festival
-    { value: 2, label: "Contract Services" }, // Sửa từ Contract Service
+    { value: 0, label: "Souvenir Sales" },
+    { value: 1, label: "Festival Ticket Sales" },
+    { value: 2, label: "Contract Services" },
     { value: 3, label: "Total" },
+  ];
+
+  const purposeOptions = [
+    { value: "all", label: "All" },
+    { value: "buyticket", label: "Buy Ticket" },
+    { value: "contractdeposit", label: "Contract Deposit" },
+    { value: "contractsettlement", label: "Contract Settlement" },
+    { value: "order", label: "Order Product" },
+    { value: "refund", label: "Refund" },
   ];
 
   const revenueByService = calculateRevenueByService();
@@ -949,11 +978,29 @@ const OrderRevenuePerformancePage = () => { // Mặc định: mới nhất (desc
 
           {/* Transaction Details */}
           <Card className="mb-4">
-            <Card.Header>
-              <h5>Transaction Details</h5>
+            <Card.Header className="d-flex align-items-center justify-content-between">
+              <h5 className="mb-0">Transaction Details</h5>
+              <Form.Group className="mb-0" style={{ maxWidth: "300px" }}>
+                <Form.Label className="filter-label mb-1">
+                  <Filter size={18} className="me-2" />
+                  Purpose
+                </Form.Label>
+                <Dropdown onSelect={(value) => setPurposeFilter(value)}>
+                  <Dropdown.Toggle variant="outline-primary" id="dropdown-purpose-filter">
+                    {purposeOptions.find((opt) => opt.value === purposeFilter)?.label}
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu>
+                    {purposeOptions.map((option) => (
+                      <Dropdown.Item key={option.value} eventKey={option.value}>
+                        {option.label}
+                      </Dropdown.Item>
+                    ))}
+                  </Dropdown.Menu>
+                </Dropdown>
+              </Form.Group>
             </Card.Header>
             <Card.Body>
-              {payments.length === 0 ? (
+              {filteredPayments.length === 0 ? (
                 <p className="text-muted">No transactions found.</p>
               ) : (
                 <div className="table-responsive">
@@ -971,7 +1018,7 @@ const OrderRevenuePerformancePage = () => { // Mặc định: mới nhất (desc
                       </tr>
                     </thead>
                     <tbody>
-                      {payments.map((payment) => (
+                      {filteredPayments.map((payment) => (
                         <tr key={payment.paymentId}>
                           <td className="text-center">{payment.transactionId || "N/A"}</td>
                           <td className="text-center">{payment.type || "N/A"}</td>
