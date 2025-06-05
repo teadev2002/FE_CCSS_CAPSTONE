@@ -957,12 +957,11 @@ const OrderRevenuePerformancePage = () => { // Mặc định: mới nhất (desc
                   <Table striped bordered hover responsive>
                     <thead>
                       <tr>
-                        <th className="text-center">Payment ID</th>
+                        <th className="text-center">Transaction ID</th>
                         <th className="text-center">Type</th>
                         <th className="text-center">Status</th>
                         <th className="text-center">Purpose</th>
                         <th className="text-center">Amount</th>
-                        <th className="text-center">Transaction ID</th>
                         <th className="text-center" onClick={handleSortByDate} style={{ cursor: "pointer" }}>
                           Created At {sortOrder === "desc" ? "↓" : "↑"}
                         </th>
@@ -971,7 +970,7 @@ const OrderRevenuePerformancePage = () => { // Mặc định: mới nhất (desc
                     <tbody>
                       {payments.map((payment) => (
                         <tr key={payment.paymentId}>
-                          <td className="text-center">{payment.paymentId}</td>
+                          <td className="text-center">{payment.transactionId || "N/A"}</td>
                           <td className="text-center">{payment.type || "N/A"}</td>
                           <td className="text-center">
                             <span
@@ -988,7 +987,6 @@ const OrderRevenuePerformancePage = () => { // Mặc định: mới nhất (desc
                           </td>
                           <td className="text-center">{formatPurposeText(payment.purpose)}</td>
                           <td className="text-center">{formatPrice(payment.amount)}</td>
-                          <td className="text-center">{payment.transactionId || "N/A"}</td>
                           <td className="text-center">{formatDate(payment.creatAt)}</td>
                         </tr>
                       ))}
