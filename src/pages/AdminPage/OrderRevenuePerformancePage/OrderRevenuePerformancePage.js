@@ -504,10 +504,11 @@ const OrderRevenuePerformancePage = () => {
     totalRevenue: 0,
     paymentResponse: [],
   });
-  const [contractServicesRevenue, setContractServicesRevenue] = useState(0); // New state for Contract Services revenue
+  const [contractServicesRevenue, setContractServicesRevenue] = useState(0); // Contract Services revenue
   const [chartData, setChartData] = useState({
     dailyRevenue: [],
     monthlyRevenue: [],
+    hourlyRevenue: [], // Added for filterType === 0
   });
   const [payments, setPayments] = useState([]);
   const [filteredPayments, setFilteredPayments] = useState([]);
@@ -642,11 +643,6 @@ const OrderRevenuePerformancePage = () => {
 
   // Fetch chart data
   useEffect(() => {
-    if (filterType === 0) {
-      setChartData({ dailyRevenue: [], monthlyRevenue: [] });
-      return;
-    }
-
     const fetchChartData = async () => {
       setIsLoading(true);
       setError(null);
@@ -655,10 +651,11 @@ const OrderRevenuePerformancePage = () => {
         setChartData({
           dailyRevenue: data.dailyRevenue || [],
           monthlyRevenue: data.monthlyRevenue || [],
+          hourlyRevenue: data.hourlyRevenue || [], // Store hourlyRevenue
         });
       } catch (error) {
         setError(error.message);
-        setChartData({ dailyRevenue: [], monthlyRevenue: [] });
+        setChartData({ dailyRevenue: [], monthlyRevenue: [], hourlyRevenue: [] });
         toast.error(error.message);
       } finally {
         setIsLoading(false);
@@ -754,7 +751,18 @@ const OrderRevenuePerformancePage = () => {
     let labels = [];
     let data = [];
 
-    if (filterType === 1) {
+    if (filterType === 0) {
+      // Hourly chart for Today
+      labels = Array.from({ length: 24 }, (_, i) => `${i}:00`);
+      data = new Array(24).fill(0);
+      chartData.hourlyRevenue.forEach((item) => {
+        const hourIndex = parseInt(item.hour, 10);
+        if (hourIndex >= 0 && hourIndex < 24) {
+          data[hourIndex] = item.totalRevenue || 0;
+        }
+      });
+    } else if (filterType === 1) {
+      // Weekly chart
       const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
       labels = days;
       data = new Array(7).fill(0);
@@ -764,6 +772,7 @@ const OrderRevenuePerformancePage = () => {
         data[dayIndex] = item.totalRevenue || 0;
       });
     } else if (filterType === 2) {
+      // Monthly chart
       const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
       labels = Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString());
       data = new Array(daysInMonth).fill(0);
@@ -773,6 +782,7 @@ const OrderRevenuePerformancePage = () => {
         data[day] = item.totalRevenue || 0;
       });
     } else if (filterType === 3) {
+      // Yearly chart
       const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
       labels = months;
       data = new Array(12).fill(0);
@@ -824,6 +834,10 @@ const OrderRevenuePerformancePage = () => {
       x: {
         grid: {
           display: false,
+        },
+        ticks: {
+          autoSkip: true,
+          maxTicksLimit: filterType === 0 ? 12 : undefined, // Limit x-axis ticks for hourly chart
         },
       },
     },
@@ -987,7 +1001,7 @@ const OrderRevenuePerformancePage = () => {
               <h5>Revenue Trend</h5>
             </Card.Header>
             <Card.Body style={{ height: "400px" }}>
-              {filterType === 0 ||
+              {(filterType === 0 && chartData.hourlyRevenue.length === 0) ||
                 (filterType === 1 && chartData.dailyRevenue.length === 0) ||
                 (filterType === 2 && chartData.dailyRevenue.length === 0) ||
                 (filterType === 3 && chartData.monthlyRevenue.length === 0) ? (
