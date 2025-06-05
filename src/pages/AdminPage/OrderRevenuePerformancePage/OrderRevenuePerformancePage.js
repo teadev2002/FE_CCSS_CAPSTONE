@@ -547,18 +547,21 @@ const OrderRevenuePerformancePage = () => { // Mặc định: mới nhất (desc
   };
 
   // Format purpose text
+  // Format purpose text
   const formatPurposeText = (purpose) => {
     if (!purpose) return "N/A";
     const purposeLower = purpose.toLowerCase();
     switch (purposeLower) {
       case "buyticket":
-        return "Festival Ticket Sales";
-      case "pay contract deposit":
+        return "Buy Ticket";
+      case "contractdeposit":
+        return "Contract Deposit";
       case "contractsettlement":
-      case "service":
-        return "Contract Services";
+        return "Contract Settlement";
       case "order":
-        return "Souvenir Sales";
+        return "Order";
+      case "refund":
+        return "Refund";
       default:
         return purposeLower
           .split(" ")
