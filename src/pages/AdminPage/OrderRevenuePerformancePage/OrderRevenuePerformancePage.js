@@ -499,17 +499,18 @@ const OrderRevenuePerformancePage = () => {
   const [sortOrder, setSortOrder] = useState("desc");
   const [filterType, setFilterType] = useState(3); // Default: This Year
   const [revenueSource, setRevenueSource] = useState(3); // Default: Total
-  const [purposeFilter, setPurposeFilter] = useState("all"); // New state for purpose filter
+  const [purposeFilter, setPurposeFilter] = useState("all"); // Purpose filter
   const [revenueData, setRevenueData] = useState({
     totalRevenue: 0,
     paymentResponse: [],
   });
+  const [contractServicesRevenue, setContractServicesRevenue] = useState(0); // New state for Contract Services revenue
   const [chartData, setChartData] = useState({
     dailyRevenue: [],
     monthlyRevenue: [],
   });
   const [payments, setPayments] = useState([]);
-  const [filteredPayments, setFilteredPayments] = useState([]); // New state for filtered payments
+  const [filteredPayments, setFilteredPayments] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -617,6 +618,28 @@ const OrderRevenuePerformancePage = () => {
     fetchRevenueData();
   }, [filterType, revenueSource]);
 
+  // Fetch Contract Services revenue (revenueSource === 2)
+  useEffect(() => {
+    const fetchContractServicesRevenue = async () => {
+      if (revenueSource === 2 || revenueSource === 3) {
+        setIsLoading(true);
+        try {
+          const data = await RevenueService.getRevenue(filterType, 2);
+          setContractServicesRevenue(data?.totalRevenue || 0);
+        } catch (error) {
+          setError(error.message);
+          setContractServicesRevenue(0);
+          toast.error("Failed to fetch Contract Services revenue");
+        } finally {
+          setIsLoading(false);
+        }
+      } else {
+        setContractServicesRevenue(0); // Reset if not needed
+      }
+    };
+    fetchContractServicesRevenue();
+  }, [filterType, revenueSource]);
+
   // Fetch chart data
   useEffect(() => {
     if (filterType === 0) {
@@ -665,10 +688,10 @@ const OrderRevenuePerformancePage = () => {
           const dateA = parseDate(a.creatAt);
           const dateB = parseDate(b.creatAt);
 
-          return dateB - dateA; // Sort descending (newest first)
+          return dateB - dateA;
         });
         setPayments(sortedPayments);
-        setFilteredPayments(sortedPayments); // Initialize filteredPayments
+        setFilteredPayments(sortedPayments);
       } catch (error) {
         setError(error.message);
         setPayments([]);
@@ -698,7 +721,6 @@ const OrderRevenuePerformancePage = () => {
     const payments = revenueData.paymentResponse || [];
     let festivalTicketSales = 0;
     let souvenirSales = 0;
-    let contractServicesTotal = 0;
 
     payments.forEach((payment) => {
       const purpose = payment.purpose?.toLowerCase();
@@ -706,12 +728,6 @@ const OrderRevenuePerformancePage = () => {
         festivalTicketSales += payment.amount;
       } else if (purpose === "order") {
         souvenirSales += payment.amount;
-      } else if (
-        purpose === "service" ||
-        purpose === "contractdeposit" ||
-        purpose === "contractsettlement"
-      ) {
-        contractServicesTotal += payment.amount;
       }
     });
 
@@ -721,12 +737,12 @@ const OrderRevenuePerformancePage = () => {
     } else if (revenueSource === 1) {
       result.push({ service: "Festival Ticket Sales", revenue: festivalTicketSales });
     } else if (revenueSource === 2) {
-      result.push({ service: "Contract Services", revenue: contractServicesTotal });
+      result.push({ service: "Contract Services", revenue: contractServicesRevenue });
     } else if (revenueSource === 3) {
       result.push(
         { service: "Souvenir Sales", revenue: souvenirSales },
         { service: "Festival Ticket Sales", revenue: festivalTicketSales },
-        { service: "Contract Services", revenue: contractServicesTotal }
+        { service: "Contract Services", revenue: contractServicesRevenue }
       );
     }
 
@@ -922,7 +938,13 @@ const OrderRevenuePerformancePage = () => {
                   </div>
                   <div className="ms-4">
                     <h3>Total Revenue</h3>
-                    <h2>{formatPrice(revenueData.totalRevenue)}</h2>
+                    <h2>
+                      {formatPrice(
+                        revenueSource === 2
+                          ? contractServicesRevenue
+                          : revenueByService.reduce((sum, item) => sum + item.revenue, 0)
+                      )}
+                    </h2>
                   </div>
                 </Card.Body>
               </Card>
