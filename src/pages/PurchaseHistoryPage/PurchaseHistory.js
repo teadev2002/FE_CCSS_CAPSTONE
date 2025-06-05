@@ -1611,7 +1611,7 @@ const PurchaseHistory = () => {
             <div className="sort-container mb-3">
               <Dropdown>
                 <Dropdown.Toggle className="sort-dropdown" id="ticket-sort-dropdown">
-                  Sort: {ticketSortOrder === "newest" ? "Newest to Oldest" : "Oldest to Newest"}
+                  Sort: {ticketSortOrder === "newest" ? "Nearest Upcoming" : "Distant Upcoming"}
                 </Dropdown.Toggle>
                 <Dropdown.Menu>
                   <Dropdown.Item onClick={() => setTicketSortOrder("newest")}>Nearest Upcoming</Dropdown.Item>
