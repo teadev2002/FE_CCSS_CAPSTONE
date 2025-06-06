@@ -1932,7 +1932,7 @@ const MyTask = () => {
 
       // Check if isValidate is true
       if (taskData.isValidate === true) {
-        toast.error("Cannot update status: Task is validated.", {
+        toast.info("Only update status on time.", {
           position: "top-right",
           autoClose: 3000,
         });

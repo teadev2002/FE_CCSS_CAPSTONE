@@ -235,6 +235,15 @@ const UserAnalyticsService = {
       throw error; // Re-throw the error to be handled by the caller
     }
   },
+  getStateValidateCosplayerAndManager: async () => {
+    try {
+      const response = await apiClient.get(`/api/Validate`);
+      return response.data;
+    } catch (error) {
+      console.error("Error getting state validation:", error);
+      throw error; // Re-throw the error to be handled by the caller
+    }
+  },
 };
 
 export default UserAnalyticsService;
