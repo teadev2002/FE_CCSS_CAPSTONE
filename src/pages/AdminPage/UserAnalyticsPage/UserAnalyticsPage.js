@@ -57,6 +57,7 @@ const UserAnalyticsPage = () => {
 
   // Trạng thái cho Top 5 Accounts
   const [topAccounts, setTopAccounts] = useState([]);
+
   const [isValidationEnabled, setIsValidationEnabled] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
@@ -76,6 +77,24 @@ const UserAnalyticsPage = () => {
       setIsLoading(false);
     }
   };
+
+  // Lấy trạng thái xác thực từ API khi component được mount
+  useEffect(() => {
+    const fetchValidationState = async () => {
+      setIsLoading(true);
+      try {
+        const validationState =
+          await UserAnalyticsService.getStateValidateCosplayerAndManager();
+        setIsValidationEnabled(validationState); // Cập nhật trạng thái từ API
+      } catch (error) {
+        toast.error(error.message || "Failed to load validation state");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchValidationState();
+  }, []);
   // Dữ liệu giả lập cho Top 5 khách hàng sử dụng dịch vụ nhiều nhất
   const topCustomersByUsage = [
     {
@@ -428,7 +447,7 @@ const UserAnalyticsPage = () => {
         const avgRating =
           cosplayerRatings.length > 0
             ? cosplayerRatings.reduce((sum, rating) => sum + rating, 0) /
-            cosplayerRatings.length
+              cosplayerRatings.length
             : 0;
 
         setTotalAccounts({
@@ -522,61 +541,6 @@ const UserAnalyticsPage = () => {
             </div>
             <h3>Setting Validate User</h3>
             <div className="rating-display">
-              {/* <div class="toggle-container">
-                <div class="toggle-wrap">
-                  <input
-                    class="toggle-input"
-                    id="holo-toggle"
-                    type="checkbox"
-                    checked={isValidationEnabled}
-                    onChange={handleToggleChange}
-                  />
-                  <label class="toggle-track" for="holo-toggle">
-                    <div class="track-lines">
-                      <div class="track-line"></div>
-                    </div>
-
-                    <div class="toggle-thumb">
-                      <div class="thumb-core"></div>
-                      <div class="thumb-inner"></div>
-                      <div class="thumb-scan"></div>
-                      <div class="thumb-particles">
-                        <div class="thumb-particle"></div>
-                        <div class="thumb-particle"></div>
-                        <div class="thumb-particle"></div>
-                        <div class="thumb-particle"></div>
-                        <div class="thumb-particle"></div>
-                      </div>
-                    </div>
-
-                    <div class="toggle-data">
-                      <div class="data-text off">OFF</div>
-                      <div class="data-text on">ON</div>
-                      <div class="status-indicator off"></div>
-                      <div class="status-indicator on"></div>
-                    </div>
-
-                    <div class="energy-rings">
-                      <div class="energy-ring"></div>
-                      <div class="energy-ring"></div>
-                      <div class="energy-ring"></div>
-                    </div>
-
-                    <div class="interface-lines">
-                      <div class="interface-line"></div>
-                      <div class="interface-line"></div>
-                      <div class="interface-line"></div>
-                      <div class="interface-line"></div>
-                      <div class="interface-line"></div>
-                      <div class="interface-line"></div>
-                    </div>
-
-                    <div class="toggle-reflection"></div>
-                    <div class="holo-glow"></div>
-                  </label>
-                </div>
-              </div> */}
-
               <div class="flipswitch">
                 <input
                   id="fs"
