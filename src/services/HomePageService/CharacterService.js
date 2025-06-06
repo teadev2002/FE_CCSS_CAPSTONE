@@ -10,7 +10,7 @@ const CharacterService = {
     } catch (error) {
       // Ném lỗi với thông báo cụ thể nếu API thất bại
       throw new Error(
-        error.response?.data?.message || "Lỗi khi lấy danh sách nhân vật"
+        error.response?.data?.message || "Failed to get character"
       );
     }
   },
@@ -20,7 +20,7 @@ const CharacterService = {
       return response.data;
     } catch (error) {
       throw new Error(
-        error.response?.data?.message || "Lỗi khi lấy thông tin character"
+        error.response?.data?.message || "Failed to get character"
       );
     }
   },

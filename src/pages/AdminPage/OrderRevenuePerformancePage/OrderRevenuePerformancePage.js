@@ -495,19 +495,23 @@ import "../../../styles/Admin/OrderRevenuePerformancePage.scss";
 
 Chart.register(CategoryScale, LinearScale, PointElement, LineElement);
 
-const OrderRevenuePerformancePage = () => { // Mặc định: mới nhất (descending)
+const OrderRevenuePerformancePage = () => {
   const [sortOrder, setSortOrder] = useState("desc");
-  const [filterType, setFilterType] = useState(3); // Mặc định: This Year
-  const [revenueSource, setRevenueSource] = useState(3); // Mặc định: Total
+  const [filterType, setFilterType] = useState(3); // Default: This Year
+  const [revenueSource, setRevenueSource] = useState(3); // Default: Total
+  const [purposeFilter, setPurposeFilter] = useState("all"); // Purpose filter
   const [revenueData, setRevenueData] = useState({
     totalRevenue: 0,
     paymentResponse: [],
   });
+  const [contractServicesRevenue, setContractServicesRevenue] = useState(0); // Contract Services revenue
   const [chartData, setChartData] = useState({
     dailyRevenue: [],
     monthlyRevenue: [],
+    hourlyRevenue: [], // Added for filterType === 0
   });
   const [payments, setPayments] = useState([]);
+  const [filteredPayments, setFilteredPayments] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -517,19 +521,21 @@ const OrderRevenuePerformancePage = () => { // Mặc định: mới nhất (desc
     return `${price.toLocaleString("vi-VN")} VND`;
   };
 
-  // Format date to DD/MM/YYYY
+  // Format date to HH:mm DD/MM/YYYY
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
-    const regex = /^(\d{2})[-/](\d{2})[-/](\d{4})$/;
-    if (regex.test(dateString)) {
-      return dateString; // Đã đúng định dạng DD/MM/YYYY
+    const timeDateRegex = /^(\d{2}):(\d{2})\s(\d{2})\/(\d{2})\/(\d{4})$/;
+    if (timeDateRegex.test(dateString)) {
+      return dateString;
     }
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return "Invalid Date";
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
     const day = String(date.getDate()).padStart(2, "0");
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
+    return `${hours}:${minutes} ${day}/${month}/${year}`;
   };
 
   // Get status text
@@ -552,13 +558,15 @@ const OrderRevenuePerformancePage = () => { // Mặc định: mới nhất (desc
     const purposeLower = purpose.toLowerCase();
     switch (purposeLower) {
       case "buyticket":
-        return "Festival Ticket Sales";
-      case "pay contract deposit":
+        return "Buy Ticket";
+      case "contractdeposit":
+        return "Contract Deposit";
       case "contractsettlement":
-      case "service":
-        return "Contract Services";
+        return "Contract Settlement";
       case "order":
-        return "Souvenir Sales";
+        return "Order Product";
+      case "refund":
+        return "Refund";
       default:
         return purposeLower
           .split(" ")
@@ -567,18 +575,20 @@ const OrderRevenuePerformancePage = () => { // Mặc định: mới nhất (desc
     }
   };
 
+  // Handle sort by date
   const handleSortByDate = () => {
     const newSortOrder = sortOrder === "desc" ? "asc" : "desc";
     setSortOrder(newSortOrder);
 
-    const sortedPayments = [...payments].sort((a, b) => {
-      // Hàm chuyển đổi định dạng dd/mm/yyyy thành Date
+    const sortedPayments = [...filteredPayments].sort((a, b) => {
       const parseDate = (dateStr) => {
-        if (!dateStr || !/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
-          return new Date(0); // Trả về ngày rất cũ nếu định dạng không hợp lệ
+        if (!dateStr || !/^\d{2}:\d{2}\s\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
+          return new Date(0);
         }
-        const [day, month, year] = dateStr.split("/").map(Number);
-        return new Date(year, month - 1, day); // month - 1 vì tháng trong Date bắt đầu từ 0
+        const [time, date] = dateStr.split(" ");
+        const [hours, minutes] = time.split(":").map(Number);
+        const [day, month, year] = date.split("/").map(Number);
+        return new Date(year, month - 1, day, hours, minutes);
       };
 
       const dateA = parseDate(a.creatAt);
@@ -587,8 +597,9 @@ const OrderRevenuePerformancePage = () => { // Mặc định: mới nhất (desc
       return newSortOrder === "desc" ? dateB - dateA : dateA - dateB;
     });
 
-    setPayments(sortedPayments);
+    setFilteredPayments(sortedPayments);
   };
+
   // Fetch revenue data
   useEffect(() => {
     const fetchRevenueData = async () => {
@@ -608,13 +619,30 @@ const OrderRevenuePerformancePage = () => { // Mặc định: mới nhất (desc
     fetchRevenueData();
   }, [filterType, revenueSource]);
 
+  // Fetch Contract Services revenue (revenueSource === 2)
+  useEffect(() => {
+    const fetchContractServicesRevenue = async () => {
+      if (revenueSource === 2 || revenueSource === 3) {
+        setIsLoading(true);
+        try {
+          const data = await RevenueService.getRevenue(filterType, 2);
+          setContractServicesRevenue(data?.totalRevenue || 0);
+        } catch (error) {
+          setError(error.message);
+          setContractServicesRevenue(0);
+          toast.error("Failed to fetch Contract Services revenue");
+        } finally {
+          setIsLoading(false);
+        }
+      } else {
+        setContractServicesRevenue(0); // Reset if not needed
+      }
+    };
+    fetchContractServicesRevenue();
+  }, [filterType, revenueSource]);
+
   // Fetch chart data
   useEffect(() => {
-    if (filterType === 0) {
-      setChartData({ dailyRevenue: [], monthlyRevenue: [] });
-      return;
-    }
-
     const fetchChartData = async () => {
       setIsLoading(true);
       setError(null);
@@ -623,10 +651,11 @@ const OrderRevenuePerformancePage = () => { // Mặc định: mới nhất (desc
         setChartData({
           dailyRevenue: data.dailyRevenue || [],
           monthlyRevenue: data.monthlyRevenue || [],
+          hourlyRevenue: data.hourlyRevenue || [], // Store hourlyRevenue
         });
       } catch (error) {
         setError(error.message);
-        setChartData({ dailyRevenue: [], monthlyRevenue: [] });
+        setChartData({ dailyRevenue: [], monthlyRevenue: [], hourlyRevenue: [] });
         toast.error(error.message);
       } finally {
         setIsLoading(false);
@@ -642,26 +671,29 @@ const OrderRevenuePerformancePage = () => { // Mặc định: mới nhất (desc
       setError(null);
       try {
         const data = await RevenueService.getPayments();
-        // Sắp xếp payments theo creatAt giảm dần (mới nhất lên đầu)
         const sortedPayments = (data || []).sort((a, b) => {
           const parseDate = (dateStr) => {
-            if (!dateStr || !/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
-              return new Date(0); // Trả về ngày rất cũ nếu định dạng không hợp lệ
+            if (!dateStr || !/^\d{2}:\d{2}\s\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
+              return new Date(0);
             }
-            const [day, month, year] = dateStr.split("/").map(Number);
-            return new Date(year, month - 1, day);
+            const [time, date] = dateStr.split(" ");
+            const [hours, minutes] = time.split(":").map(Number);
+            const [day, month, year] = date.split("/").map(Number);
+            return new Date(year, month - 1, day, hours, minutes);
           };
 
           const dateA = parseDate(a.creatAt);
           const dateB = parseDate(b.creatAt);
 
-          return dateB - dateA; // Sắp xếp giảm dần
+          return dateB - dateA;
         });
         setPayments(sortedPayments);
+        setFilteredPayments(sortedPayments);
       } catch (error) {
         setError(error.message);
         setPayments([]);
-        toast.error(error.message, { autoClose: 8000 }); // Cập nhật autoClose theo yêu cầu trước
+        setFilteredPayments([]);
+        toast.error(error.message, { autoClose: 8000 });
       } finally {
         setIsLoading(false);
       }
@@ -669,12 +701,23 @@ const OrderRevenuePerformancePage = () => { // Mặc định: mới nhất (desc
     fetchPayments();
   }, []);
 
+  // Filter payments by purpose
+  useEffect(() => {
+    if (purposeFilter === "all") {
+      setFilteredPayments(payments);
+    } else {
+      const filtered = payments.filter(
+        (payment) => payment.purpose?.toLowerCase() === purposeFilter.toLowerCase()
+      );
+      setFilteredPayments(filtered);
+    }
+  }, [payments, purposeFilter]);
+
   // Calculate revenue by service
   const calculateRevenueByService = () => {
     const payments = revenueData.paymentResponse || [];
     let festivalTicketSales = 0;
     let souvenirSales = 0;
-    let contractServicesTotal = 0;
 
     payments.forEach((payment) => {
       const purpose = payment.purpose?.toLowerCase();
@@ -682,28 +725,21 @@ const OrderRevenuePerformancePage = () => { // Mặc định: mới nhất (desc
         festivalTicketSales += payment.amount;
       } else if (purpose === "order") {
         souvenirSales += payment.amount;
-      } else if (
-        purpose === "service" ||
-        purpose === "pay contract deposit" ||
-        purpose === "contractsettlement"
-      ) {
-        contractServicesTotal += payment.amount;
       }
     });
 
-    // Lọc theo revenueSource
     const result = [];
     if (revenueSource === 0) {
       result.push({ service: "Souvenir Sales", revenue: souvenirSales });
     } else if (revenueSource === 1) {
       result.push({ service: "Festival Ticket Sales", revenue: festivalTicketSales });
     } else if (revenueSource === 2) {
-      result.push({ service: "Contract Services", revenue: contractServicesTotal });
+      result.push({ service: "Contract Services", revenue: contractServicesRevenue });
     } else if (revenueSource === 3) {
       result.push(
         { service: "Souvenir Sales", revenue: souvenirSales },
         { service: "Festival Ticket Sales", revenue: festivalTicketSales },
-        { service: "Contract Services", revenue: contractServicesTotal }
+        { service: "Contract Services", revenue: contractServicesRevenue }
       );
     }
 
@@ -715,7 +751,18 @@ const OrderRevenuePerformancePage = () => { // Mặc định: mới nhất (desc
     let labels = [];
     let data = [];
 
-    if (filterType === 1) {
+    if (filterType === 0) {
+      // Hourly chart for Today
+      labels = Array.from({ length: 24 }, (_, i) => `${i}:00`);
+      data = new Array(24).fill(0);
+      chartData.hourlyRevenue.forEach((item) => {
+        const hourIndex = parseInt(item.hour, 10);
+        if (hourIndex >= 0 && hourIndex < 24) {
+          data[hourIndex] = item.totalRevenue || 0;
+        }
+      });
+    } else if (filterType === 1) {
+      // Weekly chart
       const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
       labels = days;
       data = new Array(7).fill(0);
@@ -725,6 +772,7 @@ const OrderRevenuePerformancePage = () => { // Mặc định: mới nhất (desc
         data[dayIndex] = item.totalRevenue || 0;
       });
     } else if (filterType === 2) {
+      // Monthly chart
       const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
       labels = Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString());
       data = new Array(daysInMonth).fill(0);
@@ -734,6 +782,7 @@ const OrderRevenuePerformancePage = () => { // Mặc định: mới nhất (desc
         data[day] = item.totalRevenue || 0;
       });
     } else if (filterType === 3) {
+      // Yearly chart
       const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
       labels = months;
       data = new Array(12).fill(0);
@@ -786,6 +835,10 @@ const OrderRevenuePerformancePage = () => { // Mặc định: mới nhất (desc
         grid: {
           display: false,
         },
+        ticks: {
+          autoSkip: true,
+          maxTicksLimit: filterType === 0 ? 12 : undefined, // Limit x-axis ticks for hourly chart
+        },
       },
     },
     plugins: {
@@ -813,10 +866,19 @@ const OrderRevenuePerformancePage = () => { // Mặc định: mới nhất (desc
   ];
 
   const revenueSourceOptions = [
-    { value: 0, label: "Souvenir Sales" }, // Sửa từ Order
-    { value: 1, label: "Festival Ticket Sales" }, // Sửa từ Festival
-    { value: 2, label: "Contract Services" }, // Sửa từ Contract Service
+    { value: 0, label: "Souvenir Sales" },
+    { value: 1, label: "Festival Ticket Sales" },
+    { value: 2, label: "Contract Services" },
     { value: 3, label: "Total" },
+  ];
+
+  const purposeOptions = [
+    { value: "all", label: "All" },
+    { value: "buyticket", label: "Buy Ticket" },
+    { value: "contractdeposit", label: "Contract Deposit" },
+    { value: "contractsettlement", label: "Contract Settlement" },
+    { value: "order", label: "Order Product" },
+    { value: "refund", label: "Refund" },
   ];
 
   const revenueByService = calculateRevenueByService();
@@ -890,7 +952,13 @@ const OrderRevenuePerformancePage = () => { // Mặc định: mới nhất (desc
                   </div>
                   <div className="ms-4">
                     <h3>Total Revenue</h3>
-                    <h2>{formatPrice(revenueData.totalRevenue)}</h2>
+                    <h2>
+                      {formatPrice(
+                        revenueSource === 2
+                          ? contractServicesRevenue
+                          : revenueByService.reduce((sum, item) => sum + item.revenue, 0)
+                      )}
+                    </h2>
                   </div>
                 </Card.Body>
               </Card>
@@ -933,7 +1001,7 @@ const OrderRevenuePerformancePage = () => { // Mặc định: mới nhất (desc
               <h5>Revenue Trend</h5>
             </Card.Header>
             <Card.Body style={{ height: "400px" }}>
-              {filterType === 0 ||
+              {(filterType === 0 && chartData.hourlyRevenue.length === 0) ||
                 (filterType === 1 && chartData.dailyRevenue.length === 0) ||
                 (filterType === 2 && chartData.dailyRevenue.length === 0) ||
                 (filterType === 3 && chartData.monthlyRevenue.length === 0) ? (
@@ -946,32 +1014,49 @@ const OrderRevenuePerformancePage = () => { // Mặc định: mới nhất (desc
 
           {/* Transaction Details */}
           <Card className="mb-4">
-            <Card.Header>
-              <h5>Transaction Details</h5>
+            <Card.Header className="d-flex align-items-center justify-content-between">
+              <h5 className="mb-0">Transaction Details</h5>
+              <Form.Group className="mb-0" style={{ maxWidth: "300px" }}>
+                <Form.Label className="filter-label mb-1">
+                  <Filter size={18} className="me-2" />
+                  Purpose
+                </Form.Label>
+                <Dropdown onSelect={(value) => setPurposeFilter(value)}>
+                  <Dropdown.Toggle variant="outline-primary" id="dropdown-purpose-filter">
+                    {purposeOptions.find((opt) => opt.value === purposeFilter)?.label}
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu>
+                    {purposeOptions.map((option) => (
+                      <Dropdown.Item key={option.value} eventKey={option.value}>
+                        {option.label}
+                      </Dropdown.Item>
+                    ))}
+                  </Dropdown.Menu>
+                </Dropdown>
+              </Form.Group>
             </Card.Header>
             <Card.Body>
-              {payments.length === 0 ? (
+              {filteredPayments.length === 0 ? (
                 <p className="text-muted">No transactions found.</p>
               ) : (
                 <div className="table-responsive">
                   <Table striped bordered hover responsive>
                     <thead>
                       <tr>
-                        <th className="text-center">Payment ID</th>
+                        <th className="text-center">Transaction ID</th>
                         <th className="text-center">Type</th>
                         <th className="text-center">Status</th>
                         <th className="text-center">Purpose</th>
                         <th className="text-center">Amount</th>
-                        <th className="text-center">Transaction ID</th>
                         <th className="text-center" onClick={handleSortByDate} style={{ cursor: "pointer" }}>
                           Created At {sortOrder === "desc" ? "↓" : "↑"}
                         </th>
                       </tr>
                     </thead>
                     <tbody>
-                      {payments.map((payment) => (
+                      {filteredPayments.map((payment) => (
                         <tr key={payment.paymentId}>
-                          <td className="text-center">{payment.paymentId}</td>
+                          <td className="text-center">{payment.transactionId || "N/A"}</td>
                           <td className="text-center">{payment.type || "N/A"}</td>
                           <td className="text-center">
                             <span
@@ -988,7 +1073,6 @@ const OrderRevenuePerformancePage = () => { // Mặc định: mới nhất (desc
                           </td>
                           <td className="text-center">{formatPurposeText(payment.purpose)}</td>
                           <td className="text-center">{formatPrice(payment.amount)}</td>
-                          <td className="text-center">{payment.transactionId || "N/A"}</td>
                           <td className="text-center">{formatDate(payment.creatAt)}</td>
                         </tr>
                       ))}

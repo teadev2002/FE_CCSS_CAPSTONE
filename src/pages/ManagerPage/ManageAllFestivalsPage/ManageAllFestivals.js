@@ -3656,17 +3656,21 @@ const ManageAllFestivals = () => {
 
   // Lấy danh sách nhân vật khi mở modal tạo/sửa hoặc chi tiết
   useEffect(() => {
-    if (isCreateModalVisible && formData.dateRange) {
+    if (isCreateModalVisible) {
       const fetchCharacters = async () => {
         try {
-          const [startDate, endDate] = formData.dateRange;
-          const formattedStartDate = startDate.format("DD/MM/YYYY");
-          const formattedEndDate = endDate.format("DD/MM/YYYY");
-          const charData = await ManageAllFestivalsService.getAllCharacters(
-            formattedStartDate,
-            formattedEndDate
+          const charList = await ManageAllFestivalsService.getAllCharacters();
+          if (!Array.isArray(charList) || charList.length === 0) {
+            setCharacters([]);
+            return;
+          }
+
+          // Fetch details for each character
+          const charDetailsPromises = charList.map((char) =>
+            ManageAllFestivalsService.getCharacterById(char.characterId)
           );
-          setCharacters(Array.isArray(charData) ? charData : []);
+          const charDetails = await Promise.all(charDetailsPromises);
+          setCharacters(charDetails.filter((char) => char)); // Filter out any failed requests
         } catch (error) {
           toast.error(error.message || "Failed to load characters", { autoClose: 7000 });
           setCharacters([]);
@@ -3674,7 +3678,7 @@ const ManageAllFestivals = () => {
       };
       fetchCharacters();
     }
-  }, [isCreateModalVisible, formData.dateRange]);
+  }, [isCreateModalVisible]);
 
   // Lấy danh sách cosplayer khi chọn nhân vật và có khoảng thời gian
   useEffect(() => {
@@ -3872,13 +3876,17 @@ const ManageAllFestivals = () => {
       // Tải characters
       let charData = [];
       try {
-        const startDate = dayjs(eventData.startDate).format("DD/MM/YYYY");
-        const endDate = dayjs(eventData.endDate).format("DD/MM/YYYY");
-        charData = await ManageAllFestivalsService.getAllCharacters(startDate, endDate);
+        const charList = await ManageAllFestivalsService.getAllCharacters();
+        if (Array.isArray(charList) && charList.length > 0) {
+          const charDetailsPromises = charList.map((char) =>
+            ManageAllFestivalsService.getCharacterById(char.characterId)
+          );
+          charData = await Promise.all(charDetailsPromises);
+        }
       } catch (error) {
         toast.error(error.message || "Failed to load characters for festival", { autoClose: 7000 });
       }
-      setCharacters(Array.isArray(charData) ? charData : []);
+      setCharacters(Array.isArray(charData) ? charData.filter((char) => char) : []);
 
       setFormData({
         eventName: eventData.eventName,
@@ -3918,13 +3926,17 @@ const ManageAllFestivals = () => {
       // Tải characters dựa trên ngày của sự kiện
       let charData = [];
       try {
-        const startDate = dayjs(eventData.startDate).format("DD/MM/YYYY");
-        const endDate = dayjs(eventData.endDate).format("DD/MM/YYYY");
-        charData = await ManageAllFestivalsService.getAllCharacters(startDate, endDate);
+        const charList = await ManageAllFestivalsService.getAllCharacters();
+        if (Array.isArray(charList) && charList.length > 0) {
+          const charDetailsPromises = charList.map((char) =>
+            ManageAllFestivalsService.getCharacterById(char.characterId)
+          );
+          charData = await Promise.all(charDetailsPromises);
+        }
       } catch (error) {
         toast.error(error.message || "Failed to load characters for festival", { autoClose: 7000 });
       }
-      const eventCharacters = Array.isArray(charData) ? charData : [];
+      const eventCharacters = Array.isArray(charData) ? charData.filter((char) => char) : [];
 
       const cosplayers = await Promise.all(
         eventData.eventCharacterResponses.map(async (ec) => {
@@ -4217,8 +4229,8 @@ const ManageAllFestivals = () => {
     if (formData.dateRange) {
       const [startDate, endDate] = formData.dateRange;
       const dates = [{
-        startDate: startDate.toISOString(),
-        endDate: endDate.toISOString(),
+        startDate: startDate.add(7, 'hour').toISOString(),
+        endDate: endDate.add(7, 'hour').toISOString(),
       }];
 
       try {
@@ -4253,7 +4265,6 @@ const ManageAllFestivals = () => {
       }
     }
   };
-
   // Xóa cosplayer
   const handleRemoveCosplayers = () => {
     setFormData((prev) => ({
@@ -4277,7 +4288,6 @@ const ManageAllFestivals = () => {
     }));
   };
 
-  // Xác thực form
   // Xác thực form
   const validateForm = () => {
     const errors = [];
@@ -4357,8 +4367,8 @@ const ManageAllFestivals = () => {
       // Kiểm tra booking cosplayer
       if (formData.selectedCosplayers.length > 0) {
         const dates = [{
-          startDate: startDate.toISOString(),
-          endDate: endDate.toISOString(),
+          startDate: startDate.add(7, 'hour').toISOString(),
+          endDate: endDate.add(7, 'hour').toISOString(),
         }];
 
         const bookingData = await ManageAllFestivalsService.checkCosplayerBooking(dates);
@@ -4419,8 +4429,9 @@ const ManageAllFestivals = () => {
       };
 
       if (!isEditMode) {
-        eventData.startDate = startDate.toISOString();
-        eventData.endDate = endDate.toISOString();
+        // Add 7 hours to align with Asia/Ho_Chi_Minh expectation
+        eventData.startDate = startDate.add(7, 'hour').toISOString();
+        eventData.endDate = endDate.add(7, 'hour').toISOString();
       }
 
       const eventJson = JSON.stringify(eventData);

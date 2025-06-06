@@ -316,24 +316,7 @@ const ManageLocation = () => {
                                 <Table striped bordered hover responsive>
                                     <thead>
                                         <tr>
-                                            <th className="text-center">
-                                                <span
-                                                    className="sortable"
-                                                    onClick={() => handleSort("locationId")}
-                                                >
-                                                    Location ID
-                                                    {sortLocation.field === "locationId" ? (
-                                                        sortLocation.order === "asc" ? (
-                                                            <ArrowUp size={16} />
-                                                        ) : (
-                                                            <ArrowDown size={16} />
-                                                        )
-                                                    ) : (
-                                                        <ArrowUp size={16} className="default-sort-icon" />
-                                                    )}
-                                                </span>
-                                            </th>
-                                            <th className="text-center">Address</th> {/* Không sortable */}
+                                            <th className="text-center">Address</th>
                                             <th className="text-center">
                                                 <span
                                                     className="sortable"
@@ -374,14 +357,13 @@ const ManageLocation = () => {
                                     <tbody>
                                         {paginatedLocations.length === 0 ? (
                                             <tr>
-                                                <td colSpan="5" className="text-center text-muted">
+                                                <td colSpan="4" className="text-center text-muted">
                                                     No locations found {searchTerm && "matching your search"}.
                                                 </td>
                                             </tr>
                                         ) : (
                                             paginatedLocations.map((location) => (
                                                 <tr key={location.locationId}>
-                                                    <td className="text-center">{location.locationId}</td>
                                                     <td className="text-center">
                                                         {location.address?.length > 50
                                                             ? `${location.address.substring(0, 50)}...`
@@ -390,7 +372,6 @@ const ManageLocation = () => {
                                                     <td className="text-center">{location.capacityMin}</td>
                                                     <td className="text-center">{location.capacityMax}</td>
                                                     <td className="text-center">
-                                                        {/* Nút xem chi tiết */}
                                                         <Button
                                                             type="primary"
                                                             size="small"
@@ -413,7 +394,6 @@ const ManageLocation = () => {
                                                         >
                                                             View Details
                                                         </Button>
-                                                        {/* Nút xóa */}
                                                         <Popconfirm
                                                             title="Delete the location"
                                                             description="Are you sure to delete this location?"
