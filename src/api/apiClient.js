@@ -4,7 +4,7 @@ import axios from "axios";
 //const BASE_URL = "http://10.87.43.95:5295";
 
 const BASE_URL =
-  "https://ccsscaptone-gub0f5gzd3gvd3gb.eastasia-01.azurewebsites.net";
+  "https://ccsscaptone-bjaffef9ccfpetgn.southeastasia-01.azurewebsites.net";
 const apiClient = axios.create({
   baseURL: BASE_URL,
   headers: {
