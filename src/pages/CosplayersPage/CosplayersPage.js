@@ -6828,9 +6828,10 @@ const CosplayersPage = () => {
                             }}
                             style={{
                               position: "absolute",
-                              top: "5px",
-                              right: "5px",
+                              top: "10px",
+                              right: "10px",
                             }}
+                            className="see-profile-icon"
                           >
                             <EyeFilled />
                           </Button>
