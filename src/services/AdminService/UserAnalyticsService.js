@@ -4,14 +4,19 @@ const UserAnalyticsService = {
   // Lấy danh sách tài khoản theo vai trò
   getAccountsByRole: async (roleId, searchTerm = "") => {
     try {
-      console.log(`Fetching accounts for roleId=${roleId}, searchTerm=${searchTerm}...`);
+      console.log(
+        `Fetching accounts for roleId=${roleId}, searchTerm=${searchTerm}...`
+      );
       const response = await apiClient.get("/api/Account/GetAllAccount", {
         params: { roleId, searchterm: searchTerm },
       });
       console.log(`GetAccountsByRole (${roleId}) response:`, response.data);
       return response.data;
     } catch (error) {
-      console.error(`Error fetching accounts for roleId=${roleId}:`, error.response?.data || error);
+      console.error(
+        `Error fetching accounts for roleId=${roleId}:`,
+        error.response?.data || error
+      );
       const errorMessage =
         error.response?.data?.notification ||
         error.response?.data?.message ||
@@ -23,14 +28,22 @@ const UserAnalyticsService = {
   // Lấy top 5 cosplayer theo điểm
   getTop5PopularCosplayers: async (filterType) => {
     try {
-      console.log(`Fetching top 5 popular cosplayers with filterType=${filterType}...`);
-      const response = await apiClient.get("/api/DashBoard/top5-Popular-cosplayer", {
-        params: { filterType },
-      });
+      console.log(
+        `Fetching top 5 popular cosplayers with filterType=${filterType}...`
+      );
+      const response = await apiClient.get(
+        "/api/DashBoard/top5-Popular-cosplayer",
+        {
+          params: { filterType },
+        }
+      );
       console.log(`Top 5 Popular Cosplayers response:`, response.data);
       return response.data;
     } catch (error) {
-      console.error(`Error fetching top 5 popular cosplayers:`, error.response?.data || error);
+      console.error(
+        `Error fetching top 5 popular cosplayers:`,
+        error.response?.data || error
+      );
       const errorMessage =
         error.response?.data?.notification ||
         error.response?.data?.message ||
@@ -43,13 +56,22 @@ const UserAnalyticsService = {
   getContractsByService: async (serviceId) => {
     try {
       console.log(`Fetching contracts for serviceId=${serviceId}...`);
-      const response = await apiClient.get("/api/DashBoard/GetAllContractFilterByService", {
-        params: { serviceId },
-      });
-      console.log(`GetContractsByService (${serviceId}) response:`, response.data);
+      const response = await apiClient.get(
+        "/api/DashBoard/GetAllContractFilterByService",
+        {
+          params: { serviceId },
+        }
+      );
+      console.log(
+        `GetContractsByService (${serviceId}) response:`,
+        response.data
+      );
       return response.data;
     } catch (error) {
-      console.error(`Error fetching contracts for serviceId=${serviceId}:`, error.response?.data || error);
+      console.error(
+        `Error fetching contracts for serviceId=${serviceId}:`,
+        error.response?.data || error
+      );
       const errorMessage =
         error.response?.data?.notification ||
         error.response?.data?.message ||
@@ -79,11 +101,16 @@ const UserAnalyticsService = {
   getAllTicketPayments: async () => {
     try {
       console.log(`Fetching all ticket payments...`);
-      const response = await apiClient.get("/api/DashBoard/GetAllPaymentForTicket");
+      const response = await apiClient.get(
+        "/api/DashBoard/GetAllPaymentForTicket"
+      );
       console.log(`GetAllTicketPayments response:`, response.data);
       return response.data;
     } catch (error) {
-      console.error(`Error fetching ticket payments:`, error.response?.data || error);
+      console.error(
+        `Error fetching ticket payments:`,
+        error.response?.data || error
+      );
       const errorMessage =
         error.response?.data?.notification ||
         error.response?.data?.message ||
@@ -95,14 +122,25 @@ const UserAnalyticsService = {
   // Lấy hợp đồng theo dịch vụ và thời gian
   getContractsByServiceAndDate: async (serviceId, dateFilterType) => {
     try {
-      console.log(`Fetching contracts for serviceId=${serviceId}, dateFilterType=${dateFilterType}...`);
-      const response = await apiClient.get("/api/DashBoard/GetAllContractFilterServiceAndDateTime", {
-        params: { serviceId, dateFilterType },
-      });
-      console.log(`GetContractsByServiceAndDate (${serviceId}, ${dateFilterType}) response:`, response.data);
+      console.log(
+        `Fetching contracts for serviceId=${serviceId}, dateFilterType=${dateFilterType}...`
+      );
+      const response = await apiClient.get(
+        "/api/DashBoard/GetAllContractFilterServiceAndDateTime",
+        {
+          params: { serviceId, dateFilterType },
+        }
+      );
+      console.log(
+        `GetContractsByServiceAndDate (${serviceId}, ${dateFilterType}) response:`,
+        response.data
+      );
       return response.data;
     } catch (error) {
-      console.error(`Error fetching contracts for serviceId=${serviceId}, dateFilterType=${dateFilterType}:`, error.response?.data || error);
+      console.error(
+        `Error fetching contracts for serviceId=${serviceId}, dateFilterType=${dateFilterType}:`,
+        error.response?.data || error
+      );
       const errorMessage =
         error.response?.data?.notification ||
         error.response?.data?.message ||
@@ -115,13 +153,22 @@ const UserAnalyticsService = {
   getOrdersByDate: async (dateFilterType) => {
     try {
       console.log(`Fetching orders for dateFilterType=${dateFilterType}...`);
-      const response = await apiClient.get("/api/DashBoard/GetAllOrderFilterDateTime", {
-        params: { dateFilterType },
-      });
-      console.log(`GetOrdersByDate (${dateFilterType}) response:`, response.data);
+      const response = await apiClient.get(
+        "/api/DashBoard/GetAllOrderFilterDateTime",
+        {
+          params: { dateFilterType },
+        }
+      );
+      console.log(
+        `GetOrdersByDate (${dateFilterType}) response:`,
+        response.data
+      );
       return response.data;
     } catch (error) {
-      console.error(`Error fetching orders for dateFilterType=${dateFilterType}:`, error.response?.data || error);
+      console.error(
+        `Error fetching orders for dateFilterType=${dateFilterType}:`,
+        error.response?.data || error
+      );
       const errorMessage =
         error.response?.data?.notification ||
         error.response?.data?.message ||
@@ -133,14 +180,25 @@ const UserAnalyticsService = {
   // Lấy thanh toán vé theo thời gian
   getTicketPaymentsByDate: async (dateFilterType) => {
     try {
-      console.log(`Fetching ticket payments for dateFilterType=${dateFilterType}...`);
-      const response = await apiClient.get("/api/DashBoard/GetAllTicketAccountFilterDateTime", {
-        params: { dateFilterType },
-      });
-      console.log(`GetTicketPaymentsByDate (${dateFilterType}) response:`, response.data);
+      console.log(
+        `Fetching ticket payments for dateFilterType=${dateFilterType}...`
+      );
+      const response = await apiClient.get(
+        "/api/DashBoard/GetAllTicketAccountFilterDateTime",
+        {
+          params: { dateFilterType },
+        }
+      );
+      console.log(
+        `GetTicketPaymentsByDate (${dateFilterType}) response:`,
+        response.data
+      );
       return response.data;
     } catch (error) {
-      console.error(`Error fetching ticket payments for dateFilterType=${dateFilterType}:`, error.response?.data || error);
+      console.error(
+        `Error fetching ticket payments for dateFilterType=${dateFilterType}:`,
+        error.response?.data || error
+      );
       const errorMessage =
         error.response?.data?.notification ||
         error.response?.data?.message ||
@@ -157,12 +215,24 @@ const UserAnalyticsService = {
       console.log(`GetTopAccounts response:`, response.data);
       return response.data;
     } catch (error) {
-      console.error(`Error fetching top 5 accounts:`, error.response?.data || error);
+      console.error(
+        `Error fetching top 5 accounts:`,
+        error.response?.data || error
+      );
       const errorMessage =
         error.response?.data?.notification ||
         error.response?.data?.message ||
         "Failed to fetch top 5 accounts";
       throw new Error(errorMessage);
+    }
+  },
+  removeValidateCosplayerAndManager: async (state) => {
+    try {
+      const response = await apiClient.put(`/api/Validate?validate=${state}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error removing validation:", error);
+      throw error; // Re-throw the error to be handled by the caller
     }
   },
 };

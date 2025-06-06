@@ -8,7 +8,7 @@ import {
   PointElement,
   LineElement,
 } from "chart.js";
-import { Star, Award, Users as UsersIcon } from "lucide-react";
+import { Star, Award, Users as UsersIcon, Settings } from "lucide-react";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import UserAnalyticsService from "../../../services/AdminService/UserAnalyticsService";
@@ -57,7 +57,25 @@ const UserAnalyticsPage = () => {
 
   // Trạng thái cho Top 5 Accounts
   const [topAccounts, setTopAccounts] = useState([]);
+  const [isValidationEnabled, setIsValidationEnabled] = useState(false);
 
+  const [isLoading, setIsLoading] = useState(false);
+  const handleToggleChange = async (event) => {
+    const newState = event.target.checked;
+    setIsLoading(true);
+    try {
+      await UserAnalyticsService.removeValidateCosplayerAndManager(newState);
+      setIsValidationEnabled(newState);
+      toast.success(
+        `Validation ${newState ? "enabled" : "disabled"} successfully`
+      );
+    } catch (error) {
+      toast.error(error.message || "Failed to update validation state");
+      event.target.checked = !newState;
+    } finally {
+      setIsLoading(false);
+    }
+  };
   // Dữ liệu giả lập cho Top 5 khách hàng sử dụng dịch vụ nhiều nhất
   const topCustomersByUsage = [
     {
@@ -148,7 +166,8 @@ const UserAnalyticsPage = () => {
       legend: { display: true, position: "top" },
       tooltip: {
         callbacks: {
-          label: (context) => `${context.dataset.label}: ${context.raw.toLocaleString()}`,
+          label: (context) =>
+            `${context.dataset.label}: ${context.raw.toLocaleString()}`,
         },
       },
     },
@@ -179,7 +198,8 @@ const UserAnalyticsPage = () => {
     if (!Array.isArray(accountImages) || accountImages.length === 0) {
       return "https://via.placeholder.com/40"; // Placeholder image
     }
-    const avatarImage = accountImages.find((img) => img.isAvatar) || accountImages[0];
+    const avatarImage =
+      accountImages.find((img) => img.isAvatar) || accountImages[0];
     return avatarImage.urlImage || "https://via.placeholder.com/40";
   };
 
@@ -187,16 +207,27 @@ const UserAnalyticsPage = () => {
   const fetchServiceUsage = async () => {
     try {
       // Lấy dữ liệu Costume Rental (S001)
-      const costumeContracts = await UserAnalyticsService.getContractsByService("S001");
-      const costumeCount = Array.isArray(costumeContracts) ? costumeContracts.length : 1;
+      const costumeContracts = await UserAnalyticsService.getContractsByService(
+        "S001"
+      );
+      const costumeCount = Array.isArray(costumeContracts)
+        ? costumeContracts.length
+        : 1;
 
       // Lấy dữ liệu Hire Cosplayers (S002)
-      const cosplayerContracts = await UserAnalyticsService.getContractsByService("S002");
-      const cosplayerCount = Array.isArray(cosplayerContracts) ? cosplayerContracts.length : 1;
+      const cosplayerContracts =
+        await UserAnalyticsService.getContractsByService("S002");
+      const cosplayerCount = Array.isArray(cosplayerContracts)
+        ? cosplayerContracts.length
+        : 1;
 
       // Lấy dữ liệu Event Organization (S003)
-      const eventContracts = await UserAnalyticsService.getContractsByService("S003");
-      const eventCount = Array.isArray(eventContracts) ? eventContracts.length : 1;
+      const eventContracts = await UserAnalyticsService.getContractsByService(
+        "S003"
+      );
+      const eventCount = Array.isArray(eventContracts)
+        ? eventContracts.length
+        : 1;
 
       // Lấy dữ liệu Buy Souvenirs
       const orders = await UserAnalyticsService.getAllOrders();
@@ -204,7 +235,9 @@ const UserAnalyticsPage = () => {
 
       // Lấy dữ liệu Buy Festival Tickets
       const ticketPayments = await UserAnalyticsService.getAllTicketPayments();
-      const ticketCount = Array.isArray(ticketPayments) ? ticketPayments.length : 1;
+      const ticketCount = Array.isArray(ticketPayments)
+        ? ticketPayments.length
+        : 1;
 
       // Cập nhật state
       setServiceUsage({
@@ -240,35 +273,64 @@ const UserAnalyticsPage = () => {
         } else if (key === "month") {
           labels = ["1", "5", "10", "15", "20", "25", "30"];
         } else if (key === "year") {
-          labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+          labels = [
+            "Jan",
+            "Feb",
+            "Mar",
+            "Apr",
+            "May",
+            "Jun",
+            "Jul",
+            "Aug",
+            "Sep",
+            "Oct",
+            "Nov",
+            "Dec",
+          ];
         }
 
         // Dữ liệu cho Costume Rental
-        const costumeData = await UserAnalyticsService.getContractsByServiceAndDate("S001", filterType);
+        const costumeData =
+          await UserAnalyticsService.getContractsByServiceAndDate(
+            "S001",
+            filterType
+          );
         const costumeCounts = Array.isArray(costumeData)
           ? costumeData.map((item) => item.count)
           : [costumeData.count];
 
         // Dữ liệu cho Hire Cosplayers
-        const cosplayerData = await UserAnalyticsService.getContractsByServiceAndDate("S002", filterType);
+        const cosplayerData =
+          await UserAnalyticsService.getContractsByServiceAndDate(
+            "S002",
+            filterType
+          );
         const cosplayerCounts = Array.isArray(cosplayerData)
           ? cosplayerData.map((item) => item.count)
           : [cosplayerData.count];
 
         // Dữ liệu cho Event Organization
-        const eventData = await UserAnalyticsService.getContractsByServiceAndDate("S003", filterType);
+        const eventData =
+          await UserAnalyticsService.getContractsByServiceAndDate(
+            "S003",
+            filterType
+          );
         const eventCounts = Array.isArray(eventData)
           ? eventData.map((item) => item.count)
           : [eventData.count];
 
         // Dữ liệu cho Buy Souvenirs
-        const souvenirData = await UserAnalyticsService.getOrdersByDate(filterType);
+        const souvenirData = await UserAnalyticsService.getOrdersByDate(
+          filterType
+        );
         const souvenirCounts = Array.isArray(souvenirData)
           ? souvenirData.map((item) => item.count)
           : [souvenirData.count];
 
         // Dữ liệu cho Buy Festival Tickets
-        const ticketData = await UserAnalyticsService.getTicketPaymentsByDate(filterType);
+        const ticketData = await UserAnalyticsService.getTicketPaymentsByDate(
+          filterType
+        );
         const ticketCounts = Array.isArray(ticketData)
           ? ticketData.map((item) => item.count)
           : [ticketData.count];
@@ -356,13 +418,17 @@ const UserAnalyticsPage = () => {
           counts[roleKey] = fetchedAccounts[roleKey].length;
         }
 
-        const total = Object.values(counts).reduce((sum, count) => sum + count, 0);
+        const total = Object.values(counts).reduce(
+          (sum, count) => sum + count,
+          0
+        );
         const cosplayerRatings = fetchedAccounts.cosplayers
           .filter((cosplayer) => cosplayer.averageStar !== null)
           .map((cosplayer) => cosplayer.averageStar);
         const avgRating =
           cosplayerRatings.length > 0
-            ? cosplayerRatings.reduce((sum, rating) => sum + rating, 0) / cosplayerRatings.length
+            ? cosplayerRatings.reduce((sum, rating) => sum + rating, 0) /
+              cosplayerRatings.length
             : 0;
 
         setTotalAccounts({
@@ -449,6 +515,85 @@ const UserAnalyticsPage = () => {
             </div>
           </Card.Body>
         </Card>
+        <Card className="stat-card">
+          <Card.Body>
+            <div className="stat-icon">
+              <Settings size={24} />
+            </div>
+            <h3>Setting Validate User</h3>
+            <div className="rating-display">
+              {/* <div class="toggle-container">
+                <div class="toggle-wrap">
+                  <input
+                    class="toggle-input"
+                    id="holo-toggle"
+                    type="checkbox"
+                    checked={isValidationEnabled}
+                    onChange={handleToggleChange}
+                  />
+                  <label class="toggle-track" for="holo-toggle">
+                    <div class="track-lines">
+                      <div class="track-line"></div>
+                    </div>
+
+                    <div class="toggle-thumb">
+                      <div class="thumb-core"></div>
+                      <div class="thumb-inner"></div>
+                      <div class="thumb-scan"></div>
+                      <div class="thumb-particles">
+                        <div class="thumb-particle"></div>
+                        <div class="thumb-particle"></div>
+                        <div class="thumb-particle"></div>
+                        <div class="thumb-particle"></div>
+                        <div class="thumb-particle"></div>
+                      </div>
+                    </div>
+
+                    <div class="toggle-data">
+                      <div class="data-text off">OFF</div>
+                      <div class="data-text on">ON</div>
+                      <div class="status-indicator off"></div>
+                      <div class="status-indicator on"></div>
+                    </div>
+
+                    <div class="energy-rings">
+                      <div class="energy-ring"></div>
+                      <div class="energy-ring"></div>
+                      <div class="energy-ring"></div>
+                    </div>
+
+                    <div class="interface-lines">
+                      <div class="interface-line"></div>
+                      <div class="interface-line"></div>
+                      <div class="interface-line"></div>
+                      <div class="interface-line"></div>
+                      <div class="interface-line"></div>
+                      <div class="interface-line"></div>
+                    </div>
+
+                    <div class="toggle-reflection"></div>
+                    <div class="holo-glow"></div>
+                  </label>
+                </div>
+              </div> */}
+
+              <div class="flipswitch">
+                <input
+                  id="fs"
+                  class="flipswitch-cb"
+                  name="flipswitch"
+                  type="checkbox"
+                  checked={isValidationEnabled}
+                  onChange={handleToggleChange}
+                />
+                <label for="fs" class="flipswitch-label">
+                  <div class="flipswitch-inner"></div>
+                  <div class="flipswitch-switch"></div>
+                </label>
+              </div>
+            </div>
+          </Card.Body>
+        </Card>
       </div>
 
       {/* Phần Top 5 Accounts */}
@@ -492,8 +637,12 @@ const UserAnalyticsPage = () => {
                         </td>
                         <td className="text-center">{account.accountId}</td>
                         <td className="text-center">{account.fullName}</td>
-                        <td className="text-center">{account.totalContracts}</td>
-                        <td className="text-center">{formatPrice(account.totalPaymentAmount)}</td>
+                        <td className="text-center">
+                          {account.totalContracts}
+                        </td>
+                        <td className="text-center">
+                          {formatPrice(account.totalPaymentAmount)}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -513,35 +662,45 @@ const UserAnalyticsPage = () => {
           <div className="service-usage-item">
             <div className="d-flex justify-content-between mb-1">
               <span>Costume Rental</span>
-              <span>{serviceUsage.customers.costumeRental.toLocaleString()}</span>
+              <span>
+                {serviceUsage.customers.costumeRental.toLocaleString()}
+              </span>
             </div>
             <ProgressBar now={35} variant="success" />
           </div>
           <div className="service-usage-item">
             <div className="d-flex justify-content-between mb-1">
               <span>Hire Cosplayers</span>
-              <span>{serviceUsage.customers.hireCosplayers.toLocaleString()}</span>
+              <span>
+                {serviceUsage.customers.hireCosplayers.toLocaleString()}
+              </span>
             </div>
             <ProgressBar now={45} variant="info" />
           </div>
           <div className="service-usage-item">
             <div className="d-flex justify-content-between mb-1">
               <span>Event Organization</span>
-              <span>{serviceUsage.customers.eventOrganization.toLocaleString()}</span>
+              <span>
+                {serviceUsage.customers.eventOrganization.toLocaleString()}
+              </span>
             </div>
             <ProgressBar now={20} variant="warning" />
           </div>
-          <div className= "service-usage-item">
+          <div className="service-usage-item">
             <div className="d-flex justify-content-between mb-1">
               <span>Buy Souvenirs</span>
-              <span>{serviceUsage.customers.buySouvenirs.toLocaleString()}</span>
+              <span>
+                {serviceUsage.customers.buySouvenirs.toLocaleString()}
+              </span>
             </div>
             <ProgressBar now={15} variant="danger" />
           </div>
           <div className="service-usage-item">
             <div className="d-flex justify-content-between mb-1">
               <span>Buy Festival Tickets</span>
-              <span>{serviceUsage.customers.buyFestivalTickets.toLocaleString()}</span>
+              <span>
+                {serviceUsage.customers.buyFestivalTickets.toLocaleString()}
+              </span>
             </div>
             <ProgressBar now={10} variant="purple" />
           </div>
@@ -554,7 +713,10 @@ const UserAnalyticsPage = () => {
           <h5>Service Usage Trend</h5>
           <Dropdown onSelect={(value) => setUsageFilter(value)}>
             <Dropdown.Toggle variant="secondary" id="dropdown-usage-filter">
-              {filterTypeOptions.find((opt) => opt.value === usageFilter)?.label}
+              {
+                filterTypeOptions.find((opt) => opt.value === usageFilter)
+                  ?.label
+              }
             </Dropdown.Toggle>
             <Dropdown.Menu>
               {filterTypeOptions.map((option) => (

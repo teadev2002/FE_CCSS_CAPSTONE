@@ -222,7 +222,7 @@ const ViewRefund = ({ refund }) => {
           <Button type="default" onClick={handleCloseModal}>
             Close
           </Button>
-          {selectedRefund?.amount >= 0 && (
+          {selectedRefund?.amount >= 0 && selectedRefund.updateDate && (
             <Button
               type="primary"
               onClick={handleComplete}

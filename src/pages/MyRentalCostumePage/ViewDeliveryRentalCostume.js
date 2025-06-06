@@ -570,6 +570,15 @@ const ViewDeliveryRentalCostume = ({ visible, onCancel, contractId }) => {
     "Refund",
     "Cancel",
   ];
+  // Display mapping for statuses
+  const statusDisplayMap = {
+    Preparing: "Preparing",
+    Delivering: "Delivering",
+    UnReceived: "UnReceived",
+    Received: "Received",
+    Refund: "Return Costume",
+    Cancel: "Cancel",
+  };
 
   // Maximum number of images allowed
   const MAX_IMAGES = 1;
@@ -659,7 +668,7 @@ const ViewDeliveryRentalCostume = ({ visible, onCancel, contractId }) => {
                 : "inherit",
           }}
         >
-          {status}
+          {statusDisplayMap[status]}
         </span>
       ),
       description: (
@@ -677,7 +686,7 @@ const ViewDeliveryRentalCostume = ({ visible, onCancel, contractId }) => {
                 <Image
                   key={idx}
                   src={img.urlImage}
-                  alt={`Image for ${status}`}
+                  alt={`Image for ${statusDisplayMap[status]}`}
                   width={100}
                   style={{ marginRight: "10px", marginTop: "10px" }}
                 />
@@ -843,6 +852,7 @@ const ViewDeliveryRentalCostume = ({ visible, onCancel, contractId }) => {
         onOk={handleUpdateDelivery}
         okText="Update"
         confirmLoading={loading}
+        onCancel={handleCloseUpdateModal}
         footer={[
           <Button
             key="submit"
@@ -858,7 +868,7 @@ const ViewDeliveryRentalCostume = ({ visible, onCancel, contractId }) => {
           <Form.Item
             label="Delivery Status"
             name="status"
-            initialValue="Refund"
+            initialValue="Return Costume"
             rules={[{ required: true, message: "Status is required!" }]}
           >
             <Input type="text" value="Refund" disabled />

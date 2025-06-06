@@ -968,8 +968,8 @@ const ViewManageRentCosplayer = ({ requestId }) => {
         open={isViewModalVisible}
         onOk={handleModalConfirm}
         onCancel={() => setIsViewModalVisible(false)}
-        okText="Close"
         width={800}
+        footer={null}
       >
         {loading ? (
           <div style={{ textAlign: "center", padding: "20px" }}>

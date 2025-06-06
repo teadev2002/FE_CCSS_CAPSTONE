@@ -2579,18 +2579,22 @@ const CostumesPage = () => {
                 </span>
               </div>
               <div className="request-item deposit-note">
-                <p style={{ fontSize: "14px", color: "#555" }}>
+                <p
+                  style={{ fontSize: "18px", color: "#555", fontWeight: "800" }}
+                >
                   - Deposit :{" "}
-                  {requestData.deposit
-                    ? parseInt(requestData.deposit).toLocaleString()
-                    : "0"}{" "}
-                  VND
+                  <strong style={{ color: "green" }}>
+                    {requestData.deposit
+                      ? parseInt(requestData.deposit).toLocaleString()
+                      : "0"}{" "}
+                    VND
+                  </strong>
                   <br />{" "}
-                  <i>
-                    The total for each character = (Character price * total days
-                    + Character price * 5) * quantity
-                  </i>
                 </p>
+                <i>
+                  The total for each character = (Character price * total days +
+                  Character price * 5) * quantity
+                </i>
               </div>
               <Button
                 variant="outline-secondary"
