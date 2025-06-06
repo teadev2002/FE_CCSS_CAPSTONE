@@ -1721,42 +1721,37 @@ const OrderRevenuePerformancePage = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredPayments.map((payment) => (
-                        <tr key={payment.paymentId}>
-                          <td className="text-center">{payment.transactionId || "N/A"}</td>
-                          <td className="text-center">{payment.type || "N/A"}</td>
-                          <td className="text-center">
-                            <span
-                              style={{
-                                color:
-                                  getStatusText(payment.status).toLowerCase() === "completed"
-                                    ? "#28a745"
-                                    : getStatusText(payment.status).toLowerCase() === "canceled"
-                                      ? "#dc3545"
-                                      : getStatusText(payment.status).toLowerCase() === "pending"
-                                        ? "#fd7e14"
-                                        : "#000",
-                                fontWeight: 600,
-                              }}
-                            >
-                              {getStatusText(payment.status)}
-                            </span>
-                          </td>
-                          <td className="text-center">{formatPurposeText(payment.purpose)}</td>
-                          <td className="text-center">
-                            <span
-                              style={{
-                                color: getStatusText(payment.status).toLowerCase() === "completed" ? "#28a745" : "#000",
-                                fontWeight: 600,
-                              }}
-                            >
-                              {getStatusText(payment.status).toLowerCase() === "completed" ? "+" : ""}
-                              {formatPrice(payment.amount)}
-                            </span>
-                          </td>
-                          <td className="text-center">{formatDate(payment.creatAt)}</td>
-                        </tr>
-                      ))}
+                      {filteredPayments.map((payment) => {
+                        const status = getStatusText(payment.status).toLowerCase();
+                        const statusColor =
+                          status === "completed"
+                            ? "#28a745"
+                            : status === "canceled"
+                              ? "#dc3545"
+                              : status === "pending"
+                                ? "#fd7e14"
+                                : "#000";
+
+                        return (
+                          <tr key={payment.paymentId}>
+                            <td className="text-center">{payment.transactionId || "N/A"}</td>
+                            <td className="text-center">{payment.type || "N/A"}</td>
+                            <td className="text-center">
+                              <span style={{ color: statusColor, fontWeight: 600 }}>
+                                {getStatusText(payment.status)}
+                              </span>
+                            </td>
+                            <td className="text-center">{formatPurposeText(payment.purpose)}</td>
+                            <td className="text-center">
+                              <span style={{ color: statusColor, fontWeight: 600 }}>
+                                {status === "completed" ? "+" : ""}
+                                {formatPrice(payment.amount)}
+                              </span>
+                            </td>
+                            <td className="text-center">{formatDate(payment.creatAt)}</td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </Table>
                 </div>
