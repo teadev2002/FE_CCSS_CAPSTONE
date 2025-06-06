@@ -1723,14 +1723,19 @@ const OrderRevenuePerformancePage = () => {
                     <tbody>
                       {filteredPayments.map((payment) => {
                         const status = getStatusText(payment.status).toLowerCase();
+                        const purpose = payment.purpose?.toLowerCase() || "";
+                        const isRefund = purpose === "refund";
+
+                        // Xác định màu sắc
                         const statusColor =
                           status === "completed"
-                            ? "#28a745"
-                            : status === "canceled"
-                              ? "#dc3545"
-                              : status === "pending"
-                                ? "#fd7e14"
-                                : "#000";
+                            ? "#28a745" // Xanh lá cho Completed
+                            : status === "pending"
+                              ? "#fd7e14" // Cam cho Pending
+                              : "#000"; // Đen cho Canceled
+
+                        const amountColor = isRefund ? "#dc3545" : statusColor; // Ưu tiên đỏ cho Refund, nếu không thì theo status
+                        const amountPrefix = isRefund ? "-" : status === "completed" ? "+" : ""; // Dấu "-" cho Refund, "+" cho Completed
 
                         return (
                           <tr key={payment.paymentId}>
@@ -1741,10 +1746,14 @@ const OrderRevenuePerformancePage = () => {
                                 {getStatusText(payment.status)}
                               </span>
                             </td>
-                            <td className="text-center">{formatPurposeText(payment.purpose)}</td>
                             <td className="text-center">
-                              <span style={{ color: statusColor, fontWeight: 600 }}>
-                                {status === "completed" ? "+" : ""}
+                              <span style={{ color: isRefund ? "#dc3545" : "#000", fontWeight: 600 }}>
+                                {formatPurposeText(payment.purpose)}
+                              </span>
+                            </td>
+                            <td className="text-center">
+                              <span style={{ color: amountColor, fontWeight: 600 }}>
+                                {amountPrefix}
                                 {formatPrice(payment.amount)}
                               </span>
                             </td>
