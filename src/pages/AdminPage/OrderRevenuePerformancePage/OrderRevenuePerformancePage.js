@@ -1631,7 +1631,7 @@ const OrderRevenuePerformancePage = () => {
                         {revenueByService.map((item, index) => (
                           <tr key={index}>
                             <td>{item.service}</td>
-                            <td>{formatPrice(item.revenue)}</td>
+                            <td style={{ color: "#28a745", fontWeight: 600 }}>{formatPrice(item.revenue)}</td>
                           </tr>
                         ))}
                       </tbody>
