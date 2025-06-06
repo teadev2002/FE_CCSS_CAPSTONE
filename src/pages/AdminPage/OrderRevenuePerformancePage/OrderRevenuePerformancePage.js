@@ -1133,6 +1133,7 @@ const OrderRevenuePerformancePage = () => {
   });
   const [payments, setPayments] = useState([]);
   const [filteredPayments, setFilteredPayments] = useState([]);
+  const [statusFilter, setStatusFilter] = useState("all"); // Status filter
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -1166,7 +1167,7 @@ const OrderRevenuePerformancePage = () => {
         return "Completed";
       case "Pending":
         return "Pending";
-      case "Canceled":
+      case "Cancel":
         return "Canceled";
       default:
         return status || "Unknown";
@@ -1343,15 +1344,24 @@ const OrderRevenuePerformancePage = () => {
 
   // Filter payments by purpose
   useEffect(() => {
-    if (purposeFilter === "all") {
-      setFilteredPayments(payments);
-    } else {
-      const filtered = payments.filter(
+    let filtered = payments;
+
+    // Filter by Purpose
+    if (purposeFilter !== "all") {
+      filtered = filtered.filter(
         (payment) => payment.purpose?.toLowerCase() === purposeFilter.toLowerCase()
       );
-      setFilteredPayments(filtered);
     }
-  }, [payments, purposeFilter]);
+
+    // Filter by Status
+    if (statusFilter !== "all") {
+      filtered = filtered.filter(
+        (payment) => getStatusText(payment.status).toLowerCase() === statusFilter.toLowerCase()
+      );
+    }
+
+    setFilteredPayments(filtered);
+  }, [payments, purposeFilter, statusFilter]);
 
   // Calculate revenue by service
   const calculateRevenueByService = () => {
@@ -1507,6 +1517,13 @@ const OrderRevenuePerformancePage = () => {
     { value: "refund", label: "Refund" },
   ];
 
+  const statusOptions = [
+    { value: "all", label: "All" },
+    { value: "canceled", label: "Canceled" },
+    { value: "completed", label: "Completed" },
+    { value: "pending", label: "Pending" },
+  ];
+
   const revenueByService = calculateRevenueByService();
 
   return (
@@ -1646,24 +1663,44 @@ const OrderRevenuePerformancePage = () => {
           <Card className="mb-4">
             <Card.Header className="d-flex align-items-center justify-content-between">
               <h5 className="mb-0">Transaction Details</h5>
-              <Form.Group className="mb-0" style={{ maxWidth: "300px" }}>
-                <Form.Label className="filter-label mb-1">
-                  <Filter size={18} className="me-2" />
-                  Purpose
-                </Form.Label>
-                <Dropdown onSelect={(value) => setPurposeFilter(value)}>
-                  <Dropdown.Toggle variant="outline-primary" id="dropdown-purpose-filter">
-                    {purposeOptions.find((opt) => opt.value === purposeFilter)?.label}
-                  </Dropdown.Toggle>
-                  <Dropdown.Menu>
-                    {purposeOptions.map((option) => (
-                      <Dropdown.Item key={option.value} eventKey={option.value}>
-                        {option.label}
-                      </Dropdown.Item>
-                    ))}
-                  </Dropdown.Menu>
-                </Dropdown>
-              </Form.Group>
+              <div className="d-flex align-items-center gap-3">
+                <Form.Group className="mb-0" style={{ maxWidth: "200px" }}>
+                  <Form.Label className="filter-label mb-1">
+                    <Filter size={18} className="me-2" />
+                    Purpose
+                  </Form.Label>
+                  <Dropdown onSelect={(value) => setPurposeFilter(value)}>
+                    <Dropdown.Toggle variant="outline-primary" id="dropdown-purpose-filter">
+                      {purposeOptions.find((opt) => opt.value === purposeFilter)?.label}
+                    </Dropdown.Toggle>
+                    <Dropdown.Menu>
+                      {purposeOptions.map((option) => (
+                        <Dropdown.Item key={option.value} eventKey={option.value}>
+                          {option.label}
+                        </Dropdown.Item>
+                      ))}
+                    </Dropdown.Menu>
+                  </Dropdown>
+                </Form.Group>
+                <Form.Group className="mb-0" style={{ maxWidth: "200px" }}>
+                  <Form.Label className="filter-label mb-1">
+                    <Filter size={18} className="me-2" />
+                    Status
+                  </Form.Label>
+                  <Dropdown onSelect={(value) => setStatusFilter(value)}>
+                    <Dropdown.Toggle variant="outline-primary" id="dropdown-status-filter">
+                      {statusOptions.find((opt) => opt.value === statusFilter)?.label}
+                    </Dropdown.Toggle>
+                    <Dropdown.Menu>
+                      {statusOptions.map((option) => (
+                        <Dropdown.Item key={option.value} eventKey={option.value}>
+                          {option.label}
+                        </Dropdown.Item>
+                      ))}
+                    </Dropdown.Menu>
+                  </Dropdown>
+                </Form.Group>
+              </div>
             </Card.Header>
             <Card.Body>
               {filteredPayments.length === 0 ? (
@@ -1690,19 +1727,33 @@ const OrderRevenuePerformancePage = () => {
                           <td className="text-center">{payment.type || "N/A"}</td>
                           <td className="text-center">
                             <span
-                              className={
-                                getStatusText(payment.status).toLowerCase() === "completed"
-                                  ? "status-completed"
-                                  : getStatusText(payment.status).toLowerCase() === "canceled"
-                                    ? "status-cancel"
-                                    : ""
-                              }
+                              style={{
+                                color:
+                                  getStatusText(payment.status).toLowerCase() === "completed"
+                                    ? "#28a745"
+                                    : getStatusText(payment.status).toLowerCase() === "canceled"
+                                      ? "#dc3545"
+                                      : getStatusText(payment.status).toLowerCase() === "pending"
+                                        ? "#fd7e14"
+                                        : "#000",
+                                fontWeight: 600,
+                              }}
                             >
                               {getStatusText(payment.status)}
                             </span>
                           </td>
                           <td className="text-center">{formatPurposeText(payment.purpose)}</td>
-                          <td className="text-center">{formatPrice(payment.amount)}</td>
+                          <td className="text-center">
+                            <span
+                              style={{
+                                color: getStatusText(payment.status).toLowerCase() === "completed" ? "#28a745" : "#000",
+                                fontWeight: 600,
+                              }}
+                            >
+                              {getStatusText(payment.status).toLowerCase() === "completed" ? "+" : ""}
+                              {formatPrice(payment.amount)}
+                            </span>
+                          </td>
                           <td className="text-center">{formatDate(payment.creatAt)}</td>
                         </tr>
                       ))}
