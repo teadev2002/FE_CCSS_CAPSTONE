@@ -46,7 +46,7 @@ const UserAnalyticsPage = () => {
   });
 
   // Trạng thái cho bộ lọc biểu đồ xu hướng sử dụng dịch vụ
-  const [usageFilter, setUsageFilter] = useState("today");
+  const [usageFilter, setUsageFilter] = useState("month");
 
   // Dữ liệu cho biểu đồ xu hướng sử dụng dịch vụ
   const [usageChartData, setUsageChartData] = useState({
@@ -175,7 +175,7 @@ const UserAnalyticsPage = () => {
 
   // Các tùy chọn bộ lọc thời gian cho biểu đồ xu hướng
   const filterTypeOptions = [
-    { value: "today", label: "Today" },
+    // { value: "today", label: "Today" },
     { value: "month", label: "This Month" },
     { value: "year", label: "This Year" },
   ];
@@ -428,7 +428,7 @@ const UserAnalyticsPage = () => {
         const avgRating =
           cosplayerRatings.length > 0
             ? cosplayerRatings.reduce((sum, rating) => sum + rating, 0) /
-              cosplayerRatings.length
+            cosplayerRatings.length
             : 0;
 
         setTotalAccounts({
