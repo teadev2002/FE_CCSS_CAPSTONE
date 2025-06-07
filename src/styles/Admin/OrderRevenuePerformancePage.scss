@@ -1,3 +1,277 @@
+// .order-revenue {
+//   padding: 1.5rem;
+//   background: #f8f9fa;
+//   min-height: 100vh;
+//   animation: fadeIn 0.5s ease-in;
+//   margin-left: 70px;
+//   margin-right: 0;
+
+//   h1 {
+//     margin-bottom: 2rem;
+//     color: #1a1a2e;
+//     font-weight: 700;
+//     font-size: 2.25rem;
+//     letter-spacing: -0.5px;
+//     position: relative;
+//     padding-bottom: 0.5rem;
+
+//     &:after {
+//       content: "";
+//       position: absolute;
+//       bottom: 0;
+//       left: 0;
+//       width: 60px;
+//       height: 4px;
+//       background: linear-gradient(135deg, #3498db, #2ecc71);
+//       border-radius: 2px;
+//     }
+//   }
+
+//   .filter-label {
+//     font-size: 1rem;
+//     font-weight: 600;
+//     color: #1a1a2e;
+//     margin-bottom: 0.5rem;
+//     display: flex;
+//     align-items: center;
+//   }
+
+//   .dropdown {
+//     .btn-outline-primary {
+//       padding: 8px 16px;
+//       font-size: 14px;
+//       border-radius: 8px;
+//       border: 2px solid transparent;
+//       background: #fff;
+//       color: #1a1a2e;
+//       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+//       transition: all 0.3s ease;
+//       border-image: linear-gradient(135deg, #3498db, #2ecc71) 1;
+
+//       &:hover {
+//         background: linear-gradient(135deg, #3498db, #2ecc71);
+//         color: white;
+//         border-image: none;
+//         border: 2px solid transparent;
+//       }
+//     }
+
+//     .dropdown-menu {
+//       border-radius: 8px;
+//       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+//       border: none;
+
+//       .dropdown-item {
+//         font-size: 14px;
+//         padding: 8px 16px;
+//         color: #2c3e50;
+//         transition: all 0.3s ease;
+
+//         &:hover {
+//           background: linear-gradient(135deg, #f0f0f0, #e0e0e0);
+//           color: #1a1a2e;
+//         }
+//       }
+//     }
+//   }
+
+//   .error-message {
+//     color: #ff4d4f;
+//     font-weight: bold;
+//     text-align: center;
+//     margin-bottom: 1.5rem;
+//     font-size: 16px;
+//   }
+
+//   .total-revenue-card {
+//     background: white;
+//     border-radius: 16px;
+//     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+//     transition: all 0.3s ease;
+//     border: 2px solid transparent;
+//     border-image: linear-gradient(135deg, #3498db, #2ecc71) 1;
+
+//     &:hover {
+//       transform: translateY(-8px);
+//       box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+//       border-image: linear-gradient(135deg, #2ecc71, #3498db) 1;
+//     }
+
+//     .card-body {
+//       padding: 1.5rem;
+//       display: flex;
+//       align-items: center;
+//     }
+
+//     .revenue-icon {
+//       width: 80px;
+//       height: 80px;
+//       background: linear-gradient(135deg, #3498db, #2ecc71);
+//       border-radius: 16px;
+//       display: flex;
+//       align-items: center;
+//       justify-content: center;
+//       transition: all 0.3s ease;
+
+//       svg {
+//         color: white;
+//         stroke-width: 2;
+//       }
+//     }
+
+//     &:hover .revenue-icon {
+//       transform: scale(1.1);
+//       box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+//     }
+
+//     h3 {
+//       font-size: 1.2rem;
+//       color: #6c757d;
+//       margin-bottom: 0.75rem;
+//       text-transform: uppercase;
+//       letter-spacing: 0.5px;
+//       font-weight: 600;
+//     }
+
+//     h2 {
+//       font-size: 2.5rem;
+//       font-weight: 700;
+//       color: #1a1a2e;
+//       line-height: 1.2;
+//     }
+//   }
+
+//   .card {
+//     border: none;
+//     border-radius: 16px;
+//     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+//     background: white;
+//     margin-bottom: 1.5rem;
+
+//     .card-header {
+//       background: #fff;
+//       border-bottom: none;
+//       padding: 1.25rem;
+
+//       h5 {
+//         color: #1a1a2e;
+//         font-weight: 600;
+//         margin: 0;
+//       }
+//     }
+
+//     .card-body {
+//       padding: 1.5rem;
+
+//       .text-muted {
+//         text-align: center;
+//         font-size: 1rem;
+//         color: #6c757d;
+//       }
+
+//       .table-responsive {
+//         overflow-x: auto;
+//         -webkit-overflow-scrolling: touch;
+//       }
+
+//       .table {
+//         margin-bottom: 0;
+//         min-width: 900px; // Đảm bảo bảng đủ rộng cho 7 cột
+
+//         th,
+//         td {
+//           vertical-align: middle;
+//           padding: 0.75rem;
+//           text-align: center;
+//           transition: all 0.3s ease;
+//           white-space: nowrap; // Ngăn wrap văn bản
+//         }
+
+//         thead {
+//           background-color: #f5f5f5;
+//           font-weight: 600;
+//           color: #1a1a2e;
+//           border-bottom: 2px solid #e9ecef;
+//           text-transform: uppercase;
+//           letter-spacing: 0.5px;
+//         }
+
+//         tbody tr:hover {
+//           background: #f8f9fa;
+//         }
+
+//         .status-completed {
+//           color: #2ecc71;
+//           font-weight: 600;
+//         }
+
+//         .status-cancel {
+//           color: #e74c3c;
+//           font-weight: 600;
+//         }
+//       }
+//     }
+//   }
+
+//   @keyframes fadeIn {
+//     from {
+//       opacity: 0;
+//       transform: translateY(20px);
+//     }
+
+//     to {
+//       opacity: 1;
+//       transform: translateY(0);
+//     }
+//   }
+
+//   @media (max-width: 768px) {
+//     padding: 1rem;
+//     margin-left: 70px;
+//     margin-right: 0;
+
+//     h1 {
+//       font-size: 1.75rem;
+//     }
+
+//     .total-revenue-card {
+//       .card-body {
+//         flex-direction: column;
+//         align-items: flex-start;
+//         text-align: center;
+
+//         .revenue-icon {
+//           margin-bottom: 1rem;
+//         }
+
+//         .ms-4 {
+//           margin-left: 0 !important;
+//         }
+//       }
+//     }
+
+//     .card-body {
+//       padding: 1rem;
+//     }
+
+//     .card {
+//       margin-bottom: 1rem;
+//     }
+
+//     .table {
+
+//       th,
+//       td {
+//         padding: 0.5rem;
+//       }
+//     }
+//   }
+// }
+
+//----------------------------------------------------------------------------------------//
+
+//sửa ngày 07/06/2025
+
 .order-revenue {
   padding: 1.5rem;
   background: #f8f9fa;
@@ -53,6 +327,12 @@
         color: white;
         border-image: none;
         border: 2px solid transparent;
+      }
+
+      &.show {
+        background: linear-gradient(135deg, #3498db, #2ecc71);
+        color: white;
+        border-image: none;
       }
     }
 
@@ -176,7 +456,7 @@
 
       .table {
         margin-bottom: 0;
-        min-width: 900px; // Đảm bảo bảng đủ rộng cho 7 cột
+        min-width: 900px;
 
         th,
         td {
@@ -184,7 +464,8 @@
           padding: 0.75rem;
           text-align: center;
           transition: all 0.3s ease;
-          white-space: nowrap; // Ngăn wrap văn bản
+          white-space: nowrap;
+          white-space: nowrap;
         }
 
         thead {
@@ -208,6 +489,114 @@
         .status-cancel {
           color: #e74c3c;
           font-weight: 600;
+        }
+      }
+    }
+  }
+
+  /* Pagination styles */
+  .pagination-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding: 0.5rem 0;
+
+    .items-per-page {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      .filter-label {
+        margin-bottom: 0;
+      }
+
+      .dropdown {
+        .btn-outline-primary {
+          padding: 6px 12px;
+          font-size: 14px;
+          min-width: 80px;
+          text-align: center;
+          border-radius: 8px;
+          border: 2px solid transparent;
+          border-image: linear-gradient(135deg, #3498db, #2ecc71) 1;
+          background: #fff;
+          color: #1a1a2e;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+          transition: all 0.3s ease;
+
+          &:hover {
+            background: linear-gradient(135deg, #3498db, #2ecc71);
+            color: white;
+            border-image: none;
+            border: 2px solid transparent;
+          }
+
+          &.show {
+            background: linear-gradient(135deg, #3498db, #2ecc71);
+            color: white;
+            border-image: none;
+          }
+        }
+
+        .dropdown-menu {
+          min-width: 80px;
+          border-radius: 8px;
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+          border: none;
+
+          .dropdown-item {
+            font-size: 14px;
+            padding: 6px 12px;
+            text-align: center;
+            color: #2c3e50;
+            transition: all 0.3s ease;
+
+            &:hover {
+              background: linear-gradient(135deg, #f0f0f0, #e0e0e0);
+              color: #1a1a2e;
+            }
+          }
+        }
+      }
+    }
+
+    .pagination-nav {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      .page-info {
+        font-size: 14px;
+        color: #1a1a2e;
+        font-weight: 600;
+      }
+
+      .btn-outline-primary {
+        padding: 6px 12px;
+        font-size: 14px;
+        border-radius: N/A8px;
+        border: 2px solid transparent;
+        border-image: linear-gradient(135deg, #3498db, #2ecc71) 1;
+        background: #fff;
+        color: #1a1a2e;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+
+        &:hover {
+          background: linear-gradient(135deg, #3498db, #2ecc71);
+          color: white;
+          border-image: none;
+          border: 2px solid transparent;
+        }
+
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+          border-image: none;
+          border: 2px solid #e9ecef;
+          background: #f8f9fa;
+          color: #6c757d;
         }
       }
     }
@@ -263,6 +652,29 @@
       th,
       td {
         padding: 0.5rem;
+      }
+    }
+
+    .pagination-controls {
+      flex-direction: column;
+      gap: 1rem;
+
+      .items-per-page {
+        width: 100%;
+        justify-content: center;
+
+        .dropdown {
+          width: 100%;
+
+          .btn-outline-primary {
+            width: 100%;
+          }
+        }
+      }
+
+      .pagination-nav {
+        width: 100%;
+        justify-content: center;
       }
     }
   }

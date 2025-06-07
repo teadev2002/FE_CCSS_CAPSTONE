@@ -215,11 +215,11 @@ const UserAnalyticsPage = () => {
   // Lấy URL avatar từ accountImages
   const getAvatarUrl = (accountImages) => {
     if (!Array.isArray(accountImages) || accountImages.length === 0) {
-      return "https://via.placeholder.com/40"; // Placeholder image
+      return "https://media.istockphoto.com/id/1300845620/vector/user-icon-flat-isolated-on-white-background-user-symbol-vector-illustration.jpg?s=612x612&w=0&k=20&c=yBeyba0hUkh14_jgv1OKqIH0CCSWU_4ckRkAoy2p73o="; // Placeholder image;
     }
     const avatarImage =
       accountImages.find((img) => img.isAvatar) || accountImages[0];
-    return avatarImage.urlImage || "https://via.placeholder.com/40";
+    return avatarImage.urlImage || "https://media.istockphoto.com/id/1300845620/vector/user-icon-flat-isolated-on-white-background-user-symbol-vector-illustration.jpg?s=612x612&w=0&k=20&c=yBeyba0hUkh14_jgv1OKqIH0CCSWU_4ckRkAoy2p73o=";
   };
 
   // Lấy dữ liệu sử dụng dịch vụ từ API
@@ -447,7 +447,7 @@ const UserAnalyticsPage = () => {
         const avgRating =
           cosplayerRatings.length > 0
             ? cosplayerRatings.reduce((sum, rating) => sum + rating, 0) /
-              cosplayerRatings.length
+            cosplayerRatings.length
             : 0;
 
         setTotalAccounts({

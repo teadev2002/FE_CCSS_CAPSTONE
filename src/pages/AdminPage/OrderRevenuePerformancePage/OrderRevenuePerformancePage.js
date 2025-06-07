@@ -1136,6 +1136,9 @@ const OrderRevenuePerformancePage = () => {
   const [statusFilter, setStatusFilter] = useState("all"); // Status filter
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1); // Trang hiện tại
+  const [itemsPerPage, setItemsPerPage] = useState(10); // Số phần tử mỗi trang, mặc định 10
+  const itemsPerPageOptions = [5, 10, 20]; // Các tùy chọn số phần tử mỗi trang
 
   // Format price to VND
   const formatPrice = (price) => {
@@ -1381,6 +1384,27 @@ const OrderRevenuePerformancePage = () => {
     }
     return result;
   };
+
+  // Xử lý thay đổi số lượng phần tử mỗi trang
+  const handleItemsPerPageChange = (value) => {
+    setItemsPerPage(Number(value));
+    setCurrentPage(1); // Reset về trang đầu tiên khi thay đổi số lượng phần tử
+  };
+
+  // Xử lý chuyển trang
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  // Tính toán dữ liệu phân trang
+  const getPaginatedData = () => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredPayments.slice(startIndex, endIndex);
+  };
+
+  // Tính tổng số trang
+  const totalPages = Math.ceil(filteredPayments.length / itemsPerPage);
 
   // Prepare chart data
   const prepareChartData = () => {
@@ -1706,64 +1730,105 @@ const OrderRevenuePerformancePage = () => {
               {filteredPayments.length === 0 ? (
                 <p className="text-muted">No transactions found.</p>
               ) : (
-                <div className="table-responsive">
-                  <Table striped bordered hover responsive>
-                    <thead>
-                      <tr>
-                        <th className="text-center">Transaction ID</th>
-                        <th className="text-center">Type</th>
-                        <th className="text-center">Status</th>
-                        <th className="text-center">Purpose</th>
-                        <th className="text-center">Amount</th>
-                        <th className="text-center" onClick={handleSortByDate} style={{ cursor: "pointer" }}>
-                          Created At {sortOrder === "desc" ? "↓" : "↑"}
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredPayments.map((payment) => {
-                        const status = getStatusText(payment.status).toLowerCase();
-                        const purpose = payment.purpose?.toLowerCase() || "";
-                        const isRefund = purpose === "refund";
+                <>
+                  <div className="pagination-controls">
+                    <div className="items-per-page">
+                      <Form.Label className="filter-label">
+                        <Filter size={18} className="me-2" />
+                        Items per page
+                      </Form.Label>
+                      <Dropdown onSelect={handleItemsPerPageChange}>
+                        <Dropdown.Toggle variant="outline-primary" id="dropdown-items-per-page">
+                          {itemsPerPage}
+                        </Dropdown.Toggle>
+                        <Dropdown.Menu>
+                          {itemsPerPageOptions.map((option) => (
+                            <Dropdown.Item key={option} eventKey={option}>
+                              {option}
+                            </Dropdown.Item>
+                          ))}
+                        </Dropdown.Menu>
+                      </Dropdown>
+                    </div>
+                    <div className="pagination-nav">
+                      <span className="page-info">
+                        Page {currentPage} of {totalPages}
+                      </span>
+                      <button
+                        className="btn btn-outline-primary me-2"
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                      >
+                        Previous
+                      </button>
+                      <button
+                        className="btn btn-outline-primary"
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                  <div className="table-responsive">
+                    <Table striped bordered hover responsive>
+                      <thead>
+                        <tr>
+                          <th className="text-center">Transaction ID</th>
+                          <th className="text-center">Type</th>
+                          <th className="text-center">Status</th>
+                          <th className="text-center">Purpose</th>
+                          <th className="text-center">Amount</th>
+                          <th className="text-center" onClick={handleSortByDate} style={{ cursor: "pointer" }}>
+                            Created At {sortOrder === "desc" ? "↓" : "↑"}
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {getPaginatedData().map((payment) => {
+                          const status = getStatusText(payment.status).toLowerCase();
+                          const purpose = payment.purpose?.toLowerCase() || "";
+                          const isRefund = purpose === "refund";
 
-                        // Xác định màu sắc
-                        const statusColor =
-                          status === "completed"
-                            ? "#28a745" // Xanh lá cho Completed
-                            : status === "pending"
-                              ? "#fd7e14" // Cam cho Pending
-                              : "#000"; // Đen cho Canceled
+                          // Xác định màu sắc
+                          const statusColor =
+                            status === "completed"
+                              ? "#28a745" // Xanh lá cho Completed
+                              : status === "pending"
+                                ? "#fd7e14" // Cam cho Pending
+                                : "#000"; // Đen cho Canceled
 
-                        const amountColor = isRefund ? "#dc3545" : statusColor; // Ưu tiên đỏ cho Refund, nếu không thì theo status
-                        const amountPrefix = isRefund ? "-" : status === "completed" ? "+" : ""; // Dấu "-" cho Refund, "+" cho Completed
+                          const amountColor = isRefund ? "#dc3545" : statusColor; // Ưu tiên đỏ cho Refund, nếu không thì theo status
+                          const amountPrefix = isRefund ? "-" : status === "completed" ? "+" : ""; // Dấu "-" cho Refund, "+" cho Completed
 
-                        return (
-                          <tr key={payment.paymentId}>
-                            <td className="text-center">{payment.transactionId || "N/A"}</td>
-                            <td className="text-center">{payment.type || "N/A"}</td>
-                            <td className="text-center">
-                              <span style={{ color: statusColor, fontWeight: 600 }}>
-                                {getStatusText(payment.status)}
-                              </span>
-                            </td>
-                            <td className="text-center">
-                              <span style={{ color: isRefund ? "#dc3545" : "#000", fontWeight: 600 }}>
-                                {formatPurposeText(payment.purpose)}
-                              </span>
-                            </td>
-                            <td className="text-center">
-                              <span style={{ color: amountColor, fontWeight: 600 }}>
-                                {amountPrefix}
-                                {formatPrice(payment.amount)}
-                              </span>
-                            </td>
-                            <td className="text-center">{formatDate(payment.creatAt)}</td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </Table>
-                </div>
+                          return (
+                            <tr key={payment.paymentId}>
+                              <td className="text-center">{payment.transactionId || "N/A"}</td>
+                              <td className="text-center">{payment.type || "N/A"}</td>
+                              <td className="text-center">
+                                <span style={{ color: statusColor, fontWeight: 600 }}>
+                                  {getStatusText(payment.status)}
+                                </span>
+                              </td>
+                              <td className="text-center">
+                                <span style={{ color: isRefund ? "#dc3545" : "#000", fontWeight: 600 }}>
+                                  {formatPurposeText(payment.purpose)}
+                                </span>
+                              </td>
+                              <td className="text-center">
+                                <span style={{ color: amountColor, fontWeight: 600 }}>
+                                  {amountPrefix}
+                                  {formatPrice(payment.amount)}
+                                </span>
+                              </td>
+                              <td className="text-center">{formatDate(payment.creatAt)}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </Table>
+                  </div>
+                </>
               )}
             </Card.Body>
           </Card>
