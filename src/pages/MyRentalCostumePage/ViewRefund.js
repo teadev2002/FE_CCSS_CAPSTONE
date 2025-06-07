@@ -147,7 +147,7 @@ const ViewRefund = ({ refund }) => {
                   : 0}
               </p>
               <p>
-                <strong>Amount:</strong>{" "}
+                <strong>Refund:</strong>{" "}
                 {selectedRefund.amount
                   ? selectedRefund.amount.toLocaleString()
                   : 0}
