@@ -1801,7 +1801,7 @@ const ManageContractRentalCostume = () => {
           <Form>
             <Form.Group className="mb-3">
               <Form.Label>
-                <strong>Customer Name</strong>
+                <strong> Name</strong>
               </Form.Label>
               <Form.Control
                 type="text"
