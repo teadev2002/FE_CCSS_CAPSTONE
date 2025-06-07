@@ -1623,8 +1623,8 @@ import dayjs from "dayjs";
 // Danh sách trạng thái lễ hội với tên hiển thị
 const STATUS_OPTIONS = [
   { value: -1, label: "All" }, // Đổi từ "All Status" thành "All"
-  { value: 0, label: "Open for Sale" },
-  { value: 1, label: "On Ready" }, // Đổi từ "Stopped Selling" thành "On Ready"
+  { value: 0, label: "On Ready" },
+  { value: 1, label: "Inactive" }, // Đổi từ "Stopped Selling" thành "On Ready"
   { value: 2, label: "Ongoing" },
   { value: 3, label: "Ended" },
 ];
@@ -1801,7 +1801,7 @@ const FestivalsPage = () => {
   const getStatusMessage = (status) => {
     switch (status) {
       case 1:
-        return "This event is on ready!";
+        return "This event has stopped selling tickets!";
       case 2:
         return "This event is currently ongoing!";
       case 3:
@@ -1998,16 +1998,16 @@ const FestivalsPage = () => {
                   style={{
                     color:
                       festival.status === 0
-                        ? "#28a745" // Open for Sale: Xanh
+                        ? "#28a745" // On Ready: Xanh
                         : festival.status === 1
-                          ? "#ffc107" // On Ready: Vàng
+                          ? "#778899" // Inactive: xám
                           : "#dc3545", // Ongoing hoặc Ended: Đỏ
                   }}
                 >
                   {festival.status === 0
-                    ? "Open for Sale"
+                    ? "On Ready"
                     : festival.status === 1
-                      ? "On Ready"
+                      ? "Inactive"
                       : festival.status === 2
                         ? "Ongoing"
                         : "Ended"}
