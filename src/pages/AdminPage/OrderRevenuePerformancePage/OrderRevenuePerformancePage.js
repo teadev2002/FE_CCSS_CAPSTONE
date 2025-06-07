@@ -1414,42 +1414,47 @@ const OrderRevenuePerformancePage = () => {
     if (filterType === 0) {
       // Hourly chart for Today
       labels = Array.from({ length: 24 }, (_, i) => `${i}:00`);
-      data = new Array(24).fill(0);
-      chartData.hourlyRevenue.forEach((item) => {
-        const hourIndex = parseInt(item.hour, 10);
-        if (hourIndex >= 0 && hourIndex < 24) {
-          data[hourIndex] = item.totalRevenue || 0;
-        }
-      });
+      data = chartData.hourlyRevenue.length > 0
+        ? new Array(24).fill(0).map((_, index) => {
+          const item = chartData.hourlyRevenue.find(item => parseInt(item.hour, 10) === index);
+          return item ? item.totalRevenue || 0 : 0;
+        })
+        : new Array(24).fill(0); // Đường ngang khi không có dữ liệu
     } else if (filterType === 1) {
       // Weekly chart
-      const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-      labels = days;
-      data = new Array(7).fill(0);
-      chartData.dailyRevenue.forEach((item) => {
-        const date = new Date(item.date);
-        const dayIndex = date.getDay() === 0 ? 6 : date.getDay() - 1;
-        data[dayIndex] = item.totalRevenue || 0;
-      });
+      labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+      data = chartData.dailyRevenue.length > 0
+        ? new Array(7).fill(0).map((_, index) => {
+          const item = chartData.dailyRevenue.find(item => {
+            const date = new Date(item.date);
+            const dayIndex = date.getDay() === 0 ? 6 : date.getDay() - 1;
+            return dayIndex === index;
+          });
+          return item ? item.totalRevenue || 0 : 0;
+        })
+        : new Array(7).fill(0); // Đường ngang khi không có dữ liệu
     } else if (filterType === 2) {
       // Monthly chart
       const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
       labels = Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString());
-      data = new Array(daysInMonth).fill(0);
-      chartData.dailyRevenue.forEach((item) => {
-        const date = new Date(item.date);
-        const day = date.getDate() - 1;
-        data[day] = item.totalRevenue || 0;
-      });
+      data = chartData.dailyRevenue.length > 0
+        ? new Array(daysInMonth).fill(0).map((_, index) => {
+          const item = chartData.dailyRevenue.find(item => {
+            const date = new Date(item.date);
+            return date.getDate() - 1 === index;
+          });
+          return item ? item.totalRevenue || 0 : 0;
+        })
+        : new Array(daysInMonth).fill(0); // Đường ngang khi không có dữ liệu
     } else if (filterType === 3) {
       // Yearly chart
-      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-      labels = months;
-      data = new Array(12).fill(0);
-      chartData.monthlyRevenue.forEach((item) => {
-        const monthIndex = item.month - 1;
-        data[monthIndex] = item.totalRevenue || 0;
-      });
+      labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      data = chartData.monthlyRevenue.length > 0
+        ? new Array(12).fill(0).map((_, index) => {
+          const item = chartData.monthlyRevenue.find(item => item.month - 1 === index);
+          return item ? item.totalRevenue || 0 : 0;
+        })
+        : new Array(12).fill(0); // Đường ngang khi không có dữ liệu
     }
 
     return {
@@ -1469,7 +1474,7 @@ const OrderRevenuePerformancePage = () => {
           fill: true,
           tension: 0.4,
           pointBackgroundColor: "#fff",
-          pointBorderColor: "rgb(52, 152, 219)",
+          pointBorderColor: "rgb(52, 152, 219)", 
           pointBorderWidth: 2,
           pointRadius: 5,
           pointHoverRadius: 7,
@@ -1672,14 +1677,7 @@ const OrderRevenuePerformancePage = () => {
               <h5>Revenue Trend</h5>
             </Card.Header>
             <Card.Body style={{ height: "400px" }}>
-              {(filterType === 0 && chartData.hourlyRevenue.length === 0) ||
-                (filterType === 1 && chartData.dailyRevenue.length === 0) ||
-                (filterType === 2 && chartData.dailyRevenue.length === 0) ||
-                (filterType === 3 && chartData.monthlyRevenue.length === 0) ? (
-                <p className="text-muted text-center">No data available for the selected period.</p>
-              ) : (
-                <Line data={prepareChartData()} options={chartOptions} />
-              )}
+              <Line data={prepareChartData()} options={chartOptions} />
             </Card.Body>
           </Card>
 
